@@ -64,7 +64,16 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
 
   @override
   void dispose() {
-    for (final c in [_name, _phone, _line1, _line2, _city, _state, _pin, _note]) {
+    for (final c in [
+      _name,
+      _phone,
+      _line1,
+      _line2,
+      _city,
+      _state,
+      _pin,
+      _note,
+    ]) {
       c.dispose();
     }
     super.dispose();

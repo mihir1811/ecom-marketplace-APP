@@ -87,8 +87,7 @@ class _OrderCard extends StatelessWidget {
     final more = order.items.length - 1;
     return InkWell(
       borderRadius: BorderRadius.circular(LuxeSpace.radius),
-      onTap: () =>
-          context.push(AppRouteNames.jewelryOrderDetailPath(order.id)),
+      onTap: () => context.push(AppRouteNames.jewelryOrderDetailPath(order.id)),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(

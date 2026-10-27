@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/error/failure.dart';
@@ -18,6 +20,11 @@ enum BagAddIssue { full, maxQuantity }
 /// written back on every change.
 class JewelryBagNotifier extends Notifier<List<BagLine>> {
   bool _loaded = false;
+  final _ready = Completer<void>();
+
+  /// Completes once the stored bag has been read, so callers never mistake
+  /// the empty start for an empty bag.
+  Future<void> get ready => _ready.future;
 
   JewelryBagStore get _store => ref.read(jewelryBagStoreProvider);
 
@@ -31,6 +38,7 @@ class JewelryBagNotifier extends Notifier<List<BagLine>> {
     if (_loaded) return;
     final saved = await _store.read();
     _loaded = true;
+    if (!_ready.isCompleted) _ready.complete();
     // Lines added before storage answered win over the stored copy.
     final keys = {for (final l in state) l.key};
     state = [
@@ -76,13 +84,18 @@ class JewelryBagNotifier extends Notifier<List<BagLine>> {
     ]);
   }
 
-  void remove(String key) =>
-      _commit([for (final l in state) if (l.key != key) l]);
+  void remove(String key) => _commit([
+    for (final l in state)
+      if (l.key != key) l,
+  ]);
 
   /// Drops the lines an order just paid for.
   void removeAll(Iterable<String> keys) {
     final drop = keys.toSet();
-    _commit([for (final l in state) if (!drop.contains(l.key)) l]);
+    _commit([
+      for (final l in state)
+        if (!drop.contains(l.key)) l,
+    ]);
   }
 
   /// Keeps shown prices current with the latest quote.
@@ -102,13 +115,16 @@ class JewelryBagNotifier extends Notifier<List<BagLine>> {
   }
 }
 
-final jewelryBagProvider =
-    NotifierProvider<JewelryBagNotifier, List<BagLine>>(JewelryBagNotifier.new);
+final jewelryBagProvider = NotifierProvider<JewelryBagNotifier, List<BagLine>>(
+  JewelryBagNotifier.new,
+);
 
 /// Pieces in the bag (sum of quantities) for badges.
 final jewelryBagCountProvider = Provider<int>(
   (ref) => ref.watch(
-    jewelryBagProvider.select((lines) => lines.fold(0, (s, l) => s + l.quantity)),
+    jewelryBagProvider.select(
+      (lines) => lines.fold(0, (s, l) => s + l.quantity),
+    ),
   ),
 );
 

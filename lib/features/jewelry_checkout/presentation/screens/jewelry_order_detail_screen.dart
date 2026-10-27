@@ -395,7 +395,10 @@ class _UpdateRow extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                           child: SizedBox.square(
                             dimension: 56,
-                            child: AppNetworkImage(url: url, memCacheWidth: 168),
+                            child: AppNetworkImage(
+                              url: url,
+                              memCacheWidth: 168,
+                            ),
                           ),
                         ),
                     ],
@@ -490,7 +493,10 @@ class _ItemCard extends ConsumerWidget {
                     child: i.imageUrl == null
                         ? ColoredBox(
                             color: p.surfaceRaised,
-                            child: Icon(Icons.diamond_outlined, color: p.accent),
+                            child: Icon(
+                              Icons.diamond_outlined,
+                              color: p.accent,
+                            ),
                           )
                         : AppNetworkImage(url: i.imageUrl!, memCacheWidth: 216),
                   ),
@@ -653,26 +659,30 @@ class _Totals extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     final a = order.address;
-    Widget row(String label, String value, {bool strong = false, Color? tone}) =>
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  label,
-                  style: strong
-                      ? LuxeType.label(p.ink, size: 15)
-                      : LuxeType.body(p.inkMuted, size: 14),
-                ),
-              ),
-              Text(
-                value,
-                style: LuxeType.figure(tone ?? p.ink, size: strong ? 16 : 14),
-              ),
-            ],
+    Widget row(
+      String label,
+      String value, {
+      bool strong = false,
+      Color? tone,
+    }) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: strong
+                  ? LuxeType.label(p.ink, size: 15)
+                  : LuxeType.body(p.inkMuted, size: 14),
+            ),
           ),
-        );
+          Text(
+            value,
+            style: LuxeType.figure(tone ?? p.ink, size: strong ? 16 : 14),
+          ),
+        ],
+      ),
+    );
     return _Card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

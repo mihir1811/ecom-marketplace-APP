@@ -55,9 +55,7 @@ Widget _thumb(BuildContext context, Jewelry j) {
     ),
   );
   return CatalogCardImagePager(
-    imageUrls: j.imageUrls.isNotEmpty
-        ? j.imageUrls
-        : [?j.displayImageUrl],
+    imageUrls: j.imageUrls.isNotEmpty ? j.imageUrls : [?j.displayImageUrl],
     fallback: fallback,
     memCacheWidth: 480,
   );

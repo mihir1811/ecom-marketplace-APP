@@ -8,12 +8,14 @@ import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../../../core/widgets/luxe/luxe_metal_swatch.dart';
 import '../../application/jewellery_categories_provider.dart';
 import '../../application/jewelry_filter_provider.dart';
+import '../../application/jewelry_house_providers.dart';
 import '../../domain/models/marketplace_enums.dart';
 import '../../domain/models/marketplace_listing.dart';
 
 /// Collection chips when every category is shown; style (sub-category)
 /// chips once a collection is open. Single-select, like the API's
-/// `category` param.
+/// `category` param. Inside one house, only the collections and styles it
+/// has pieces in are offered; styles are user-made, so always read live.
 class JewelryStyleChips extends ConsumerWidget {
   const JewelryStyleChips({super.key});
 
@@ -25,7 +27,8 @@ class JewelryStyleChips extends ConsumerWidget {
     final selected = ref.watch(
       jewelryFilterProvider.select((s) => s.subCategory),
     );
-    final live = ref.watch(jewelleryCategoriesProvider);
+    final shop = ref.watch(jewelryFilterProvider.select((s) => s.shop));
+    final live = _forShop(ref, shop, category);
     return AnimatedSize(
       duration: LuxeMotion.medium,
       curve: LuxeMotion.settle,
@@ -44,7 +47,8 @@ class JewelryStyleChips extends ConsumerWidget {
         ),
         // Styles are an extra; the rest of the page still works without.
         error: (_, _) => const SizedBox(width: double.infinity),
-        data: (categories) {
+        data: (scoped) {
+          final (categories, styles) = scoped;
           final n = ref.read(jewelryFilterProvider.notifier);
           final parent = MarketplaceCategory.find(categories, category);
           if (parent == null) {
@@ -67,7 +71,11 @@ class JewelryStyleChips extends ConsumerWidget {
               },
             );
           }
-          if (parent.children.isEmpty) {
+          final children = [
+            for (final s in parent.children)
+              if (styles == null || styles.contains(s.slug)) s,
+          ];
+          if (children.isEmpty) {
             return const SizedBox(width: double.infinity);
           }
           return LuxeQuickChips<String>(
@@ -76,7 +84,7 @@ class JewelryStyleChips extends ConsumerWidget {
                 value: _all,
                 label: context.tr(JewelryFlowL10n.allStyles),
               ),
-              for (final s in parent.children)
+              for (final s in children)
                 LuxeQuickChip(value: s.slug, label: s.name),
             ],
             isSelected: (v) => v == _all ? selected == null : selected == v,
@@ -85,6 +93,37 @@ class JewelryStyleChips extends ConsumerWidget {
         },
       ),
     );
+  }
+
+  /// Categories (only the house's own while [shop] is set) and the styles
+  /// of [category] the house has, or null for every style. House lookups
+  /// that fail fall back to everything.
+  static AsyncValue<(List<MarketplaceCategory>, Set<String>?)> _forShop(
+    WidgetRef ref,
+    String? shop,
+    String? category,
+  ) {
+    final live = ref.watch(jewelleryCategoriesProvider);
+    if (shop == null || shop.isEmpty) {
+      return live.whenData((c) => (c, null));
+    }
+    final all = live.valueOrNull;
+    if (all == null) return live.whenData((c) => (c, null));
+    final parent = MarketplaceCategory.find(all, category);
+    if (parent == null) {
+      final house = ref.watch(jewelryHouseCollectionsProvider(shop));
+      if (house.isLoading) return const AsyncLoading();
+      final own = house.valueOrNull;
+      return AsyncData((
+        own == null ? all : [for (final c in own) c.category],
+        null,
+      ));
+    }
+    final styles = ref.watch(
+      jewelryHouseStylesProvider((shop: shop, category: parent.slug)),
+    );
+    if (styles.isLoading) return const AsyncLoading();
+    return AsyncData((all, styles.valueOrNull));
   }
 }
 

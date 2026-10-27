@@ -7,7 +7,9 @@ import '../../../core/pagination/paginated_list_state.dart';
 import '../data/repositories/jewelry_repository_impl.dart';
 import '../domain/models/jewelry.dart';
 import '../domain/models/jewelry_filter_state.dart';
+import '../domain/models/marketplace_listing.dart';
 import '../domain/repositories/jewelry_repository.dart';
+import 'jewellery_categories_provider.dart';
 
 /// One house's pieces: shop slug, optional parent category slug and sort.
 typedef JewelryHouseQuery = ({
@@ -106,3 +108,71 @@ class JewelryHousePiecesNotifier
         );
   }
 }
+
+/// One collection a house sells in, with its newest piece's first image.
+typedef JewelryHouseCollection = ({
+  MarketplaceCategory category,
+  String? cover,
+});
+
+/// The newest piece of [shop] in [category] (a parent or sub-category slug),
+/// or null when it has none. One-item page: never the whole inventory.
+Future<Jewelry?> _newestPiece(
+  Ref ref,
+  String shop,
+  String category,
+  CancelToken cancel,
+) async {
+  final result = await ref
+      .read(jewelryRepositoryProvider)
+      .getJewelry(
+        filters: JewelryFilterState(shop: shop, category: category),
+        page: 1,
+        pageSize: 1,
+        sort: JewelrySortOption.newest,
+        cancelToken: cancel,
+      );
+  return switch (result) {
+    Success(value: final r) => r.items.firstOrNull,
+    ResultFailure(failure: final f) => throw f,
+  };
+}
+
+/// Collections (top-level categories, in API order) that house [shop]
+/// sells in, each fronted by its latest upload's first image.
+final jewelryHouseCollectionsProvider = FutureProvider.autoDispose
+    .family<List<JewelryHouseCollection>, String>((ref, shop) async {
+      final cancel = CancelToken();
+      ref.onDispose(cancel.cancel);
+      final categories = await ref.watch(jewelleryCategoriesProvider.future);
+      final newest = await Future.wait([
+        for (final c in categories) _newestPiece(ref, shop, c.slug, cancel),
+      ]);
+      return [
+        for (final (i, c) in categories.indexed)
+          if (newest[i] case final piece?)
+            (
+              category: c,
+              cover: piece.imageUrls.firstOrNull ?? piece.displayImageUrl,
+            ),
+      ];
+    });
+
+/// Slugs of [query.category]'s styles (sub-categories) that house
+/// [query.shop] has pieces in. Styles are created by people and change, so
+/// they are read live and probed one item each.
+final jewelryHouseStylesProvider = FutureProvider.autoDispose
+    .family<Set<String>, ({String shop, String category})>((ref, query) async {
+      final cancel = CancelToken();
+      ref.onDispose(cancel.cancel);
+      final categories = await ref.watch(jewelleryCategoriesProvider.future);
+      final parent = MarketplaceCategory.find(categories, query.category);
+      final styles = parent?.children ?? const <MarketplaceCategory>[];
+      final newest = await Future.wait([
+        for (final s in styles) _newestPiece(ref, query.shop, s.slug, cancel),
+      ]);
+      return {
+        for (final (i, s) in styles.indexed)
+          if (newest[i] != null) s.slug,
+      };
+    });

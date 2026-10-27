@@ -11,6 +11,7 @@ import 'core/widgets/navigation/bottom_nav/app_bottom_nav_host.dart';
 import 'features/ai_chat/presentation/widgets/gem_ai_overlay.dart';
 import 'features/auth/application/user_profile_providers.dart';
 import 'features/gem_agent/gem_agent.dart';
+import 'features/jewelry_checkout/application/jewelry_bag_sync.dart';
 import 'features/notifications/application/notifications_provider.dart';
 import 'features/notifications/presentation/widgets/in_app_notification_host.dart';
 
@@ -27,6 +28,7 @@ class GemWorldApp extends ConsumerWidget {
     });
     final locale = ref.watch(localePreferenceProvider);
     ref.watch(notificationSessionProvider);
+    ref.watch(jewelryBagSyncProvider);
 
     return MaterialApp.router(
       onGenerateTitle: (context) => context.tr(CoreL10n.appTitle),

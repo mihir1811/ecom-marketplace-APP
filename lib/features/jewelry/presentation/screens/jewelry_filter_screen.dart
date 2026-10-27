@@ -233,9 +233,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen>
     final hi = facets.priceMax.ceilToDouble();
     if (hi <= lo) {
       return Text(
-        context.tr(JewelryMarketL10n.priceSingle, {
-          'price': jewelryRupees(hi),
-        }),
+        context.tr(JewelryMarketL10n.priceSingle, {'price': jewelryRupees(hi)}),
         style: LuxeType.body(LuxePalette.of(context).inkMuted, size: 13),
       );
     }
@@ -247,10 +245,8 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen>
       currentMax: (d.priceMax ?? hi).clamp(lo, hi),
       unitPrefix: AppCurrency.inrSymbol,
       isInteger: true,
-      onChanged: (min, max) => _n.setPriceRange(
-        min <= lo ? null : min,
-        max >= hi ? null : max,
-      ),
+      onChanged: (min, max) =>
+          _n.setPriceRange(min <= lo ? null : min, max >= hi ? null : max),
       onClear: _n.clearPriceRange,
     );
   }

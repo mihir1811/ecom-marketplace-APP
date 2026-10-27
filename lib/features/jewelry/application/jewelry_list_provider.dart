@@ -32,8 +32,8 @@ void presentPrefetchedJewelry(
 
 final jewelryListProvider =
     AsyncNotifierProvider<JewelryListNotifier, JewelryListState>(
-  JewelryListNotifier.new,
-);
+      JewelryListNotifier.new,
+    );
 
 class JewelryListNotifier extends PaginatedAsyncNotifier<Jewelry> {
   CancelToken? _cancelToken;
@@ -52,7 +52,6 @@ class JewelryListNotifier extends PaginatedAsyncNotifier<Jewelry> {
     }
     _cancelToken = CancelToken();
   }
-
 
   @override
   void onBeforePageLoad({required int page, required bool isFirstPage}) {
@@ -80,12 +79,12 @@ class JewelryListNotifier extends PaginatedAsyncNotifier<Jewelry> {
     );
     return switch (result) {
       Success(value: final response) => Success(
-          PaginatedPage<Jewelry>(
-            items: response.items,
-            hasMore: response.hasMore,
-            totalCount: response.totalCount,
-          ),
+        PaginatedPage<Jewelry>(
+          items: response.items,
+          hasMore: response.hasMore,
+          totalCount: response.totalCount,
         ),
+      ),
       ResultFailure(failure: final failure) => ResultFailure(failure),
     };
   }

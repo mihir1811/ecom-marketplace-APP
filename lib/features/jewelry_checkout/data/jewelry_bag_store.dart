@@ -7,8 +7,9 @@ import '../domain/models/marketplace_order.dart';
 
 /// Keeps the jewellery bag and the last delivery address on the device.
 ///
-/// The marketplace never stores the bag server-side (the website does the
-/// same); signing out leaves it in place.
+/// The device copy is the bag (the website does the same); signing out
+/// leaves it in place. A signed-in buyer's bag is also copied to the server
+/// for sellers to see, see `jewelryBagSyncProvider`.
 class JewelryBagStore {
   const JewelryBagStore();
 

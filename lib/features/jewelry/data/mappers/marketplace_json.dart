@@ -42,7 +42,10 @@ abstract final class MarketplaceJson {
     Object? v,
     T Function(Map<String, dynamic> json) parse,
   ) => v is List
-      ? [for (final e in v) if (e is Map) parse(obj(e))]
+      ? [
+          for (final e in v)
+            if (e is Map) parse(obj(e)),
+        ]
       : <T>[];
 
   /// Trimmed non-empty text, else null.

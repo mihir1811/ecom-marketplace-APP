@@ -137,7 +137,10 @@ class JewelryCheckoutController extends Notifier<bool> {
         if (verified case Success(value: final order)) {
           return JewelryCheckoutPaid(order);
         }
-        return _settle(session.orderId, 'We could not confirm the payment yet.');
+        return _settle(
+          session.orderId,
+          'We could not confirm the payment yet.',
+        );
       case ResultFailure(failure: final Failure f):
         return _settle(session.orderId, f.message);
     }

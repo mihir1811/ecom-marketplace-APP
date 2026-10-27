@@ -116,9 +116,7 @@ class _Banner extends StatelessWidget {
         children: [
           Icon(Icons.cloud_off_rounded, size: 18, color: p.caution),
           const SizedBox(width: 10),
-          Expanded(
-            child: Text(text, style: LuxeType.label(p.ink, size: 13)),
-          ),
+          Expanded(child: Text(text, style: LuxeType.label(p.ink, size: 13))),
           TextButton(
             onPressed: onRetry,
             child: Text(context.tr(CatalogL10n.retry)),
@@ -163,7 +161,9 @@ class _BagLineCard extends ConsumerWidget {
         color: p.surface,
         borderRadius: BorderRadius.circular(LuxeSpace.radius),
         border: Border.all(
-          color: problem == null ? p.hairline : p.caution.withValues(alpha: 0.5),
+          color: problem == null
+              ? p.hairline
+              : p.caution.withValues(alpha: 0.5),
         ),
       ),
       child: Column(
@@ -186,7 +186,10 @@ class _BagLineCard extends ConsumerWidget {
                     child: image == null
                         ? ColoredBox(
                             color: p.surfaceRaised,
-                            child: Icon(Icons.diamond_outlined, color: p.accent),
+                            child: Icon(
+                              Icons.diamond_outlined,
+                              color: p.accent,
+                            ),
                           )
                         : AppNetworkImage(url: image, memCacheWidth: 264),
                   ),
@@ -262,7 +265,11 @@ class _BagLineCard extends ConsumerWidget {
             children: [
               TextButton.icon(
                 onPressed: () => n.remove(line.key),
-                icon: Icon(Icons.delete_outline_rounded, size: 18, color: p.inkMuted),
+                icon: Icon(
+                  Icons.delete_outline_rounded,
+                  size: 18,
+                  color: p.inkMuted,
+                ),
                 label: Text(
                   context.tr(JewelryMarketL10n.remove),
                   style: LuxeType.label(p.inkMuted, size: 13),
@@ -292,29 +299,33 @@ class _Summary extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     final q = quote;
-    Widget row(String label, String value, {bool strong = false, Color? tone}) =>
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 5),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  label,
-                  style: strong
-                      ? LuxeType.label(p.ink, size: 15)
-                      : LuxeType.body(p.inkMuted, size: 14),
-                ),
-              ),
-              Text(
-                value,
-                style: LuxeType.figure(tone ?? p.ink, size: strong ? 17 : 14)
-                    .copyWith(
-                      fontWeight: strong ? FontWeight.w600 : FontWeight.w400,
-                    ),
-              ),
-            ],
+    Widget row(
+      String label,
+      String value, {
+      bool strong = false,
+      Color? tone,
+    }) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: strong
+                  ? LuxeType.label(p.ink, size: 15)
+                  : LuxeType.body(p.inkMuted, size: 14),
+            ),
           ),
-        );
+          Text(
+            value,
+            style: LuxeType.figure(
+              tone ?? p.ink,
+              size: strong ? 17 : 14,
+            ).copyWith(fontWeight: strong ? FontWeight.w600 : FontWeight.w400),
+          ),
+        ],
+      ),
+    );
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

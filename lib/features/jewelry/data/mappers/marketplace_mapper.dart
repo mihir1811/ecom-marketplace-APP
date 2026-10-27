@@ -59,7 +59,8 @@ abstract final class MarketplaceMapper {
     final gemstonesJson = j['gemstones'];
     final gemstoneRows = gemstonesJson is List
         ? ([...gemstonesJson.whereType<Map>().map(_J.obj)]..sort(
-            (a, b) => _J.asInt(a['position']).compareTo(_J.asInt(b['position'])),
+            (a, b) =>
+                _J.asInt(a['position']).compareTo(_J.asInt(b['position'])),
           ))
         : const <Map<String, dynamic>>[];
     return MarketplaceListing(

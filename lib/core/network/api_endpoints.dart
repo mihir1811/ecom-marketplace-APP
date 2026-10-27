@@ -45,6 +45,7 @@ abstract final class ApiEndpoints {
   static String marketplaceShop(String slug) =>
       '/marketplace/shops/${Uri.encodeComponent(slug)}';
   static const String marketplaceCartQuote = '/marketplace/cart/quote';
+  static const String marketplaceCart = '/marketplace/cart';
   static const String marketplaceOrders = '/marketplace/orders';
   static String marketplaceOrder(String id) => '/marketplace/orders/$id';
   static String marketplaceOrderVerify(String id) =>

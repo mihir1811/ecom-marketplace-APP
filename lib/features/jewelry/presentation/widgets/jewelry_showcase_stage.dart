@@ -186,7 +186,11 @@ class _FeaturedCard extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Color(0x00000000), Color(0x26000000), Color(0xD9000000)],
+                  colors: [
+                    Color(0x00000000),
+                    Color(0x26000000),
+                    Color(0xD9000000),
+                  ],
                   stops: [0.25, 0.5, 1],
                 ),
               ),
@@ -195,7 +199,10 @@ class _FeaturedCard extends StatelessWidget {
               top: 12,
               left: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: ShapeDecoration(
                   color: LuxeStage.obsidian.withValues(alpha: 0.6),
                   shape: StadiumBorder(
@@ -289,9 +296,7 @@ class _StageSkeleton extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              block(120, 10),
-            ],
+            children: [block(120, 10)],
           ),
         ),
         const SizedBox(height: 22),

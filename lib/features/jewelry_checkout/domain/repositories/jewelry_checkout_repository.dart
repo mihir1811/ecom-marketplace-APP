@@ -9,6 +9,11 @@ abstract class JewelryCheckoutRepository {
   /// Prices the bag (no sign-in). Call when the bag opens and before checkout.
   Future<Result<CartQuote, Failure>> quote(List<BagLine> lines);
 
+  /// Saves a copy of the signed-in buyer's whole bag so sellers can see who
+  /// has their pieces in a bag. An empty [lines] clears the copy. Returns the
+  /// number of variants saved.
+  Future<Result<int, Failure>> syncBag(List<BagLine> lines);
+
   /// Saves a `PENDING_PAYMENT` order and opens a Razorpay order for it.
   /// Every success creates a new order: never retry this automatically.
   Future<Result<MarketplaceCheckoutSession, Failure>> createOrder({

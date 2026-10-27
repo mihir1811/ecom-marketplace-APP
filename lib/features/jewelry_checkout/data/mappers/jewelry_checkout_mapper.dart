@@ -53,8 +53,7 @@ abstract final class JewelryCheckoutMapper {
     );
   }
 
-  static List<MarketplaceOrder> orders(Object? data) =>
-      _J.listOf(data, order);
+  static List<MarketplaceOrder> orders(Object? data) => _J.listOf(data, order);
 
   static MarketplaceOrder order(Map<String, dynamic> j) {
     final address = _J.obj(j['shippingAddress']);

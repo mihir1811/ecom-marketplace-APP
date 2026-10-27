@@ -149,7 +149,11 @@ class JewelryHouseRow extends StatelessWidget {
 }
 
 class JewelryHouseLogo extends StatelessWidget {
-  const JewelryHouseLogo({required this.house, required this.radius, super.key});
+  const JewelryHouseLogo({
+    required this.house,
+    required this.radius,
+    super.key,
+  });
 
   final MarketplaceShop house;
   final double radius;

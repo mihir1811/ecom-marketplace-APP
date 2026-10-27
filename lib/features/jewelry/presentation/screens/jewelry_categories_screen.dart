@@ -366,7 +366,11 @@ class _CollectionTile extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Color(0x00000000), Color(0x14000000), Color(0xB3000000)],
+                  colors: [
+                    Color(0x00000000),
+                    Color(0x14000000),
+                    Color(0xB3000000),
+                  ],
                   stops: [0.35, 0.55, 1],
                 ),
               ),
@@ -473,8 +477,7 @@ class _CollectionSkeleton extends StatelessWidget {
 class _Styles extends ConsumerWidget {
   const _Styles({required this.onOpen});
 
-  final void Function({String? category, String? style, String? metal})
-  onOpen;
+  final void Function({String? category, String? style, String? metal}) onOpen;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -500,8 +503,7 @@ class _Styles extends ConsumerWidget {
             ),
             LuxeQuickChips<({String category, String style, String name})>(
               chips: [
-                for (final s in styles)
-                  LuxeQuickChip(value: s, label: s.name),
+                for (final s in styles) LuxeQuickChip(value: s, label: s.name),
               ],
               isSelected: (_) => false,
               onTap: (s) => onOpen(category: s.category, style: s.style),

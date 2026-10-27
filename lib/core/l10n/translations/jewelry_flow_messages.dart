@@ -13,6 +13,9 @@ abstract final class JewelryFlowL10n {
   static const housePieces = 'jewelryFlow.housePieces';
   static const housePiecesEmpty = 'jewelryFlow.housePiecesEmpty';
   static const allCategories = 'jewelryFlow.allCategories';
+  static const houseCollections = 'jewelryFlow.houseCollections';
+  static const houseCollectionsTitle = 'jewelryFlow.houseCollectionsTitle';
+  static const explore = 'jewelryFlow.explore';
   static const sortBy = 'jewelryFlow.sortBy';
   static const filterBy = 'jewelryFlow.filterBy';
   static const sortMostPieces = 'jewelryFlow.sortMostPieces';
@@ -125,6 +128,21 @@ const jewelryFlowMessages = <String, LocalizedMessage>{
     english: 'This house has no pieces here yet.',
     hindi: 'इस हाउस के यहाँ अभी कोई पीस नहीं हैं।',
     gujarati: 'આ હાઉસના અહીં હજી કોઈ પીસ નથી.',
+  ),
+  JewelryFlowL10n.houseCollections: LocalizedMessage(
+    english: 'The collections',
+    hindi: 'संग्रह',
+    gujarati: 'સંગ્રહ',
+  ),
+  JewelryFlowL10n.houseCollectionsTitle: LocalizedMessage(
+    english: 'Curated by the house',
+    hindi: 'हाउस द्वारा चुना गया',
+    gujarati: 'હાઉસ દ્વારા પસંદ કરેલું',
+  ),
+  JewelryFlowL10n.explore: LocalizedMessage(
+    english: 'Explore',
+    hindi: 'देखें',
+    gujarati: 'જુઓ',
   ),
   JewelryFlowL10n.allCategories: LocalizedMessage(
     english: 'All',

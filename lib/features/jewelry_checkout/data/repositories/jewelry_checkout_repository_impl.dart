@@ -17,8 +17,8 @@ final jewelryCheckoutRepositoryProvider = Provider<JewelryCheckoutRepository>(
   (ref) => JewelryCheckoutRepositoryImpl(ref.watch(dioProvider)),
 );
 
-/// Live marketplace checkout backed by `/marketplace/cart/quote` and
-/// `/marketplace/orders/*`.
+/// Live marketplace checkout backed by `/marketplace/cart/quote`,
+/// `/marketplace/cart` and `/marketplace/orders/*`.
 class JewelryCheckoutRepositoryImpl implements JewelryCheckoutRepository {
   JewelryCheckoutRepositoryImpl(this._dio);
 
@@ -33,6 +33,18 @@ class JewelryCheckoutRepositoryImpl implements JewelryCheckoutRepository {
         );
         return JewelryCheckoutMapper.quote(MarketplaceJson.data(response.data));
       });
+
+  @override
+  Future<Result<int, Failure>> syncBag(List<BagLine> lines) => _guard(() async {
+    final response = await _dio.put<Object?>(
+      ApiEndpoints.marketplaceCart,
+      data: {'items': lines.map((l) => l.toRequestJson()).toList()},
+    );
+    final items = MarketplaceJson.obj(
+      MarketplaceJson.data(response.data),
+    )['items'];
+    return items is num ? items.toInt() : 0;
+  });
 
   @override
   Future<Result<MarketplaceCheckoutSession, Failure>> createOrder({

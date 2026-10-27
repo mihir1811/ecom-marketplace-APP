@@ -44,10 +44,12 @@ class _JewelryHousesScreenState extends ConsumerState<JewelryHousesScreen> {
     return switch (_sort) {
       _HouseSort.featured => JewelryHouses.ranked(filtered),
       _HouseSort.newest => filtered,
-      _HouseSort.pieces => [...filtered]
-        ..sort((a, b) => (b.listingCount ?? 0) - (a.listingCount ?? 0)),
-      _HouseSort.name => [...filtered]
-        ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase())),
+      _HouseSort.pieces => [
+        ...filtered,
+      ]..sort((a, b) => (b.listingCount ?? 0) - (a.listingCount ?? 0)),
+      _HouseSort.name => [
+        ...filtered,
+      ]..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase())),
     };
   }
 
@@ -56,10 +58,8 @@ class _JewelryHousesScreenState extends ConsumerState<JewelryHousesScreen> {
     _priceBreakup = false;
   });
 
-  void _openHouse(MarketplaceShop house) => context.push(
-    AppRouteNames.jewelryHousePath(house.slug),
-    extra: house,
-  );
+  void _openHouse(MarketplaceShop house) =>
+      context.push(AppRouteNames.jewelryHousePath(house.slug), extra: house);
 
   @override
   Widget build(BuildContext context) {

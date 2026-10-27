@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/luxe_scope.dart';
 import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/widgets/app_network_image.dart';
@@ -13,18 +15,21 @@ import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
 import '../../../jewelry_checkout/presentation/widgets/jewelry_bag_button.dart';
 import '../../../product_detail/presentation/widgets/luxe/luxe_detail_parts.dart';
 import '../../../product_detail/product_detail_navigation.dart';
-import '../../application/jewellery_categories_provider.dart';
 import '../../application/jewelry_catalogue_providers.dart';
+import '../../application/jewelry_filter_provider.dart';
 import '../../application/jewelry_house_providers.dart';
 import '../../domain/models/jewelry_filter_state.dart';
 import '../../domain/models/marketplace_listing.dart';
 import '../widgets/jewelry_filter_labels.dart';
+import '../widgets/jewelry_house_collections.dart';
 import '../widgets/jewelry_house_parts.dart';
 import '../widgets/jewelry_luxe_cards.dart';
 
 /// One jewelry house: its banner, identity, story and policies from
-/// `GET /marketplace/shops/{slug}`, then only its own pieces (paged from
-/// `GET /marketplace/listings?shop=`) with sort and category chips.
+/// `GET /marketplace/shops/{slug}`, its collections as a carousel (pinned as
+/// a slim strip once scrolled past), then its own pieces, paged from
+/// `GET /marketplace/listings?shop=`. A collection opens the results page
+/// for this house, with filters and the collection's styles.
 class JewelryHouseScreen extends ConsumerStatefulWidget {
   const JewelryHouseScreen({required this.slug, this.preview, super.key});
 
@@ -48,11 +53,15 @@ class _JewelryHouseScreenState extends ConsumerState<JewelryHouseScreen> {
   final _scroll = ScrollController();
   final _offset = ValueNotifier<double>(0);
   final _entered = <String>{};
+  final _collectionsKey = GlobalKey();
+  final _barShown = ValueNotifier<bool>(false);
   JewelrySortOption _sort = JewelrySortOption.newest;
-  String? _category;
 
   JewelryHouseQuery get _query =>
-      (shop: widget.slug, category: _category, sort: _sort);
+      (shop: widget.slug, category: null, sort: _sort);
+
+  /// Bottom of the floating header (status bar + its 58 pt bar).
+  double get _headerBottom => MediaQuery.paddingOf(context).top + 58;
 
   @override
   void initState() {
@@ -64,19 +73,50 @@ class _JewelryHouseScreenState extends ConsumerState<JewelryHouseScreen> {
   void dispose() {
     _scroll.dispose();
     _offset.dispose();
+    _barShown.dispose();
     super.dispose();
   }
 
   void _onScroll() {
     _offset.value = _scroll.offset;
+    _barShown.value = _collectionsPassed();
     final pos = _scroll.position;
     if (pos.pixels > pos.maxScrollExtent - 600) {
       ref.read(jewelryHousePiecesProvider(_query).notifier).loadNextPage();
     }
   }
 
+  /// True once the carousel has gone up under the header.
+  bool _collectionsPassed() {
+    final box = _collectionsKey.currentContext?.findRenderObject();
+    if (box is! RenderBox || !box.attached || !box.hasSize) return false;
+    if (box.size.height < 1) return false;
+    final bottom = box.localToGlobal(Offset(0, box.size.height)).dy;
+    return bottom < _headerBottom;
+  }
+
+  void _openCollection(String category) {
+    ref.read(jewelryFilterProvider.notifier)
+      ..setSearchQuery('')
+      ..openCollection(category: category, shop: widget.slug);
+    context.push(AppRouteNames.jewelryListing);
+  }
+
+  Future<void> _openSort() async {
+    final picked = await showLuxeChoiceSheet<JewelrySortOption>(
+      context,
+      title: context.tr(JewelryFlowL10n.sortTitle),
+      options: _sorts,
+      current: _sort,
+      labelOf: (o) => jewelrySortLabel(context, o),
+    );
+    if (picked != null && mounted) setState(() => _sort = picked);
+  }
+
   Future<void> _refresh() async {
-    ref.invalidate(jewelryShopProvider(widget.slug));
+    ref
+      ..invalidate(jewelryShopProvider(widget.slug))
+      ..invalidate(jewelryHouseCollectionsProvider(widget.slug));
     await Future.wait([
       ref.read(jewelryHousePiecesProvider(_query).notifier).refresh(),
       ref
@@ -137,18 +177,21 @@ class _JewelryHouseScreenState extends ConsumerState<JewelryHouseScreen> {
                   SliverToBoxAdapter(child: _About(house: house)),
                   SliverToBoxAdapter(child: _Policies(house: house)),
                   SliverToBoxAdapter(
+                    child: JewelryHouseCollections(
+                      key: _collectionsKey,
+                      shop: widget.slug,
+                      onOpen: _openCollection,
+                    ),
+                  ),
+                  SliverToBoxAdapter(
                     child: _PiecesHeader(
-                      house: houseAsync.valueOrNull,
-                      sorts: _sorts,
                       sort: _sort,
-                      category: _category,
                       total: ref.watch(
                         jewelryHousePiecesProvider(_query).select(
                           (s) => s.isInitialLoading ? null : s.totalCount,
                         ),
                       ),
-                      onSort: (s) => setState(() => _sort = s),
-                      onCategory: (c) => setState(() => _category = c),
+                      onSort: _openSort,
                     ),
                   ),
                   ..._pieces(context),
@@ -159,6 +202,31 @@ class _JewelryHouseScreenState extends ConsumerState<JewelryHouseScreen> {
                   ),
                 ),
               ],
+            ),
+          ),
+          Positioned(
+            top: _headerBottom,
+            left: 0,
+            right: 0,
+            child: ValueListenableBuilder<bool>(
+              valueListenable: _barShown,
+              builder: (context, shown, child) => IgnorePointer(
+                ignoring: !shown,
+                child: AnimatedSlide(
+                  offset: shown ? Offset.zero : const Offset(0, -0.6),
+                  duration: LuxeMotion.medium,
+                  curve: LuxeMotion.settle,
+                  child: AnimatedOpacity(
+                    opacity: shown ? 1 : 0,
+                    duration: LuxeMotion.fast,
+                    child: child,
+                  ),
+                ),
+              ),
+              child: JewelryHouseCollectionsBar(
+                shop: widget.slug,
+                onOpen: _openCollection,
+              ),
             ),
           ),
           Positioned(
@@ -202,12 +270,6 @@ class _JewelryHouseScreenState extends ConsumerState<JewelryHouseScreen> {
         icon: Icons.diamond_outlined,
         title: context.tr(CatalogL10n.noProducts),
         message: context.tr(JewelryFlowL10n.housePiecesEmpty),
-        actionLabel: _category == null
-            ? null
-            : context.tr(JewelryFlowL10n.allCategories),
-        onAction: _category == null
-            ? null
-            : () => setState(() => _category = null),
       ),
       errorView: (message) => LuxeStateView(
         icon: Icons.cloud_off_rounded,
@@ -325,9 +387,7 @@ class _StatPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: const ShapeDecoration(
         color: LuxeStage.glass,
-        shape: StadiumBorder(
-          side: BorderSide(color: LuxeStage.glassBorder),
-        ),
+        shape: StadiumBorder(side: BorderSide(color: LuxeStage.glassBorder)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -400,7 +460,9 @@ class _AboutState extends State<_About> {
                   ),
                   child: Text(
                     context.tr(
-                      _open ? JewelryFlowL10n.readLess : JewelryFlowL10n.readMore,
+                      _open
+                          ? JewelryFlowL10n.readLess
+                          : JewelryFlowL10n.readMore,
                     ),
                     style: LuxeType.label(p.accent, size: 13),
                   ),
@@ -420,7 +482,11 @@ class _Policies extends StatelessWidget {
   final MarketplaceShop house;
 
   static const _known = [
-    ('processingTime', Icons.schedule_rounded, JewelryMarketL10n.processingTime),
+    (
+      'processingTime',
+      Icons.schedule_rounded,
+      JewelryMarketL10n.processingTime,
+    ),
     ('shipping', Icons.local_shipping_outlined, JewelryMarketL10n.shipping),
     ('returns', Icons.assignment_return_outlined, JewelryMarketL10n.returns),
     ('location', Icons.place_outlined, JewelryMarketL10n.location),
@@ -485,90 +551,59 @@ class _Policies extends StatelessWidget {
   }
 }
 
-/// "Pieces · N", sort chips and the house's own categories.
-class _PiecesHeader extends ConsumerWidget {
+/// "The pieces · N pieces" with a quiet sort control.
+class _PiecesHeader extends StatelessWidget {
   const _PiecesHeader({
-    required this.house,
-    required this.sorts,
     required this.sort,
-    required this.category,
     required this.total,
     required this.onSort,
-    required this.onCategory,
   });
 
-  /// Full record (with listings) once loaded; null while previewing.
-  final MarketplaceShop? house;
-  final List<JewelrySortOption> sorts;
   final JewelrySortOption sort;
-  final String? category;
   final int? total;
-  final ValueChanged<JewelrySortOption> onSort;
-  final ValueChanged<String?> onCategory;
+  final VoidCallback onSort;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
-    final live = ref.watch(jewelleryCategoriesProvider).valueOrNull ?? const [];
-    // Top-level categories this house actually sells in.
-    final used = <String>{
-      for (final l in house?.listings ?? const <MarketplaceListing>[]) ...[
-        ?l.parentCategorySlug,
-        ?l.categorySlug,
-      ],
-    };
-    final categories = [
-      for (final c in live)
-        if (used.contains(c.slug) || c.children.any((s) => used.contains(s.slug)))
-          c,
-    ];
-
     return Padding(
-      padding: const EdgeInsets.only(top: 32, bottom: 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      padding: const EdgeInsets.fromLTRB(20, 40, 8, 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   context.tr(JewelryFlowL10n.housePieces).toUpperCase(),
                   style: LuxeType.eyebrow(p.accent),
                 ),
-                if (total != null)
+                if (total != null) ...[
+                  const SizedBox(height: 6),
                   Text(
                     context.tr(JewelryFlowL10n.results, {'count': total}),
                     style: LuxeType.label(p.inkMuted, size: 12),
                   ),
+                ],
               ],
             ),
           ),
-          LuxeQuickChips<JewelrySortOption>(
-            chips: [
-              for (final s in sorts)
-                LuxeQuickChip(value: s, label: jewelrySortLabel(context, s)),
-            ],
-            isSelected: (s) => s == sort,
-            onTap: onSort,
-          ),
-          if (categories.length > 1) ...[
-            const SizedBox(height: 10),
-            LuxeQuickChips<String?>(
-              dense: true,
-              chips: [
-                LuxeQuickChip(
-                  value: null,
-                  label: context.tr(JewelryFlowL10n.allCategories),
+          TextButton(
+            onPressed: onSort,
+            style: TextButton.styleFrom(foregroundColor: p.ink),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  jewelrySortLabel(context, sort),
+                  style: LuxeType.label(p.ink, size: 12.5),
                 ),
-                for (final c in categories)
-                  LuxeQuickChip(value: c.slug, label: c.name),
+                const SizedBox(width: 4),
+                Icon(Icons.expand_more_rounded, size: 18, color: p.accent),
               ],
-              isSelected: (c) => c == category,
-              onTap: onCategory,
             ),
-          ],
+          ),
         ],
       ),
     );

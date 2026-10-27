@@ -43,7 +43,12 @@ abstract final class MarketplaceEnums {
   static const origins = ['NATURAL', 'LAB_GROWN'];
 
   /// Metal tones offered as one-tap quick filters.
-  static const quickMetals = ['YELLOW_GOLD', 'WHITE_GOLD', 'ROSE_GOLD', 'PLATINUM'];
+  static const quickMetals = [
+    'YELLOW_GOLD',
+    'WHITE_GOLD',
+    'ROSE_GOLD',
+    'PLATINUM',
+  ];
 
   /// `YELLOW_GOLD` → `Yellow Gold`; `LAB_GROWN` → `Lab-Grown`.
   static String label(String? value) {
@@ -53,11 +58,12 @@ abstract final class MarketplaceEnums {
       'LAB_GROWN' => 'Lab-Grown',
       'TWO_TONE' => 'Two-Tone',
       'STERLING_SILVER' => 'Sterling Silver',
-      _ => v
-          .split('_')
-          .where((w) => w.isNotEmpty)
-          .map((w) => '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}')
-          .join(' '),
+      _ =>
+        v
+            .split('_')
+            .where((w) => w.isNotEmpty)
+            .map((w) => '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}')
+            .join(' '),
     };
   }
 

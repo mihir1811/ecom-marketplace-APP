@@ -43,14 +43,15 @@ class JewelryOrderStatusPill extends StatelessWidget {
         context.tr(JewelryMarketL10n.paymentFailed),
         p.caution,
       ),
-      _ => order.shipments.isEmpty
-          ? (context.tr(JewelryMarketL10n.stepPlaced), p.positive)
-          : (
-              jewelryStepLabel(context, order.shipments.first.status),
-              order.shipments.first.status == MarketplaceStepStatus.delivered
-                  ? p.positive
-                  : p.accent,
-            ),
+      _ =>
+        order.shipments.isEmpty
+            ? (context.tr(JewelryMarketL10n.stepPlaced), p.positive)
+            : (
+                jewelryStepLabel(context, order.shipments.first.status),
+                order.shipments.first.status == MarketplaceStepStatus.delivered
+                    ? p.positive
+                    : p.accent,
+              ),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
