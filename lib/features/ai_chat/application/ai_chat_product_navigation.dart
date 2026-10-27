@@ -11,8 +11,7 @@ import '../../bullions/data/models/bullion_dto.dart';
 import '../../cart/domain/models/cart_product_type.dart';
 import '../../diamonds/data/repositories/diamond_repository_impl.dart';
 import '../../gemstones/data/repositories/gemstone_repository_impl.dart';
-import '../../jewelry/data/mappers/jewelry_mapper.dart';
-import '../../jewelry/data/models/jewelry_dto.dart';
+import '../../jewelry/data/repositories/jewelry_repository_impl.dart';
 import '../../product_detail/domain/adapters/bullion_product_detail.dart';
 import '../../product_detail/domain/adapters/diamond_product_detail.dart';
 import '../../product_detail/domain/adapters/gemstone_product_detail.dart';
@@ -92,13 +91,20 @@ abstract final class AiChatProductNavigation {
       }
 
       if (type.contains('jewel')) {
-        return await _getByPath(
-          ref,
-          ApiEndpoints.jewelleryById(id),
-          (json) => jewelryProductDetail(
-            JewelryMapper.toDomain(JewelryDto.fromJson(json)),
-          ),
+        // Marketplace pages are looked up by slug: the last segment of a
+        // `/product/{slug}` link, else the id itself.
+        final segments = Uri.tryParse(product.href)?.pathSegments ?? const [];
+        final slug = segments.length >= 2 && segments[segments.length - 2] ==
+                'product'
+            ? segments.last
+            : id;
+        final result = await ref.read(jewelryRepositoryProvider).getListing(
+          slug,
         );
+        return switch (result) {
+          Success(value: final jewelry) => jewelryProductDetail(jewelry),
+          ResultFailure() => null,
+        };
       }
 
       if (type.contains('watch')) {

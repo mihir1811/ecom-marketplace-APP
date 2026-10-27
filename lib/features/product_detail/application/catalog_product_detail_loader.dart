@@ -9,8 +9,7 @@ import '../../bullions/data/models/bullion_dto.dart';
 import '../../cart/domain/models/cart_product_type.dart';
 import '../../diamonds/data/repositories/diamond_repository_impl.dart';
 import '../../gemstones/data/repositories/gemstone_repository_impl.dart';
-import '../../jewelry/data/mappers/jewelry_mapper.dart';
-import '../../jewelry/data/models/jewelry_dto.dart';
+import '../../jewelry/data/repositories/jewelry_repository_impl.dart';
 import '../../watches/data/mappers/watch_mapper.dart';
 import '../../watches/data/models/watch_dto.dart';
 import '../domain/adapters/bullion_product_detail.dart';
@@ -69,13 +68,13 @@ abstract final class CatalogProductDetailLoader {
             ResultFailure() => null,
           };
         case CartProductType.jewellery:
-          return await _getByPath(
-            read,
-            ApiEndpoints.jewelleryById(id),
-            (json) => jewelryProductDetail(
-              JewelryMapper.toDomain(JewelryDto.fromJson(json)),
-            ),
-          );
+        case CartProductType.marketplaceJewellery:
+          // Marketplace pieces are keyed by listing slug.
+          final result = await read(jewelryRepositoryProvider).getListing(id);
+          return switch (result) {
+            Success(value: final jewelry) => jewelryProductDetail(jewelry),
+            ResultFailure() => null,
+          };
         case CartProductType.watch:
           return await _getByPath(
             read,

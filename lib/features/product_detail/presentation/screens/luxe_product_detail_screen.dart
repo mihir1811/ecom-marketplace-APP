@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/l10n/app_localizations.dart';
@@ -9,9 +10,12 @@ import '../../../../core/widgets/luxe/luxe_button.dart';
 import '../../../../core/widgets/luxe/scroll_reveal.dart';
 import '../../../buyer/application/wishlist_provider.dart';
 import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
+import '../../../cart/domain/models/cart_product_type.dart';
 import '../../../chat/presentation/open_product_seller_chat.dart';
+import '../../../jewelry/application/jewelry_catalogue_providers.dart';
 import '../../../product_share/presentation/widgets/product_share_sheet.dart';
 import '../../../recently_viewed/application/recently_viewed_providers.dart';
+import '../../domain/adapters/jewelry_product_detail.dart';
 import '../../domain/models/product_bullion_detail.dart';
 import '../../domain/models/product_detail.dart';
 import '../../domain/models/product_price_labels.dart';
@@ -111,11 +115,23 @@ class LuxeProductSections {
 
 /// Resolves [detail] into its luxe page sections. Watches the viewer's auth
 /// state, so call it from `build`.
+///
+/// Marketplace jewelry opens from a catalogue card; with [loadFull] the
+/// product page record (description, every photo, gemstones, all SKUs) is
+/// fetched by slug and replaces it once it arrives. Pass false for pages
+/// not on screen: every fetch counts as a view.
 LuxeProductSections luxeProductSections(
   BuildContext context,
   WidgetRef ref,
-  ProductDetail detail,
-) {
+  ProductDetail detail, {
+  bool loadFull = true,
+}) {
+  if (loadFull &&
+      detail.apiProductType == CartProductType.marketplaceJewellery &&
+      !(detail.jewelryDetail?.isFullRecord ?? true)) {
+    final full = ref.watch(jewelryListingProvider(detail.id)).valueOrNull;
+    if (full != null) detail = jewelryProductDetail(full);
+  }
   final auth = ref.watch(
     authProvider.select(
       (s) => (isSeller: s.isSeller, showProtected: !s.isVerificationPending),
@@ -176,12 +192,41 @@ class _HeaderActionsState extends ConsumerState<_HeaderActions> {
     }
   }
 
+  /// Marketplace pieces share their public page on jewelry.gemworld.in.
+  void _share() {
+    final detail = widget.detail;
+    final slug = detail.jewelryDetail?.slug;
+    if (detail.apiProductType == CartProductType.marketplaceJewellery &&
+        slug != null) {
+      SharePlus.instance.share(
+        ShareParams(
+          text: [
+            detail.title,
+            'https://jewelry.gemworld.in/product/$slug',
+          ].join('\n'),
+          subject: detail.title,
+        ),
+      );
+      return;
+    }
+    showProductShareSheet(
+      context: context,
+      ref: ref,
+      productId: detail.id,
+      productType: detail.apiProductType,
+      productTitle: detail.title,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final detail = widget.detail;
     final glass = widget.glass;
     final saved = ref.watch(isInWishlistProvider(detail.id));
-    final canChat = ref.watch(authProvider.select((s) => s.isSeller));
+    // Marketplace shop chat is a separate service; seller chat is catalog-only.
+    final canChat =
+        ref.watch(authProvider.select((s) => s.isSeller)) &&
+        detail.apiProductType != CartProductType.marketplaceJewellery;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -201,13 +246,7 @@ class _HeaderActionsState extends ConsumerState<_HeaderActions> {
           tooltip: context.tr(CatalogL10n.share),
           glass: glass,
           size: 42,
-          onPressed: () => showProductShareSheet(
-            context: context,
-            ref: ref,
-            productId: detail.id,
-            productType: detail.apiProductType,
-            productTitle: detail.title,
-          ),
+          onPressed: _share,
         ),
         const SizedBox(width: 8),
         LuxeIconButton(

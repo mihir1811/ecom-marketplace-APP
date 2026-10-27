@@ -15,7 +15,6 @@ import '../../../gemstones/data/repositories/gemstone_repository_impl.dart';
 import '../../../gemstones/domain/models/gemstone_filter_state.dart';
 import '../../../gemstones/domain/repositories/gemstone_repository.dart';
 import '../../../jewelry/data/repositories/jewelry_repository_impl.dart';
-import '../../../jewelry/domain/models/jewelry_filter_state.dart';
 import '../../../jewelry/domain/repositories/jewelry_repository.dart';
 import '../../../watches/data/repositories/watch_repository_impl.dart';
 import '../../../watches/domain/models/watch_filter_state.dart';
@@ -100,7 +99,6 @@ class SuggestedSellerProductsRepositoryImpl
         ),
       ProductSegment.jewelry => _loadJewelry(
           excludeProductId: excludeProductId,
-          sellerId: sid,
           page: page,
           pageSize: pageSize,
           cancelToken: cancelToken,
@@ -193,14 +191,15 @@ class SuggestedSellerProductsRepositoryImpl
     };
   }
 
+  /// Marketplace "related": same category first, then same shop. One page;
+  /// [excludeProductId] is the listing slug.
   Future<Result<PaginatedPage<ProductDetail>, Failure>> _loadJewelry({
     required String excludeProductId,
-    required String? sellerId,
     required int page,
     required int pageSize,
     CancelToken? cancelToken,
   }) async {
-    if (sellerId == null || sellerId.isEmpty) {
+    if (page > 1 || excludeProductId.isEmpty) {
       return const Success(
         PaginatedPage<ProductDetail>(
           items: [],
@@ -209,22 +208,20 @@ class SuggestedSellerProductsRepositoryImpl
         ),
       );
     }
-    final result = await _jewelry.getJewelry(
-      filters: const JewelryFilterState(),
-      page: page,
-      pageSize: pageSize,
-      sellerId: sellerId,
+    final result = await _jewelry.getRelated(
+      excludeProductId,
+      limit: pageSize.clamp(1, 24),
       cancelToken: cancelToken,
     );
     return switch (result) {
-      Success(value: final response) => Success(
+      Success(value: final items) => Success(
           PaginatedPage<ProductDetail>(
             items: [
-              for (final j in response.items)
+              for (final j in items)
                 if (j.id != excludeProductId) jewelryProductDetail(j),
             ],
-            hasMore: response.hasMore,
-            totalCount: response.totalCount,
+            hasMore: false,
+            totalCount: items.length,
           ),
         ),
       ResultFailure(failure: final failure) => ResultFailure(failure),

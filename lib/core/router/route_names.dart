@@ -34,6 +34,14 @@ class AppRouteNames {
   static const String jewelryListing = '/jewelry/listing';
   static const String jewelryFilters = '/jewelry/filters';
 
+  /// Jewellery marketplace bag (on-device), checkout and orders.
+  static const String jewelryBag = '/jewelry/bag';
+  static const String jewelryCheckout = '/jewelry/checkout';
+  static const String jewelryOrders = '/jewelry/orders';
+  static const String jewelryOrderDetail = '/jewelry/orders/:orderId';
+  static String jewelryOrderDetailPath(String orderId) =>
+      '/jewelry/orders/${Uri.encodeComponent(orderId)}';
+
   /// Shared product detail page used by every catalog segment.
   static const String productDetail = '/product/:segment/:productId';
   static String productDetailPath(String segment, String productId) =>

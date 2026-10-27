@@ -36,6 +36,7 @@ class PaymentCheckoutSession {
     this.userEmail,
     this.userPhone,
     this.description,
+    this.checkoutName,
   });
 
   final String orderId;
@@ -62,6 +63,9 @@ class PaymentCheckoutSession {
   final String? userEmail;
   final String? userPhone;
   final String? description;
+
+  /// Merchant name on the Razorpay sheet; defaults to `GemWorld`.
+  final String? checkoutName;
 
   /// True when wallet and / or reward points covered the payable amount and
   /// Razorpay is not needed.

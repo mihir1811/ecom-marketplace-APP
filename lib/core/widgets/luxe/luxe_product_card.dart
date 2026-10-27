@@ -386,9 +386,17 @@ class LuxePriceRow extends StatelessWidget {
     this.listPrice,
     this.discountPercent,
     this.showList = false,
+    this.currencySymbol,
+    this.prefix,
   });
 
   final double price;
+
+  /// Defaults to [AppCurrency.symbol]; rupee listings pass `₹`.
+  final String? currencySymbol;
+
+  /// Quiet word before the price, e.g. "from" for a price range.
+  final String? prefix;
 
   /// Pre-discount price; shown struck through when [showList] and higher.
   final double? listPrice;
@@ -401,11 +409,16 @@ class LuxePriceRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     final list = listPrice != null && listPrice! > price ? listPrice : null;
+    final symbol = currencySymbol ?? AppCurrency.symbol;
     return Row(
       children: [
+        if (prefix != null) ...[
+          Text(prefix!, style: LuxeType.label(p.inkMuted, size: 11.5)),
+          const SizedBox(width: 4),
+        ],
         Flexible(
           child: Text(
-            AppCurrency.format(formatGroupedWhole(price)),
+            '$symbol${formatGroupedWhole(price)}',
             maxLines: 1,
             overflow: TextOverflow.fade,
             softWrap: false,
@@ -419,7 +432,7 @@ class LuxePriceRow extends StatelessWidget {
           const SizedBox(width: 6),
           Flexible(
             child: Text(
-              AppCurrency.format(formatGroupedWhole(list)),
+              '$symbol${formatGroupedWhole(list)}',
               maxLines: 1,
               overflow: TextOverflow.fade,
               softWrap: false,

@@ -14,7 +14,8 @@ import '../../../diamonds/data/models/diamond_dto.dart';
 import '../../../gemstones/data/mappers/gemstone_mapper.dart';
 import '../../../gemstones/data/models/gemstone_dto.dart';
 import '../../../jewelry/data/mappers/jewelry_mapper.dart';
-import '../../../jewelry/data/models/jewelry_dto.dart';
+import '../../../jewelry/data/mappers/marketplace_json.dart';
+import '../../../jewelry/data/mappers/marketplace_mapper.dart';
 import '../../../product_detail/domain/adapters/bullion_product_detail.dart';
 import '../../../product_detail/domain/adapters/diamond_product_detail.dart';
 import '../../../product_detail/domain/adapters/gemstone_product_detail.dart';
@@ -677,6 +678,7 @@ class HomeSearchRepositoryImpl implements HomeSearchRepository {
     );
   }
 
+  /// Jewellery marketplace full-text search (ranked by relevance).
   Future<_CatalogBatch> _searchJewelry(
     String query,
     HomeSearchMode mode,
@@ -684,34 +686,34 @@ class HomeSearchRepositoryImpl implements HomeSearchRepository {
     int limit,
     CancelToken? cancelToken,
   ) async {
-    final response = await _dio.get<Map<String, dynamic>>(
-      ApiEndpoints.jewellery,
+    final trimmed = query.trim();
+    final response = await _dio.get<Object?>(
+      ApiEndpoints.marketplaceListings,
       queryParameters: {
         'page': page,
-        'limit': limit,
-        'search': query,
-        'searchBy': HomeSearchQueryClassifier.searchBy(
-          mode: mode,
-          kind: HomeSearchKind.jewelry,
-        ),
+        'limit': limit.clamp(1, 100),
+        if (trimmed.isNotEmpty)
+          'search': trimmed.length > 120 ? trimmed.substring(0, 120) : trimmed,
       },
       cancelToken: cancelToken,
     );
 
-    final parsed = _parseListResponse(response.data, limit: limit, page: page);
+    final parsed = MarketplaceMapper.page(
+      MarketplaceJson.data(response.data),
+      page: page,
+    );
     final out = <HomeSearchResult>[];
-    for (final item in parsed.items) {
-      final dto = JewelryDto.fromJson(item);
-      if (dto.id.isEmpty) continue;
-      final j = JewelryMapper.toDomain(dto);
+    for (final listing in parsed.items) {
+      final j = JewelryMapper.fromListing(listing);
       out.add(
         HomeSearchResult(
           id: j.id,
           title: j.name,
           subtitle: [
-            if (j.sku.isNotEmpty) j.sku,
-            if (j.category.isNotEmpty) j.category,
+            if ((j.subCategory ?? j.category).isNotEmpty)
+              j.subCategory ?? j.category,
             if (j.metalPurity.isNotEmpty) j.metalPurity,
+            if (j.shopName != null) j.shopName!,
           ].join(' · '),
           categoryLabel: 'Jewelry',
           priceLabel: '${AppCurrency.inrSymbol}${formatInrPrice(j.price)}',

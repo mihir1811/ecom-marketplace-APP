@@ -1,243 +1,211 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/catalog/catalog_purchase_policy.dart';
 import '../../../../core/theme/app_swatches.dart';
-import '../../../../core/utils/currency_rates.dart';
 import '../../../../core/utils/app_currency.dart';
+import '../../../../core/utils/currency_rates.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../cart/domain/models/cart_product_type.dart';
 import '../../../jewelry/domain/models/jewelry.dart';
+import '../../../jewelry/domain/models/marketplace_enums.dart';
+import '../../../jewelry/domain/models/marketplace_listing.dart';
 import '../models/listing_seller_info.dart';
 import '../models/product_detail.dart';
 import '../models/product_jewelry_detail.dart';
-import '../models/jewelry_unit_pricing.dart';
 
-/// Maps a fine jewelry product onto the universal detail shape.
+/// Maps a marketplace jewellery piece onto the universal detail shape.
+///
+/// The detail id is the listing slug (the public lookup key); prices are
+/// rupees and purchases go to the on-device jewellery bag.
 ProductDetail jewelryProductDetail(Jewelry j) {
-  final jewelryDetail = _jewelryDetail(j);
-  final pricing = JewelryUnitPricing.from(
-    metalPrice: j.metalPrice,
-    stonePrice: j.stonePrice,
-    makingCharge: j.makingCharge,
-    discountAmount: j.discountAmount,
-    totalPrice: j.price,
-  );
+  final listing = j.listing;
+  final jewelryDetail = _jewelryDetail(j, listing);
+  final images = j.imageUrls.isNotEmpty ? j.imageUrls : [?j.displayImageUrl];
+  final soldOut = jewelryDetail.soldOut;
+  final cert = _certificate(listing);
+  final shop = jewelryDetail.shop;
   return ProductDetail(
     id: j.id,
     segment: ProductSegment.jewelry,
-    apiProductType: CartProductType.jewellery,
+    apiProductType: CartProductType.marketplaceJewellery,
     title: j.name,
-    subtitle: '${j.category} · ${j.metalPurity} ${j.metalColor}',
-    referenceLabel: 'SKU',
-    referenceValue: j.sku,
-    shapeKey: j.stoneShape,
+    subtitle: [
+      jewelryDetail.subCategory ?? jewelryDetail.category,
+      [?jewelryDetail.metalPurity, ?jewelryDetail.metalType].join(' '),
+    ].where((s) => s.trim().isNotEmpty).join(' · '),
+    referenceLabel: 'Stock no.',
+    referenceValue: jewelryDetail.stockNumber ?? '',
+    shapeKey: jewelryDetail.primaryShape,
     badges: [
       const ProductBadge('Jewelry', tone: ProductBadgeTone.accent),
-      ProductBadge('${j.certification} certified',
-          tone: ProductBadgeTone.positive),
-      if (j.badge != null) ProductBadge(j.badge!),
-      if (j.rating != null)
+      if (jewelryDetail.gemstoneOrigin != null)
+        ProductBadge(jewelryDetail.gemstoneOrigin!),
+      if (jewelryDetail.isMadeToOrder)
+        const ProductBadge('Made to order', tone: ProductBadgeTone.caution),
+      if (jewelryDetail.freeShipping)
+        const ProductBadge('Free shipping', tone: ProductBadgeTone.positive),
+      if (cert != null)
         ProductBadge(
-          '★ ${j.rating}${j.reviewCount == null ? '' : ' · ${j.reviewCount} reviews'}',
+          '${cert.certificationLab} certified',
+          tone: ProductBadgeTone.positive,
         ),
     ],
     media: ProductMedia(
-      images: [
-        if (j.displayImageUrl != null) ProductImage.network(j.displayImageUrl!),
-      ],
-      imageSlots: j.displayImageUrl != null ? 1 : 0,
-      certificateLabel: null,
-      shapeKey: null,
+      images: [for (final url in images) ProductImage.network(url)],
+      imageSlots: images.length,
       fallbackIcon: Icons.workspace_premium_outlined,
       fallbackTint: AppSwatches.jewelryMetal(j.metalColor),
-      hasVideo: false,
     ),
     price: ProductPrice(
-      currencySymbol: AppCurrency.symbol,
-      amountLabel: formatInrPrice(pricing.netPrice),
-      priceUsd: inrToUsd(pricing.netPrice),
-      priceInr: pricing.netPrice,
-      // Net unit sell price — discount UI lives in Choose your details.
-      displayAmount: pricing.netPrice,
-      discountPercent:
-          pricing.hasDiscount ? pricing.discountPercent : null,
-      displayAmountIsListPrice: false,
+      currencySymbol: AppCurrency.inrSymbol,
+      amountLabel: formatInrPrice(j.price),
+      priceUsd: inrToUsd(j.price),
+      priceInr: j.price,
+      displayAmount: j.price,
     ),
     highlights: const [],
-    certification: ProductCertification(
-      authority: j.certification,
-      referenceLabel: 'SKU',
-      referenceValue: j.sku,
-    ),
-    availability: _availability(j.availability),
-    availabilityStatus: _availabilityStatus(j.availability),
-    listingSeller: listingSellerFromSellerId(j.sellerId),
+    certification: cert == null
+        ? null
+        : ProductCertification(
+            authority: cert.certificationLab!,
+            referenceLabel: cert.reportNumber == null ? null : 'Report',
+            referenceValue: cert.reportNumber,
+          ),
+    availability: soldOut
+        ? const ProductAvailability(
+            label: 'Sold out',
+            tone: ProductStockTone.unavailable,
+          )
+        : jewelryDetail.isMadeToOrder
+        ? ProductAvailability(
+            label: 'Made to order',
+            tone: ProductStockTone.limited,
+            detail: '${jewelryDetail.processingDays} days to make',
+          )
+        : const ProductAvailability(
+            label: 'In stock',
+            tone: ProductStockTone.available,
+          ),
+    availabilityStatus: soldOut ? 'sold' : 'yes',
+    listingSeller: shop == null
+        ? null
+        : ListingSellerInfo(
+            id: shop.sellerId,
+            displayName: shop.name,
+            location: shop.policies['location'],
+            registrationType: ListingSellerRegistrationType.business,
+          ),
     specSections: const [],
     jewelryDetail: jewelryDetail,
   );
 }
 
-ProductJewelryDetail _jewelryDetail(Jewelry j) {
-  final pricing = JewelryUnitPricing.from(
-    metalPrice: j.metalPrice,
-    stonePrice: j.stonePrice,
-    makingCharge: j.makingCharge,
-    discountAmount: j.discountAmount,
-    totalPrice: j.price,
-  );
-  final purityOptions = <String>{
-    if (j.metalPurity.trim().isNotEmpty) j.metalPurity.trim(),
-    for (final v in j.variants)
-      if ((v.metalPurity ?? '').trim().isNotEmpty) v.metalPurity!.trim(),
-  }.toList();
-
-  final sizeOptions = <String>{
-    ...j.sizeOptions.where((s) => s.trim().isNotEmpty),
-    for (final v in j.variants)
-      if ((v.sizeLabel ?? '').trim().isNotEmpty) v.sizeLabel!.trim(),
-  }.toList();
-
-  final stoneWeightOptions = <String>{
-    if (j.stoneWeightCt > 0) _formatCt(j.stoneWeightCt),
-    for (final v in j.variants)
-      if (v.stoneWeightCt != null && v.stoneWeightCt! > 0)
-        _formatCt(v.stoneWeightCt!),
-  }.toList();
-
-  final materialBits = [
-    if (j.metalPurity.trim().isNotEmpty) j.metalPurity.trim(),
-    if (j.metalType.trim().isNotEmpty) j.metalType.trim(),
-    if (j.metalColor.trim().isNotEmpty) j.metalColor.trim(),
-  ];
+ProductJewelryDetail _jewelryDetail(Jewelry j, MarketplaceListing? l) {
+  if (l == null) {
+    // A piece known only by name and price (e.g. from chat suggestions).
+    return ProductJewelryDetail(
+      slug: j.slug ?? j.id,
+      listingId: j.listingId ?? j.id,
+      description: j.description,
+      category: j.category,
+      price: j.price,
+      maxPrice: j.maxPrice ?? j.price,
+      currencySymbol: AppCurrency.inrSymbol,
+      totalStock: 0,
+      coverImageUrl: j.displayImageUrl,
+    );
+  }
+  final d = l.detail;
+  final shop = l.shop;
+  String? word(String? enumValue) {
+    final w = MarketplaceEnums.label(enumValue);
+    return w.isEmpty ? null : w;
+  }
 
   return ProductJewelryDetail(
-    description: (j.description?.trim().isNotEmpty ?? false)
-        ? j.description!.trim()
-        : 'A timeless ${j.metalType.toLowerCase()} ${j.category.toLowerCase()} '
-            'set with ${j.stoneShape.toLowerCase()} ${j.stoneType.toLowerCase()} '
-            'diamonds.',
-    category: j.category,
-    gender: j.gender,
-    occasion: j.occasion,
-    styleNo: j.sku,
-    metalType: j.metalType,
-    metalColor: j.metalColor,
-    metalPurity: j.metalPurity,
-    metalFinish: j.metalFinish,
-    style: j.style,
-    metalWeightG: j.metalWeightG,
-    totalWeightG: j.totalWeightG,
-    stoneWeightCt: j.stoneWeightCt,
-    stoneCount: j.stoneCount,
-    braceletSize: j.braceletSize,
-    ringSize: j.ringSize,
-    chainLength: j.chainLength,
-    price: pricing.netPrice,
-    currencySymbol: AppCurrency.symbol,
-    discountAmount: pricing.hasDiscount ? pricing.discount : null,
-    discountPercent: pricing.hasDiscount ? pricing.discountPercent : null,
-    metalPrice: pricing.metal > 0 ? pricing.metal : null,
-    stonePrice: pricing.stone > 0 ? pricing.stone : null,
-    makingCharge: pricing.making > 0 ? pricing.making : null,
-    purityOptions: purityOptions,
-    sizeOptions: sizeOptions,
-    stoneWeightOptions: stoneWeightOptions,
-    stones: j.stones
-        .map(
-          (s) => ProductJewelryStone(
-            type: s.type,
-            category: s.category,
-            shape: s.shape,
-            color: s.color,
-            clarity: s.clarity,
-            weightCt: s.weightCt,
-            pieces: s.pieces,
-            setting: s.setting,
+    slug: l.slug,
+    listingId: l.id,
+    description: l.description,
+    category: l.parentCategoryName ?? l.categoryName ?? '',
+    subCategory: l.parentCategoryName == null ? null : l.categoryName,
+    stockNumber: l.stockNumber,
+    shop: shop == null
+        ? null
+        : ProductJewelryShop(
+            name: shop.name,
+            slug: shop.slug,
+            sellerId: shop.sellerId,
+            logoUrl: shop.logoUrl,
+            policies: shop.policies,
+            showPriceBreakdown: shop.showPriceBreakdown,
           ),
-        )
-        .toList(growable: false),
-    variants: j.variants
-        .map((v) {
-          final vp = JewelryUnitPricing.from(
-            metalPrice: v.metalPrice,
-            stonePrice: v.stonePrice,
-            makingCharge: v.makingCharge,
-            discountAmount: v.discountAmount,
-            totalPrice: v.price,
-          );
-          return ProductJewelryVariant(
-            id: v.id,
-            price: vp.netPrice,
-            sku: v.sku,
-            metalPurity: v.metalPurity,
-            sizeLabel: v.sizeLabel,
-            stoneWeightCt: v.stoneWeightCt,
-            metalWeightG: v.metalWeightG,
-            totalWeightG: v.totalWeightG,
-            discountAmount: vp.hasDiscount ? vp.discount : null,
-            discountPercent: vp.hasDiscount ? vp.discountPercent : null,
-            metalPrice: vp.metal > 0 ? vp.metal : null,
-            stonePrice: vp.stone > 0 ? vp.stone : null,
-            makingCharge: vp.making > 0 ? vp.making : null,
-            metalType: v.metalType,
-            metalColor: v.metalColor,
-            metalFinish: v.metalFinish,
-            braceletSize: v.braceletSize,
-            ringSize: v.ringSize,
-            chainLength: v.chainLength,
-            stoneCount: v.stoneCount,
-            stones: v.stones
-                .map(
-                  (s) => ProductJewelryStone(
-                    type: s.type,
-                    category: s.category,
-                    shape: s.shape,
-                    color: s.color,
-                    clarity: s.clarity,
-                    weightCt: s.weightCt,
-                    pieces: s.pieces,
-                    setting: s.setting,
-                  ),
-                )
-                .toList(growable: false),
-          );
-        })
-        .toList(growable: false),
-    materialLabel: materialBits.isEmpty ? null : materialBits.join(' '),
+    price: l.minPrice,
+    maxPrice: l.maxPrice,
+    currencySymbol: AppCurrency.inrSymbol,
+    totalStock: l.totalStock,
+    metalType: word(d.metalType),
+    metalPurity: d.metalPurity,
+    metalWeightG: d.metalWeightGrams,
+    grossWeightG: d.grossWeightGrams,
+    primaryGemstone: word(d.primaryGemstone),
+    gemstoneOrigin: word(d.gemstoneOrigin),
+    primaryShape: d.primaryShape,
+    totalCaratWeight: d.totalCaratWeight,
+    style: d.style,
+    occasion: d.occasion,
+    tags: l.tags,
+    isMadeToOrder: d.isMadeToOrder,
+    processingDays: d.processingDays,
+    personalizationEnabled: d.personalizationEnabled,
+    personalizationInstructions: d.personalizationInstructions,
+    freeShipping: d.freeShipping,
+    shipsFromCountry: d.shipsFromCountry,
+    returnsAccepted: d.returnsAccepted,
+    returnWindowDays: d.returnWindowDays,
+    cancellationWindowHours: d.cancellationWindowHours,
+    stones: [
+      for (final g in l.gemstones)
+        ProductJewelryStone(
+          type: word(g.type),
+          origin: word(g.origin),
+          shape: g.shape,
+          caratWeight: g.caratWeight,
+          quantity: g.quantity,
+          color: g.color,
+          clarity: g.clarity,
+          cut: g.cut,
+          certificationLab: g.certificationLab,
+          reportNumber: g.reportNumber,
+        ),
+    ],
+    variations: [
+      for (final v in l.variations)
+        ProductJewelryVariation(name: v.name, options: v.options),
+    ],
+    customOptions: [
+      for (final o in l.customOptions)
+        if (o.isText) o.name,
+    ],
+    skus: [
+      for (final s in l.skus)
+        ProductJewelrySku(
+          id: s.id,
+          label: s.label,
+          price: s.price,
+          stock: s.stock,
+          isActive: s.isActive,
+          options: s.options,
+          breakdown: s.breakdown,
+        ),
+    ],
+    coverImageUrl: l.coverImageUrl,
+    isFullRecord: l.isFullRecord,
   );
 }
 
-String _formatCt(double ct) {
-  final fixed = ct == ct.roundToDouble()
-      ? ct.toStringAsFixed(0)
-      : ct.toStringAsFixed(2).replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'\.$'), '');
-  return '${fixed}ct';
+MarketplaceGemstone? _certificate(MarketplaceListing? l) {
+  if (l == null) return null;
+  for (final g in l.gemstones) {
+    if ((g.certificationLab ?? '').trim().isNotEmpty) return g;
+  }
+  return null;
 }
-
-ProductAvailability _availability(String status) {
-  final normalized = status.toLowerCase();
-  if (normalized.contains('sold') || normalized.contains('out of stock')) {
-    return ProductAvailability(label: status, tone: ProductStockTone.unavailable);
-  }
-  if (normalized.contains('hold')) {
-    return const ProductAvailability(
-      label: 'On hold',
-      tone: ProductStockTone.unavailable,
-    );
-  }
-  if (normalized.contains('memo')) {
-    return const ProductAvailability(
-      label: 'On memo',
-      tone: ProductStockTone.unavailable,
-    );
-  }
-  final tone = switch (normalized) {
-    final s when s.contains('made to order') || s.contains('limited') =>
-      ProductStockTone.limited,
-    _ => ProductStockTone.available,
-  };
-  return ProductAvailability(label: status, tone: tone);
-}
-
-String? _availabilityStatus(String status) =>
-    CatalogPurchasePolicy.normalizeCode(status);

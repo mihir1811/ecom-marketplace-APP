@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/auth/auth_providers.dart';
 import '../../../core/error/result.dart';
 import '../data/repositories/recently_viewed_repository_impl.dart';
+import '../../cart/domain/models/cart_product_type.dart';
 
 /// Product IDs the current user has recently viewed (for listing highlights).
 class RecentlyViewedIdsNotifier extends Notifier<Set<String>> {
@@ -63,6 +64,8 @@ void recordRecentlyViewed(
   final id = productId.trim();
   if (id.isEmpty) return;
   ref.read(recentlyViewedIdsProvider.notifier).markViewed(id);
+  // The server history only knows catalog products, not marketplace slugs.
+  if (productType == CartProductType.marketplaceJewellery) return;
   ref
       .read(recentlyViewedRepositoryProvider)
       .record(productId: id, productType: productType);

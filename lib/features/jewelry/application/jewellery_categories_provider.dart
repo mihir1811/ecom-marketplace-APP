@@ -1,19 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/error/result.dart';
-import '../data/repositories/jewellery_category_admin_repository_impl.dart';
-import '../domain/models/jewellery_category_admin.dart';
+import '../data/repositories/jewelry_repository_impl.dart';
+import '../domain/models/marketplace_listing.dart';
 
-/// Active jewellery categories for the shopper grid and listing chips.
-final jewelleryCategoriesProvider =
-    FutureProvider<List<JewelleryCategoryAdmin>>((ref) async {
-  final repo = ref.watch(jewelleryCategoryAdminRepositoryProvider);
-  final result = await repo.list(page: 1, limit: 50);
+/// Marketplace categories (with their styles) for the house grid, style
+/// chips and results titles.
+final jewelleryCategoriesProvider = FutureProvider<List<MarketplaceCategory>>((
+  ref,
+) async {
+  final result = await ref.watch(jewelryRepositoryProvider).getCategories();
   return switch (result) {
-    Success(value: final page) => [
-        for (final category in page.items)
-          if (category.isActive && category.name.trim().isNotEmpty) category,
-      ],
+    Success(value: final items) => items,
     ResultFailure(failure: final failure) => throw failure,
   };
 });

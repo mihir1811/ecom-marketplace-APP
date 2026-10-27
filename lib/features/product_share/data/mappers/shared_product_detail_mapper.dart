@@ -6,7 +6,6 @@ import '../../../diamonds/data/models/diamond_dto.dart';
 import '../../../gemstones/data/mappers/gemstone_mapper.dart';
 import '../../../gemstones/data/models/gemstone_dto.dart';
 import '../../../jewelry/data/mappers/jewelry_mapper.dart';
-import '../../../jewelry/data/models/jewelry_dto.dart';
 import '../../../product_detail/domain/adapters/bullion_product_detail.dart';
 import '../../../product_detail/domain/adapters/diamond_product_detail.dart';
 import '../../../product_detail/domain/adapters/gemstone_product_detail.dart';
@@ -37,8 +36,9 @@ abstract final class SharedProductDetailMapper {
         CartProductType.gemstone => gemstoneProductDetail(
             GemstoneMapper.toDomain(GemstoneDto.fromJson(map)),
           ),
-        CartProductType.jewellery => jewelryProductDetail(
-            JewelryMapper.toDomain(JewelryDto.fromJson(map)),
+        CartProductType.jewellery ||
+        CartProductType.marketplaceJewellery => jewelryProductDetail(
+            JewelryMapper.fromJson(map),
           ),
         CartProductType.watch => watchProductDetail(
             WatchMapper.toDomain(WatchDto.fromJson(map)),

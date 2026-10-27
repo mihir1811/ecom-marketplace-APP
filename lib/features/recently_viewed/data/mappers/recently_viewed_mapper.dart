@@ -9,7 +9,6 @@ import '../../../gemstones/data/mappers/gemstone_mapper.dart';
 import '../../../gemstones/data/models/gemstone_dto.dart';
 import '../../../gemstones/domain/models/gemstone.dart';
 import '../../../jewelry/data/mappers/jewelry_mapper.dart';
-import '../../../jewelry/data/models/jewelry_dto.dart';
 import '../../../jewelry/domain/models/jewelry.dart';
 import '../../../watches/data/mappers/watch_mapper.dart';
 import '../../../watches/data/models/watch_dto.dart';
@@ -470,9 +469,8 @@ abstract final class RecentlyViewedMapper {
     if (product == null) return null;
     if (type != 'jewelry' && type != 'jewellery') return null;
     try {
-      final dto = JewelryDto.fromJson(product);
-      if (dto.id.isEmpty) return null;
-      return JewelryMapper.toDomain(dto);
+      final jewelry = JewelryMapper.fromJson(product);
+      return jewelry.id.isEmpty ? null : jewelry;
     } catch (_) {
       return null;
     }

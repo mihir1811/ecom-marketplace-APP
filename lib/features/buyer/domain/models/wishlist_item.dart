@@ -18,6 +18,10 @@ abstract final class FavoriteProductType {
   static const String watch = 'watch';
   static const String bullion = 'bullion';
 
+  /// Jewellery marketplace piece: saved on the device, never sent to
+  /// `/favorites` (id is the listing slug).
+  static const String marketplaceJewellery = 'marketplaceJewellery';
+
   static String fromCategory(WishlistCategory category) => switch (category) {
     WishlistCategory.diamond => diamond,
     WishlistCategory.gemstone => gemstone,
@@ -28,7 +32,7 @@ abstract final class FavoriteProductType {
 
   static WishlistCategory toCategory(String type) => switch (type) {
     gemstone => WishlistCategory.gemstone,
-    jewellery => WishlistCategory.jewelry,
+    jewellery || marketplaceJewellery => WishlistCategory.jewelry,
     watch => WishlistCategory.watch,
     bullion => WishlistCategory.bullion,
     _ => WishlistCategory.diamond,
@@ -38,7 +42,7 @@ abstract final class FavoriteProductType {
     diamond => 'Diamond',
     meleeDiamond => 'Melee Diamond',
     gemstone => 'Gemstone',
-    jewellery => 'Jewelry',
+    jewellery || marketplaceJewellery => 'Jewelry',
     watch => 'Watch',
     bullion => 'Bullion',
     _ => type,
@@ -115,9 +119,15 @@ class WishlistItem {
     return WishlistItem(
       id: j.id,
       category: WishlistCategory.jewelry,
+      productType: j.isMarketplace
+          ? FavoriteProductType.marketplaceJewellery
+          : FavoriteProductType.jewellery,
       title: j.name,
-      subtitle: '${j.category} · ${j.metalType}',
-      priceLabel: AppCurrency.format(formatInrPrice(j.price)),
+      subtitle: [
+        j.subCategory ?? j.category,
+        j.metalType,
+      ].where((s) => s.trim().isNotEmpty).join(' · '),
+      priceLabel: '${AppCurrency.inrSymbol}${formatInrPrice(j.price)}',
       imageUrl: j.displayImageUrl,
     );
   }

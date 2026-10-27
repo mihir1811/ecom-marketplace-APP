@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/luxe_tokens.dart';
+import '../../../../core/utils/app_currency.dart';
 import '../../../../core/widgets/catalog_card_image_pager.dart';
 import '../../../../core/widgets/luxe/luxe_metal_swatch.dart';
 import '../../../../core/widgets/luxe/luxe_product_card.dart';
@@ -9,7 +11,6 @@ import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../../catalog_flow/presentation/widgets/catalog_card_actions.dart';
 import '../../../comparison/domain/models/compare_item.dart';
 import '../../../product_detail/domain/adapters/jewelry_product_detail.dart';
-import '../../../product_detail/domain/models/jewelry_unit_pricing.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../../recently_viewed/application/recently_viewed_providers.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_badge.dart';
@@ -21,34 +22,32 @@ String _join(Iterable<String> parts) =>
 String _weight(double v, String unit) =>
     '${v.toStringAsFixed(v == v.roundToDouble() ? 0 : 2)}$unit';
 
-/// Card title: the product name before any " — " descriptor.
+/// Card title: the product name before any " — " or " | " descriptor.
 String jewelryCardTitle(Jewelry j) {
-  final dash = j.name.split(' — ');
-  return dash.length > 1 ? dash.first.trim() : j.name;
+  for (final sep in const [' — ', ' | ']) {
+    final parts = j.name.split(sep);
+    if (parts.length > 1) return parts.first.trim();
+  }
+  return j.name;
 }
 
-/// "18K · Yellow Gold".
+/// "14K · Yellow Gold".
 String _metal(Jewelry j) => _join([j.metalPurity, j.metalColor]);
 
-/// "Diamond · Round · 0.50ct · 12 pcs".
+/// "Lab-Grown · Diamond · Pear · 1.43ct".
 String _stones(Jewelry j) => _join([
   j.stoneType,
+  j.stoneCategory,
   j.stoneShape,
   if (j.stoneWeightCt > 0) _weight(j.stoneWeightCt, 'ct'),
-  if (j.stoneCount > 1) '${j.stoneCount} pcs',
 ]);
 
-/// "Rings · Solitaire · ★ 4.8 (120)".
-String _category(Jewelry j) => _join([
-  j.category,
-  if (j.subCategory != null) j.subCategory!,
-  if (j.rating != null)
-    '★ ${j.rating}${j.reviewCount == null ? '' : ' (${j.reviewCount})'}',
-]);
+/// "Wedding Bands · Pureyou".
+String _category(Jewelry j) =>
+    _join([j.subCategory ?? j.category, j.shopName ?? '']);
 
 Widget _thumb(BuildContext context, Jewelry j) {
   final p = LuxePalette.of(context);
-  final url = j.displayImageUrl;
   final fallback = ColoredBox(
     color: p.surfaceRaised,
     child: Center(
@@ -56,53 +55,22 @@ Widget _thumb(BuildContext context, Jewelry j) {
     ),
   );
   return CatalogCardImagePager(
-    imageUrls: url == null ? const [] : [url],
+    imageUrls: j.imageUrls.isNotEmpty
+        ? j.imageUrls
+        : [?j.displayImageUrl],
     fallback: fallback,
     memCacheWidth: 480,
   );
 }
 
-Widget _price(Jewelry j, {bool showList = false}) {
-  final pricing = JewelryUnitPricing.from(
-    metalPrice: j.metalPrice,
-    stonePrice: j.stonePrice,
-    makingCharge: j.makingCharge,
-    discountAmount: j.discountAmount,
-    totalPrice: j.price,
-  );
-  return LuxePriceRow(
-    price: pricing.netPrice,
-    listPrice: pricing.hasDiscount ? pricing.listPrice : null,
-    discountPercent: pricing.hasDiscount ? pricing.discountPercent : null,
-    showList: showList,
-  );
-}
+Widget _price(BuildContext context, Jewelry j) => LuxePriceRow(
+  price: j.price,
+  currencySymbol: j.isMarketplace ? AppCurrency.inrSymbol : null,
+  prefix: j.hasPriceRange ? context.tr(JewelryMarketL10n.from) : null,
+);
 
-/// Availability dot plus the listing badge (e.g. "Auction").
-Widget _status(BuildContext context, Jewelry j) {
-  final p = LuxePalette.of(context);
-  final badge = j.badge?.trim();
-  return Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      AvailabilityStatusBadge(status: j.availability),
-      if (badge != null && badge.isNotEmpty) ...[
-        const SizedBox(width: 6),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: ShapeDecoration(
-            color: p.ink.withValues(alpha: 0.82),
-            shape: const StadiumBorder(),
-          ),
-          child: Text(
-            badge.toUpperCase(),
-            style: LuxeType.eyebrow(p.canvas).copyWith(fontSize: 9),
-          ),
-        ),
-      ],
-    ],
-  );
-}
+/// Stock dot (sold out / made to order / in stock).
+Widget _status(Jewelry j) => AvailabilityStatusBadge(status: j.availability);
 
 CatalogSaveButton _save(Jewelry j, {bool onLight = false}) => CatalogSaveButton(
   item: WishlistItem.fromJewelry(j),
@@ -137,11 +105,11 @@ class JewelryLuxeGridCard extends ConsumerWidget {
       highlighted: ref.watch(isRecentlyViewedProvider(j.id)),
       media: _thumb(context, j),
       title: jewelryCardTitle(j),
-      subtitle: _metal(j).isEmpty ? j.category : _metal(j),
+      subtitle: _metal(j).isEmpty ? _category(j) : _metal(j),
       meta: _stones(j).isEmpty ? _category(j) : _stones(j),
-      price: _price(j),
+      price: _price(context, j),
       overlays: LuxeMediaOverlays(
-        topLeft: _status(context, j),
+        topLeft: _status(j),
         topRight: _save(j),
         bottomLeft: j.colorVariants.isEmpty
             ? null
@@ -176,10 +144,10 @@ class JewelryLuxeListCard extends ConsumerWidget {
         if (j.metalWeightG > 0) _weight(j.metalWeightG, 'g'),
       ]),
       detail: _join([_stones(j), _category(j)]),
-      price: _price(j, showList: true),
+      price: _price(context, j),
       titleAction: _save(j, onLight: true),
       priceAction: _compare(j, onLight: true),
-      thumbTopLeft: _status(context, j),
+      thumbTopLeft: _status(j),
       thumbBottomLeft: j.colorVariants.isEmpty
           ? null
           : LuxeMetalSwatchStack(

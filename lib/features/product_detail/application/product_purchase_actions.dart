@@ -10,7 +10,6 @@ import '../../../core/router/route_names.dart';
 import '../../cart/application/cart_provider.dart';
 import '../../product_offer/application/product_offer_providers.dart';
 import '../domain/models/product_detail.dart';
-import 'jewelry_config_draft_provider.dart';
 import 'melee_qty_draft_provider.dart';
 
 /// Outcome tone for purchase feedback.
@@ -79,8 +78,9 @@ class PurchaseState {
 }
 
 /// Add-to-cart and make-offer rules shared by every detail action bar:
-/// sign-in, account access, own-listing and availability guards, jewelry
-/// configuration and partial-melee quantities.
+/// sign-in, account access, own-listing and availability guards and
+/// partial-melee quantities. Marketplace jewelry uses the jewellery bag
+/// instead (see `LuxeJewelryPurchaseBar`).
 abstract final class ProductPurchaseActions {
   static PurchaseState watchState(WidgetRef ref, ProductDetail detail) {
     final mutating = ref.watch(cartIsMutatingProvider);
@@ -156,19 +156,6 @@ abstract final class ProductPurchaseActions {
 
     var quantity = 1;
     Map<String, dynamic>? specifications;
-    final jewelryDetail = detail.jewelryDetail;
-    if (jewelryDetail != null) {
-      ref
-          .read(jewelryConfigDraftProvider(detail.id).notifier)
-          .ensureSeeded(jewelryDetail);
-      final draft = ref.read(jewelryConfigDraftProvider(detail.id));
-      if (draft == null) {
-        notify(copy.selectJewelryOptions, PurchaseTone.error);
-        return;
-      }
-      quantity = draft.quantity;
-      specifications = draft.toCartSpecifications();
-    }
     final meleeQty = detail.naturalSpecTabs?.meleeQty;
     if (meleeQty != null) {
       ref

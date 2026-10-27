@@ -32,9 +32,26 @@ abstract final class ApiEndpoints {
   static const String gemStoneFilters = '/gem-stone/filters';
   static String gemStoneById(String id) => '/gem-stone/$id';
 
-  static const String jewellery = '/jewellery';
-  static String jewelleryById(String id) => '/jewellery/$id';
-  static const String jewelleryCategories = '/jewellery-categories';
+  // Jewellery marketplace (jewelry.gemworld.in). Catalogue and cart quote
+  // are public; orders need the Bearer token.
+  static const String marketplaceCategories = '/marketplace/categories';
+  static const String marketplaceListings = '/marketplace/listings';
+  static const String marketplaceFacets = '/marketplace/listings/facets';
+  static String marketplaceListing(String slug) =>
+      '/marketplace/listings/${Uri.encodeComponent(slug)}';
+  static String marketplaceRelated(String slug) =>
+      '/marketplace/listings/${Uri.encodeComponent(slug)}/related';
+  static const String marketplaceShops = '/marketplace/shops';
+  static String marketplaceShop(String slug) =>
+      '/marketplace/shops/${Uri.encodeComponent(slug)}';
+  static const String marketplaceCartQuote = '/marketplace/cart/quote';
+  static const String marketplaceOrders = '/marketplace/orders';
+  static String marketplaceOrder(String id) => '/marketplace/orders/$id';
+  static String marketplaceOrderVerify(String id) =>
+      '/marketplace/orders/$id/verify';
+  static String marketplaceOrderPay(String id) => '/marketplace/orders/$id/pay';
+  static String marketplaceOrderItemCancel(String id, String itemId) =>
+      '/marketplace/orders/$id/items/$itemId/cancel';
 
   static const String watchAll = '/watch/all';
   static String watchById(String id) => '/watch/$id';

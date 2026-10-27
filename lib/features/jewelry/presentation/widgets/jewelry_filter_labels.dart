@@ -6,9 +6,12 @@ import '../../../../core/utils/active_filter_labels.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
+import '../../application/jewellery_categories_provider.dart';
 import '../../application/jewelry_filter_provider.dart';
 import '../../domain/models/jewelry_filter_state.dart';
 import '../../domain/models/jewelry_filter_summary.dart';
+import '../../domain/models/marketplace_enums.dart';
+import '../../domain/models/marketplace_listing.dart';
 
 /// Display title of a jewelry filter section.
 String jewelrySectionTitle(BuildContext context, JewelryFilterSection s) =>
@@ -17,25 +20,55 @@ String jewelrySectionTitle(BuildContext context, JewelryFilterSection s) =>
       JewelryFilterSection.price => JewelryFlowL10n.sectionPrice,
       JewelryFilterSection.metal => JewelryFlowL10n.sectionMetal,
       JewelryFilterSection.stone => JewelryFlowL10n.sectionStone,
-      JewelryFilterSection.size => JewelryFlowL10n.sectionSize,
-      JewelryFilterSection.quality => JewelryFlowL10n.sectionQuality,
       JewelryFilterSection.listing => DiamondFlowL10n.sectionListing,
     });
 
-String jewelrySortLabel(BuildContext context, JewelrySortOption o) =>
+String jewelrySortLabel(BuildContext context, JewelrySortOption? o) =>
     context.tr(switch (o) {
-      JewelrySortOption.featured => JewelryFlowL10n.sortFeatured,
+      null => JewelryMarketL10n.sortBestMatch,
+      JewelrySortOption.relevance => JewelryMarketL10n.sortRelevance,
       JewelrySortOption.newest => JewelryFlowL10n.sortNewest,
+      JewelrySortOption.priceAsc => JewelryMarketL10n.sortPriceAsc,
+      JewelrySortOption.priceDesc => JewelryMarketL10n.sortPriceDesc,
+      JewelrySortOption.popular => JewelryMarketL10n.sortPopular,
     });
 
-/// Title for the results page: the collection name, "Accessories" for the
-/// accessories landing, or "Jewelry" when every category is shown.
-String jewelryCollectionTitle(BuildContext context, String? category) =>
-    switch (category) {
-      null || '' => context.tr(CatalogL10n.jewelry),
-      'All Accessories' => context.tr(CatalogL10n.accessories),
-      final c => c,
-    };
+String jewelryAvailabilityLabel(BuildContext context, String value) =>
+    context.tr(
+      value == JewelryAvailability.ready
+          ? JewelryMarketL10n.readyToShip
+          : JewelryMarketL10n.madeToOrder,
+    );
+
+/// Localized word for a marketplace enum value (`YELLOW_GOLD`).
+String jewelryEnumLabel(BuildContext context, String value) =>
+    context.trCatalogValue(MarketplaceEnums.label(value));
+
+/// "₹1,20,000".
+String jewelryRupees(double v) =>
+    '${AppCurrency.inrSymbol}${formatGroupedWhole(v)}';
+
+/// Title for the results page: the open style or collection name, or
+/// "Jewelry" when every category is shown.
+String jewelryCollectionTitle(
+  BuildContext context,
+  List<MarketplaceCategory>? categories,
+  JewelryFilterState filters,
+) {
+  final found = categories == null
+      ? null
+      : MarketplaceCategory.find(categories, filters.categorySlug);
+  return found?.name ?? context.tr(CatalogL10n.jewelry);
+}
+
+/// [jewelryCollectionTitle] for the applied filters.
+class JewelryCollectionTitle {
+  static String watch(BuildContext context, WidgetRef ref) {
+    final filters = ref.watch(jewelryFilterProvider);
+    final categories = ref.watch(jewelleryCategoriesProvider).valueOrNull;
+    return jewelryCollectionTitle(context, categories, filters);
+  }
+}
 
 /// Pills summarising which jewelry filter sections hold filters; tapping
 /// edits them, the trailing action clears everything.
@@ -53,25 +86,29 @@ class JewelryActiveFilterPills extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final f = ref.watch(jewelryFilterProvider);
     final summary = JewelryFilterSummary.of(f);
+    Iterable<String> words(Set<String> values) =>
+        values.map((v) => jewelryEnumLabel(context, v));
     // Applied values first (also what Gem Agent set), then counts for the rest.
     final pills = ActiveFilterLabels<JewelryFilterSection>()
-      ..values(JewelryFilterSection.style, f.genders)
+      ..values(JewelryFilterSection.style, f.styles)
       ..values(JewelryFilterSection.style, f.occasions)
       ..range(
         JewelryFilterSection.price,
-        min: f.priceMin > JewelryFilterState.priceMinLimit ? f.priceMin : null,
-        max: f.priceMax < JewelryFilterState.priceMaxLimit ? f.priceMax : null,
+        min: f.priceMin,
+        max: f.priceMax,
         format: _price,
       )
-      ..values(JewelryFilterSection.metal, f.metalTypes)
-      ..values(JewelryFilterSection.metal, f.metalColors)
-      ..values(JewelryFilterSection.metal, f.metalPurities)
-      ..values(JewelryFilterSection.stone, f.stoneCategories)
-      ..values(JewelryFilterSection.stone, f.stoneShapes)
-      ..values(JewelryFilterSection.size, f.ringSizes, name: 'Ring size');
-    if (f.stoneType != null) {
-      pills.add(JewelryFilterSection.stone, '${f.stoneType} stone');
+      ..values(JewelryFilterSection.metal, words(f.metals))
+      ..values(JewelryFilterSection.stone, words(f.gemstones))
+      ..values(JewelryFilterSection.stone, words(f.origins))
+      ..values(JewelryFilterSection.stone, f.shapes);
+    if (f.availability != null) {
+      pills.add(
+        JewelryFilterSection.listing,
+        jewelryAvailabilityLabel(context, f.availability!),
+      );
     }
+    if (f.tag != null) pills.add(JewelryFilterSection.listing, '#${f.tag}');
     return LuxeActiveFilterPills(
       labels: pills.build(
         sections: JewelryFilterSection.values,
@@ -138,4 +175,4 @@ class JewelryCountLine extends StatelessWidget {
   }
 }
 
-String _price(double v) => AppCurrency.format(formatCatalogPriceWholeK(v));
+String _price(double v) => jewelryRupees(v);

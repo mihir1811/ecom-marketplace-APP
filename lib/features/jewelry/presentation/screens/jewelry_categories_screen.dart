@@ -18,20 +18,22 @@ import '../../../../core/widgets/luxe/luxe_metal_swatch.dart';
 import '../../../../core/widgets/luxe/press_tilt.dart';
 import '../../../../core/widgets/luxe/scroll_reveal.dart';
 import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
+import '../../../jewelry_checkout/presentation/widgets/jewelry_bag_button.dart';
 import '../../../product_detail/presentation/widgets/luxe/luxe_detail_parts.dart';
 import '../../application/jewellery_categories_provider.dart';
+import '../../application/jewelry_catalogue_providers.dart';
 import '../../application/jewelry_filter_provider.dart';
-import '../../domain/models/jewellery_category_admin.dart';
+import '../../domain/models/marketplace_enums.dart';
+import '../../domain/models/marketplace_listing.dart';
 import '../jewellery_category_images.dart';
-import '../widgets/jewelry_quick_filters.dart';
 import '../widgets/jewelry_showcase_stage.dart';
 
 /// The jewelry house: the entry to the jewelry flow from Browse Collection.
 ///
 /// An always-dark showcase stage leads with the pieces themselves, then a
-/// floating search, editorial collection tiles from the live category API,
-/// popular styles and metal tones — every path lands on the results page
-/// already filtered.
+/// floating search, editorial collection tiles from the marketplace category
+/// API, popular styles, metal tones and the shops — every path lands on the
+/// results page already filtered.
 class JewelryCategoriesScreen extends ConsumerStatefulWidget {
   const JewelryCategoriesScreen({super.key});
 
@@ -61,18 +63,26 @@ class _JewelryCategoriesScreenState
   }
 
   /// Applies the entry selection in one update, then opens results.
-  void _open({String? category, String? style, String? metal}) {
+  void _open({String? category, String? style, String? metal, String? shop}) {
     ref
         .read(jewelryFilterProvider.notifier)
-        .openCollection(category: category, style: style, metal: metal);
+        .openCollection(
+          category: category,
+          style: style,
+          metal: metal,
+          shop: shop,
+        );
     context.push(AppRouteNames.jewelryListing);
   }
 
-  /// Live API name for a UI collection ("Rings" → "Ring") when known.
-  String _liveName(String uiName) {
-    final live = ref.read(jewelleryCategoriesProvider).valueOrNull;
-    if (live == null) return uiName;
-    return JewelleryCategoryMatch.find(live, uiName)?.name ?? uiName;
+  /// Live category slug for a showcase collection ("Rings" → `rings`).
+  String _liveSlug(String uiName) {
+    final live = ref.read(jewelleryCategoriesProvider).valueOrNull ?? const [];
+    final wanted = uiName.trim().toLowerCase();
+    for (final c in live) {
+      if (c.name.toLowerCase() == wanted || c.slug == wanted) return c.slug;
+    }
+    return wanted;
   }
 
   void _submitSearch(String query) {
@@ -108,7 +118,7 @@ class _JewelryCategoriesScreenState
               ref.invalidate(jewelleryCategoriesProvider);
               await ref
                   .read(jewelleryCategoriesProvider.future)
-                  .catchError((_) => const <JewelleryCategoryAdmin>[]);
+                  .catchError((_) => const <MarketplaceCategory>[]);
             },
             child: CustomScrollView(
               controller: _scroll,
@@ -127,7 +137,7 @@ class _JewelryCategoriesScreenState
                           height: stageHeight,
                           topInset: topInset,
                           onExplore: (piece) =>
-                              _open(category: _liveName(piece.category)),
+                              _open(category: _liveSlug(piece.category)),
                           onShopAll: _open,
                         ),
                       ),
@@ -165,6 +175,9 @@ class _JewelryCategoriesScreenState
                 SliverToBoxAdapter(
                   child: _Metals(onOpen: (m) => _open(metal: m)),
                 ),
+                SliverToBoxAdapter(
+                  child: _Shops(onOpen: (s) => _open(shop: s)),
+                ),
                 const SliverToBoxAdapter(child: SizedBox(height: 48)),
               ],
             ),
@@ -178,7 +191,10 @@ class _JewelryCategoriesScreenState
               offset: _offset,
               solidAfter: stageHeight - 120,
               darkBackdrop: true,
-              actions: (glass) => [CatalogFlowActions(glass: glass)],
+              actions: (glass) => [
+                JewelryBagButton(glass: glass),
+                CatalogFlowActions(glass: glass),
+              ],
             ),
           ),
         ],
@@ -242,7 +258,7 @@ class _JewelryCategoriesScreenState
               sliver: SliverToBoxAdapter(
                 child: _CollectionGrid(
                   items: items,
-                  onOpen: (c) => _open(category: c.name),
+                  onOpen: (c) => _open(category: c.slug),
                 ),
               ),
             ),
@@ -259,8 +275,8 @@ class _JewelryCategoriesScreenState
 class _CollectionGrid extends StatelessWidget {
   const _CollectionGrid({required this.items, required this.onOpen});
 
-  final List<JewelleryCategoryAdmin> items;
-  final ValueChanged<JewelleryCategoryAdmin> onOpen;
+  final List<MarketplaceCategory> items;
+  final ValueChanged<MarketplaceCategory> onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -315,17 +331,13 @@ class _CollectionTile extends StatelessWidget {
     this.feature = false,
   });
 
-  final JewelleryCategoryAdmin category;
+  final MarketplaceCategory category;
   final VoidCallback onTap;
   final bool feature;
 
   String _styleLabel(BuildContext context) {
-    final count = category.styleCount;
-    if (count <= 0) {
-      return category.name.trim().toLowerCase() == 'accessories'
-          ? ''
-          : context.tr(RemainingL10n.comingSoon).replaceAll('.', '');
-    }
+    final count = category.children.length;
+    if (count <= 0) return '';
     return count == 1
         ? context.tr(JewelryFlowL10n.styleOne)
         : context.tr(JewelryFlowL10n.styleCount, {'count': count});
@@ -334,7 +346,7 @@ class _CollectionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
-    final asset = JewelleryCategoryImages.assetFor(category.name);
+    final asset = JewelleryCategoryImages.assetFor(category.slug);
     final networkUrl = JewelleryCategoryImages.absoluteUrl(category.imageUrl);
     final fallback = Image.asset(
       asset,
@@ -479,9 +491,8 @@ class _Styles extends ConsumerWidget {
     final seen = <String>{};
     final styles = [
       for (final c in live)
-        for (final s in c.subcategories)
-          if (s.isActive && s.name.trim().isNotEmpty && seen.add(s.name.trim()))
-            (category: c.name, style: s.name.trim()),
+        for (final s in c.children)
+          if (seen.add(s.slug)) (category: c.slug, style: s.slug, name: s.name),
     ].take(14).toList();
     if (styles.isEmpty) return const SizedBox.shrink();
 
@@ -495,10 +506,10 @@ class _Styles extends ConsumerWidget {
               title: context.tr(JewelryFlowL10n.stylesTitle),
               subtitle: context.tr(JewelryFlowL10n.stylesSubtitle),
             ),
-            LuxeQuickChips<({String category, String style})>(
+            LuxeQuickChips<({String category, String style, String name})>(
               chips: [
                 for (final s in styles)
-                  LuxeQuickChip(value: s, label: s.style),
+                  LuxeQuickChip(value: s, label: s.name),
               ],
               isSelected: (_) => false,
               onTap: (s) => onOpen(category: s.category, style: s.style),
@@ -511,7 +522,7 @@ class _Styles extends ConsumerWidget {
 }
 
 /// Metal tones as large polished discs; each opens every collection in
-/// that metal.
+/// that metal (`metal` is the API enum, e.g. `ROSE_GOLD`).
 class _Metals extends StatelessWidget {
   const _Metals({required this.onOpen});
 
@@ -534,13 +545,14 @@ class _Metals extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  for (var i = 0; i < jewelryQuickMetals.length; i++) ...[
+                  for (final (i, metal)
+                      in MarketplaceEnums.quickMetals.indexed) ...[
                     if (i > 0) const SizedBox(width: 10),
                     Expanded(
                       child: _MetalTile(
-                        metal: jewelryQuickMetals[i],
+                        metal: metal,
                         palette: p,
-                        onTap: () => onOpen(jewelryQuickMetals[i]),
+                        onTap: () => onOpen(metal),
                       ),
                     ),
                   ],
@@ -568,7 +580,7 @@ class _MetalTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = palette;
-    final label = context.trCatalogValue(metal);
+    final label = context.trCatalogValue(MarketplaceEnums.label(metal));
     return PressTilt(
       semanticLabel: label,
       onTap: onTap,
@@ -581,7 +593,10 @@ class _MetalTile extends StatelessWidget {
         ),
         child: Column(
           children: [
-            LuxeMetalSwatch(label: metal, size: 44),
+            LuxeMetalSwatch(
+              label: MarketplaceEnums.swatchLabel(metal),
+              size: 44,
+            ),
             const SizedBox(height: 10),
             Text(
               label,
@@ -589,6 +604,122 @@ class _MetalTile extends StatelessWidget {
               textAlign: TextAlign.center,
               overflow: TextOverflow.ellipsis,
               style: LuxeType.label(p.ink, size: 12),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The marketplace shops; each opens results narrowed to that shop.
+class _Shops extends ConsumerWidget {
+  const _Shops({required this.onOpen});
+
+  final ValueChanged<String> onOpen;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final shops = ref.watch(jewelryShopsProvider).valueOrNull;
+    if (shops == null || shops.isEmpty) return const SizedBox.shrink();
+    return ScrollReveal(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 36),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            LuxeRowHeading(
+              title: context.tr(JewelryMarketL10n.shopsTitle),
+              subtitle: context.tr(JewelryMarketL10n.shopsSubtitle),
+            ),
+            SizedBox(
+              height: 168,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: shops.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 12),
+                itemBuilder: (context, i) => _ShopTile(
+                  shop: shops[i],
+                  onTap: () => onOpen(shops[i].slug),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ShopTile extends StatelessWidget {
+  const _ShopTile({required this.shop, required this.onTap});
+
+  final MarketplaceShop shop;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    final banner = shop.bannerUrl;
+    final logo = shop.logoUrl;
+    return PressTilt(
+      semanticLabel: shop.name,
+      onTap: onTap,
+      child: Container(
+        width: 220,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: p.surface,
+          borderRadius: BorderRadius.circular(LuxeSpace.radius),
+          border: Border.all(color: p.hairline),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: 78,
+              child: banner == null
+                  ? ColoredBox(color: p.surfaceRaised)
+                  : AppNetworkImage(url: banner),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 16,
+                    backgroundColor: p.surfaceRaised,
+                    foregroundImage: logo == null ? null : NetworkImage(logo),
+                    child: Icon(
+                      Icons.storefront_outlined,
+                      size: 16,
+                      color: p.accent,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      shop.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: LuxeType.label(p.ink, size: 14),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
+              child: Text(
+                shop.headline ??
+                    context.tr(JewelryMarketL10n.shopPieces, {
+                      'count': shop.listingCount ?? 0,
+                    }),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: LuxeType.body(p.inkMuted, size: 12),
+              ),
             ),
           ],
         ),

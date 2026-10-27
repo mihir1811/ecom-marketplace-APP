@@ -33,6 +33,22 @@ NotificationOpenTarget notificationOpenTarget(
   required bool isSeller,
 }) {
   final data = notification.data;
+  // Jewellery marketplace pushes reuse ORDER_* type names; the entity type
+  // tells them apart from catalog orders.
+  switch (data['entityType']) {
+    case 'MARKETPLACE_ORDER':
+      final orderId = data['orderId'] ?? '';
+      final forBuyer = notification.type != 'ORDER_RECEIVED' &&
+          notification.type != 'ORDER_CANCELLED_BY_BUYER';
+      if (forBuyer && orderId.isNotEmpty) {
+        return NotificationInApp(AppRouteNames.jewelryOrderDetailPath(orderId));
+      }
+      // Shop orders are managed in the seller studio on the website.
+      return _fromLink(notification.link, isSeller: isSeller);
+    case 'MARKETPLACE_CHAT':
+      // Shop messages live on jewelry.gemworld.in for now.
+      return _fromLink(notification.link, isSeller: isSeller);
+  }
   switch (notification.type) {
     case 'CHAT_MESSAGE':
       // Open the conversation itself when the product is known; chats are

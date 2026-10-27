@@ -712,10 +712,16 @@ class _SheetPageState extends ConsumerState<_SheetPage> {
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
-    final s = luxeProductSections(context, ref, widget.detail);
-    final safe = widget.safe;
     final active = widget.active;
     if (active) _recordBuilt = true;
+    // Neighbour pages wait until shown: a full jewelry fetch counts a view.
+    final s = luxeProductSections(
+      context,
+      ref,
+      widget.detail,
+      loadFull: _recordBuilt,
+    );
+    final safe = widget.safe;
 
     return ColoredBox(
       color: p.canvas,

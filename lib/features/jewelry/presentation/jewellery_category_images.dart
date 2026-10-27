@@ -2,15 +2,14 @@ import 'package:flutter/painting.dart';
 
 import '../../../core/l10n/app_localizations.dart';
 
-/// Bundled art for jewellery category tiles when API `imageUrl` is relative or 404.
-///
-/// Live relative paths like `/images/jewelryCategoryImages/ring.png` currently
-/// 404 on the API host; shopper tiles use these assets instead.
+/// Bundled art for jewellery category tiles: marketplace categories usually
+/// have no `imageUrl`.
 abstract final class JewelleryCategoryImages {
   static const _dir = 'public/images/jewelryCategoryImages';
 
-  static String assetFor(String name) {
-    return switch (name.trim().toLowerCase()) {
+  /// Art for a category slug (or name).
+  static String assetFor(String slug) {
+    return switch (slug.trim().toLowerCase()) {
       'ring' || 'rings' => '$_dir/ring.webp',
       'bracelet' || 'bracelets' => '$_dir/bracelet.webp',
       'earring' || 'earrings' => '$_dir/earrings.webp',

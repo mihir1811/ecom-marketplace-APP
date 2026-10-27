@@ -14,6 +14,7 @@ import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
+import '../../../jewelry_checkout/presentation/widgets/jewelry_bag_button.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/jewelry_filter_provider.dart';
 import '../../application/jewelry_list_provider.dart';
@@ -38,10 +39,10 @@ class JewelryListingScreen extends ConsumerStatefulWidget {
 
   final String? initialCategory;
 
-  /// Single style (sub-category) to open with, e.g. from the house landing.
+  /// Style (sub-category slug) to open with, e.g. from the house landing.
   final String? initialStyle;
 
-  /// Metal colour to open with, e.g. "Rose Gold".
+  /// Metal enum to open with, e.g. `ROSE_GOLD`.
   final String? initialMetal;
 
   @override
@@ -160,11 +161,21 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
   }
 
   Future<void> _openSort() async {
+    final searching = ref.read(jewelryFilterProvider).searchQuery.isNotEmpty;
     final selected = await showLuxeChoiceSheet<JewelrySortOption>(
       context,
       title: context.tr(JewelryFlowL10n.sortTitle),
-      options: JewelrySortOption.values,
-      current: ref.read(jewelrySortProvider),
+      options: [
+        if (searching) JewelrySortOption.relevance,
+        JewelrySortOption.newest,
+        JewelrySortOption.priceAsc,
+        JewelrySortOption.priceDesc,
+        JewelrySortOption.popular,
+      ],
+      // The API default: relevance while searching, else newest.
+      current:
+          ref.read(jewelrySortProvider) ??
+          (searching ? JewelrySortOption.relevance : JewelrySortOption.newest),
       labelOf: (o) => jewelrySortLabel(context, o),
     );
     if (selected != null && mounted) {
@@ -181,13 +192,12 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
 
   Widget _buildScaffold(BuildContext context) {
     final p = LuxePalette.of(context);
-    final category = ref.watch(jewelryFilterProvider.select((s) => s.category));
     return AppScaffold(
       // Runs on behind the floating dock; the scroll view clears it.
       safeBottom: false,
       backgroundColor: p.canvas,
       appBar: LuxeTopBar(
-        title: jewelryCollectionTitle(context, category),
+        title: JewelryCollectionTitle.watch(context, ref),
         subtitle: Consumer(
           builder: (context, ref, _) => JewelryCountLine(
             total: ref.watch(
@@ -199,7 +209,7 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
           ),
         ),
         scrollOffset: listingOffset,
-        actions: const [CatalogFlowActions()],
+        actions: const [JewelryBagButton(), CatalogFlowActions()],
       ),
       body: LuxeListingScrollView(
         controller: listingScroll,
@@ -222,6 +232,7 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
                     onSubmitted: _onSearchSubmitted,
                   ),
                 ),
+                const _ShopPill(),
                 const JewelryStyleChips(),
                 const SizedBox(height: 10),
                 const JewelryMetalChips(),
@@ -293,6 +304,41 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
         onAction: () => ref.read(jewelryListProvider.notifier).refresh(),
         secondaryLabel: context.tr(DiamondFlowL10n.editFilters),
         onSecondary: _openFilters,
+      ),
+    );
+  }
+}
+
+/// "Pureyou ×" while results are narrowed to one shop.
+class _ShopPill extends ConsumerWidget {
+  const _ShopPill();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final shop = ref.watch(jewelryFilterProvider.select((s) => s.shop));
+    if (shop == null || shop.isEmpty) return const SizedBox.shrink();
+    final p = LuxePalette.of(context);
+    final name = ref.watch(
+      jewelryListProvider.select((v) {
+        final items = v.valueOrNull?.items ?? const [];
+        return items.isEmpty ? null : items.first.shopName;
+      }),
+    );
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: InputChip(
+          avatar: Icon(Icons.storefront_outlined, size: 16, color: p.accent),
+          label: Text(
+            context.tr(JewelryMarketL10n.shopFilter, {'shop': name ?? shop}),
+            style: LuxeType.label(p.ink, size: 13),
+          ),
+          backgroundColor: p.surface,
+          side: BorderSide(color: p.hairline),
+          shape: const StadiumBorder(),
+          onDeleted: ref.read(jewelryFilterProvider.notifier).clearShop,
+        ),
       ),
     );
   }

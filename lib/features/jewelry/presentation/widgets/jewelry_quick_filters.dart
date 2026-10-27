@@ -8,40 +8,12 @@ import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../../../core/widgets/luxe/luxe_metal_swatch.dart';
 import '../../application/jewellery_categories_provider.dart';
 import '../../application/jewelry_filter_provider.dart';
-import '../../domain/models/jewellery_category_admin.dart';
+import '../../domain/models/marketplace_enums.dart';
+import '../../domain/models/marketplace_listing.dart';
 
-/// Metal tones offered as one-tap quick filters on results and the house
-/// landing (the full list lives in the filter screen).
-const jewelryQuickMetals = ['Yellow Gold', 'White Gold', 'Rose Gold', 'Two-Tone'];
-
-/// Active style names (sub-categories) for [category], straight from the
-/// live category API. "All jewelry" and the accessories landing list every
-/// style once; an unknown category lists none.
-List<String> jewelryStylesFor(
-  List<JewelleryCategoryAdmin> live,
-  String? category,
-) {
-  final matched = JewelleryCategoryMatch.find(live, category);
-  if (matched != null) {
-    return [
-      for (final sub in matched.subcategories)
-        if (sub.isActive && sub.name.trim().isNotEmpty) sub.name.trim(),
-    ];
-  }
-  final browsingAll =
-      category == null || category.isEmpty || category == 'All Accessories';
-  if (!browsingAll) return const [];
-  final seen = <String>{};
-  return [
-    for (final cat in live)
-      for (final sub in cat.subcategories)
-        if (sub.isActive && sub.name.trim().isNotEmpty && seen.add(sub.name))
-          sub.name.trim(),
-  ];
-}
-
-/// Style chips for the current collection: "All styles" plus every live
-/// sub-category. Multi-select; "All styles" clears the selection.
+/// Collection chips when every category is shown; style (sub-category)
+/// chips once a collection is open. Single-select, like the API's
+/// `category` param.
 class JewelryStyleChips extends ConsumerWidget {
   const JewelryStyleChips({super.key});
 
@@ -51,7 +23,7 @@ class JewelryStyleChips extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final category = ref.watch(jewelryFilterProvider.select((s) => s.category));
     final selected = ref.watch(
-      jewelryFilterProvider.select((s) => s.subCategories),
+      jewelryFilterProvider.select((s) => s.subCategory),
     );
     final live = ref.watch(jewelleryCategoriesProvider);
     return AnimatedSize(
@@ -73,20 +45,42 @@ class JewelryStyleChips extends ConsumerWidget {
         // Styles are an extra; the rest of the page still works without.
         error: (_, _) => const SizedBox(width: double.infinity),
         data: (categories) {
-          final styles = jewelryStylesFor(categories, category);
-          if (styles.isEmpty) return const SizedBox(width: double.infinity);
           final n = ref.read(jewelryFilterProvider.notifier);
+          final parent = MarketplaceCategory.find(categories, category);
+          if (parent == null) {
+            // Every category: chips open a collection.
+            if (categories.isEmpty) {
+              return const SizedBox(width: double.infinity);
+            }
+            return LuxeQuickChips<String>(
+              chips: [
+                LuxeQuickChip(
+                  value: _all,
+                  label: context.tr(JewelryFlowL10n.allStyles),
+                ),
+                for (final c in categories)
+                  LuxeQuickChip(value: c.slug, label: c.name),
+              ],
+              isSelected: (v) => v == _all,
+              onTap: (v) {
+                if (v != _all) n.selectCategory(v);
+              },
+            );
+          }
+          if (parent.children.isEmpty) {
+            return const SizedBox(width: double.infinity);
+          }
           return LuxeQuickChips<String>(
             chips: [
               LuxeQuickChip(
                 value: _all,
                 label: context.tr(JewelryFlowL10n.allStyles),
               ),
-              for (final s in styles) LuxeQuickChip(value: s, label: s),
+              for (final s in parent.children)
+                LuxeQuickChip(value: s.slug, label: s.name),
             ],
-            isSelected: (v) => v == _all ? selected.isEmpty : selected.contains(v),
-            onTap: (v) =>
-                v == _all ? n.clearSubCategories() : n.toggleSubCategory(v),
+            isSelected: (v) => v == _all ? selected == null : selected == v,
+            onTap: (v) => n.selectSubCategory(v == _all ? null : v),
           );
         },
       ),
@@ -100,21 +94,22 @@ class JewelryMetalChips extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selected = ref.watch(
-      jewelryFilterProvider.select((s) => s.metalColors),
-    );
+    final selected = ref.watch(jewelryFilterProvider.select((s) => s.metals));
     return LuxeQuickChips<String>(
       dense: true,
       chips: [
-        for (final m in jewelryQuickMetals)
+        for (final m in MarketplaceEnums.quickMetals)
           LuxeQuickChip(
             value: m,
-            label: context.trCatalogValue(m),
-            leading: LuxeMetalSwatch(label: m, size: 14),
+            label: context.trCatalogValue(MarketplaceEnums.label(m)),
+            leading: LuxeMetalSwatch(
+              label: MarketplaceEnums.swatchLabel(m),
+              size: 14,
+            ),
           ),
       ],
       isSelected: selected.contains,
-      onTap: ref.read(jewelryFilterProvider.notifier).toggleMetalColor,
+      onTap: ref.read(jewelryFilterProvider.notifier).toggleMetal,
     );
   }
 }

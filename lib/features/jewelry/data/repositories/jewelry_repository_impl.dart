@@ -4,229 +4,149 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/network/api_endpoints.dart';
+import '../../../../core/network/api_error.dart';
 import '../../../../core/network/dio_provider.dart';
-import '../../domain/models/jewellery_category_admin.dart';
 import '../../domain/models/jewelry.dart';
 import '../../domain/models/jewelry_filter_state.dart';
+import '../../domain/models/marketplace_listing.dart';
 import '../../domain/repositories/jewelry_repository.dart';
-import '../mappers/jewellery_category_admin_mapper.dart';
 import '../mappers/jewelry_list_query_mapper.dart';
 import '../mappers/jewelry_mapper.dart';
-import '../models/jewelry_dto.dart';
+import '../mappers/marketplace_json.dart';
+import '../mappers/marketplace_mapper.dart';
 
 final jewelryRepositoryProvider = Provider<JewelryRepository>(
   (ref) => JewelryRepositoryImpl(ref.watch(dioProvider)),
 );
 
-/// Live jewellery listing repository backed by `GET /jewellery`.
+/// Jewellery marketplace catalogue backed by the public `/marketplace` GETs.
 class JewelryRepositoryImpl implements JewelryRepository {
   JewelryRepositoryImpl(this._dio);
 
   final Dio _dio;
-
-  /// Cached from `GET /jewellery-categories` for subcategoryId resolution.
-  List<_JewelryCategoryRef>? _categoriesCache;
 
   @override
   Future<Result<JewelryListResponse, Failure>> getJewelry({
     required JewelryFilterState filters,
     required int page,
     int pageSize = JewelryPageSize.defaultSize,
-    JewelrySortOption sort = JewelrySortOption.featured,
-    String? sellerId,
+    JewelrySortOption? sort,
     CancelToken? cancelToken,
-  }) async {
-    try {
-      final limit = pageSize < 1 ? JewelryPageSize.defaultSize : pageSize;
-      final subcategoryIds = await _resolveSubcategoryIds(
-        filters,
-        cancelToken: cancelToken,
-      );
-
-      final query = JewelryListQueryMapper.toQuery(
+  }) => _guard(() async {
+    final response = await _dio.get<Object?>(
+      ApiEndpoints.marketplaceListings,
+      queryParameters: JewelryListQueryMapper.toQuery(
         filters: filters,
         page: page,
-        pageSize: limit,
+        pageSize: pageSize,
         sort: sort,
-        subcategoryIds: subcategoryIds,
-        sellerId: sellerId,
-      );
+      ),
+      cancelToken: cancelToken,
+    );
+    final parsed = MarketplaceMapper.page(
+      MarketplaceJson.data(response.data),
+      page: page,
+    );
+    return JewelryListResponse(
+      items: parsed.items.map(JewelryMapper.fromListing).toList(),
+      totalCount: parsed.total,
+      hasMore: parsed.hasMore,
+      page: parsed.page,
+    );
+  });
 
-      final response = await _dio.get<Map<String, dynamic>>(
-        ApiEndpoints.jewellery,
-        queryParameters: query,
-        cancelToken: cancelToken,
-      );
+  @override
+  Future<Result<Jewelry, Failure>> getListing(
+    String slug, {
+    CancelToken? cancelToken,
+  }) => _guard(() async {
+    final response = await _dio.get<Object?>(
+      ApiEndpoints.marketplaceListing(slug),
+      cancelToken: cancelToken,
+    );
+    final data = MarketplaceJson.obj(MarketplaceJson.data(response.data));
+    return JewelryMapper.fromJson(data);
+  });
 
-      final root = response.data ?? const <String, dynamic>{};
-      final dataNode = root['data'];
-      final payload = dataNode is Map<String, dynamic>
-          ? dataNode
-          : const <String, dynamic>{};
-      final itemsJson = payload['data'];
-      final metaJson = payload['meta'];
-      final meta =
-          metaJson is Map<String, dynamic> ? metaJson : const <String, dynamic>{};
+  @override
+  Future<Result<List<Jewelry>, Failure>> getRelated(
+    String slug, {
+    int limit = 8,
+    CancelToken? cancelToken,
+  }) => _guard(() async {
+    final response = await _dio.get<Object?>(
+      ApiEndpoints.marketplaceRelated(slug),
+      queryParameters: {'limit': limit.clamp(1, 24)},
+      cancelToken: cancelToken,
+    );
+    return [
+      for (final l in MarketplaceJson.listOf(
+        MarketplaceJson.data(response.data),
+        MarketplaceMapper.listing,
+      ))
+        if (l.slug.isNotEmpty) JewelryMapper.fromListing(l),
+    ];
+  });
 
-      final list = itemsJson is List ? itemsJson : const [];
-      final items = <Jewelry>[];
-      for (final item in list) {
-        if (item is! Map<String, dynamic>) continue;
-        final dto = JewelryDto.fromJson(item);
-        if (dto.id.isEmpty) continue;
-        items.add(JewelryMapper.toDomain(dto));
-      }
+  @override
+  Future<Result<MarketplaceFacets, Failure>> getFacets({
+    required JewelryFilterState filters,
+    CancelToken? cancelToken,
+  }) => _guard(() async {
+    final response = await _dio.get<Object?>(
+      ApiEndpoints.marketplaceFacets,
+      queryParameters: JewelryListQueryMapper.toFacetQuery(filters),
+      cancelToken: cancelToken,
+    );
+    return MarketplaceMapper.facets(MarketplaceJson.data(response.data));
+  });
 
-      final total = _asInt(meta['total']) ?? items.length;
-      final currentPage = _asInt(meta['currentPage']) ?? page;
-      final lastPage = _asInt(meta['lastPage']);
-      final hasMore = meta.containsKey('next')
-          ? meta['next'] != null
-          : (lastPage != null
-              ? currentPage < lastPage
-              : items.length >= limit);
+  @override
+  Future<Result<List<MarketplaceCategory>, Failure>> getCategories({
+    CancelToken? cancelToken,
+  }) => _guard(() async {
+    final response = await _dio.get<Object?>(
+      ApiEndpoints.marketplaceCategories,
+      cancelToken: cancelToken,
+    );
+    return MarketplaceMapper.categories(MarketplaceJson.data(response.data));
+  });
 
-      return Result.success(
-        JewelryListResponse(
-          items: items,
-          totalCount: total,
-          hasMore: hasMore,
-          page: currentPage,
-        ),
-      );
+  @override
+  Future<Result<List<MarketplaceShop>, Failure>> getShops({
+    CancelToken? cancelToken,
+  }) => _guard(() async {
+    final response = await _dio.get<Object?>(
+      ApiEndpoints.marketplaceShops,
+      cancelToken: cancelToken,
+    );
+    return MarketplaceJson.listOf(
+      MarketplaceJson.data(response.data),
+      MarketplaceMapper.shop,
+    );
+  });
+
+  @override
+  Future<Result<MarketplaceShop, Failure>> getShop(
+    String slug, {
+    CancelToken? cancelToken,
+  }) => _guard(() async {
+    final response = await _dio.get<Object?>(
+      ApiEndpoints.marketplaceShop(slug),
+      cancelToken: cancelToken,
+    );
+    return MarketplaceMapper.shop(
+      MarketplaceJson.obj(MarketplaceJson.data(response.data)),
+    );
+  });
+
+  static Future<Result<T, Failure>> _guard<T>(Future<T> Function() run) async {
+    try {
+      return Result.success(await run());
     } on DioException catch (e) {
-      return Result.failure(NetworkFailure.fromDioException(e));
+      return Result.failure(ApiError.fromDio(e));
     } catch (e) {
       return Result.failure(UnknownFailure(e.toString()));
     }
   }
-
-  /// Maps UI category / subcategory selections to live `subcategoryId` values.
-  Future<List<String>> _resolveSubcategoryIds(
-    JewelryFilterState filters, {
-    CancelToken? cancelToken,
-  }) async {
-    final category = filters.category;
-    final hasCategory = category != null &&
-        category.isNotEmpty &&
-        category != 'All Accessories';
-    final selectedSubs = filters.subCategories
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty && !s.toLowerCase().startsWith('all '))
-        .toList();
-
-    if (!hasCategory && selectedSubs.isEmpty) return const [];
-
-    final categories = await _loadCategories(cancelToken: cancelToken);
-    if (categories.isEmpty) return const [];
-
-    final apiCategoryName =
-        hasCategory ? JewelleryCategoryMatch.apiNameForUi(category) : null;
-    final scoped = apiCategoryName == null
-        ? categories
-        : categories
-            .where(
-              (c) => c.name.toLowerCase() == apiCategoryName.toLowerCase(),
-            )
-            .toList();
-
-    if (scoped.isEmpty) return const [];
-
-    if (selectedSubs.isEmpty) {
-      // Whole parent category → all of its subcategory IDs.
-      return scoped.expand((c) => c.subcategories.map((s) => s.id)).toList();
-    }
-
-    final ids = <String>{};
-    for (final uiName in selectedSubs) {
-      for (final cat in scoped) {
-        for (final sub in cat.subcategories) {
-          if (_subcategoryMatches(uiName, sub.name)) {
-            ids.add(sub.id);
-          }
-        }
-      }
-    }
-    return ids.toList();
-  }
-
-  Future<List<_JewelryCategoryRef>> _loadCategories({
-    CancelToken? cancelToken,
-  }) async {
-    final cached = _categoriesCache;
-    if (cached != null) return cached;
-
-    final response = await _dio.get<Map<String, dynamic>>(
-      ApiEndpoints.jewelleryCategories,
-      queryParameters: const {'page': 1, 'limit': 50},
-      cancelToken: cancelToken,
-    );
-    final page = JewelleryCategoryAdminMapper.listPageFromJson(
-      response.data,
-      page: 1,
-      limit: 50,
-    );
-
-    final parsed = <_JewelryCategoryRef>[
-      for (final category in page.items)
-        if (category.isActive &&
-            category.id.isNotEmpty &&
-            category.name.trim().isNotEmpty)
-          _JewelryCategoryRef(
-            id: category.id,
-            name: category.name,
-            subcategories: [
-              for (final sub in category.subcategories)
-                if (sub.isActive &&
-                    sub.id.isNotEmpty &&
-                    sub.name.trim().isNotEmpty)
-                  _JewelrySubcategoryRef(id: sub.id, name: sub.name),
-            ],
-          ),
-    ];
-
-    _categoriesCache = parsed;
-    return parsed;
-  }
-
-  /// Matches UI chip labels like "Engagement" / "Drop Earrings" to API names.
-  static bool _subcategoryMatches(String uiName, String apiName) {
-    final a = uiName.trim().toLowerCase();
-    final b = apiName.trim().toLowerCase();
-    if (a.isEmpty || b.isEmpty) return false;
-    if (a == b) return true;
-    if (b.startsWith(a) || a.startsWith(b)) return true;
-    // "Drop Earrings" ↔ "Drop Earring"
-    final aSingular = a.endsWith('s') ? a.substring(0, a.length - 1) : a;
-    final bSingular = b.endsWith('s') ? b.substring(0, b.length - 1) : b;
-    return aSingular == bSingular ||
-        bSingular.startsWith(aSingular) ||
-        aSingular.startsWith(bSingular);
-  }
-
-  static int? _asInt(Object? value) {
-    if (value == null) return null;
-    if (value is int) return value;
-    if (value is num) return value.toInt();
-    return int.tryParse(value.toString());
-  }
-}
-
-class _JewelryCategoryRef {
-  const _JewelryCategoryRef({
-    required this.id,
-    required this.name,
-    required this.subcategories,
-  });
-
-  final String id;
-  final String name;
-  final List<_JewelrySubcategoryRef> subcategories;
-}
-
-class _JewelrySubcategoryRef {
-  const _JewelrySubcategoryRef({required this.id, required this.name});
-
-  final String id;
-  final String name;
 }

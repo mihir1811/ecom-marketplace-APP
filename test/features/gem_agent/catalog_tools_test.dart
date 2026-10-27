@@ -135,17 +135,25 @@ void main() {
     expect(args.ignored, ['availability:soon']);
   });
 
-  test('jewelry query keeps styles within the category', () {
-    final q = const JewelrySearchTool().buildQuery(
-      CatalogArgs({
-        'category': 'rings',
-        'styles': ['Engagement', 'Stud'],
-        'metal_purities': ['18k'],
-      }),
-    );
-    expect(q.filters.category, 'Rings');
-    expect(q.filters.subCategories, {'Engagement'});
-    expect(q.filters.metalPurities, {'18K'});
+  test('jewelry query maps onto marketplace filters', () {
+    final args = CatalogArgs({
+      'category': 'rings',
+      'metals': ['rose gold', 'unobtainium'],
+      'gemstones': ['diamond'],
+      'stone_origin': 'lab_grown',
+      'ready_to_ship': true,
+      'price_max': 100000,
+      'query': 'engagement',
+    });
+    final q = const JewelrySearchTool().buildQuery(args);
+    expect(q.filters.category, 'rings');
+    expect(q.filters.metals, {'ROSE_GOLD'});
+    expect(q.filters.gemstones, {'DIAMOND'});
+    expect(q.filters.origins, {'LAB_GROWN'});
+    expect(q.filters.availability, 'ready');
+    expect(q.filters.priceMax, 100000);
+    expect(q.filters.searchQuery, 'engagement');
+    expect(args.ignored, ['metals:unobtainium']);
   });
 
   test('bullion purity must belong to the metal', () {

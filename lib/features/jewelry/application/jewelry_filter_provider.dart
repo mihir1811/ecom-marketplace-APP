@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/models/jewelry_filter_state.dart';
-import '../../../core/utils/app_currency.dart';
 
 Set<String> _toggle(Set<String> current, String value) {
   final next = Set<String>.from(current);
@@ -17,116 +16,73 @@ class JewelryFilterNotifier extends Notifier<JewelryFilterState> {
     state = state.copyWith(searchQuery: query);
   }
 
-  void setCategory(String category) {
-    state = state.copyWith(
-      category: category,
-      clearSubCategories: true,
-    );
-  }
-
   /// Opens a collection in one update (one reload): [category] (null shows
-  /// every category), an optional single [style] and [metal] colour.
-  void openCollection({String? category, String? style, String? metal}) {
+  /// every category), an optional [style] sub-category and [metal] enum.
+  void openCollection({
+    String? category,
+    String? style,
+    String? metal,
+    String? shop,
+  }) {
     final c = category?.trim();
+    final s = style?.trim();
+    final m = metal?.trim();
     state = state.copyWith(
       category: c,
       clearCategory: c == null || c.isEmpty,
-      subCategories: {if (style != null && style.trim().isNotEmpty) style},
-      metalColors: metal == null || metal.trim().isEmpty ? null : {metal},
+      subCategory: s,
+      clearSubCategory: s == null || s.isEmpty,
+      shop: shop,
+      clearShop: shop == null || shop.isEmpty,
+      metals: m == null || m.isEmpty ? const {} : {m},
     );
+  }
+
+  /// Collection chip on the results header: keeps the other filters.
+  void selectCategory(String slug) {
+    state = state.copyWith(category: slug, clearSubCategory: true);
+  }
+
+  /// Style chip on the results header; tapping the selected one clears it.
+  void selectSubCategory(String? slug) {
+    state = slug == null || slug == state.subCategory
+        ? state.copyWith(clearSubCategory: true)
+        : state.copyWith(subCategory: slug);
   }
 
   /// Quick metal-tone toggle from the results header.
-  void toggleMetalColor(String color) {
-    state = state.copyWith(metalColors: _toggle(state.metalColors, color));
+  void toggleMetal(String metal) {
+    state = state.copyWith(metals: _toggle(state.metals, metal));
   }
 
-  void toggleSubCategory(String subCategory) {
-    state = state.copyWith(
-      subCategories: _toggle(state.subCategories, subCategory),
-    );
-  }
-
-  void clearSubCategories() {
-    state = state.copyWith(clearSubCategories: true);
-  }
-
-  void removeSummaryLabel(String label) {
-    if (state.subCategories.contains(label)) {
-      state = state.copyWith(
-        subCategories: _toggle(state.subCategories, label),
-      );
-    } else if (state.metalPurities.contains(label)) {
-      state = state.copyWith(metalPurities: _toggle(state.metalPurities, label));
-    } else if (state.metalColors.contains(label)) {
-      state = state.copyWith(metalColors: _toggle(state.metalColors, label));
-    } else if (state.stoneShapes.contains(label)) {
-      state = state.copyWith(stoneShapes: _toggle(state.stoneShapes, label));
-    } else if (state.stoneColors.contains(label)) {
-      state = state.copyWith(stoneColors: _toggle(state.stoneColors, label));
-    } else if (state.stoneClarities.contains(label)) {
-      state =
-          state.copyWith(stoneClarities: _toggle(state.stoneClarities, label));
-    } else if (state.ringSizes.contains(label)) {
-      state = state.copyWith(ringSizes: _toggle(state.ringSizes, label));
-    } else if (state.braceletSizes.contains(label)) {
-      state =
-          state.copyWith(braceletSizes: _toggle(state.braceletSizes, label));
-    } else if (state.braceletLengths.contains(label)) {
-      state =
-          state.copyWith(braceletLengths: _toggle(state.braceletLengths, label));
-    } else if (state.chainLengths.contains(label)) {
-      state = state.copyWith(chainLengths: _toggle(state.chainLengths, label));
-    } else if (state.necklaceLengths.contains(label)) {
-      state = state.copyWith(
-          necklaceLengths: _toggle(state.necklaceLengths, label));
-    } else if (state.stoneSettings.contains(label)) {
-      state =
-          state.copyWith(stoneSettings: _toggle(state.stoneSettings, label));
-    } else if (state.metalTypes.contains(label)) {
-      state = state.copyWith(metalTypes: _toggle(state.metalTypes, label));
-    } else if (state.stoneCategories.contains(label)) {
-      state =
-          state.copyWith(stoneCategories: _toggle(state.stoneCategories, label));
-    } else if (state.occasions.contains(label)) {
-      state = state.copyWith(occasions: _toggle(state.occasions, label));
-    } else if (label == state.selectedAvailability &&
-        state.selectedAvailability != 'All') {
-      state = state.copyWith(selectedAvailability: 'All');
-    } else if (state.genders.contains(label)) {
-      state = state.copyWith(genders: _toggle(state.genders, label));
-    } else if (label == state.stoneType) {
-      state = state.copyWith(clearStoneType: true);
-    } else if (label.startsWith(AppCurrency.symbol)) {
-      state = state.copyWith(
-        priceMin: JewelryFilterState.priceMinLimit,
-        priceMax: JewelryFilterState.priceMaxLimit,
-      );
-    }
-  }
+  void clearShop() => state = state.copyWith(clearShop: true);
 
   void replaceWith(JewelryFilterState next) {
     state = next;
   }
 
+  /// Clears filter-screen choices; search, collection and shop stay.
   void reset() {
     state = JewelryFilterState(
       searchQuery: state.searchQuery,
       category: state.category,
+      subCategory: state.subCategory,
+      shop: state.shop,
     );
   }
 }
 
 final jewelryFilterProvider =
     NotifierProvider<JewelryFilterNotifier, JewelryFilterState>(
-  JewelryFilterNotifier.new,
+      JewelryFilterNotifier.new,
+    );
+
+/// Null lets the API choose (relevance with a search, else newest).
+final jewelrySortProvider = StateProvider<JewelrySortOption?>((ref) => null);
+
+final jewelryViewModeProvider = StateProvider<JewelryViewMode>(
+  (ref) => JewelryViewMode.grid,
 );
-
-final jewelrySortProvider =
-    StateProvider<JewelrySortOption>((ref) => JewelrySortOption.featured);
-
-final jewelryViewModeProvider =
-    StateProvider<JewelryViewMode>((ref) => JewelryViewMode.grid);
 
 class JewelryFilterDraftNotifier extends Notifier<JewelryFilterState> {
   @override
@@ -136,111 +92,58 @@ class JewelryFilterDraftNotifier extends Notifier<JewelryFilterState> {
     state = ref.read(jewelryFilterProvider);
   }
 
-  void updateAvailability(String? value) {
-    final next = (value == null || value.trim().isEmpty) ? 'All' : value.trim();
-    state = state.copyWith(selectedAvailability: next);
-  }
+  void toggleMetal(String v) =>
+      state = state.copyWith(metals: _toggle(state.metals, v));
 
-  void setMakeAnOffer(bool v) => state = state.copyWith(makeAnOffer: v);
+  void toggleGemstone(String v) =>
+      state = state.copyWith(gemstones: _toggle(state.gemstones, v));
 
-  void setWithMediaOnly(bool v) => state = state.copyWith(withMediaOnly: v);
+  void toggleOrigin(String v) =>
+      state = state.copyWith(origins: _toggle(state.origins, v));
 
-  void toggleGender(String v) =>
-      state = state.copyWith(genders: _toggle(state.genders, v));
-
-  void setPriceRange(double min, double max) =>
-      state = state.copyWith(priceMin: min, priceMax: max);
-
-  void clearPriceRange() => state = state.copyWith(
-        priceMin: JewelryFilterState.priceMinLimit,
-        priceMax: JewelryFilterState.priceMaxLimit,
-      );
+  void toggleStyle(String v) =>
+      state = state.copyWith(styles: _toggle(state.styles, v));
 
   void toggleOccasion(String v) =>
       state = state.copyWith(occasions: _toggle(state.occasions, v));
 
-  void toggleMetalType(String v) =>
-      state = state.copyWith(metalTypes: _toggle(state.metalTypes, v));
+  void toggleShape(String v) =>
+      state = state.copyWith(shapes: _toggle(state.shapes, v));
 
-  void toggleMetalColor(String v) =>
-      state = state.copyWith(metalColors: _toggle(state.metalColors, v));
+  /// [min] / [max] at the facet bounds clear that side.
+  void setPriceRange(double? min, double? max) => state = JewelryFilterState(
+    searchQuery: state.searchQuery,
+    category: state.category,
+    subCategory: state.subCategory,
+    shop: state.shop,
+    tag: state.tag,
+    metals: state.metals,
+    gemstones: state.gemstones,
+    origins: state.origins,
+    styles: state.styles,
+    occasions: state.occasions,
+    shapes: state.shapes,
+    priceMin: min,
+    priceMax: max,
+    availability: state.availability,
+  );
 
-  void toggleMetalPurity(String v) =>
-      state = state.copyWith(metalPurities: _toggle(state.metalPurities, v));
+  void clearPriceRange() => state = state.copyWith(clearPrice: true);
 
-  void setMetalWeight(double min, double max) =>
-      state = state.copyWith(metalWeightMin: min, metalWeightMax: max);
+  void setAvailability(String? v) => state = v == null
+      ? state.copyWith(clearAvailability: true)
+      : state.copyWith(availability: v);
 
-  void clearMetalWeight() => state = state.copyWith(
-        metalWeightMin: JewelryFilterState.metalWeightMinLimit,
-        metalWeightMax: JewelryFilterState.metalWeightMaxLimit,
-      );
+  void clearTag() => state = state.copyWith(clearTag: true);
 
-  void toggleMetalFinish(String v) =>
-      state = state.copyWith(metalFinishes: _toggle(state.metalFinishes, v));
-
-  void togglePlating(String v) =>
-      state = state.copyWith(platings: _toggle(state.platings, v));
-
-  void setStoneType(String v) => state = state.copyWith(stoneType: v);
-
-  void clearStoneType() => state = state.copyWith(clearStoneType: true);
-
-  void toggleStoneCategory(String v) =>
-      state = state.copyWith(stoneCategories: _toggle(state.stoneCategories, v));
-
-  void toggleStoneShape(String v) =>
-      state = state.copyWith(stoneShapes: _toggle(state.stoneShapes, v));
-
-  void setStoneWeight(double min, double max) =>
-      state = state.copyWith(stoneWeightMin: min, stoneWeightMax: max);
-
-  void clearStoneWeight() => state = state.copyWith(
-        stoneWeightMin: JewelryFilterState.stoneWeightMinLimit,
-        stoneWeightMax: JewelryFilterState.stoneWeightMaxLimit,
-      );
-
-  void toggleStoneSetting(String v) =>
-      state = state.copyWith(stoneSettings: _toggle(state.stoneSettings, v));
-
-  void toggleStoneColor(String v) =>
-      state = state.copyWith(stoneColors: _toggle(state.stoneColors, v));
-
-  void toggleStoneClarity(String v) =>
-      state = state.copyWith(stoneClarities: _toggle(state.stoneClarities, v));
-
-  void toggleBraceletSize(String v) =>
-      state = state.copyWith(braceletSizes: _toggle(state.braceletSizes, v));
-
-  void toggleBraceletLength(String v) => state =
-      state.copyWith(braceletLengths: _toggle(state.braceletLengths, v));
-
-  void toggleChainLength(String v) =>
-      state = state.copyWith(chainLengths: _toggle(state.chainLengths, v));
-
-  void toggleNecklaceLength(String v) => state =
-      state.copyWith(necklaceLengths: _toggle(state.necklaceLengths, v));
-
-  void toggleRingSize(String v) =>
-      state = state.copyWith(ringSizes: _toggle(state.ringSizes, v));
-
-  void toggleCertification(String v) =>
-      state = state.copyWith(certifications: _toggle(state.certifications, v));
-
-  void toggleCondition(String v) =>
-      state = state.copyWith(conditions: _toggle(state.conditions, v));
-
-  void setDeliveryTime(String? v) => state = v == null
-      ? state.copyWith(clearDeliveryTime: true)
-      : state.copyWith(deliveryTime: v);
-
-  /// Clears the filter-screen selections; search, category and the style
-  /// chips chosen on the results page are kept.
+  /// Clears the filter-screen selections; search, collection, style chip
+  /// and shop are kept.
   void reset() {
     state = JewelryFilterState(
       searchQuery: state.searchQuery,
       category: state.category,
-      subCategories: state.subCategories,
+      subCategory: state.subCategory,
+      shop: state.shop,
     );
   }
 
@@ -254,5 +157,5 @@ class JewelryFilterDraftNotifier extends Notifier<JewelryFilterState> {
 
 final jewelryFilterDraftProvider =
     NotifierProvider<JewelryFilterDraftNotifier, JewelryFilterState>(
-  JewelryFilterDraftNotifier.new,
-);
+      JewelryFilterDraftNotifier.new,
+    );

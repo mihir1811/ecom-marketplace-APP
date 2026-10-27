@@ -13,6 +13,7 @@ import '../../../../core/widgets/gem3d/gem_view.dart';
 import '../../../../core/widgets/luxe/luxe_button.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
+import '../../../jewelry_checkout/presentation/widgets/jewelry_bag_banner.dart';
 import '../../application/cart_provider.dart';
 import '../../application/fees_providers.dart';
 import '../widgets/cart_address_section.dart';
@@ -128,10 +129,17 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       backgroundColor: p.canvas,
       appBar: LuxeTopBar(title: context.tr(CoreL10n.cart)),
       extendBody: state == 'content',
-      body: AnimatedSwitcher(
-        duration: LuxeMotion.medium,
-        switchInCurve: LuxeMotion.settle,
-        child: KeyedSubtree(key: ValueKey(state), child: body),
+      body: Column(
+        children: [
+          const JewelryBagBanner(),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: LuxeMotion.medium,
+              switchInCurve: LuxeMotion.settle,
+              child: KeyedSubtree(key: ValueKey(state), child: body),
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: state == 'content' ? const CartCheckoutBar() : null,
     );

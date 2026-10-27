@@ -1,247 +1,94 @@
-import '../../../../core/network/api_config.dart';
 import '../../domain/models/jewelry.dart';
-import '../models/jewelry_dto.dart';
+import '../../domain/models/marketplace_enums.dart';
+import '../../domain/models/marketplace_listing.dart';
+import 'marketplace_mapper.dart';
 
-/// Maps jewellery API DTOs into listing domain models.
+/// Maps marketplace listings onto the shared [Jewelry] domain model.
 abstract final class JewelryMapper {
-  static Jewelry toDomain(JewelryDto dto) {
-    final variant = dto.variants.isNotEmpty ? dto.variants.first : null;
-    final stone = variant != null && variant.stones.isNotEmpty
-        ? variant.stones.first
-        : null;
-    final categoryApi = dto.subcategory?.category?.name;
-    final categoryUi = _mapCategoryToUi(categoryApi);
-    final images = _images(variant);
-    final colorVariants = dto.variants
-        .map((v) => _clean(v.metalColor))
-        .whereType<String>()
-        .toSet()
-        .toList();
-    if (colorVariants.isEmpty && variant?.metalColor != null) {
-      final c = _clean(variant!.metalColor);
-      if (c != null) colorVariants.add(c);
-    }
+  /// A raw listing payload (card or product page).
+  static Jewelry fromJson(Map<String, dynamic> json) =>
+      fromListing(MarketplaceMapper.listing(json));
 
-    final sizeOptions = <String>{};
-    for (final v in dto.variants) {
-      final ring = _clean(v.ringSize);
-      final bracelet = _clean(v.braceletSize);
-      final chain = _clean(v.chainLength);
-      if (ring != null) sizeOptions.add(ring);
-      if (bracelet != null) sizeOptions.add(bracelet);
-      if (chain != null) sizeOptions.add(chain);
-    }
-
-    final price = variant?.totalPrice ?? 0;
-    final discountAmount = variant?.discount;
-    final discountPct = (discountAmount != null &&
-            discountAmount > 0 &&
-            price > 0)
-        ? ((discountAmount / (price + discountAmount)) * 100)
-        : null;
-
-    final stoneTypeRaw = _clean(stone?.centerStoneType);
-    final availability = _mapAvailability(variant?.available);
-    final metalWeight = variant?.metalWeight ?? 0;
-    final stoneWeight =
-        variant?.totalStoneCarat ?? stone?.centerStoneWeight ?? 0;
-    final stones = _stones(variant);
-    final variants = dto.variants.map(_variantOption).toList(growable: false);
-    final totalWeight =
-        variant?.totalJewelryWeight ?? _totalWeightG(metalWeight, stoneWeight);
-
+  static Jewelry fromListing(MarketplaceListing l) {
+    final d = l.detail;
+    final images = l.imageUrls;
+    final metal = MarketplaceEnums.swatchLabel(d.metalType);
+    final metalTones = <String>{
+      if (metal.isNotEmpty) metal,
+      for (final option in _metalOptions(l))
+        if (_toneOf(option) case final tone?) tone,
+    }.toList();
+    final stoneCount = l.gemstones.fold<int>(
+      0,
+      (sum, g) => sum + (g.quantity ?? 0),
+    );
     return Jewelry(
-      id: dto.id,
-      sku: _clean(variant?.stockNumber) ?? dto.id,
-      name: _clean(dto.productTitle) ?? 'Jewellery',
-      category: categoryUi,
-      subCategory: _clean(dto.subcategory?.name),
-      price: price,
-      metalType: _clean(variant?.metalType) ?? '',
-      metalColor: _clean(variant?.metalColor) ?? '',
-      metalPurity: _clean(variant?.metalPurity) ?? '',
-      gender: _mapGender(dto.gender),
-      occasion: _clean(dto.occasion) ?? '',
-      condition: _clean(variant?.condition) ?? '',
-      availability: availability,
-      stoneType: _mapStoneType(stoneTypeRaw),
-      stoneCategory: _clean(stone?.centerStoneCategory) ?? '',
-      stoneShape: _clean(stone?.centerStoneShape) ?? '',
-      certification: _clean(variant?.certificateCompanyName) ?? '',
-      metalWeightG: metalWeight,
-      stoneWeightCt: stoneWeight,
-      stoneCount: variant?.totalStonePcs ?? stone?.centerStonePcs ?? 0,
-      colorVariants: colorVariants,
-      sizeOptions: sizeOptions.toList(),
-      braceletSize: _clean(variant?.braceletSize),
-      chainLength: _clean(variant?.chainLength),
-      ringSize: _clean(variant?.ringSize),
-      badge: dto.isOnAuction == true ? 'Auction' : null,
+      id: l.slug,
+      slug: l.slug,
+      listingId: l.id,
+      sku: l.stockNumber ?? '',
+      name: l.title,
+      category: l.parentCategoryName ?? l.categoryName ?? '',
+      subCategory: l.parentCategoryName == null ? null : l.categoryName,
+      price: l.minPrice,
+      maxPrice: l.maxPrice,
+      metalType: MarketplaceEnums.label(d.metalType),
+      metalColor: metal,
+      metalPurity: d.metalPurity ?? '',
+      gender: '',
+      occasion: d.occasion ?? '',
+      condition: '',
+      availability: _availability(l),
+      stoneType: MarketplaceEnums.label(d.gemstoneOrigin),
+      stoneCategory: MarketplaceEnums.label(d.primaryGemstone),
+      stoneShape: d.primaryShape ?? '',
+      certification: _certification(l),
+      metalWeightG: d.metalWeightGrams ?? 0,
+      stoneWeightCt: d.totalCaratWeight ?? 0,
+      stoneCount: stoneCount,
+      colorVariants: metalTones,
       imageUrl: images.isEmpty ? null : images.first,
-      imageAsset: null,
-      discount: discountPct,
-      discountAmount: discountAmount,
-      metalPrice: variant?.totalMetalPrice,
-      stonePrice: variant?.totalStonePrice,
-      makingCharge: variant?.totalMakingCharge,
-      hasMedia: images.isNotEmpty || (_clean(dto.videoURL) != null),
-      sellerId: _clean(dto.sellerId),
-      description: _clean(dto.description),
-      metalFinish: _clean(variant?.metalFinish),
-      style: _clean(dto.style),
-      totalWeightG: totalWeight,
-      stones: stones,
-      variants: variants,
+      imageUrls: images,
+      hasMedia: images.isNotEmpty || l.videoUrl != null,
+      sellerId: l.shop?.sellerId,
+      description: l.description,
+      style: d.style,
+      totalWeightG: d.grossWeightGrams,
+      shopName: l.shop?.name,
+      listing: l,
     );
   }
 
-  static JewelryVariantOption _variantOption(JewelryVariantDto v) {
-    final price = v.totalPrice ?? 0;
-    final discountAmount = v.discount;
-    final discountPct = (discountAmount != null &&
-            discountAmount > 0 &&
-            price > 0)
-        ? ((discountAmount / (price + discountAmount)) * 100)
-        : null;
-    final sizeLabel =
-        _clean(v.ringSize) ?? _clean(v.braceletSize) ?? _clean(v.chainLength);
-    final metalWeight = v.metalWeight;
-    final stoneWeight = v.totalStoneCarat ??
-        (v.stones.isNotEmpty ? v.stones.first.centerStoneWeight : null);
-
-    return JewelryVariantOption(
-      id: v.id,
-      price: price,
-      sku: _clean(v.stockNumber),
-      metalPurity: _clean(v.metalPurity),
-      sizeLabel: sizeLabel,
-      stoneWeightCt: stoneWeight,
-      metalWeightG: metalWeight,
-      totalWeightG: v.totalJewelryWeight ??
-          (metalWeight == null
-              ? null
-              : _totalWeightG(metalWeight, stoneWeight ?? 0)),
-      discountAmount: discountAmount,
-      discountPercent: discountPct,
-      metalPrice: v.totalMetalPrice,
-      stonePrice: v.totalStonePrice,
-      makingCharge: v.totalMakingCharge,
-      metalType: _clean(v.metalType),
-      metalColor: _clean(v.metalColor),
-      metalFinish: _clean(v.metalFinish),
-      braceletSize: _clean(v.braceletSize),
-      ringSize: _clean(v.ringSize),
-      chainLength: _clean(v.chainLength),
-      stoneCount: v.totalStonePcs ??
-          (v.stones.isNotEmpty ? v.stones.first.centerStonePcs : null),
-      stones: _stones(v),
-    );
+  /// `Sold out`, `Made to order` or `In Stock` — read by status dots.
+  static String _availability(MarketplaceListing l) {
+    if (l.soldOut) return 'Sold Out';
+    if (l.detail.isMadeToOrder) return 'Made to order';
+    return 'In Stock';
   }
 
-  static List<JewelryStone> _stones(JewelryVariantDto? variant) {
-    if (variant == null || variant.stones.isEmpty) return const [];
-    return variant.stones
-        .map(
-          (s) => JewelryStone(
-            type: _mapStoneType(_clean(s.centerStoneType)),
-            category: _clean(s.centerStoneCategory),
-            shape: _clean(s.centerStoneShape),
-            color: _clean(s.centerStoneColor),
-            clarity: _clean(s.centerStoneClarity),
-            weightCt: s.centerStoneWeight,
-            pieces: s.centerStonePcs,
-          ),
-        )
-        .toList(growable: false);
-  }
-
-  /// Approximate finished weight when API does not send a total.
-  static double? _totalWeightG(double metalWeightG, double stoneWeightCt) {
-    if (metalWeightG <= 0 && stoneWeightCt <= 0) return null;
-    // 1 carat ≈ 0.2 g
-    return metalWeightG + (stoneWeightCt * 0.2);
-  }
-
-  static String _mapCategoryToUi(String? apiName) {
-    final name = (apiName ?? '').trim().toLowerCase();
-    return switch (name) {
-      'ring' => 'Rings',
-      'earring' => 'Earrings',
-      'bracelet' => 'Bracelets',
-      'necklace' => 'Necklaces',
-      'chain' => 'Chains',
-      _ => apiName?.trim().isNotEmpty == true ? apiName!.trim() : 'All Accessories',
-    };
-  }
-
-  static String _mapGender(String? raw) {
-    final v = (raw ?? '').trim().toLowerCase();
-    return switch (v) {
-      'women' || 'woman' || 'female' => 'Women',
-      'men' || 'man' || 'male' => 'Men',
-      'unisex' => 'Unisex',
-      'kids' || 'kid' || 'children' => 'Kids',
-      _ => raw?.trim().isNotEmpty == true ? raw!.trim() : 'Unisex',
-    };
-  }
-
-  static String _mapAvailability(String? raw) {
-    final v = (raw ?? '').trim().toLowerCase();
-    return switch (v) {
-      'yes' || 'available' || 'in stock' => 'In Stock',
-      'hold' || 'on hold' => 'On Hold',
-      'memo' || 'on memo' => 'Memo',
-      'sold' || 'unavailable' || 'no' || 'out of stock' => 'Unavailable',
-      _ => raw?.trim().isNotEmpty == true ? raw!.trim() : 'In Stock',
-    };
-  }
-
-  static String _mapStoneType(String? raw) {
-    final v = (raw ?? '').trim().toLowerCase();
-    if (v.contains('lab')) return 'Lab-Grown';
-    if (v.contains('natural')) return 'Natural';
-    return raw?.trim().isNotEmpty == true ? raw!.trim() : '';
-  }
-
-  static List<String> _images(JewelryVariantDto? variant) {
-    if (variant == null) return const [];
-    final out = <String>[];
-    final seen = <String>{};
-    for (final url in [
-      variant.image1,
-      variant.image2,
-      variant.image3,
-      variant.image4,
-      variant.image5,
-      variant.image6,
-    ]) {
-      final resolved = _resolveMediaUrl(url);
-      if (resolved == null) continue;
-      if (!seen.add(resolved)) continue;
-      out.add(resolved);
+  static String _certification(MarketplaceListing l) {
+    for (final g in l.gemstones) {
+      final lab = g.certificationLab?.trim();
+      if (lab != null && lab.isNotEmpty) return lab;
     }
-    return out;
+    return '';
   }
 
-  static String? _clean(String? value) {
-    if (value == null) return null;
-    final t = value.trim();
-    if (t.isEmpty) return null;
-    if (t == '-' || t == '—' || t == '–' || t.toLowerCase() == 'n/a') {
-      return null;
+  static Iterable<String> _metalOptions(MarketplaceListing l) sync* {
+    for (final v in l.variations) {
+      final name = v.name.toLowerCase();
+      if (name.contains('metal') || name.contains('colo')) yield* v.options;
     }
-    return t;
   }
 
-  static String? _resolveMediaUrl(String? raw) {
-    final cleaned = _clean(raw);
-    if (cleaned == null) return null;
-    final lower = cleaned.toLowerCase();
-    if (lower.startsWith('http://') || lower.startsWith('https://')) {
-      return cleaned;
-    }
-    final origin = Uri.parse(ApiConfig.baseUrl).origin;
-    if (cleaned.startsWith('/')) return '$origin$cleaned';
-    return '$origin/$cleaned';
+  /// "14K Rose Gold" → "Rose Gold" (for swatches over the photo).
+  static String? _toneOf(String option) {
+    final o = option.toLowerCase();
+    if (o.contains('rose')) return 'Rose Gold';
+    if (o.contains('white')) return 'White Gold';
+    if (o.contains('yellow')) return 'Yellow Gold';
+    if (o.contains('platinum')) return 'Platinum';
+    if (o.contains('silver')) return 'Silver';
+    return null;
   }
 }

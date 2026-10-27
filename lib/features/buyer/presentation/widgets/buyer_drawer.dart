@@ -48,6 +48,11 @@ class BuyerDrawer extends ConsumerWidget {
               Icons.local_shipping_outlined,
             ),
             item(
+              AppRouteNames.jewelryOrders,
+              JewelryMarketL10n.ordersTitle,
+              Icons.diamond_outlined,
+            ),
+            item(
               AppRouteNames.buyerWallet,
               CoreL10n.wallet,
               Icons.account_balance_wallet_outlined,

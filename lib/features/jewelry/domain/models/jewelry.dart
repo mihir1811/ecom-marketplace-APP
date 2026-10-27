@@ -1,4 +1,10 @@
+import 'marketplace_listing.dart';
+
 /// Clean domain representation of a fine jewelry product.
+///
+/// Marketplace pieces use the listing slug as [id]: public product pages are
+/// looked up by slug, so wishlists, compare and reopen-from-history all work
+/// from the same key. [listingId] keeps the listing's UUID.
 class Jewelry {
   const Jewelry({
     required this.id,
@@ -22,15 +28,10 @@ class Jewelry {
     required this.stoneWeightCt,
     required this.stoneCount,
     required this.colorVariants,
-    this.sizeOptions = const [],
-    this.braceletSize,
-    this.braceletLength,
-    this.chainLength,
-    this.necklaceLength,
-    this.ringSize,
     this.badge,
     this.imageAsset,
     this.imageUrl,
+    this.imageUrls = const [],
     this.discount,
     this.discountAmount,
     this.metalPrice,
@@ -45,8 +46,11 @@ class Jewelry {
     this.metalFinish,
     this.style,
     this.totalWeightG,
-    this.stones = const [],
-    this.variants = const [],
+    this.slug,
+    this.listingId,
+    this.maxPrice,
+    this.shopName,
+    this.listing,
   });
 
   final String id;
@@ -54,6 +58,8 @@ class Jewelry {
   final String name;
   final String category;
   final String? subCategory;
+
+  /// Lowest SKU price, in rupees for marketplace pieces.
   final double price;
   final String metalType;
   final String metalColor;
@@ -70,17 +76,16 @@ class Jewelry {
   final double stoneWeightCt;
   final int stoneCount;
   final List<String> colorVariants;
-  final List<String> sizeOptions;
-  final String? braceletSize;
-  final String? braceletLength;
-  final String? chainLength;
-  final String? necklaceLength;
-  final String? ringSize;
   final String? badge;
   final String? imageAsset;
-  /// Absolute network image URL from the jewellery API (preferred over [imageAsset]).
+
+  /// Absolute network image URL (preferred over [imageAsset]).
   final String? imageUrl;
+
+  /// Every photo the record carries (cards: at most two).
+  final List<String> imageUrls;
   final double? discount;
+
   /// Absolute discount amount in listing currency (when API provides it).
   final double? discountAmount;
   final double? metalPrice;
@@ -95,8 +100,23 @@ class Jewelry {
   final String? metalFinish;
   final String? style;
   final double? totalWeightG;
-  final List<JewelryStone> stones;
-  final List<JewelryVariantOption> variants;
+
+  /// Marketplace listing slug (public product page key).
+  final String? slug;
+
+  /// Marketplace listing UUID (chat, orders).
+  final String? listingId;
+
+  /// Highest SKU price; above [price] the card reads "from".
+  final double? maxPrice;
+  final String? shopName;
+
+  /// Full marketplace record this piece was built from.
+  final MarketplaceListing? listing;
+
+  bool get isMarketplace => listing != null;
+
+  bool get hasPriceRange => maxPrice != null && maxPrice! > price;
 
   /// Prefer network image when present; otherwise local asset fallback.
   String? get displayImageUrl {
@@ -104,78 +124,6 @@ class Jewelry {
     if (network != null && network.isNotEmpty) return network;
     return null;
   }
-}
-
-/// One stone group on a jewellery variant.
-class JewelryStone {
-  const JewelryStone({
-    this.type,
-    this.category,
-    this.shape,
-    this.color,
-    this.clarity,
-    this.weightCt,
-    this.pieces,
-    this.setting,
-  });
-
-  final String? type;
-  final String? category;
-  final String? shape;
-  final String? color;
-  final String? clarity;
-  final double? weightCt;
-  final int? pieces;
-  final String? setting;
-}
-
-/// Selectable variant option for purity / size / stone weight.
-class JewelryVariantOption {
-  const JewelryVariantOption({
-    required this.id,
-    required this.price,
-    this.sku,
-    this.metalPurity,
-    this.sizeLabel,
-    this.stoneWeightCt,
-    this.metalWeightG,
-    this.totalWeightG,
-    this.discountAmount,
-    this.discountPercent,
-    this.metalPrice,
-    this.stonePrice,
-    this.makingCharge,
-    this.metalType,
-    this.metalColor,
-    this.metalFinish,
-    this.braceletSize,
-    this.ringSize,
-    this.chainLength,
-    this.stoneCount,
-    this.stones = const [],
-  });
-
-  final String id;
-  final double price;
-  final String? sku;
-  final String? metalPurity;
-  final String? sizeLabel;
-  final double? stoneWeightCt;
-  final double? metalWeightG;
-  final double? totalWeightG;
-  final double? discountAmount;
-  final double? discountPercent;
-  final double? metalPrice;
-  final double? stonePrice;
-  final double? makingCharge;
-  final String? metalType;
-  final String? metalColor;
-  final String? metalFinish;
-  final String? braceletSize;
-  final String? ringSize;
-  final String? chainLength;
-  final int? stoneCount;
-  final List<JewelryStone> stones;
 }
 
 class JewelryListResponse {
