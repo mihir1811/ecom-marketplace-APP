@@ -6,12 +6,13 @@ import '../localized_message.dart';
 abstract final class JewelryFlowL10n {
   // House landing
   static const houseEyebrow = 'jewelryFlow.houseEyebrow';
-  static const housesHeadline = 'jewelryFlow.housesHeadline';
-  static const housesIntro = 'jewelryFlow.housesIntro';
-  static const featuredHouses = 'jewelryFlow.featuredHouses';
   static const allHouses = 'jewelryFlow.allHouses';
   static const housesCount = 'jewelryFlow.housesCount';
   static const showAllHouses = 'jewelryFlow.showAllHouses';
+  static const aboutHouse = 'jewelryFlow.aboutHouse';
+  static const housePieces = 'jewelryFlow.housePieces';
+  static const housePiecesEmpty = 'jewelryFlow.housePiecesEmpty';
+  static const allCategories = 'jewelryFlow.allCategories';
   static const sortBy = 'jewelryFlow.sortBy';
   static const filterBy = 'jewelryFlow.filterBy';
   static const sortMostPieces = 'jewelryFlow.sortMostPieces';
@@ -95,21 +96,6 @@ const jewelryFlowMessages = <String, LocalizedMessage>{
     hindi: 'ज्वेलरी हाउस',
     gujarati: 'જ્વેલરી હાઉસ',
   ),
-  JewelryFlowL10n.housesHeadline: LocalizedMessage(
-    english: 'The houses\nbehind the pieces.',
-    hindi: 'हर पीस के पीछे\nके हाउस।',
-    gujarati: 'દરેક પીસ પાછળના\nહાઉસ.',
-  ),
-  JewelryFlowL10n.housesIntro: LocalizedMessage(
-    english: '{count} independent jewellers — tap a house to see its pieces.',
-    hindi: '{count} स्वतंत्र जौहरी — किसी हाउस के पीस देखने के लिए टैप करें।',
-    gujarati: '{count} સ્વતંત્ર ઝવેરીઓ — હાઉસના પીસ જોવા ટેપ કરો.',
-  ),
-  JewelryFlowL10n.featuredHouses: LocalizedMessage(
-    english: 'Featured houses',
-    hindi: 'विशेष हाउस',
-    gujarati: 'વિશેષ હાઉસ',
-  ),
   JewelryFlowL10n.allHouses: LocalizedMessage(
     english: 'All houses',
     hindi: 'सभी हाउस',
@@ -124,6 +110,26 @@ const jewelryFlowMessages = <String, LocalizedMessage>{
     english: 'Show all houses',
     hindi: 'सभी हाउस देखें',
     gujarati: 'બધા હાઉસ જુઓ',
+  ),
+  JewelryFlowL10n.aboutHouse: LocalizedMessage(
+    english: 'About the house',
+    hindi: 'हाउस के बारे में',
+    gujarati: 'હાઉસ વિશે',
+  ),
+  JewelryFlowL10n.housePieces: LocalizedMessage(
+    english: 'The pieces',
+    hindi: 'पीस',
+    gujarati: 'પીસ',
+  ),
+  JewelryFlowL10n.housePiecesEmpty: LocalizedMessage(
+    english: 'This house has no pieces here yet.',
+    hindi: 'इस हाउस के यहाँ अभी कोई पीस नहीं हैं।',
+    gujarati: 'આ હાઉસના અહીં હજી કોઈ પીસ નથી.',
+  ),
+  JewelryFlowL10n.allCategories: LocalizedMessage(
+    english: 'All',
+    hindi: 'सभी',
+    gujarati: 'બધા',
   ),
   JewelryFlowL10n.sortBy: LocalizedMessage(
     english: 'Sort by',

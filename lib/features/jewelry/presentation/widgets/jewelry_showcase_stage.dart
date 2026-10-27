@@ -13,8 +13,8 @@ import '../../application/jewelry_catalogue_providers.dart';
 import '../../domain/models/marketplace_listing.dart';
 import 'jewelry_house_parts.dart';
 
-/// Always-dark stage for the jewelry houses: intro, then the featured
-/// houses in a swipeable row with a link to every house.
+/// Always-dark stage for the jewelry houses: the featured houses in a
+/// swipeable row with a link to every house.
 class JewelryShowcaseStage extends ConsumerWidget {
   const JewelryShowcaseStage({
     required this.topInset,
@@ -61,18 +61,24 @@ class JewelryShowcaseStage extends ConsumerWidget {
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _Intro(count: all.length),
-                      const SizedBox(height: 22),
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 16, 0),
+                        padding: const EdgeInsets.fromLTRB(20, 8, 16, 0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Flexible(
+                            Container(
+                              width: 22,
+                              height: 1,
+                              color: LuxeStage.gold,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
                               child: Text(
                                 context
-                                    .tr(JewelryFlowL10n.featuredHouses)
+                                    .tr(JewelryFlowL10n.houseEyebrow)
                                     .toUpperCase(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: LuxeType.eyebrow(LuxeStage.gold),
                               ),
                             ),
@@ -98,67 +104,6 @@ class JewelryShowcaseStage extends ConsumerWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// Eyebrow, headline and a one-line intro.
-class _Intro extends StatelessWidget {
-  const _Intro({required this.count});
-
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    final animate = !MediaQuery.disableAnimationsOf(context);
-    Widget enter(Widget child, int i) => animate
-        ? child
-              .animate(delay: (120 + i * 110).ms)
-              .fadeIn(duration: 600.ms)
-              .moveY(
-                begin: 16,
-                end: 0,
-                duration: 900.ms,
-                curve: LuxeMotion.settle,
-              )
-        : child;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          enter(
-            Row(
-              children: [
-                Container(width: 22, height: 1, color: LuxeStage.gold),
-                const SizedBox(width: 10),
-                Text(
-                  context.tr(JewelryFlowL10n.houseEyebrow).toUpperCase(),
-                  style: LuxeType.eyebrow(LuxeStage.gold),
-                ),
-              ],
-            ),
-            0,
-          ),
-          const SizedBox(height: 12),
-          enter(
-            Text(
-              context.tr(JewelryFlowL10n.housesHeadline),
-              style: LuxeType.display(38, LuxeStage.ink),
-            ),
-            1,
-          ),
-          const SizedBox(height: 10),
-          enter(
-            Text(
-              context.tr(JewelryFlowL10n.housesIntro, {'count': count}),
-              style: LuxeType.body(LuxeStage.inkMuted, size: 14),
-            ),
-            2,
-          ),
-        ],
-      ),
     );
   }
 }
@@ -320,7 +265,7 @@ class _FeaturedCard extends StatelessWidget {
   }
 }
 
-/// Glass placeholders shaped like the intro and featured row.
+/// Glass placeholders shaped like the heading and featured row.
 class _StageSkeleton extends StatelessWidget {
   const _StageSkeleton();
 
@@ -346,14 +291,10 @@ class _StageSkeleton extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               block(120, 10),
-              const SizedBox(height: 16),
-              block(220, 34),
-              const SizedBox(height: 12),
-              block(260, 12),
             ],
           ),
         ),
-        const SizedBox(height: 34),
+        const SizedBox(height: 22),
         SizedBox(
           height: cardWidth * 0.82,
           child: ListView(

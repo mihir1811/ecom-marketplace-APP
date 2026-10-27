@@ -13,7 +13,6 @@ import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/luxe/luxe_button.dart';
 import '../../application/jewelry_catalogue_providers.dart';
-import '../../application/jewelry_filter_provider.dart';
 import '../../domain/models/marketplace_listing.dart';
 import '../widgets/jewelry_house_parts.dart';
 
@@ -21,7 +20,7 @@ enum _HouseSort { featured, newest, pieces, name }
 
 /// Every jewelry house on an always-dark page, with sort (featured, newest,
 /// most pieces, name) and the filters the live shops actually support
-/// (city, price breakup). A house opens results narrowed to that shop.
+/// (city, price breakup). A house opens its own house page.
 class JewelryHousesScreen extends ConsumerStatefulWidget {
   const JewelryHousesScreen({super.key});
 
@@ -57,10 +56,10 @@ class _JewelryHousesScreenState extends ConsumerState<JewelryHousesScreen> {
     _priceBreakup = false;
   });
 
-  void _openHouse(MarketplaceShop house) {
-    ref.read(jewelryFilterProvider.notifier).openCollection(shop: house.slug);
-    context.push(AppRouteNames.jewelryListing);
-  }
+  void _openHouse(MarketplaceShop house) => context.push(
+    AppRouteNames.jewelryHousePath(house.slug),
+    extra: house,
+  );
 
   @override
   Widget build(BuildContext context) {

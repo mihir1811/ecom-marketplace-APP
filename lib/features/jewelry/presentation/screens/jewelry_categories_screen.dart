@@ -128,7 +128,10 @@ class _JewelryCategoriesScreenState
                         padding: const EdgeInsets.only(bottom: 30),
                         child: JewelryShowcaseStage(
                           topInset: topInset,
-                          onOpenHouse: (house) => _open(shop: house.slug),
+                          onOpenHouse: (house) => context.push(
+                            AppRouteNames.jewelryHousePath(house.slug),
+                            extra: house,
+                          ),
                           onShowAll: () =>
                               context.push(AppRouteNames.jewelryHouses),
                         ),

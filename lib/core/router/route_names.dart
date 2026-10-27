@@ -34,6 +34,9 @@ class AppRouteNames {
   static const String jewelryListing = '/jewelry/listing';
   static const String jewelryFilters = '/jewelry/filters';
   static const String jewelryHouses = '/jewelry/houses';
+  static const String jewelryHouse = '/jewelry/house/:slug';
+  static String jewelryHousePath(String slug) =>
+      '/jewelry/house/${Uri.encodeComponent(slug)}';
 
   /// Jewellery marketplace bag (on-device), checkout and orders.
   static const String jewelryBag = '/jewelry/bag';
