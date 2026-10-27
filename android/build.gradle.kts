@@ -16,6 +16,12 @@ subprojects {
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
 subprojects {
+    // Plugins still compile with Java 8 source/target; silence their javac lint noise.
+    tasks.withType<JavaCompile>().configureEach {
+        options.compilerArgs.addAll(listOf("-Xlint:-options", "-Xlint:-deprecation", "-Xlint:-unchecked"))
+    }
+}
+subprojects {
     project.evaluationDependsOn(":app")
 }
 
