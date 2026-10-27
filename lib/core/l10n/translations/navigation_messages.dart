@@ -23,6 +23,7 @@ abstract final class NavL10n {
   static const groupWorkspace = 'nav.group.workspace';
   static const groupGrow = 'nav.group.grow';
   static const liveAuctions = 'nav.item.liveAuctions';
+  static const liveShows = 'nav.item.liveShows';
   static const myWins = 'nav.item.myWins';
   static const notifications = 'nav.item.notifications';
 }
@@ -132,6 +133,11 @@ const navigationMessages = <String, LocalizedMessage>{
     english: 'Live auctions',
     hindi: 'लाइव नीलामी',
     gujarati: 'લાઇવ હરાજી',
+  ),
+  NavL10n.liveShows: LocalizedMessage(
+    english: 'Live shows',
+    hindi: 'लाइव शो',
+    gujarati: 'લાઇવ શો',
   ),
   NavL10n.myWins: LocalizedMessage(
     english: 'My wins',

@@ -18,8 +18,9 @@ ProductDetail gemstoneProductDetail(Gemstone g) {
       ? null
       : (authority == null ? 'Certificate' : '$authority certificate');
   final markdown = catalogMarkdownPercent(g.discount);
-  final listAmount =
-      markdown == null ? null : catalogListFromNet(g.price, markdown);
+  final listAmount = markdown == null
+      ? null
+      : catalogListFromNet(g.price, markdown);
 
   return ProductDetail(
     id: g.id,
@@ -138,8 +139,7 @@ ProductDetail gemstoneProductDetail(Gemstone g) {
 /// Same tabbed card layout as diamonds; gemstone tab names and fields.
 ProductTabbedSpecs _gemstoneSpecTabs(Gemstone g) {
   final totalPrice = AppCurrency.format(formatGroupedWhole(g.price));
-  final caratWeight =
-      g.carat > 0 ? '${g.carat.toStringAsFixed(2)} ct' : '-';
+  final caratWeight = g.carat > 0 ? '${g.carat.toStringAsFixed(2)} ct' : '-';
   final type = _na(g.type);
   final shape = _na(g.shape);
   final origin = _na(g.origin);
@@ -182,9 +182,7 @@ ProductTabbedSpecs _gemstoneSpecTabs(Gemstone g) {
       ),
       ProductSpecTab(
         title: 'Certification',
-        rows: [
-          ProductSpec('Certification Status', certStatus),
-        ],
+        rows: [ProductSpec('Certification Status', certStatus)],
       ),
     ],
   );

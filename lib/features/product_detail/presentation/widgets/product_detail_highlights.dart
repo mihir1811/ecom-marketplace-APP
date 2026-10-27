@@ -29,18 +29,14 @@ class ProductDetailHighlights extends StatelessWidget {
           final rows = <List<ProductHighlight>>[];
           for (var i = 0; i < highlights.length; i += columns) {
             rows.add(
-              highlights.sublist(
-                i,
-                (i + columns).clamp(0, highlights.length),
-              ),
+              highlights.sublist(i, (i + columns).clamp(0, highlights.length)),
             );
           }
 
           return Column(
             children: [
               for (var r = 0; r < rows.length; r++) ...[
-                if (r > 0)
-                  Divider(height: 1, color: AppColors.border(context)),
+                if (r > 0) Divider(height: 1, color: AppColors.border(context)),
                 IntrinsicHeight(
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,

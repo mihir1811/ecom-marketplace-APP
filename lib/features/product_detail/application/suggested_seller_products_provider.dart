@@ -78,7 +78,11 @@ final suggestedSellerProductsProvider =
     >(SuggestedSellerProductsNotifier.new);
 
 class SuggestedSellerProductsNotifier
-    extends FamilyNotifier<SuggestedSellerProductsState, SuggestedSellerProductsQuery> {
+    extends
+        FamilyNotifier<
+          SuggestedSellerProductsState,
+          SuggestedSellerProductsQuery
+        > {
   CancelToken? _cancelToken;
   int _page = 1;
   Future<void>? _inFlightNext;

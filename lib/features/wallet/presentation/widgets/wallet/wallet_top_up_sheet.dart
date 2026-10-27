@@ -18,14 +18,17 @@ const _presets = <double>[500, 1000, 2500, 5000, 10000];
 /// Buyer "Add funds" sheet: one large amount, presets, a live preview of
 /// the new balance and the Razorpay phases while the payment runs.
 class WalletTopUpSheet extends ConsumerStatefulWidget {
-  const WalletTopUpSheet({super.key});
+  const WalletTopUpSheet({super.key, this.initialAmount});
 
-  static Future<void> show(BuildContext context) {
+  /// Prefilled amount in rupees, e.g. a live bid's shortfall.
+  final double? initialAmount;
+
+  static Future<void> show(BuildContext context, {double? initialAmount}) {
     return showAtelierSheet<void>(
       context: context,
       title: 'Add funds',
       subtitle: context.tr(RemainingL10n.topUpMinimum),
-      builder: (_) => const WalletTopUpSheet(),
+      builder: (_) => WalletTopUpSheet(initialAmount: initialAmount),
     );
   }
 
@@ -36,6 +39,15 @@ class WalletTopUpSheet extends ConsumerStatefulWidget {
 class _WalletTopUpSheetState extends ConsumerState<WalletTopUpSheet> {
   final _controller = TextEditingController();
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initialAmount;
+    if (initial != null && initial > 0) {
+      _controller.text = initial.ceil().toString();
+    }
+  }
 
   @override
   void dispose() {

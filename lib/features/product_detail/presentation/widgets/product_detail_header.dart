@@ -85,7 +85,8 @@ class _ProductDetailHeaderState extends ConsumerState<ProductDetailHeader> {
             onTap: _openChat,
           ),
         ],
-        if (widget.showWishlist || canChat) const SizedBox(width: AppSpacing.s8),
+        if (widget.showWishlist || canChat)
+          const SizedBox(width: AppSpacing.s8),
         _ActionIcon(
           icon: Icons.share_outlined,
           tooltip: context.tr(CatalogL10n.share),

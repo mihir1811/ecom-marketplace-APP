@@ -76,7 +76,8 @@ ListingSellerInfo? listingSellerFromMap(Object? raw) {
       : _str(nestedUserMap['id']) ?? _str(nestedUserMap['_id']);
 
   final company = _str(map['companyName']);
-  final representative = _str(map['representativeName1']) ??
+  final representative =
+      _str(map['representativeName1']) ??
       _str(map['representativeName']) ??
       _str(map['name']) ??
       _str(map['fullName']) ??
@@ -113,9 +114,11 @@ ListingSellerInfo? listingSellerFromMap(Object? raw) {
     id: sellerId,
     userId: userId,
     displayName: displayName ?? 'Seller',
-    email: _str(map['email']) ??
+    email:
+        _str(map['email']) ??
         (nestedUserMap == null ? null : _str(nestedUserMap['email'])),
-    phone: _str(map['phone1']) ??
+    phone:
+        _str(map['phone1']) ??
         _str(map['phone']) ??
         _str(map['businessPhone1']) ??
         (nestedUserMap == null ? null : _str(nestedUserMap['phone'])),

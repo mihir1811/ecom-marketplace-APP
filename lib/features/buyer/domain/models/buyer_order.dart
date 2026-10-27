@@ -12,6 +12,7 @@ class BuyerOrder {
     this.itemCount = 0,
     this.sellerDecision,
     this.imageUrl,
+    this.liveShowTitle,
   });
 
   final String id;
@@ -30,6 +31,11 @@ class BuyerOrder {
 
   /// First item image, for the list thumbnail.
   final String? imageUrl;
+
+  /// Show name when the order was won in a live auction (rupees only).
+  final String? liveShowTitle;
+
+  bool get isLiveAuction => liveShowTitle != null;
 
   /// Payment status, refined by the seller decision once the order is paid.
   String get displayStatus {

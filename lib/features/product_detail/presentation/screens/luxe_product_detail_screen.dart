@@ -86,6 +86,7 @@ class _LuxeProductDetailScreenState
       headerActions: sections.headerActions,
       summary: sections.summary,
       record: sections.record,
+      related: sections.related,
       bottomBar: sections.bottomBar,
     );
   }
@@ -101,6 +102,7 @@ class LuxeProductSections {
     required this.headerActions,
     required this.summary,
     required this.record,
+    required this.related,
     required this.bottomBar,
   });
 
@@ -110,6 +112,10 @@ class LuxeProductSections {
   final List<Widget> Function(bool glass) headerActions;
   final Widget summary;
   final Widget record;
+
+  /// Full-bleed strip below the record; frames give it only a leading
+  /// gutter so it runs to the trailing edge.
+  final Widget Function(double gutter) related;
   final Widget? bottomBar;
 }
 
@@ -155,6 +161,11 @@ LuxeProductSections luxeProductSections(
     headerActions: (glass) => [_HeaderActions(detail: detail, glass: glass)],
     summary: _Summary(detail: detail, labels: labels),
     record: _Record(detail: detail, isSeller: auth.isSeller),
+    related: (gutter) => ProductDetailSuggestedProducts(
+      detail: detail,
+      gutter: gutter,
+      padding: const EdgeInsets.only(top: 36),
+    ),
     bottomBar: !auth.showProtected
         ? null
         : detail.jewelryDetail != null
@@ -349,7 +360,7 @@ ProductTabbedSpecs? _bullionTabs(ProductBullionDetail? bullion) {
   );
 }
 
-/// Melee quantity, spec tabs, seller, note and related stones.
+/// Melee quantity, spec tabs, seller and note.
 class _Record extends StatelessWidget {
   const _Record({required this.detail, required this.isSeller});
 
@@ -407,8 +418,6 @@ class _Record extends StatelessWidget {
             ],
           ),
         ],
-        const SizedBox(height: 36),
-        ProductDetailSuggestedProducts(detail: detail),
       ],
     );
   }

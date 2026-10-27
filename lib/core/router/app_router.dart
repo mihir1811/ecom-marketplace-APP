@@ -23,6 +23,7 @@ import '../../features/wallet/wallet_routes.dart';
 import '../../features/rewards/rewards_routes.dart';
 import '../../features/info/info_routes.dart';
 import '../../features/auction/auction_routes.dart';
+import '../../features/live_shows/live_shows_routes.dart';
 import '../../features/diamond_education/diamond_education_routes.dart';
 import '../../features/jewelry_education/jewelry_education_routes.dart';
 
@@ -56,6 +57,7 @@ final GoRouter appRouter = GoRouter(
     ...walletRoutes,
     ...rewardsRoutes,
     ...auctionRoutes,
+    ...liveShowsRoutes,
     ...diamondEducationRoutes,
     ...jewelryEducationRoutes,
   ],

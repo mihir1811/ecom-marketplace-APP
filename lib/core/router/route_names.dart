@@ -118,6 +118,10 @@ class AppRouteNames {
   static const String auctionDetail = '/auctions/:auctionId';
   static String auctionDetailPath(String auctionId) =>
       '/auctions/${Uri.encodeComponent(auctionId)}';
+  static const String liveShows = '/live';
+  static const String liveShow = '/live/:showId';
+  static String liveShowPath(String showId) =>
+      '/live/${Uri.encodeComponent(showId)}';
 
   // Seller (dashboard workspace)
   static const String sellerDashboard = '/seller/dashboard';

@@ -29,14 +29,14 @@ import '../../domain/repositories/suggested_seller_products_repository.dart';
 
 final suggestedSellerProductsRepositoryProvider =
     Provider<SuggestedSellerProductsRepository>(
-  (ref) => SuggestedSellerProductsRepositoryImpl(
-    diamonds: ref.watch(diamondRepositoryProvider),
-    gemstones: ref.watch(gemstoneRepositoryProvider),
-    jewelry: ref.watch(jewelryRepositoryProvider),
-    watches: ref.watch(watchRepositoryProvider),
-    bullions: ref.watch(bullionsRepositoryProvider),
-  ),
-);
+      (ref) => SuggestedSellerProductsRepositoryImpl(
+        diamonds: ref.watch(diamondRepositoryProvider),
+        gemstones: ref.watch(gemstoneRepositoryProvider),
+        jewelry: ref.watch(jewelryRepositoryProvider),
+        watches: ref.watch(watchRepositoryProvider),
+        bullions: ref.watch(bullionsRepositoryProvider),
+      ),
+    );
 
 class SuggestedSellerProductsRepositoryImpl
     implements SuggestedSellerProductsRepository {
@@ -79,44 +79,44 @@ class SuggestedSellerProductsRepositoryImpl
     }
 
     return switch (segment) {
-      ProductSegment.naturalDiamond || ProductSegment.labGrownDiamond =>
-        _loadDiamonds(
-          segment: segment,
-          excludeProductId: excludeProductId,
-          sellerId: sid,
-          companyName: company,
-          page: page,
-          pageSize: pageSize,
-          cancelToken: cancelToken,
-        ),
+      ProductSegment.naturalDiamond ||
+      ProductSegment.labGrownDiamond => _loadDiamonds(
+        segment: segment,
+        excludeProductId: excludeProductId,
+        sellerId: sid,
+        companyName: company,
+        page: page,
+        pageSize: pageSize,
+        cancelToken: cancelToken,
+      ),
       ProductSegment.gemstone => _loadGemstones(
-          excludeProductId: excludeProductId,
-          sellerId: sid,
-          companyName: company,
-          page: page,
-          pageSize: pageSize,
-          cancelToken: cancelToken,
-        ),
+        excludeProductId: excludeProductId,
+        sellerId: sid,
+        companyName: company,
+        page: page,
+        pageSize: pageSize,
+        cancelToken: cancelToken,
+      ),
       ProductSegment.jewelry => _loadJewelry(
-          excludeProductId: excludeProductId,
-          page: page,
-          pageSize: pageSize,
-          cancelToken: cancelToken,
-        ),
+        excludeProductId: excludeProductId,
+        page: page,
+        pageSize: pageSize,
+        cancelToken: cancelToken,
+      ),
       ProductSegment.watch => _loadWatches(
-          excludeProductId: excludeProductId,
-          sellerId: sid,
-          page: page,
-          pageSize: pageSize,
-          cancelToken: cancelToken,
-        ),
+        excludeProductId: excludeProductId,
+        sellerId: sid,
+        page: page,
+        pageSize: pageSize,
+        cancelToken: cancelToken,
+      ),
       ProductSegment.bullion => _loadBullions(
-          excludeProductId: excludeProductId,
-          sellerId: sid,
-          page: page,
-          pageSize: pageSize,
-          cancelToken: cancelToken,
-        ),
+        excludeProductId: excludeProductId,
+        sellerId: sid,
+        page: page,
+        pageSize: pageSize,
+        cancelToken: cancelToken,
+      ),
     };
   }
 
@@ -145,15 +145,15 @@ class SuggestedSellerProductsRepositoryImpl
     );
     return switch (result) {
       Success(value: final response) => Success(
-          PaginatedPage<ProductDetail>(
-            items: [
-              for (final d in response.diamonds)
-                if (d.id != excludeProductId) diamondProductDetail(d),
-            ],
-            hasMore: response.hasMore,
-            totalCount: response.totalCount,
-          ),
+        PaginatedPage<ProductDetail>(
+          items: [
+            for (final d in response.diamonds)
+              if (d.id != excludeProductId) diamondProductDetail(d),
+          ],
+          hasMore: response.hasMore,
+          totalCount: response.totalCount,
         ),
+      ),
       ResultFailure(failure: final failure) => ResultFailure(failure),
     };
   }
@@ -178,15 +178,15 @@ class SuggestedSellerProductsRepositoryImpl
     );
     return switch (result) {
       Success(value: final response) => Success(
-          PaginatedPage<ProductDetail>(
-            items: [
-              for (final g in response.gemstones)
-                if (g.id != excludeProductId) gemstoneProductDetail(g),
-            ],
-            hasMore: response.hasMore,
-            totalCount: response.totalCount,
-          ),
+        PaginatedPage<ProductDetail>(
+          items: [
+            for (final g in response.gemstones)
+              if (g.id != excludeProductId) gemstoneProductDetail(g),
+          ],
+          hasMore: response.hasMore,
+          totalCount: response.totalCount,
         ),
+      ),
       ResultFailure(failure: final failure) => ResultFailure(failure),
     };
   }
@@ -201,11 +201,7 @@ class SuggestedSellerProductsRepositoryImpl
   }) async {
     if (page > 1 || excludeProductId.isEmpty) {
       return const Success(
-        PaginatedPage<ProductDetail>(
-          items: [],
-          hasMore: false,
-          totalCount: 0,
-        ),
+        PaginatedPage<ProductDetail>(items: [], hasMore: false, totalCount: 0),
       );
     }
     final result = await _jewelry.getRelated(
@@ -215,15 +211,15 @@ class SuggestedSellerProductsRepositoryImpl
     );
     return switch (result) {
       Success(value: final items) => Success(
-          PaginatedPage<ProductDetail>(
-            items: [
-              for (final j in items)
-                if (j.id != excludeProductId) jewelryProductDetail(j),
-            ],
-            hasMore: false,
-            totalCount: items.length,
-          ),
+        PaginatedPage<ProductDetail>(
+          items: [
+            for (final j in items)
+              if (j.id != excludeProductId) jewelryProductDetail(j),
+          ],
+          hasMore: false,
+          totalCount: items.length,
         ),
+      ),
       ResultFailure(failure: final failure) => ResultFailure(failure),
     };
   }
@@ -237,11 +233,7 @@ class SuggestedSellerProductsRepositoryImpl
   }) async {
     if (sellerId == null || sellerId.isEmpty) {
       return const Success(
-        PaginatedPage<ProductDetail>(
-          items: [],
-          hasMore: false,
-          totalCount: 0,
-        ),
+        PaginatedPage<ProductDetail>(items: [], hasMore: false, totalCount: 0),
       );
     }
     final result = await _watches.getWatches(
@@ -253,15 +245,15 @@ class SuggestedSellerProductsRepositoryImpl
     );
     return switch (result) {
       Success(value: final response) => Success(
-          PaginatedPage<ProductDetail>(
-            items: [
-              for (final w in response.watches)
-                if (w.id != excludeProductId) watchProductDetail(w),
-            ],
-            hasMore: response.hasMore,
-            totalCount: response.totalCount,
-          ),
+        PaginatedPage<ProductDetail>(
+          items: [
+            for (final w in response.watches)
+              if (w.id != excludeProductId) watchProductDetail(w),
+          ],
+          hasMore: response.hasMore,
+          totalCount: response.totalCount,
         ),
+      ),
       ResultFailure(failure: final failure) => ResultFailure(failure),
     };
   }
@@ -275,11 +267,7 @@ class SuggestedSellerProductsRepositoryImpl
   }) async {
     if (sellerId == null || sellerId.isEmpty) {
       return const Success(
-        PaginatedPage<ProductDetail>(
-          items: [],
-          hasMore: false,
-          totalCount: 0,
-        ),
+        PaginatedPage<ProductDetail>(items: [], hasMore: false, totalCount: 0),
       );
     }
     final result = await _bullions.searchBullions(
@@ -291,15 +279,15 @@ class SuggestedSellerProductsRepositoryImpl
     );
     return switch (result) {
       Success(value: final response) => Success(
-          PaginatedPage<ProductDetail>(
-            items: [
-              for (final b in response.bullions)
-                if (b.id != excludeProductId) bullionProductDetail(b),
-            ],
-            hasMore: response.hasMore,
-            totalCount: response.totalCount,
-          ),
+        PaginatedPage<ProductDetail>(
+          items: [
+            for (final b in response.bullions)
+              if (b.id != excludeProductId) bullionProductDetail(b),
+          ],
+          hasMore: response.hasMore,
+          totalCount: response.totalCount,
         ),
+      ),
       ResultFailure(failure: final failure) => ResultFailure(failure),
     };
   }

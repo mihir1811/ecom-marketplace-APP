@@ -42,7 +42,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _recordRecentlyViewed());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _recordRecentlyViewed(),
+    );
   }
 
   void _recordRecentlyViewed() {
@@ -56,10 +58,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     );
   }
 
-  List<Widget> _summaryBlocks(
-    ProductDetail detail, {
-    required bool isSeller,
-  }) {
+  List<Widget> _summaryBlocks(ProductDetail detail, {required bool isSeller}) {
     return [
       ProductDetailHeader(detail: detail),
       if (detail.jewelryDetail == null) ...[
@@ -107,9 +106,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   ) {
     return AppScaffold(
       backgroundColor: AppColors.bg(context),
-      appBar: AppTopBar(
-        title: detail.segment.label,
-      ),
+      appBar: AppTopBar(title: detail.segment.label),
       bottomNavigationBar: auth.showProtected
           ? ProductDetailActionBar(detail: detail)
           : null,
@@ -125,79 +122,92 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                 maxWidth: ProductDetailScreen._maxContentWidth,
               ),
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.s16,
-                  AppSpacing.s16,
-                  AppSpacing.s16,
-                  AppSpacing.s40,
+                // Horizontal insets live on the content so the seller strip
+                // can run to the trailing edge.
+                padding: const EdgeInsets.only(
+                  top: AppSpacing.s16,
+                  bottom: AppSpacing.s40,
                 ),
                 children: [
-                  if (isWide)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.s16,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Expanded(
-                          flex: 5,
-                          child: ProductDetailMedia(
+                        if (isWide)
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                flex: 5,
+                                child: ProductDetailMedia(
+                                  media: detail.media,
+                                  availabilityStatus: detail.availabilityStatus,
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.s40),
+                              Expanded(
+                                flex: 6,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: _summaryBlocks(
+                                    detail,
+                                    isSeller: auth.isSeller,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        else ...[
+                          ProductDetailMedia(
                             media: detail.media,
                             availabilityStatus: detail.availabilityStatus,
                           ),
-                        ),
-                        const SizedBox(width: AppSpacing.s40),
-                        Expanded(
-                          flex: 6,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: _summaryBlocks(
-                              detail,
-                              isSeller: auth.isSeller,
+                          const SizedBox(height: AppSpacing.s24),
+                          ..._summaryBlocks(detail, isSeller: auth.isSeller),
+                        ],
+                        const SizedBox(height: AppSpacing.s40),
+                        if (detail.bullionDetail != null) ...[
+                          ProductDetailBullionSection(
+                            detail: detail,
+                            bullion: detail.bullionDetail!,
+                          ),
+                          const SizedBox(height: AppSpacing.s32),
+                        ] else if (detail.naturalSpecTabs != null) ...[
+                          ProductDetailNaturalSpecs(
+                            specs: detail.naturalSpecTabs!,
+                            productId: detail.id,
+                            lotPrice: detail.price.displayAmount,
+                            currencySymbol: detail.price.currencySymbol,
+                          ),
+                          const SizedBox(height: AppSpacing.s32),
+                        ] else ...[
+                          for (final section in visibleSpecs) ...[
+                            ProductDetailSpecSection(section: section),
+                            const SizedBox(height: AppSpacing.s32),
+                          ],
+                        ],
+                        if (detail.note != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: AppSpacing.s8),
+                            child: Text(
+                              detail.note!,
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.textMuted(context),
+                                height: 1.5,
+                              ),
                             ),
                           ),
-                        ),
                       ],
-                    )
-                  else ...[
-                    ProductDetailMedia(
-                      media: detail.media,
-                      availabilityStatus: detail.availabilityStatus,
                     ),
-                    const SizedBox(height: AppSpacing.s24),
-                    ..._summaryBlocks(detail, isSeller: auth.isSeller),
-                  ],
-                  const SizedBox(height: AppSpacing.s40),
-                  if (detail.bullionDetail != null) ...[
-                    ProductDetailBullionSection(
-                      detail: detail,
-                      bullion: detail.bullionDetail!,
-                    ),
-                    const SizedBox(height: AppSpacing.s32),
-                  ] else if (detail.naturalSpecTabs != null) ...[
-                    ProductDetailNaturalSpecs(
-                      specs: detail.naturalSpecTabs!,
-                      productId: detail.id,
-                      lotPrice: detail.price.displayAmount,
-                      currencySymbol: detail.price.currencySymbol,
-                    ),
-                    const SizedBox(height: AppSpacing.s32),
-                  ] else ...[
-                    for (final section in visibleSpecs) ...[
-                      ProductDetailSpecSection(section: section),
-                      const SizedBox(height: AppSpacing.s32),
-                    ],
-                  ],
-                  if (detail.note != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.s8),
-                      child: Text(
-                        detail.note!,
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.textMuted(context),
-                          height: 1.5,
-                        ),
-                      ),
-                    ),
-                  const SizedBox(height: AppSpacing.s40),
-                  ProductDetailSuggestedProducts(detail: detail),
+                  ),
+                  ProductDetailSuggestedProducts(
+                    detail: detail,
+                    gutter: AppSpacing.s16,
+                    padding: const EdgeInsets.only(top: AppSpacing.s40),
+                  ),
                 ],
               ),
             ),

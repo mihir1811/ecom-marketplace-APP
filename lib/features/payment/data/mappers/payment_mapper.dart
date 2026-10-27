@@ -109,6 +109,7 @@ abstract final class PaymentMapper {
       invoiceNumber: _str(json['invoiceNumber']),
       invoiceUrl: _str(json['invoiceUrl']),
       orderType: _str(json['orderType']),
+      liveAuction: liveAuctionFromJson(json['liveAuction']),
       items: items,
       pricing: pricing,
       sellers: sellers,
@@ -263,6 +264,16 @@ abstract final class PaymentMapper {
       sellerId: _str(json['sellerId']) ?? _str(sellerMap['id']),
       sellerName: _str(sellerMap['companyName']),
       isReturned: json['isReturned'] == true,
+      priceCurrency: _str(json['priceCurrency']),
+    );
+  }
+
+  static PaymentOrderLiveAuction? liveAuctionFromJson(Object? raw) {
+    if (raw is! Map) return null;
+    return PaymentOrderLiveAuction(
+      lotId: _str(raw['lotId']) ?? '',
+      showId: _str(raw['showId']) ?? '',
+      showTitle: _str(raw['showTitle']) ?? 'Live show',
     );
   }
 

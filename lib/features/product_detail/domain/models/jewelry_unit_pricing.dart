@@ -45,8 +45,9 @@ class JewelryUnitPricing {
       final list = components;
       final net = (list - discount).clamp(0.0, double.infinity);
       // Prefer API total when it matches the computed net (normal path).
-      final resolvedNet =
-          (apiTotal > 0 && (apiTotal - net).abs() < 0.5) ? apiTotal : net;
+      final resolvedNet = (apiTotal > 0 && (apiTotal - net).abs() < 0.5)
+          ? apiTotal
+          : net;
       return JewelryUnitPricing(
         metal: metal,
         stone: stone,

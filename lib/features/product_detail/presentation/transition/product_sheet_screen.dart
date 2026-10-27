@@ -773,16 +773,19 @@ class _SheetPageState extends ConsumerState<_SheetPage> {
                                   ),
                                   child: s.summary,
                                 ),
-                                if (_recordBuilt)
+                                if (_recordBuilt) ...[
                                   Padding(
                                     padding: const EdgeInsets.fromLTRB(
                                       20,
                                       8,
                                       20,
-                                      40,
+                                      0,
                                     ),
                                     child: s.record,
                                   ),
+                                  s.related(20),
+                                  const SizedBox(height: 40),
+                                ],
                               ],
                             ),
                             // Short records still need enough travel for the

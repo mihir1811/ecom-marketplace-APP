@@ -10,6 +10,7 @@ import '../../../../core/widgets/app_system_back_scope.dart';
 import '../../../../core/widgets/luxe/scroll_reveal.dart';
 import '../../../../core/widgets/navigation/start_selling_flow.dart';
 import '../../../ai_chat/application/ai_chat_providers.dart';
+import '../../../live_shows/presentation/widgets/home_live_shows.dart';
 import '../theme/home_tokens.dart';
 import '../widgets/hero/home_hero.dart';
 import '../widgets/home_collections.dart';
@@ -101,6 +102,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ],
                 ),
               ),
+              const SliverToBoxAdapter(child: HomeLiveShows()),
               const SliverToBoxAdapter(child: HomeLiveAuctions()),
               SliverToBoxAdapter(child: HomeAiSearchCard(onAsk: _askGemAi)),
               if (!auth.isSeller)

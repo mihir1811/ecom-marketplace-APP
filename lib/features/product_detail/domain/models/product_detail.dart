@@ -288,10 +288,7 @@ class ProductSpecSection {
 
 /// Named group of rows inside a tab (e.g. Basic Info under Details).
 class ProductSpecTabSection {
-  const ProductSpecTabSection({
-    required this.title,
-    required this.rows,
-  });
+  const ProductSpecTabSection({required this.title, required this.rows});
 
   final String title;
   final List<ProductSpec> rows;
@@ -527,22 +524,18 @@ class ProductDetail {
   }
 
   bool get isPurchasable => CatalogPurchasePolicy.canAddToCart(
-        availabilityStatus: availabilityStatus,
-        availability: availability,
-      );
+    availabilityStatus: availabilityStatus,
+    availability: availability,
+  );
 
   String? addToCartBlockMessage({
     required String? userId,
     required String? sellerId,
-  }) =>
-      CatalogPurchasePolicy.addToCartBlockMessage(
-        ownListing: isOwnedByCurrentAccount(
-          userId: userId,
-          sellerId: sellerId,
-        ),
-        availabilityStatus: availabilityStatus,
-        availability: availability,
-      );
+  }) => CatalogPurchasePolicy.addToCartBlockMessage(
+    ownListing: isOwnedByCurrentAccount(userId: userId, sellerId: sellerId),
+    availabilityStatus: availabilityStatus,
+    availability: availability,
+  );
 
   bool isOwnedByCurrentAccount({
     required String? userId,

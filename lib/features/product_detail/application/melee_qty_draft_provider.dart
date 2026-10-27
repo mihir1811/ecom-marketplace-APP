@@ -29,11 +29,11 @@ class MeleeQtyDraft {
 
   /// Cart `specifications` shape from CART_API (melee partial buy).
   Map<String, dynamic> toSpecifications({required double calculatedPrice}) => {
-        'purchaseUnit': inCarat ? 'carat' : 'pcs',
-        'selectedPcs': pieces,
-        'selectedCarat': double.parse(carat.toStringAsFixed(4)),
-        'calculatedPrice': double.parse(calculatedPrice.toStringAsFixed(2)),
-      };
+    'purchaseUnit': inCarat ? 'carat' : 'pcs',
+    'selectedPcs': pieces,
+    'selectedCarat': double.parse(carat.toStringAsFixed(4)),
+    'calculatedPrice': double.parse(calculatedPrice.toStringAsFixed(2)),
+  };
 }
 
 class MeleeQtyDraftNotifier extends FamilyNotifier<MeleeQtyDraft?, String> {
@@ -43,8 +43,8 @@ class MeleeQtyDraftNotifier extends FamilyNotifier<MeleeQtyDraft?, String> {
   void ensureSeeded(ProductMeleeQty qty) {
     if (state != null) return;
     final pcs = qty.totalPcs ?? 0;
-    final ct = qty.totalCarat ??
-        (pcs > 0 ? pcs * qty.resolvedCaratPerPcs : 0.0);
+    final ct =
+        qty.totalCarat ?? (pcs > 0 ? pcs * qty.resolvedCaratPerPcs : 0.0);
     state = MeleeQtyDraft(
       inCarat: false,
       pieces: pcs > 0 ? pcs : 0,
@@ -53,8 +53,8 @@ class MeleeQtyDraftNotifier extends FamilyNotifier<MeleeQtyDraft?, String> {
   }
 
   void setUnit({required bool inCarat, required ProductMeleeQty qty}) {
-    final current = state ??
-        const MeleeQtyDraft(inCarat: false, pieces: 1, carat: 0);
+    final current =
+        state ?? const MeleeQtyDraft(inCarat: false, pieces: 1, carat: 0);
     state = MeleeQtyDraft(
       inCarat: inCarat,
       pieces: current.pieces,
@@ -69,13 +69,8 @@ class MeleeQtyDraftNotifier extends FamilyNotifier<MeleeQtyDraft?, String> {
     final cpp = qty.resolvedCaratPerPcs;
     final carat = cpp > 0 ? pcs * cpp : 0.0;
     final maxCt = qty.totalCarat;
-    final clampedCt =
-        maxCt != null && carat > maxCt ? maxCt : carat;
-    state = MeleeQtyDraft(
-      inCarat: false,
-      pieces: pcs,
-      carat: clampedCt,
-    );
+    final clampedCt = maxCt != null && carat > maxCt ? maxCt : carat;
+    state = MeleeQtyDraft(inCarat: false, pieces: pcs, carat: clampedCt);
   }
 
   void setFromCarat(double carat, ProductMeleeQty qty) {
@@ -90,15 +85,11 @@ class MeleeQtyDraftNotifier extends FamilyNotifier<MeleeQtyDraft?, String> {
       pcs = maxPcs;
       ct = cpp > 0 ? pcs * cpp : ct;
     }
-    state = MeleeQtyDraft(
-      inCarat: true,
-      pieces: pcs,
-      carat: ct,
-    );
+    state = MeleeQtyDraft(inCarat: true, pieces: pcs, carat: ct);
   }
 }
 
 final meleeQtyDraftProvider =
     NotifierProvider.family<MeleeQtyDraftNotifier, MeleeQtyDraft?, String>(
-  MeleeQtyDraftNotifier.new,
-);
+      MeleeQtyDraftNotifier.new,
+    );

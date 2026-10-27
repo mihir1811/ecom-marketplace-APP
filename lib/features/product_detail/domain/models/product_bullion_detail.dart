@@ -1,9 +1,6 @@
 /// Bullion-only layout data for Overview / Specifications / Seller tabs.
 class ProductBullionDetail {
-  const ProductBullionDetail({
-    required this.overview,
-    required this.specRows,
-  });
+  const ProductBullionDetail({required this.overview, required this.specRows});
 
   final String overview;
   final List<ProductBullionSpecRow> specRows;

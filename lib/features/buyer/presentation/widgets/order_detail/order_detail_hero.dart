@@ -56,7 +56,9 @@ class OrderDetailHero extends ConsumerWidget {
     final totalUsd = (pricing?.totalUsd ?? 0) > 0
         ? pricing!.totalUsd
         : order.amountUsd;
-    final totalInr = (pricing?.totalInr ?? 0) > 0
+    final totalInr = order.isLiveAuction
+        ? order.amount
+        : (pricing?.totalInr ?? 0) > 0
         ? pricing!.totalInr
         : order.amount;
     final hasInvoice = order.invoiceUrl?.trim().isNotEmpty ?? false;
@@ -185,7 +187,18 @@ class OrderDetailHero extends ConsumerWidget {
                                       ),
                                     ),
                                   ),
-                                  if (totalInr > 0)
+                                  if (order.isLiveAuction)
+                                    Text(
+                                      'Live show: '
+                                      '${order.liveAuction?.showTitle ?? 'Live auction'}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: AtelierType.caption(
+                                        soft,
+                                        size: 12,
+                                      ),
+                                    )
+                                  else if (totalInr > 0)
                                     Text(
                                       maisonUsd(totalUsd),
                                       style: AtelierType.figure(soft, size: 12),

@@ -32,17 +32,19 @@ PurchaseCopy luxePurchaseCopy(BuildContext context) => PurchaseCopy(
 );
 
 /// Label for the offer control in each [OfferButtonKind].
-String luxeOfferLabel(BuildContext context, OfferButtonKind kind, Duration left) =>
-    switch (kind) {
-      OfferButtonKind.makeOffer => context.tr(CatalogL10n.makeOffer),
-      OfferButtonKind.pending => context.tr(DiamondFlowL10n.offerPending),
-      OfferButtonKind.limitReached =>
-        context.tr(DiamondFlowL10n.offerLimitReached),
-      OfferButtonKind.payNow => context.tr(DiamondFlowL10n.offerPayNowLeft, {
-        'time': formatOfferTimeLeft(left),
-      }),
-      OfferButtonKind.paid => context.tr(DiamondFlowL10n.offerPaid),
-    };
+String luxeOfferLabel(
+  BuildContext context,
+  OfferButtonKind kind,
+  Duration left,
+) => switch (kind) {
+  OfferButtonKind.makeOffer => context.tr(CatalogL10n.makeOffer),
+  OfferButtonKind.pending => context.tr(DiamondFlowL10n.offerPending),
+  OfferButtonKind.limitReached => context.tr(DiamondFlowL10n.offerLimitReached),
+  OfferButtonKind.payNow => context.tr(DiamondFlowL10n.offerPayNowLeft, {
+    'time': formatOfferTimeLeft(left),
+  }),
+  OfferButtonKind.paid => context.tr(DiamondFlowL10n.offerPaid),
+};
 
 /// Sticky commitment bar: compact price, optional offer, primary cart CTA.
 class LuxePurchaseBar extends ConsumerWidget {

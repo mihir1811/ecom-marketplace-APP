@@ -140,7 +140,9 @@ abstract final class ProductPurchaseActions {
         : CartButtonKind.add;
     final showOffer = detail.canMakeAnOffer && !own;
     final eligibility = showOffer && auth.isAuthenticated
-        ? ref.watch(productOfferEligibilityProvider(offerKey(detail))).valueOrNull
+        ? ref
+              .watch(productOfferEligibilityProvider(offerKey(detail)))
+              .valueOrNull
         : null;
     final offers = eligibility ?? ProductOfferEligibility.empty;
     return PurchaseState(
@@ -184,14 +186,7 @@ abstract final class ProductPurchaseActions {
       return;
     }
     if (state.offerKind != OfferButtonKind.makeOffer) return;
-    await makeOffer(
-      context,
-      ref,
-      detail,
-      ask: ask,
-      copy: copy,
-      notify: notify,
-    );
+    await makeOffer(context, ref, detail, ask: ask, copy: copy, notify: notify);
   }
 
   /// Adds the stone to the bag at the accepted offer price, then opens the

@@ -59,7 +59,9 @@ class BuyerOrderCard extends StatelessWidget {
     return Pressable(
       onTap: onTap,
       semanticLabel:
-          '${order.productLabel}, ${maisonUsd(order.amountUsd)}, $label',
+          '${order.productLabel}, '
+          '${order.isLiveAuction ? maisonInr(order.amountInr) : maisonUsd(order.amountUsd)}, '
+          '$label',
       borderRadius: BorderRadius.circular(AtelierRadius.lg),
       child: AnimatedContainer(
         duration: AtelierMotion.base,
@@ -155,6 +157,15 @@ class BuyerOrderCard extends StatelessWidget {
                           tone: tone,
                           icon: buyerStageIcon(stage),
                         ),
+                        if (order.isLiveAuction) ...[
+                          const SizedBox(height: 6),
+                          const AtelierPill(
+                            label: 'Purchased in live auction',
+                            tone: AtelierTone.gold,
+                            icon: Icons.live_tv_rounded,
+                            dense: true,
+                          ),
+                        ],
                         const SizedBox(height: 8),
                         Row(
                           children: [
@@ -187,10 +198,12 @@ class BuyerOrderCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            maisonUsd(order.amountUsd),
+                            order.isLiveAuction
+                                ? maisonInr(order.amountInr)
+                                : maisonUsd(order.amountUsd),
                             style: AtelierType.display(p.ink, size: 24),
                           ),
-                          if (order.amountInr > 0)
+                          if (order.amountInr > 0 && !order.isLiveAuction)
                             Text(
                               maisonInr(order.amountInr),
                               style: AtelierType.figure(p.muted, size: 11),

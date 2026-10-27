@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/auth/auth_providers.dart';
@@ -12,7 +14,9 @@ BuyerOrder buyerOrderFromPayment(PaymentOrder order) {
     productLabel: order.primaryProductLabel,
     sellerName: order.primarySellerName,
     status: order.status,
-    amountInr: order.pricing?.totalInr ?? order.amount,
+    amountInr: order.isLiveAuction
+        ? order.amount
+        : order.pricing?.totalInr ?? order.amount,
     amountUsd: order.amountUsd,
     currency: order.currency,
     createdAt: order.createdAt,
@@ -21,6 +25,9 @@ BuyerOrder buyerOrderFromPayment(PaymentOrder order) {
     imageUrl: order.items
         .map((e) => e.image?.trim())
         .firstWhere((e) => e != null && e.isNotEmpty, orElse: () => null),
+    liveShowTitle: order.isLiveAuction
+        ? (order.liveAuction?.showTitle ?? 'Live show')
+        : null,
   );
 }
 
@@ -136,8 +143,23 @@ final buyerOrderDetailProvider = FutureProvider.autoDispose
       final result = await ref
           .watch(paymentRepositoryProvider)
           .getOrder(orderId);
-      return switch (result) {
+      final order = switch (result) {
         Success(:final value) => value,
         ResultFailure(:final failure) => throw failure,
       };
+      // A live-auction invoice is generated a few seconds after the win;
+      // fetch again a few times until it appears.
+      final tries = _invoiceRetries[orderId] ?? 0;
+      if (order.isLiveAuction &&
+          (order.invoiceUrl?.trim().isEmpty ?? true) &&
+          tries < 5) {
+        _invoiceRetries[orderId] = tries + 1;
+        final timer = Timer(const Duration(seconds: 4), ref.invalidateSelf);
+        ref.onDispose(timer.cancel);
+      } else {
+        _invoiceRetries.remove(orderId);
+      }
+      return order;
     });
+
+final _invoiceRetries = <String, int>{};

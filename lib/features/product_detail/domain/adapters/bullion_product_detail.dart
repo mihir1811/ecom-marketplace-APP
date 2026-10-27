@@ -19,9 +19,7 @@ ProductDetail bullionProductDetail(Bullion b) {
   final purity = b.purity > 0 ? b.purity.toStringAsFixed(1) : b.presetVariant;
   final networkImages = b.imageUrls.isNotEmpty
       ? b.imageUrls
-      : [
-          if (b.renderableImageUrl != null) b.renderableImageUrl!,
-        ];
+      : [if (b.renderableImageUrl != null) b.renderableImageUrl!];
 
   return ProductDetail(
     id: b.id,
@@ -40,9 +38,7 @@ ProductDetail bullionProductDetail(Bullion b) {
       if (b.condition.isNotEmpty) ProductBadge(b.condition),
     ],
     media: ProductMedia(
-      images: [
-        for (final url in networkImages) ProductImage.network(url),
-      ],
+      images: [for (final url in networkImages) ProductImage.network(url)],
       imageSlots: networkImages.isEmpty ? 0 : networkImages.length,
       certificateLabel: null,
       shapeKey: null,
@@ -80,10 +76,7 @@ ProductDetail bullionProductDetail(Bullion b) {
   );
 }
 
-ProductBullionDetail _bullionDetail(
-  Bullion b, {
-  required String metalLabel,
-}) {
+ProductBullionDetail _bullionDetail(Bullion b, {required String metalLabel}) {
   final metalUpper = metalLabel.toUpperCase();
   final shapeUpper = b.shape.trim().isEmpty ? 'BAR' : b.shape.toUpperCase();
   final weightValue = () {
@@ -98,8 +91,9 @@ ProductBullionDetail _bullionDetail(
     return label.replaceAll(RegExp(r'\s*g$', caseSensitive: false), '');
   }();
   final mint = b.mintMark.trim().isNotEmpty ? b.mintMark.trim() : 'the mint';
-  final condition =
-      b.condition.trim().isNotEmpty ? b.condition.trim() : 'as listed';
+  final condition = b.condition.trim().isNotEmpty
+      ? b.condition.trim()
+      : 'as listed';
 
   final overview =
       'This ${weightValue.isEmpty ? metalUpper : '$weightValue $metalUpper'} '
@@ -122,10 +116,8 @@ ProductBullionDetail _bullionDetail(
     if ((b.stockNumber ?? '').trim().isNotEmpty)
       ProductBullionSpecRow('Stock Number', b.stockNumber!.trim()),
     ProductBullionSpecRow('Metal Type', metalUpper),
-    if (b.shape.trim().isNotEmpty)
-      ProductBullionSpecRow('Shape', shapeUpper),
-    if (weightValue.isNotEmpty)
-      ProductBullionSpecRow('Weight', weightValue),
+    if (b.shape.trim().isNotEmpty) ProductBullionSpecRow('Shape', shapeUpper),
+    if (weightValue.isNotEmpty) ProductBullionSpecRow('Weight', weightValue),
     if (b.mintMark.trim().isNotEmpty)
       ProductBullionSpecRow('Mint Mark', b.mintMark.trim()),
     if (b.mintYear != null) ProductBullionSpecRow('Mint Year', '${b.mintYear}'),

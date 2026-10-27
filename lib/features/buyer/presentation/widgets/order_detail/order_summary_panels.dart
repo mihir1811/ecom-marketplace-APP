@@ -107,7 +107,9 @@ class _ItemRow extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         Text(
-          maisonUsd(item.lineTotal),
+          item.pricedInInr
+              ? maisonInr(item.lineTotal)
+              : maisonUsd(item.lineTotal),
           style: AtelierType.figure(p.ink, size: 14.5),
         ),
       ],
@@ -147,7 +149,16 @@ class OrderPaymentPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (pricing != null)
+          // Live-auction totals are rupees; the USD subtotal and rate are
+          // kept only for accounting.
+          if (order.isLiveAuction) ...[
+            _Line(
+              label: 'Purchased in live auction',
+              value: order.liveAuction?.showTitle ?? 'Live show',
+            ),
+            const SizedBox(height: 10),
+            _TotalRow(primary: maisonInr(order.amount)),
+          ] else if (pricing != null)
             _Breakdown(
               pricing: pricing,
               amountUsd: order.amountUsd,

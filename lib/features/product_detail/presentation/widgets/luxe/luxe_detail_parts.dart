@@ -32,6 +32,7 @@ class LuxeDetailLayout extends StatefulWidget {
     super.key,
     this.availabilityStatus,
     this.headerActions,
+    this.related,
     this.bottomBar,
     this.onRefresh,
   });
@@ -41,6 +42,10 @@ class LuxeDetailLayout extends StatefulWidget {
   final String? availabilityStatus;
   final Widget summary;
   final Widget record;
+
+  /// Strip below the record laid out edge to edge; receives its leading
+  /// gutter.
+  final Widget Function(double gutter)? related;
 
   /// Trailing header controls; `glass` is true while over the gallery.
   final List<Widget> Function(bool glass)? headerActions;
@@ -116,6 +121,7 @@ class _LuxeDetailLayoutState extends State<LuxeDetailLayout> {
                             ),
                             const SizedBox(height: 32),
                             widget.record,
+                            ?widget.related?.call(0),
                           ],
                         ),
                       ),
@@ -130,9 +136,11 @@ class _LuxeDetailLayoutState extends State<LuxeDetailLayout> {
                       child: widget.summary,
                     ),
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
                       child: widget.record,
                     ),
+                    ?widget.related?.call(20),
+                    const SizedBox(height: 40),
                   ],
                 );
 

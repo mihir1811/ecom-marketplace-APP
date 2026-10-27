@@ -15,9 +15,11 @@ ProductDetail diamondProductDetail(Diamond d) {
   final segment = d.isLabGrown
       ? ProductSegment.labGrownDiamond
       : ProductSegment.naturalDiamond;
-  final authority = DiamondDisplay.optional(d.lab ?? d.certificate, uppercase: true);
-  final perCarat =
-      d.pricePerCarat ?? (d.carat > 0 ? d.price / d.carat : null);
+  final authority = DiamondDisplay.optional(
+    d.lab ?? d.certificate,
+    uppercase: true,
+  );
+  final perCarat = d.pricePerCarat ?? (d.carat > 0 ? d.price / d.carat : null);
   final carat = d.carat.toStringAsFixed(2);
   final shape = DiamondDisplay.shape(d.shape);
   final color = DiamondDisplay.displayPrimaryColor(
@@ -42,15 +44,17 @@ ProductDetail diamondProductDetail(Diamond d) {
   ].join(', ');
 
   final belowList = catalogMarkdownPercent(d.discount);
-  final listFromRap =
-      (d.rap != null && d.rap! > 0 && d.carat > 0) ? d.rap! * d.carat : null;
+  final listFromRap = (d.rap != null && d.rap! > 0 && d.carat > 0)
+      ? d.rap! * d.carat
+      : null;
   final listAmount = belowList == null
       ? null
       : (listFromRap != null && listFromRap > d.price
             ? listFromRap
             : catalogListFromNet(d.price, belowList));
 
-  final sellerInfo = d.listingSeller ??
+  final sellerInfo =
+      d.listingSeller ??
       (DiamondDisplay.optional(d.sellerCompanyName) == null
           ? null
           : ListingSellerInfo(
@@ -61,8 +65,9 @@ ProductDetail diamondProductDetail(Diamond d) {
   return ProductDetail(
     id: d.id,
     segment: segment,
-    apiProductType:
-        d.isMelee ? CartProductType.meleeDiamond : CartProductType.diamond,
+    apiProductType: d.isMelee
+        ? CartProductType.meleeDiamond
+        : CartProductType.diamond,
     title: '$carat ct $shape',
     subtitle: subtitleParts.isEmpty
         ? DiamondDisplay.missing
@@ -87,8 +92,7 @@ ProductDetail diamondProductDetail(Diamond d) {
         ),
       if (d.isOnAuction)
         const ProductBadge('On auction', tone: ProductBadgeTone.caution),
-      if (d.isSold)
-        const ProductBadge('Sold', tone: ProductBadgeTone.neutral),
+      if (d.isSold) const ProductBadge('Sold', tone: ProductBadgeTone.neutral),
     ],
     media: ProductMedia(
       images: [
@@ -96,10 +100,11 @@ ProductDetail diamondProductDetail(Diamond d) {
         if (d.imageUrls.isEmpty && d.imageUrl != null)
           ProductImage.network(d.imageUrl!),
       ],
-      imageSlots: (d.imageUrls.isEmpty
-              ? (d.imageUrl != null ? 1 : 0)
-              : d.imageUrls.length)
-          .clamp(0, 6),
+      imageSlots:
+          (d.imageUrls.isEmpty
+                  ? (d.imageUrl != null ? 1 : 0)
+                  : d.imageUrls.length)
+              .clamp(0, 6),
       certificateLabel: DiamondDisplay.optional(d.certificateUrl) == null
           ? null
           : (authority == null ? 'Certificate' : '$authority certificate'),
@@ -118,8 +123,7 @@ ProductDetail diamondProductDetail(Diamond d) {
       priceInr: usdToInr(d.price),
       displayAmount: d.price,
       unitLabel: 'per carat',
-      unitAmountLabel:
-          perCarat == null ? null : formatCatalogPrice(perCarat),
+      unitAmountLabel: perCarat == null ? null : formatCatalogPrice(perCarat),
       discountPercent: belowList,
       listAmount: listAmount,
     ),
@@ -131,15 +135,16 @@ ProductDetail diamondProductDetail(Diamond d) {
         d.isMelee ? 'Sieve' : 'Cut',
         d.isMelee
             ? (DiamondDisplay.optional(d.sieveLabel) ??
-                cut ??
-                DiamondDisplay.missing)
+                  cut ??
+                  DiamondDisplay.missing)
             : (cut ?? DiamondDisplay.missing),
       ),
     ],
     certification: ProductCertification(
       authority: authority ?? DiamondDisplay.missing,
       referenceLabel: 'Report',
-      referenceValue: DiamondDisplay.optional(d.certificateNumber) ??
+      referenceValue:
+          DiamondDisplay.optional(d.certificateNumber) ??
           DiamondDisplay.optional(d.stockNumber) ??
           d.id,
       certificateUrl: DiamondDisplay.optional(d.certificateUrl),
@@ -155,10 +160,18 @@ ProductDetail diamondProductDetail(Diamond d) {
         'Shape': shape,
         'Carat weight': '$carat ct',
         if (d.isMelee)
-          'Carat / pcs': DiamondDisplay.number(d.caratPerPcs, decimals: 3, suffix: ' ct'),
-        if (d.isMelee) 'Total pcs': DiamondDisplay.number(d.totalPcs, decimals: 0),
+          'Carat / pcs': DiamondDisplay.number(
+            d.caratPerPcs,
+            decimals: 3,
+            suffix: ' ct',
+          ),
         if (d.isMelee)
-          'Total carat': DiamondDisplay.number(d.totalCaratWeight, suffix: ' ct'),
+          'Total pcs': DiamondDisplay.number(d.totalPcs, decimals: 0),
+        if (d.isMelee)
+          'Total carat': DiamondDisplay.number(
+            d.totalCaratWeight,
+            suffix: ' ct',
+          ),
         'Origin type': d.isLabGrown ? 'Lab grown' : 'Natural',
         'Growth method': DiamondDisplay.optional(d.growthType, uppercase: true),
         'Availability': DiamondDisplay.optional(d.available) == null
@@ -177,9 +190,14 @@ ProductDetail diamondProductDetail(Diamond d) {
         'Clarity grade': clarity,
         'Polish': DiamondDisplay.optional(d.polish, uppercase: true),
         'Symmetry': DiamondDisplay.optional(d.symmetry, uppercase: true),
-        'Fluorescence': DiamondDisplay.optional(d.fluorescence, uppercase: true),
-        'Fluorescence color':
-            DiamondDisplay.optional(d.fluorescenceColor, uppercase: true),
+        'Fluorescence': DiamondDisplay.optional(
+          d.fluorescence,
+          uppercase: true,
+        ),
+        'Fluorescence color': DiamondDisplay.optional(
+          d.fluorescenceColor,
+          uppercase: true,
+        ),
         'Shade': DiamondDisplay.optional(d.shade),
         'Fancy color': DiamondDisplay.optional(d.fancyColor),
         'Fancy intensity': DiamondDisplay.optional(d.fancyIntensity),
@@ -208,10 +226,11 @@ ProductDetail diamondProductDetail(Diamond d) {
         'Rough source': DiamondDisplay.optional(d.roughSource),
       }),
       specSection(ProductSpecGroup.inclusions, {
-        'Media': [
-          if (d.hasImage) 'Photography',
-          if (d.hasVideo) '360° video',
-        ].isEmpty
+        'Media':
+            [
+              if (d.hasImage) 'Photography',
+              if (d.hasVideo) '360° video',
+            ].isEmpty
             ? null
             : [
                 if (d.hasImage) 'Photography',
@@ -222,17 +241,15 @@ ProductDetail diamondProductDetail(Diamond d) {
     ],
     note: d.isLabGrown
         ? 'Lab grown diamonds are chemically and optically identical to mined '
-            'diamonds and carry the same grading scales.'
+              'diamonds and carry the same grading scales.'
         : 'Grades follow the issuing laboratory report. Verify the report '
-            'number before payment.',
+              'number before payment.',
     isMakeAnOfferAllowed: d.isMakeAnOfferAllowed,
     minimumOfferPrice: d.minimumOfferPrice,
     maxOfferAttemptsPerUser: d.maxOfferAttemptsPerUser,
     isSold: d.isSold,
     isOnAuction: d.isOnAuction,
-    naturalSpecTabs: d.isMelee
-        ? _meleeSpecTabs(d)
-        : _singleSpecTabs(d),
+    naturalSpecTabs: d.isMelee ? _meleeSpecTabs(d) : _singleSpecTabs(d),
   );
 }
 
@@ -270,7 +287,8 @@ String _cutSymPol(Diamond d) {
 
 ProductTabbedSpecs _meleeSpecTabs(Diamond d) {
   final comment = DiamondDisplay.optional(d.comment);
-  final origin = DiamondDisplay.optional(d.origin) ??
+  final origin =
+      DiamondDisplay.optional(d.origin) ??
       (d.isLabGrown ? 'Lab-Grown Melee' : null);
 
   return ProductTabbedSpecs(
@@ -331,9 +349,11 @@ ProductTabbedSpecs _meleeSpecTabs(Diamond d) {
 
 ProductTabbedSpecs _singleSpecTabs(Diamond d) {
   final comment = DiamondDisplay.optional(d.comment);
-  final measurement = DiamondDisplay.optional(d.measurement) ??
+  final measurement =
+      DiamondDisplay.optional(d.measurement) ??
       _measurementRange(d.measurementMin, d.measurementMax);
-  final bgm = DiamondDisplay.boolLabel(
+  final bgm =
+      DiamondDisplay.boolLabel(
         d.bgm,
         yes: d.isLabGrown ? 'YES' : 'Present',
         no: d.isLabGrown ? 'NO' : 'None',
@@ -417,21 +437,21 @@ ProductAvailability _availability(Diamond d) {
   }
   return switch ((d.available ?? '').toLowerCase()) {
     'hold' => const ProductAvailability(
-        label: 'On hold',
-        tone: ProductStockTone.unavailable,
-        detail: 'This stone is currently on hold with another buyer.',
-      ),
+      label: 'On hold',
+      tone: ProductStockTone.unavailable,
+      detail: 'This stone is currently on hold with another buyer.',
+    ),
     'memo' => const ProductAvailability(
-        label: 'On memo',
-        tone: ProductStockTone.unavailable,
-      ),
+      label: 'On memo',
+      tone: ProductStockTone.unavailable,
+    ),
     'yes' => const ProductAvailability(
-        label: 'Available',
-        tone: ProductStockTone.available,
-      ),
+      label: 'Available',
+      tone: ProductStockTone.available,
+    ),
     _ => const ProductAvailability(
-        label: 'Availability not listed',
-        tone: ProductStockTone.limited,
-      ),
+      label: 'Availability not listed',
+      tone: ProductStockTone.limited,
+    ),
   };
 }

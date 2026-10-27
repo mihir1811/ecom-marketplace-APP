@@ -12,11 +12,26 @@ import '../../application/suggested_seller_products_provider.dart';
 import '../../domain/models/product_detail.dart';
 import '../../product_detail_navigation.dart';
 
-/// Horizontally paginated "more from this seller" cards (3 visible at a time).
+/// Horizontally paginated "more from this seller" cards.
+///
+/// Place it without horizontal padding: [gutter] insets the heading and the
+/// first card, while the strip runs to the trailing edge so the next card
+/// peeks in and signals more to scroll.
 class ProductDetailSuggestedProducts extends ConsumerStatefulWidget {
-  const ProductDetailSuggestedProducts({required this.detail, super.key});
+  const ProductDetailSuggestedProducts({
+    required this.detail,
+    super.key,
+    this.gutter = 0,
+    this.padding = EdgeInsets.zero,
+  });
 
   final ProductDetail detail;
+
+  /// Leading inset of the heading and the first card.
+  final double gutter;
+
+  /// Outer padding, applied only when the section is shown.
+  final EdgeInsets padding;
 
   @override
   ConsumerState<ProductDetailSuggestedProducts> createState() =>
@@ -28,12 +43,14 @@ class _ProductDetailSuggestedProductsState
   final _scrollController = ScrollController();
   late final SuggestedSellerProductsQuery _query;
 
-  static const _visibleCards = 3;
-  static const _cardGap = AppSpacing.s12;
-  /// Wider than tall so the media band stays short.
-  static const _imageAspect = 1.45;
+  /// The fractional card peeks in at the trailing edge.
+  static const _visibleCards = 2.3;
+  static const _maxCardWidth = 220.0;
+  static const _cardGap = AppSpacing.s16;
+  static const _imageAspect = 1.0;
+
   /// Title + 2 meta lines + price + card inset.
-  static const _textBlockHeight = 88.0;
+  static const _textBlockHeight = 118.0;
 
   @override
   void initState() {
@@ -65,16 +82,24 @@ class _ProductDetailSuggestedProductsState
 
     final state = ref.watch(suggestedSellerProductsProvider(_query));
 
+    final gutter = widget.gutter;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final cardWidth =
-            (constraints.maxWidth - (_cardGap * (_visibleCards - 1))) /
-            _visibleCards;
+            ((constraints.maxWidth - gutter - (_cardGap * 2)) / _visibleCards)
+                .clamp(0.0, _maxCardWidth);
         final listHeight = _listHeightFor(cardWidth);
 
+        Widget shell(Widget child) => _SuggestedSectionShell(
+          padding: widget.padding,
+          gutter: gutter,
+          child: child,
+        );
+
         if (state.isInitialLoading) {
-          return _SuggestedSectionShell(
-            child: SizedBox(
+          return shell(
+            SizedBox(
               height: listHeight,
               child: Center(
                 child: SizedBox(
@@ -92,9 +117,14 @@ class _ProductDetailSuggestedProductsState
 
         if (state.items.isEmpty) {
           if (state.errorMessage != null) {
-            return _SuggestedSectionShell(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.s16),
+            return shell(
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  gutter,
+                  AppSpacing.s16,
+                  gutter,
+                  AppSpacing.s16,
+                ),
                 child: Text(
                   state.errorMessage!,
                   style: AppTypography.caption.copyWith(
@@ -107,12 +137,13 @@ class _ProductDetailSuggestedProductsState
           return const SizedBox.shrink();
         }
 
-        return _SuggestedSectionShell(
-          child: SizedBox(
+        return shell(
+          SizedBox(
             height: listHeight,
             child: ListView.separated(
               controller: _scrollController,
               scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.symmetric(horizontal: gutter),
               itemCount: state.items.length + (state.isLoadingMore ? 1 : 0),
               separatorBuilder: (_, _) => const SizedBox(width: _cardGap),
               itemBuilder: (context, index) {
@@ -155,27 +186,39 @@ class _ProductDetailSuggestedProductsState
 }
 
 class _SuggestedSectionShell extends StatelessWidget {
-  const _SuggestedSectionShell({required this.child});
+  const _SuggestedSectionShell({
+    required this.padding,
+    required this.gutter,
+    required this.child,
+  });
 
+  final EdgeInsets padding;
+  final double gutter;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          context.tr(CatalogL10n.moreFromThisSeller),
-          style: AppTypography.label.copyWith(
-            color: AppColors.textSecondary(context),
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.8,
+    return Padding(
+      padding: padding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: gutter),
+            child: Text(
+              context.tr(CatalogL10n.moreFromThisSeller),
+              style: AppTypography.label.copyWith(
+                color: AppColors.textSecondary(context),
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.8,
+              ),
+            ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.s12),
-        child,
-      ],
+          const SizedBox(height: AppSpacing.s16),
+          child,
+        ],
+      ),
     );
   }
 }
@@ -217,30 +260,30 @@ class _SuggestedProductCard extends StatelessWidget {
                       child: shapeName != null && shapeName.isNotEmpty
                           ? renderShapeSvg(
                               shapeName,
-                              size: 36,
+                              size: 52,
                               color: AppColors.bronze,
                             )
                           : Icon(
                               detail.media.fallbackIcon,
                               color: detail.media.fallbackTint,
-                              size: 28,
+                              size: 40,
                             ),
                     )
                   : AppNetworkImage(
                       url: imageUrl,
                       fit: BoxFit.cover,
-                      memCacheWidth: 280,
+                      memCacheWidth: 440,
                       error: Center(
                         child: shapeName != null && shapeName.isNotEmpty
                             ? renderShapeSvg(
                                 shapeName,
-                                size: 36,
+                                size: 52,
                                 color: AppColors.bronze,
                               )
                             : Icon(
                                 detail.media.fallbackIcon,
                                 color: detail.media.fallbackTint,
-                                size: 28,
+                                size: 40,
                               ),
                       ),
                     ),
@@ -249,9 +292,9 @@ class _SuggestedProductCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.s16,
-              AppSpacing.s12,
               AppSpacing.s16,
               AppSpacing.s16,
+              AppSpacing.s20,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -264,52 +307,52 @@ class _SuggestedProductCard extends StatelessWidget {
                   style: AppTypography.caption.copyWith(
                     color: primary,
                     fontWeight: FontWeight.w700,
-                    fontSize: 12,
-                    height: 1.15,
+                    fontSize: 14,
+                    height: 1.2,
                   ),
                 ),
                 if (subtitle.isNotEmpty) ...[
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 3),
                   Text(
                     subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.caption.copyWith(
                       color: muted,
-                      fontSize: 10,
+                      fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      height: 1.15,
+                      height: 1.2,
                     ),
                   ),
                 ],
                 if (reference.isNotEmpty) ...[
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 3),
                   Text(
                     '${detail.referenceLabel}: $reference',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.caption.copyWith(
                       color: muted,
-                      fontSize: 10,
+                      fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      height: 1.15,
+                      height: 1.2,
                     ),
                   ),
                 ] else if (badge != null) ...[
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 3),
                   Text(
                     badge,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.caption.copyWith(
                       color: muted,
-                      fontSize: 10,
+                      fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      height: 1.15,
+                      height: 1.2,
                     ),
                   ),
                 ],
-                const SizedBox(height: AppSpacing.s8),
+                const SizedBox(height: AppSpacing.s12),
                 Text(
                   detail.price.display,
                   maxLines: 1,
@@ -317,8 +360,8 @@ class _SuggestedProductCard extends StatelessWidget {
                   style: AppTypography.label.copyWith(
                     color: primary,
                     fontWeight: FontWeight.w800,
-                    fontSize: 12,
-                    height: 1.15,
+                    fontSize: 15,
+                    height: 1.2,
                   ),
                 ),
               ],

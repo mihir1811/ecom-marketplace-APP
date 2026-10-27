@@ -273,4 +273,15 @@ abstract final class ApiEndpoints {
       '/auction/$id/verify-payment';
   static String auctionBids(String id) => '/auction/$id/bids';
   static String auctionCancelBid(String bidId) => '/auction/bid/$bidId';
+
+  // Live shows (buyer side)
+  static const String liveShows = '/live/shows';
+  static String liveShowById(String id) => '/live/shows/$id';
+  static String liveShowViewerToken(String id) =>
+      '/live/shows/$id/viewer-token';
+  static String liveShowAuction(String id) => '/live/shows/$id/auction';
+  static String liveShowAuctionMe(String id) => '/live/shows/$id/auction/me';
+  static String liveShowChat(String id) => '/live/shows/$id/chat';
+  static String liveShowLikes(String id) => '/live/shows/$id/likes';
+  static String liveLotBids(String lotId) => '/live/auction/lots/$lotId/bids';
 }

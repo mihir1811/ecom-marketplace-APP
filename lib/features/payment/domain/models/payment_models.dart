@@ -114,6 +114,7 @@ class PaymentOrder {
     this.invoiceNumber,
     this.invoiceUrl,
     this.orderType,
+    this.liveAuction,
     this.items = const [],
     this.pricing,
     this.sellers = const [],
@@ -131,6 +132,9 @@ class PaymentOrder {
   final String? invoiceNumber;
   final String? invoiceUrl;
   final String? orderType;
+
+  /// Set on orders won in a live show (`orderType == "live_auction"`).
+  final PaymentOrderLiveAuction? liveAuction;
   final List<PaymentOrderItem> items;
   final PaymentOrderPricing? pricing;
   final List<PaymentOrderSeller> sellers;
@@ -140,6 +144,10 @@ class PaymentOrder {
 
   /// Points spent on and earned by this order.
   final PaymentOrderRewardPoints rewardPoints;
+
+  /// Live-auction orders are rupees end to end and have no USD figures.
+  bool get isLiveAuction =>
+      orderType?.toLowerCase() == 'live_auction' || liveAuction != null;
 
   PaymentOrderSellerDecision? decisionFor(String sellerId) {
     for (final d in sellerDecisions) {
@@ -202,6 +210,7 @@ class PaymentOrderItem {
     this.sellerId,
     this.sellerName,
     this.isReturned = false,
+    this.priceCurrency,
   });
 
   final String productId;
@@ -214,6 +223,24 @@ class PaymentOrderItem {
   final String? sellerId;
   final String? sellerName;
   final bool isReturned;
+
+  /// `INR` on live-auction items; other orders' items are `USD`.
+  final String? priceCurrency;
+
+  bool get pricedInInr => priceCurrency?.toUpperCase() == 'INR';
+}
+
+/// `liveAuction` block of an order won in a live show.
+class PaymentOrderLiveAuction {
+  const PaymentOrderLiveAuction({
+    required this.lotId,
+    required this.showId,
+    required this.showTitle,
+  });
+
+  final String lotId;
+  final String showId;
+  final String showTitle;
 }
 
 class PaymentOrderPricing {

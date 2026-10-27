@@ -39,9 +39,7 @@ ProductDetail watchProductDetail(Watch w) {
         ),
     ],
     media: ProductMedia(
-      images: [
-        if (imageUrl != null) ProductImage.network(imageUrl),
-      ],
+      images: [if (imageUrl != null) ProductImage.network(imageUrl)],
       imageSlots: imageUrl != null ? 1 : 0,
       certificateLabel: null,
       fallbackIcon: Icons.watch_outlined,
@@ -56,8 +54,9 @@ ProductDetail watchProductDetail(Watch w) {
       priceInr: usdToInr(w.price),
       displayAmount: w.price,
       discountPercent: markdown,
-      listAmount:
-          markdown == null ? null : catalogListFromNet(w.price, markdown),
+      listAmount: markdown == null
+          ? null
+          : catalogListFromNet(w.price, markdown),
     ),
     highlights: [
       ProductHighlight('Case size', '${w.caseSizeMm} mm'),
@@ -112,29 +111,24 @@ ProductDetail watchProductDetail(Watch w) {
         'Media': w.hasVideo ? 'Video walkthrough' : null,
       }),
     ],
-    note: 'Condition grade and completeness of the set are the two largest '
+    note:
+        'Condition grade and completeness of the set are the two largest '
         'drivers of resale value on pre-owned references.',
     naturalSpecTabs: _watchSpecTabs(w, inclusions: inclusions),
   );
 }
 
 /// Same tabbed card layout as diamonds/gemstones; watch Details / Security fields.
-ProductTabbedSpecs _watchSpecTabs(
-  Watch w, {
-  required List<String> inclusions,
-}) {
+ProductTabbedSpecs _watchSpecTabs(Watch w, {required List<String> inclusions}) {
   final price = AppCurrency.format(formatGroupedWhole(w.price));
   final scope = inclusions.isEmpty ? '-' : inclusions.join(', ');
   final availability = w.inStock
       ? 'Item is in stock'
       : (w.availabilityStatus.trim().isEmpty
-          ? 'Availability not listed'
-          : w.availabilityStatus);
-  final water = w.waterResistanceM > 0
-      ? '${w.waterResistanceM}m'
-      : '-';
-  final caseSize =
-      w.caseSizeMm > 0 ? '${w.caseSizeMm} mm' : '-';
+            ? 'Availability not listed'
+            : w.availabilityStatus);
+  final water = w.waterResistanceM > 0 ? '${w.waterResistanceM}m' : '-';
+  final caseSize = w.caseSizeMm > 0 ? '${w.caseSizeMm} mm' : '-';
   final year = w.year > 0 ? '${w.year}' : '-';
 
   return ProductTabbedSpecs(

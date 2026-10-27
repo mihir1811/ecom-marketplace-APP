@@ -89,6 +89,11 @@ class BuyerDrawer extends ConsumerWidget {
         title: context.tr(NavL10n.groupAuctions),
         items: [
           item(
+            AppRouteNames.liveShows,
+            NavL10n.liveShows,
+            Icons.live_tv_outlined,
+          ),
+          item(
             AppRouteNames.auctions,
             NavL10n.liveAuctions,
             Icons.gavel_outlined,
