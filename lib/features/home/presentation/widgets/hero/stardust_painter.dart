@@ -10,16 +10,12 @@ import 'stardust_field.dart';
 
 /// Pre-rendered star sprites shared by every frame.
 class StardustSprites {
-  const StardustSprites({required this.dot, required this.flare});
+  const StardustSprites({required this.dot});
 
   /// Soft round glow; drawn for every star.
   final ui.Image dot;
 
-  /// Four-point diffraction flare; drawn on the brightest stars only.
-  final ui.Image flare;
-
   static const dotSize = 64.0;
-  static const flareSize = 128.0;
 
   static Future<StardustSprites>? _cache;
 
@@ -48,31 +44,7 @@ class StardustSprites {
       dotSize.toInt(),
       dotSize.toInt(),
     );
-
-    final flareRecorder = ui.PictureRecorder();
-    final canvas = Canvas(flareRecorder);
-    const f = Offset(flareSize / 2, flareSize / 2);
-    for (final horizontal in const [true, false]) {
-      final a = horizontal ? Offset(0, f.dy) : Offset(f.dx, 0);
-      final b = horizontal ? Offset(flareSize, f.dy) : Offset(f.dx, flareSize);
-      canvas.drawLine(
-        a,
-        b,
-        Paint()
-          ..strokeWidth = 1.6
-          ..shader = ui.Gradient.linear(
-            a,
-            b,
-            const [Color(0x00FFFFFF), Color(0xFFFFFFFF), Color(0x00FFFFFF)],
-            const [0, 0.5, 1],
-          ),
-      );
-    }
-    final flare = await flareRecorder.endRecording().toImage(
-      flareSize.toInt(),
-      flareSize.toInt(),
-    );
-    return StardustSprites(dot: dot, flare: flare);
+    return StardustSprites(dot: dot);
   }
 }
 
@@ -141,7 +113,7 @@ Future<GlyphCloud> sampleGlyph(String char) async {
   );
 }
 
-/// Paints the stardust in two atlas draw calls with additive blending, so
+/// Paints the stardust in one atlas draw call with additive blending, so
 /// dense formations bloom naturally.
 class StardustPainter extends CustomPainter {
   StardustPainter({
@@ -158,16 +130,6 @@ class StardustPainter extends CustomPainter {
       _rects[i * 4 + 2] = StardustSprites.dotSize;
       _rects[i * 4 + 3] = StardustSprites.dotSize;
     }
-    for (var i = 0; i < field.count; i++) {
-      if (field.size[i] > 3.2) _bright.add(i);
-    }
-    _flareRst = Float32List(_bright.length * 4);
-    _flareRects = Float32List(_bright.length * 4);
-    _flareColors = Int32List(_bright.length);
-    for (var j = 0; j < _bright.length; j++) {
-      _flareRects[j * 4 + 2] = StardustSprites.flareSize;
-      _flareRects[j * 4 + 3] = StardustSprites.flareSize;
-    }
   }
 
   final StardustField field;
@@ -179,10 +141,6 @@ class StardustPainter extends CustomPainter {
   final Float32List _rst;
   final Float32List _rects;
   final Int32List _colors;
-  final List<int> _bright = [];
-  late final Float32List _flareRst;
-  late final Float32List _flareRects;
-  late final Int32List _flareColors;
 
   static final _additive = Paint()
     ..blendMode = BlendMode.plus
@@ -247,38 +205,6 @@ class StardustPainter extends CustomPainter {
       null,
       _additive,
     );
-
-    const fh = StardustSprites.flareSize / 2;
-    for (var j = 0; j < _bright.length; j++) {
-      final i = _bright[j];
-      final tw =
-          0.5 +
-          0.5 *
-              math.sin(t * field.twinkleSpeed[i] * 0.6 + field.twinklePhase[i]);
-      final s =
-          field.size[i] *
-          5.5 *
-          depth[i] *
-          (0.6 + tw * 0.4) /
-          StardustSprites.flareSize;
-      _flareRst[j * 4] = s;
-      _flareRst[j * 4 + 1] = 0;
-      _flareRst[j * 4 + 2] = px[i] - s * fh;
-      _flareRst[j * 4 + 3] = py[i] - s * fh;
-      final a = (200 * tw * fade).round().clamp(0, 255);
-      _flareColors[j] = ((a << 24) | field.rgb[i]).toSigned(32);
-    }
-    if (_bright.isNotEmpty) {
-      canvas.drawRawAtlas(
-        sprites.flare,
-        _flareRst,
-        _flareRects,
-        _flareColors,
-        BlendMode.modulate,
-        null,
-        _additive,
-      );
-    }
     canvas.restore();
   }
 
