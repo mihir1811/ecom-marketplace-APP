@@ -72,6 +72,7 @@ class DiamondDto {
     this.isSold,
     this.isMakeAnOfferAllowed,
     this.minimumOfferPrice,
+    this.maxOfferAttemptsPerUser,
     this.sellerCompanyName,
     this.sellerCity,
     this.sellerCountry,
@@ -149,6 +150,7 @@ class DiamondDto {
   final bool? isSold;
   final bool? isMakeAnOfferAllowed;
   final double? minimumOfferPrice;
+  final int? maxOfferAttemptsPerUser;
   final String? sellerCompanyName;
   final String? sellerCity;
   final String? sellerCountry;
@@ -238,6 +240,7 @@ class DiamondDto {
       isSold: json['isSold'] as bool?,
       isMakeAnOfferAllowed: json['isMakeAnOfferAllowed'] as bool?,
       minimumOfferPrice: _toDouble(json['minimumOfferPrice']),
+      maxOfferAttemptsPerUser: _toInt(json['maxOfferAttemptsPerUser']),
       sellerCompanyName: sellerMap?['companyName']?.toString(),
       sellerCity: sellerMap?['city']?.toString(),
       sellerCountry: sellerMap?['country']?.toString(),

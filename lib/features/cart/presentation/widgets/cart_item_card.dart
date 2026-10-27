@@ -216,9 +216,38 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
                               alignment: Alignment.centerLeft,
-                              child: Text(
-                                AppCurrency.format(
-                                  item.displayPriceUsd.toStringAsFixed(2),
+                              child: Text.rich(
+                                TextSpan(
+                                  text: AppCurrency.format(
+                                    item.displayPriceUsd.toStringAsFixed(2),
+                                  ),
+                                  children: [
+                                    // Accepted offer: offered amount over
+                                    // the struck list price.
+                                    if (item.isOfferLine &&
+                                        item.listedPriceUsd != null &&
+                                        item.listedPriceUsd! >
+                                            item.displayPriceUsd)
+                                      TextSpan(
+                                        text: '  ${AppCurrency.format(item.listedPriceUsd!.toStringAsFixed(2))}',
+                                        style: LuxeType.label(
+                                          p.inkFaint,
+                                          size: 12,
+                                        ).copyWith(
+                                          decoration:
+                                              TextDecoration.lineThrough,
+                                          decorationColor: p.inkFaint,
+                                        ),
+                                      ),
+                                    if (item.isOfferLine)
+                                      TextSpan(
+                                        text: '  ${context.tr(DiamondFlowL10n.offerPriceTag)}',
+                                        style: LuxeType.label(
+                                          p.positive,
+                                          size: 11.5,
+                                        ),
+                                      ),
+                                  ],
                                 ),
                                 style: LuxeType.figure(
                                   available ? p.ink : p.inkFaint,

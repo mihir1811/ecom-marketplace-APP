@@ -126,6 +126,11 @@ ProductDetail gemstoneProductDetail(Gemstone g) {
     note:
         'Treatment disclosure follows the laboratory report. Untreated '
         'stones of the same grade carry a premium.',
+    isMakeAnOfferAllowed: g.isMakeAnOfferAllowed,
+    minimumOfferPrice: g.minimumOfferPrice,
+    maxOfferAttemptsPerUser: g.maxOfferAttemptsPerUser,
+    isSold: g.isSold,
+    isOnAuction: g.isOnAuction,
     naturalSpecTabs: _gemstoneSpecTabs(g),
   );
 }

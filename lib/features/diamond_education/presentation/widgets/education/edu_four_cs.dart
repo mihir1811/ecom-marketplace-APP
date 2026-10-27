@@ -1,10 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../../../../core/l10n/app_localizations.dart';
 import '../../../../../core/theme/luxe_tokens.dart';
 import '../../../domain/diamond_grades.dart';
-import '../../sim_labels.dart';
-import '../simulator/sim_grade_panels.dart' show colorGradeSwatch;
+import '../../diamond_labels.dart';
 import 'edu_blocks.dart';
 import 'light_path_diagram.dart';
 
@@ -566,4 +567,11 @@ class EduCaratSection extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Face-up tint of a D–Z grade, for the scale bar.
+Color colorGradeSwatch(ColorGrade g) {
+  final a = g.absorption;
+  int t(double v) => (math.exp(-v * 3.2) * 255).round();
+  return Color.fromRGBO(t(a.r), t(a.g), t(a.b), 1);
 }

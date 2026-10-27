@@ -57,6 +57,9 @@ class Diamond {
   final bool isSold;
   final bool isMakeAnOfferAllowed;
   final double? minimumOfferPrice;
+
+  /// Total offers one buyer may make on this stone, any status.
+  final int maxOfferAttemptsPerUser;
   final int? totalPcs;
   final double? caratPerPcs;
   final double? totalCaratWeight;
@@ -121,6 +124,7 @@ class Diamond {
     this.isSold = false,
     this.isMakeAnOfferAllowed = false,
     this.minimumOfferPrice,
+    this.maxOfferAttemptsPerUser = 5,
     this.totalPcs,
     this.caratPerPcs,
     this.totalCaratWeight,

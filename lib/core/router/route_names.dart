@@ -66,16 +66,9 @@ class AppRouteNames {
   /// Fullscreen interactive Vision360 / WebGL product viewer.
   static const String diamondViewer = '/viewer/360';
 
-  /// Diamond education page and its 3D simulator (`?shape=` opens the
-  /// simulator cut in that shape).
+  /// Diamond and jewelry education pages.
   static const String diamondEducation = '/learn/diamonds';
-  static const String diamondSimulator = '/learn/diamonds/simulator';
-  static String diamondSimulatorFor(String shape) =>
-      '$diamondSimulator?shape=${Uri.encodeQueryComponent(shape)}';
   static const String jewelryEducation = '/learn/jewelry';
-  static const String jewelrySimulator = '/learn/jewelry/simulator';
-  static String jewelrySimulatorFor(String type) =>
-      '$jewelrySimulator?type=${Uri.encodeQueryComponent(type)}';
 
   // Auth
   static const String login = '/login';
@@ -94,6 +87,7 @@ class AppRouteNames {
   static String buyerOrderDetailPath(String orderId) =>
       '/buyer/orders/$orderId';
   static const String buyerRefunds = '/buyer/refunds';
+  static const String buyerOffers = '/buyer/offers';
   static const String buyerReferences = '/buyer/references';
   static const String buyerInquiries = '/buyer/inquiries';
   static const String buyerInquiryNew = '/buyer/inquiries/new';

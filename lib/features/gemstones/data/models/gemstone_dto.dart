@@ -39,6 +39,9 @@ class GemstoneDto {
     this.videoURL,
     this.isOnAuction,
     this.isSold,
+    this.isMakeAnOfferAllowed,
+    this.minimumOfferPrice,
+    this.maxOfferAttemptsPerUser,
     this.tags,
     this.seller,
   });
@@ -83,6 +86,9 @@ class GemstoneDto {
   final String? videoURL;
   final bool? isOnAuction;
   final bool? isSold;
+  final bool? isMakeAnOfferAllowed;
+  final double? minimumOfferPrice;
+  final int? maxOfferAttemptsPerUser;
   final String? tags;
   final Map<String, dynamic>? seller;
 
@@ -133,6 +139,9 @@ class GemstoneDto {
       videoURL: json['videoURL']?.toString(),
       isOnAuction: json['isOnAuction'] as bool?,
       isSold: json['isSold'] as bool?,
+      isMakeAnOfferAllowed: json['isMakeAnOfferAllowed'] as bool?,
+      minimumOfferPrice: _toDouble(json['minimumOfferPrice']),
+      maxOfferAttemptsPerUser: _toInt(json['maxOfferAttemptsPerUser']),
       tags: json['tags']?.toString(),
       seller: sellerMap,
     );

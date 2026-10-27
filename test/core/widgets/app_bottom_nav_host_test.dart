@@ -179,7 +179,7 @@ void main() {
     expect(compact(tester), isTrue);
 
     // A tap on the folded dock only unfolds it.
-    await tester.tap(tabArea('Auctions'));
+    await tester.tap(tabArea('Profile'));
     await tester.pumpAndSettle();
     expect(compact(tester), isFalse);
     expect(
@@ -206,11 +206,11 @@ void main() {
   testWidgets('tapping a tab navigates there', (tester) async {
     final router = await pumpApp(tester);
 
-    await tester.tap(find.bySemanticsLabel('Auctions'));
+    await tester.tap(find.bySemanticsLabel('Profile'));
     await tester.pumpAndSettle();
     expect(
       router.routerDelegate.currentConfiguration.uri.path,
-      AppRouteNames.auctions,
+      AppRouteNames.buyerProfile,
     );
   });
 
@@ -267,13 +267,13 @@ void main() {
 
       await tester.tap(find.bySemanticsLabel('Categories'));
       await openMenu(tester);
-      await tester.tapAt(tester.getCenter(tabArea('Auctions')));
+      await tester.tapAt(tester.getCenter(tabArea('Profile')));
       await tester.pumpAndSettle();
 
       expect(find.bySemanticsLabel('Gemstones'), findsNothing);
       expect(
         router.routerDelegate.currentConfiguration.uri.path,
-        AppRouteNames.auctions,
+        AppRouteNames.buyerProfile,
       );
     },
   );
@@ -321,9 +321,8 @@ void main() {
       return seen;
     }
 
-    Offset tabCentre(WidgetTester tester, int index) => tester.getCenter(
-      tabArea(const ['Home', 'Wishlist', 'Auctions', 'Profile'][index]),
-    );
+    Offset tabCentre(WidgetTester tester, int index) =>
+        tester.getCenter(tabArea(const ['Home', 'Wishlist', 'Profile'][index]));
 
     ClipPath reveal(WidgetTester tester) => tester.widget<ClipPath>(
       find
@@ -343,14 +342,14 @@ void main() {
       await tester.tapAt(tabCentre(tester, 2));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 16));
-      expect(path(router), AppRouteNames.auctions);
+      expect(path(router), AppRouteNames.buyerProfile);
       final clip = reveal(tester).clipper!.getClip(tester.view.physicalSize);
       // Still a small blob hugging the bar.
       expect(clip.getBounds().top, greaterThan(200));
 
       await tester.pumpAndSettle();
       expect(reveal(tester).clipper, isNull);
-      expect(seen, [AppRouteNames.auctions]);
+      expect(seen, [AppRouteNames.buyerProfile]);
       expect(tester.takeException(), isNull);
     });
 

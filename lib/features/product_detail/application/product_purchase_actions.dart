@@ -9,6 +9,7 @@ import '../../../core/error/result.dart';
 import '../../../core/router/route_names.dart';
 import '../../cart/application/cart_provider.dart';
 import '../../product_offer/application/product_offer_providers.dart';
+import '../../product_offer/domain/models/product_offer.dart';
 import '../domain/models/product_detail.dart';
 import 'melee_qty_draft_provider.dart';
 
@@ -31,6 +32,7 @@ class PurchaseCopy {
     required this.signInToOffer,
     required this.ownListingOffer,
     required this.offerSent,
+    this.offerAddedToBag = 'Added to cart at your offer price',
   });
 
   final String signInToBuy;
@@ -42,6 +44,7 @@ class PurchaseCopy {
   final String signInToOffer;
   final String ownListingOffer;
   final String offerSent;
+  final String offerAddedToBag;
 
   /// Original English copy of the shared detail action bar.
   static final english = PurchaseCopy(
@@ -60,6 +63,25 @@ class PurchaseCopy {
 /// What the primary purchase control should say.
 enum CartButtonKind { add, viewInCart, ownListing, onHoldMemo, unavailable }
 
+/// What the offer control should say, from the buyer's own offers on the
+/// stone (same rules as the website).
+enum OfferButtonKind {
+  /// Make an offer is open.
+  makeOffer,
+
+  /// A pending offer is waiting for the seller.
+  pending,
+
+  /// Every attempt on the stone is used, any status.
+  limitReached,
+
+  /// An accepted offer is unpaid and inside its 24-hour window.
+  payNow,
+
+  /// The accepted offer was paid.
+  paid,
+}
+
 /// Snapshot of everything the purchase controls need to render.
 class PurchaseState {
   const PurchaseState({
@@ -68,6 +90,8 @@ class PurchaseState {
     required this.busy,
     required this.showOffer,
     required this.offerBusy,
+    this.offerKind = OfferButtonKind.makeOffer,
+    this.offerEligibility = ProductOfferEligibility.empty,
   });
 
   final CartButtonKind kind;
@@ -75,6 +99,13 @@ class PurchaseState {
   final bool busy;
   final bool showOffer;
   final bool offerBusy;
+  final OfferButtonKind offerKind;
+  final ProductOfferEligibility offerEligibility;
+
+  /// Offer control is tappable (make an offer or pay now).
+  bool get offerEnabled =>
+      offerKind == OfferButtonKind.makeOffer ||
+      offerKind == OfferButtonKind.payNow;
 }
 
 /// Add-to-cart and make-offer rules shared by every detail action bar:
@@ -107,13 +138,83 @@ abstract final class ProductPurchaseActions {
         : inCart
         ? CartButtonKind.viewInCart
         : CartButtonKind.add;
+    final showOffer = detail.canMakeAnOffer && !own;
+    final eligibility = showOffer && auth.isAuthenticated
+        ? ref.watch(productOfferEligibilityProvider(offerKey(detail))).valueOrNull
+        : null;
+    final offers = eligibility ?? ProductOfferEligibility.empty;
     return PurchaseState(
       kind: kind,
       enabled: !own && detail.isPurchasable && !mutating,
       busy: mutating,
-      showOffer: detail.canMakeAnOffer && !own,
+      showOffer: showOffer,
       offerBusy: offerBusy,
+      offerKind: offers.payable != null
+          ? OfferButtonKind.payNow
+          : offers.paid != null
+          ? OfferButtonKind.paid
+          : offers.hasPending
+          ? OfferButtonKind.pending
+          : offers.limitReached
+          ? OfferButtonKind.limitReached
+          : OfferButtonKind.makeOffer,
+      offerEligibility: offers,
     );
+  }
+
+  static OfferProductKey offerKey(ProductDetail detail) => (
+    productType: detail.apiProductType,
+    productId: detail.id,
+    maxAttempts: detail.maxOfferAttemptsPerUser,
+  );
+
+  /// Offer control tap: pay for an accepted offer, or make a new one.
+  static Future<void> offerAction(
+    BuildContext context,
+    WidgetRef ref,
+    ProductDetail detail, {
+    required PurchaseState state,
+    required Future<({String amount, String? message})?> Function() ask,
+    required PurchaseCopy copy,
+    required PurchaseNotify notify,
+  }) async {
+    final payable = state.offerEligibility.payable;
+    if (state.offerKind == OfferButtonKind.payNow && payable != null) {
+      await payAcceptedOffer(context, ref, payable, copy: copy, notify: notify);
+      return;
+    }
+    if (state.offerKind != OfferButtonKind.makeOffer) return;
+    await makeOffer(
+      context,
+      ref,
+      detail,
+      ask: ask,
+      copy: copy,
+      notify: notify,
+    );
+  }
+
+  /// Adds the stone to the bag at the accepted offer price, then opens the
+  /// bag for the usual delivery address and Razorpay checkout.
+  static Future<void> payAcceptedOffer(
+    BuildContext context,
+    WidgetRef ref,
+    ProductOffer offer, {
+    required PurchaseCopy copy,
+    required PurchaseNotify notify,
+  }) async {
+    if (!AccountAccess.guard(context, ref)) return;
+    final result = await ref
+        .read(productOfferMutationProvider.notifier)
+        .addAcceptedOfferToBag(offer);
+    if (!context.mounted) return;
+    switch (result) {
+      case Success():
+        notify(copy.offerAddedToBag, PurchaseTone.success);
+        context.push(AppRouteNames.cart);
+      case ResultFailure(:final failure):
+        notify(failure.message, PurchaseTone.error);
+    }
   }
 
   /// Primary action: opens the cart when already added, otherwise adds.
@@ -234,9 +335,10 @@ abstract final class ProductPurchaseActions {
 
     final offer = await ask();
     if (offer == null || !context.mounted) return;
-    final raw = offer.amount.trim();
-    if (raw.isEmpty) return;
-    final amount = raw.contains('.') ? raw : '$raw.00';
+    // The API takes a decimal string with up to two places, never a number.
+    final parsed = double.tryParse(offer.amount.trim());
+    if (parsed == null || parsed <= 0) return;
+    final amount = parsed.toStringAsFixed(2);
 
     final result = await ref
         .read(productOfferMutationProvider.notifier)

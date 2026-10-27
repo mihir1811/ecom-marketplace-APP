@@ -22,7 +22,12 @@ abstract final class CartMapper {
     );
     final lotPrice =
         _num(productMap['totalPrice']) ?? _num(productMap['price']) ?? 0;
-    final price = meleeLine ?? lotPrice;
+    // A line added with an accepted offer is priced at the offered amount;
+    // `listedPrice` keeps the original.
+    final offerId = _str(specifications?['offerId']);
+    final offerPrice = offerId == null ? null : _num(json['price']);
+    final linePrice = offerPrice ?? meleeLine;
+    final price = linePrice ?? lotPrice;
 
     final name =
         _str(productMap['name']) ??
@@ -51,8 +56,12 @@ abstract final class CartMapper {
       // Cart line count — melee partial amount lives in specifications, not qty.
       quantity: _int(json['quantity']) ?? 1,
       priceUsd: price,
-      unitPriceUsd: meleeLine,
-      lineTotalUsd: meleeLine,
+      unitPriceUsd: linePrice,
+      lineTotalUsd: linePrice,
+      offerId: offerPrice == null ? null : offerId,
+      listedPriceUsd: offerPrice == null
+          ? null
+          : _num(json['listedPrice']) ?? lotPrice,
       imageUrl: image,
       shape: _str(productMap['shape']),
       seller: _str(json['seller']) ?? _str(productMap['sellerName']),

@@ -149,6 +149,13 @@ class EduSection extends StatelessWidget {
   }
 }
 
+/// Backdrop tones for the dark hero stages: a lit, neutral grey at the
+/// top falling off to the stage's dark edge.
+abstract final class EduStageTones {
+  static const lit = Color(0xFF6A717C);
+  static const mid = Color(0xFF3A4049);
+}
+
 /// Forces the night palette for always-dark stages, so luxe controls on
 /// them stay legible in the light theme too.
 class EduDarkScope extends StatelessWidget {

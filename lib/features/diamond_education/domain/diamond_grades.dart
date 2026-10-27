@@ -51,7 +51,7 @@ enum ColorGrade {
 /// Named bands of the D–Z scale.
 enum ColorGroup { colorless, nearColorless, faint, veryLight, light }
 
-/// Natural fancy colours the simulator can tint a stone with.
+/// Natural fancy colours a diamond can show.
 enum FancyColor {
   yellow(r: 0.0, g: 0.07, b: 0.55),
   pink(r: 0.0, g: 0.36, b: 0.13),
@@ -73,20 +73,6 @@ enum FancyColor {
   }
 }
 
-/// GIA fancy colour saturation, lightest to deepest.
-enum FancyIntensity {
-  fancyLight(0.4),
-  fancy(0.7),
-  fancyIntense(1.0),
-  fancyVivid(1.45),
-  fancyDeep(2.2);
-
-  const FancyIntensity(this.strength);
-
-  /// Multiplier on the fancy colour's absorption.
-  final double strength;
-}
-
 /// GIA clarity scale.
 enum ClarityGrade {
   fl('FL'),
@@ -104,112 +90,6 @@ enum ClarityGrade {
   const ClarityGrade(this.label);
 
   final String label;
-
-  /// Milky scatter from clouds in the lowest grades, per unit path.
-  double get haze => switch (this) {
-    ClarityGrade.si2 => 0.01,
-    ClarityGrade.i1 => 0.03,
-    ClarityGrade.i2 => 0.07,
-    ClarityGrade.i3 => 0.13,
-    _ => 0,
-  };
-}
-
-/// Kinds of clarity characteristic, as GIA names them. GIA's plotting key
-/// splits them into internal characteristics (inclusions, plotted red)
-/// and external ones (blemishes, plotted green); see
-/// `inclusion_catalog.dart` for how each is classed and plotted.
-///
-/// New kinds go at the end: a kind's index seeds where it sits.
-enum InclusionType {
-  crystal,
-  carbon,
-  feather,
-  cloud,
-  pinpoint,
-  needle,
-  graining,
-  twinningWisp,
-  openFeather,
-  knot,
-  cavity,
-  chip,
-  bruise,
-  bearding,
-  indentedNatural,
-  etchChannel,
-  laserDrillHole,
-  filledFeather,
-  cleavage,
-  grainCenter,
-  abrasion,
-  natural,
-  nick,
-  pit,
-  polishLines,
-  burnMark,
-  scratch,
-  surfaceGraining,
-  extraFacet,
-}
-
-/// Strength of a brown or green body tinge (the B and G of BGM).
-enum TingeLevel {
-  none(0),
-  faint(0.4),
-  light(0.75),
-  medium(1.1),
-  strong(1.6);
-
-  const TingeLevel(this.strength);
-
-  /// Multiplier on the tinge's absorption.
-  final double strength;
-
-  /// Absorption per unit path of a medium brown tinge: brown soaks up
-  /// blue, then green, and leaves red.
-  static const SimRgb brown = (r: 0.03, g: 0.075, b: 0.16);
-
-  /// Absorption per unit path of a medium green tinge: soaks up red and
-  /// some blue.
-  static const SimRgb green = (r: 0.14, g: 0.01, b: 0.09);
-}
-
-/// Milkiness (the M of BGM): a hazy veil from sub-microscopic clouds
-/// that scatters light and dulls brilliance. [catalogValue] is the
-/// shared catalog label key.
-enum MilkyLevel {
-  none('None', 0),
-  slightly('Slightly', 0.025),
-  moderately('Moderately', 0.05),
-  strongly('Strongly', 0.085),
-  severely('Severely', 0.13);
-
-  const MilkyLevel(this.catalogValue, this.scatter);
-
-  final String catalogValue;
-
-  /// Scatter per unit path.
-  final double scatter;
-}
-
-/// Treatments applied after cutting to improve how a stone looks.
-/// [catalogValue] is the shared catalog label key.
-enum Enhancement {
-  none('None (Treatment)'),
-  hpht('HPHT (Treatment)'),
-  irradiation('Irradiation'),
-  fractureFilling('Fracture Filling'),
-  laserDrilling('Laser Drilling'),
-  surfaceCoating('Surface Coating');
-
-  const Enhancement(this.catalogValue);
-
-  final String catalogValue;
-
-  /// Whether this treatment changes the stone's inclusions.
-  bool get altersInclusions =>
-      this == Enhancement.fractureFilling || this == Enhancement.laserDrilling;
 }
 
 /// Overall cut grade, from proportions.
@@ -282,9 +162,3 @@ enum CuletSize {
 
   final double percent;
 }
-
-/// Lighting the simulator studio is set to. [heartsArrows] is a hearts &
-/// arrows scope: a red filter cone around a white disc and a dark viewing
-/// hole, which reveals the eight arrows and hearts of a precisely cut
-/// round brilliant.
-enum SimLighting { daylight, ultraviolet, heartsArrows }

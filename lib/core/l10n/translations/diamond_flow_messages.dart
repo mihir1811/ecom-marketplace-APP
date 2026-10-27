@@ -64,6 +64,15 @@ abstract final class DiamondFlowL10n {
   static const offerTooLow = 'diamondFlow.offerTooLow';
   static const offerInvalid = 'diamondFlow.offerInvalid';
   static const offerSent = 'diamondFlow.offerSent';
+  static const offerPending = 'diamondFlow.offerPending';
+  static const offerLimitReached = 'diamondFlow.offerLimitReached';
+  static const offerPayNow = 'diamondFlow.offerPayNow';
+  static const offerPayNowLeft = 'diamondFlow.offerPayNowLeft';
+  static const offerPaid = 'diamondFlow.offerPaid';
+  static const offerAddedToBag = 'diamondFlow.offerAddedToBag';
+  static const offerAttemptsLeft = 'diamondFlow.offerAttemptsLeft';
+  static const myOffers = 'diamondFlow.myOffers';
+  static const offerPriceTag = 'diamondFlow.offerPriceTag';
   static const stockIdCopied = 'diamondFlow.stockIdCopied';
   static const youSave = 'diamondFlow.youSave';
 }
@@ -353,6 +362,51 @@ const diamondFlowMessages = <String, LocalizedMessage>{
     english: 'Offer submitted',
     hindi: 'प्रस्ताव भेजा गया',
     gujarati: 'ઓફર મોકલાઈ',
+  ),
+  DiamondFlowL10n.offerPending: LocalizedMessage(
+    english: 'Offer sent',
+    hindi: 'प्रस्ताव भेजा गया',
+    gujarati: 'ઓફર મોકલાઈ',
+  ),
+  DiamondFlowL10n.offerLimitReached: LocalizedMessage(
+    english: 'No offers left',
+    hindi: 'कोई प्रस्ताव शेष नहीं',
+    gujarati: 'કોઈ ઓફર બાકી નથી',
+  ),
+  DiamondFlowL10n.offerPayNow: LocalizedMessage(
+    english: 'Pay now',
+    hindi: 'अभी भुगतान करें',
+    gujarati: 'હમણાં ચૂકવો',
+  ),
+  DiamondFlowL10n.offerPayNowLeft: LocalizedMessage(
+    english: 'Pay now · {time}',
+    hindi: 'अभी भुगतान करें · {time}',
+    gujarati: 'હમણાં ચૂકવો · {time}',
+  ),
+  DiamondFlowL10n.offerPaid: LocalizedMessage(
+    english: 'Offer paid',
+    hindi: 'प्रस्ताव का भुगतान हुआ',
+    gujarati: 'ઓફરની ચુકવણી થઈ',
+  ),
+  DiamondFlowL10n.offerAddedToBag: LocalizedMessage(
+    english: 'Added to cart at your offer price',
+    hindi: 'आपके प्रस्ताव मूल्य पर कार्ट में जोड़ा गया',
+    gujarati: 'તમારી ઓફર કિંમતે કાર્ટમાં ઉમેર્યું',
+  ),
+  DiamondFlowL10n.offerAttemptsLeft: LocalizedMessage(
+    english: '{count} of {max} offers left on this stone',
+    hindi: 'इस स्टोन पर {max} में से {count} प्रस्ताव शेष',
+    gujarati: 'આ સ્ટોન પર {max} માંથી {count} ઓફર બાકી',
+  ),
+  DiamondFlowL10n.offerPriceTag: LocalizedMessage(
+    english: 'Offer price',
+    hindi: 'प्रस्ताव मूल्य',
+    gujarati: 'ઓફર કિંમત',
+  ),
+  DiamondFlowL10n.myOffers: LocalizedMessage(
+    english: 'My offers',
+    hindi: 'मेरे प्रस्ताव',
+    gujarati: 'મારી ઓફર',
   ),
   DiamondFlowL10n.stockIdCopied: LocalizedMessage(
     english: 'Stock ID copied',

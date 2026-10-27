@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
@@ -10,18 +9,12 @@ import '../../../../core/widgets/luxe/luxe_button.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/scroll_reveal.dart';
 import '../../../diamond_education/presentation/widgets/education/edu_blocks.dart';
-import '../../../diamond_education/presentation/widgets/sim_stone_view.dart';
-import '../../application/jewelry_simulator_controller.dart';
-import '../../domain/jewelry_design.dart';
-import '../../domain/jewelry_metal.dart';
-import '../../scene/jewelry_scene.dart';
-import '../../scene/scene_factory.dart';
+import '../../domain/jewelry_reference.dart';
 import '../jewelry_labels.dart';
-import '../widgets/jewelry_viewport.dart';
 
 /// Jewelry education: the four kinds of piece, metals and purity, how
 /// stones are set, ring sizes, earring styles, chains and lengths,
-/// bracelets and care, with the 3D simulator one tap away throughout.
+/// bracelets and care.
 class JewelryEducationScreen extends StatefulWidget {
   const JewelryEducationScreen({super.key});
 
@@ -44,19 +37,6 @@ class _JewelryEducationScreenState extends State<JewelryEducationScreen> {
     _scroll.dispose();
     _offset.dispose();
     super.dispose();
-  }
-
-  void _open([JewelryType? type]) {
-    // From here the simulator starts with its own stone, not one handed
-    // over earlier from the diamond simulator.
-    ProviderScope.containerOf(
-      context,
-    ).read(jewelryStoneHandoffProvider.notifier).state = null;
-    context.openRoute(
-      type == null
-          ? AppRouteNames.jewelrySimulator
-          : AppRouteNames.jewelrySimulatorFor(type.name),
-    );
   }
 
   @override
@@ -83,23 +63,21 @@ class _JewelryEducationScreenState extends State<JewelryEducationScreen> {
           controller: _scroll,
           physics: const BouncingScrollPhysics(),
           slivers: [
-            SliverToBoxAdapter(child: _Hero(onOpen: _open)),
+            const SliverToBoxAdapter(child: _Hero()),
             SliverPadding(
               padding: EdgeInsets.fromLTRB(gutter, 0, gutter, 48),
               sliver: SliverList.list(
                 children: [
-                  constrain(_Pieces(onOpen: _open)),
+                  constrain(const _Pieces()),
                   constrain(const _Metals()),
                   constrain(const _Settings()),
                   constrain(const _Bands()),
                   constrain(const _Earrings()),
                   constrain(const _Chains()),
                   constrain(const _Bracelets()),
-                  constrain(_Physics(onOpen: _open)),
                   constrain(const _Care()),
                   constrain(
                     _FinalCta(
-                      onOpen: _open,
                       onBrowse: () => context.openRoute(AppRouteNames.jewelry),
                     ),
                   ),
@@ -113,49 +91,12 @@ class _JewelryEducationScreenState extends State<JewelryEducationScreen> {
   }
 }
 
-/// Opening stage: a live ring on its cushion (tap it), the promise and
-/// the way into the simulator.
-class _Hero extends StatefulWidget {
-  const _Hero({required this.onOpen});
-
-  final ValueChanged<JewelryType?> onOpen;
-
-  @override
-  State<_Hero> createState() => _HeroState();
-}
-
-class _HeroState extends State<_Hero> {
-  JScene? _scene;
-  final _viewport = JewelryViewportController();
-
-  @override
-  void dispose() {
-    _viewport.dispose();
-    super.dispose();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    // Built after the page has slid in, so the transition stays smooth.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      setState(
-        () => _scene = JewelrySceneFactory.build(
-          JewelryDesign.initial().copyWith(
-            halo: HaloStyle.single,
-            bandAccent: BandAccent.half,
-          ),
-        ),
-      );
-    });
-  }
+/// Opening stage: the page promise on a dark stage.
+class _Hero extends StatelessWidget {
+  const _Hero();
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-    final stage = width >= 720 ? 320.0 : 260.0;
-    final scene = _scene;
     return EduDarkScope(
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(
@@ -167,8 +108,8 @@ class _HeroState extends State<_Hero> {
               center: const Alignment(0, -0.55),
               radius: 1.1,
               colors: [
-                SimStageTones.lit,
-                SimStageTones.mid,
+                EduStageTones.lit,
+                EduStageTones.mid,
                 LuxeStage.glow,
                 LuxeStage.obsidian,
               ],
@@ -178,27 +119,15 @@ class _HeroState extends State<_Hero> {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
               LuxeSpace.gutter,
-              8,
+              40,
               LuxeSpace.gutter,
-              32,
+              36,
             ),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 640),
                 child: Column(
                   children: [
-                    SizedBox(
-                      height: stage,
-                      child: scene == null
-                          ? const SizedBox.expand()
-                          : JewelryViewport(
-                              scene: scene,
-                              controller: _viewport,
-                              drag: false,
-                              semanticLabel: context.typeName(JewelryType.ring),
-                            ),
-                    ),
-                    const SizedBox(height: 8),
                     Text(
                       context.tr(JewelryEduL10n.eyebrow),
                       textAlign: TextAlign.center,
@@ -219,13 +148,6 @@ class _HeroState extends State<_Hero> {
                       textAlign: TextAlign.center,
                       style: LuxeType.body(LuxeStage.inkMuted),
                     ),
-                    const SizedBox(height: 22),
-                    LuxeButton(
-                      label: context.tr(JewelryEduL10n.simCta),
-                      icon: Icons.view_in_ar_outlined,
-                      variant: LuxeButtonVariant.accent,
-                      onPressed: () => widget.onOpen(null),
-                    ),
                   ],
                 ),
               ),
@@ -238,13 +160,10 @@ class _HeroState extends State<_Hero> {
 }
 
 class _Pieces extends StatelessWidget {
-  const _Pieces({required this.onOpen});
-
-  final ValueChanged<JewelryType?> onOpen;
+  const _Pieces();
 
   @override
   Widget build(BuildContext context) {
-    final p = LuxePalette.of(context);
     final items = [
       (
         JewelryType.ring,
@@ -276,30 +195,10 @@ class _Pieces extends StatelessWidget {
         const SizedBox(height: 20),
         for (final (type, icon, body) in items) ...[
           EduCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                EduPoint(
-                  icon: icon,
-                  title: context.typeName(type),
-                  body: context.tr(body),
-                ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton.icon(
-                    onPressed: () => onOpen(type),
-                    icon: Icon(
-                      Icons.view_in_ar_outlined,
-                      size: 18,
-                      color: p.accent,
-                    ),
-                    label: Text(
-                      context.tr(JewelryEduL10n.designIn3d),
-                      style: LuxeType.label(p.accent, size: 13),
-                    ),
-                  ),
-                ),
-              ],
+            child: EduPoint(
+              icon: icon,
+              title: context.typeName(type),
+              body: context.tr(body),
             ),
           ),
           const SizedBox(height: 12),
@@ -643,37 +542,6 @@ class _Bracelets extends StatelessWidget {
   );
 }
 
-class _Physics extends StatelessWidget {
-  const _Physics({required this.onOpen});
-
-  final ValueChanged<JewelryType?> onOpen;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = LuxePalette.of(context);
-    return EduSection(
-      children: [
-        EduSubhead(context.tr(JewelryEduL10n.physicsTitle)),
-        const SizedBox(height: 8),
-        Text(
-          context.tr(JewelryEduL10n.physicsBody),
-          style: LuxeType.body(p.inkMuted),
-        ),
-        const SizedBox(height: 14),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: LuxeButton(
-            label: context.tr(JewelryEduL10n.designIn3d),
-            icon: Icons.touch_app_outlined,
-            variant: LuxeButtonVariant.secondary,
-            onPressed: () => onOpen(JewelryType.earrings),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _Care extends StatelessWidget {
   const _Care();
 
@@ -763,9 +631,8 @@ class _PointsSection extends StatelessWidget {
 }
 
 class _FinalCta extends StatelessWidget {
-  const _FinalCta({required this.onOpen, required this.onBrowse});
+  const _FinalCta({required this.onBrowse});
 
-  final ValueChanged<JewelryType?> onOpen;
   final VoidCallback onBrowse;
 
   @override
@@ -797,23 +664,11 @@ class _FinalCta extends StatelessWidget {
                     style: LuxeType.body(LuxeStage.inkMuted),
                   ),
                   const SizedBox(height: 20),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      LuxeButton(
-                        label: context.tr(JewelryEduL10n.simCta),
-                        icon: Icons.view_in_ar_outlined,
-                        variant: LuxeButtonVariant.accent,
-                        onPressed: () => onOpen(null),
-                      ),
-                      LuxeButton(
-                        label: context.tr(JewelryEduL10n.browseJewelry),
-                        variant: LuxeButtonVariant.ghost,
-                        trailingIcon: Icons.arrow_forward_rounded,
-                        onPressed: onBrowse,
-                      ),
-                    ],
+                  LuxeButton(
+                    label: context.tr(JewelryEduL10n.browseJewelry),
+                    variant: LuxeButtonVariant.accent,
+                    trailingIcon: Icons.arrow_forward_rounded,
+                    onPressed: onBrowse,
                   ),
                 ],
               ),

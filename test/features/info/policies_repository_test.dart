@@ -24,16 +24,14 @@ void main() {
     expect(hindiTerms.title, isNot(gujaratiTerms.title));
   });
 
-  test('terms carries every clause from the source PDF plus Appendix A', () async {
+  test('terms carries every clause from the source PDF', () async {
     const locales = [AppLocale.english, AppLocale.hindi, AppLocale.gujarati];
-    final expectedNumbers = [
-      for (var i = 1; i <= 24; i++) '$i',
-      'Appendix A',
-    ];
+    final expectedNumbers = [for (var i = 1; i <= 38; i++) '$i'];
 
     for (final locale in locales) {
-      final terms = (await PoliciesRepository.loadAll(locale))
-          .firstWhere((policy) => policy.id == 'terms');
+      final terms = (await PoliciesRepository.loadAll(
+        locale,
+      )).firstWhere((policy) => policy.id == 'terms');
 
       expect(
         terms.sections.map((section) => section.number).toList(),

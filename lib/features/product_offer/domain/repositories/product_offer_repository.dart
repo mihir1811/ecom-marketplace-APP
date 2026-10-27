@@ -19,10 +19,18 @@ abstract class ProductOfferRepository {
     CancelToken? cancelToken,
   });
 
+  /// Signed-in buyer's offers across every stone, newest first, with the
+  /// product snapshot (`GET /product-offer/mine`).
+  Future<Result<ProductOfferListPage, Failure>> listMineAll({
+    required int page,
+    int limit = 20,
+    String? statusFilter,
+    CancelToken? cancelToken,
+  });
+
   Future<Result<ProductOfferListPage, Failure>> listSeller({
     required int page,
     int limit = 10,
-    String? search,
     String? statusFilter,
     CancelToken? cancelToken,
   });

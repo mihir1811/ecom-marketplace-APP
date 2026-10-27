@@ -3,7 +3,7 @@
 /// steps like a hall of mirrors.
 enum SimCutFamily { brilliant, step }
 
-/// The ten classic diamond shapes the simulator offers.
+/// The ten classic diamond shapes.
 ///
 /// [catalogValue] is the canonical English name, which doubles as the
 /// catalog translation key and the outline art name in `assets/shapes/`.
@@ -25,12 +25,4 @@ enum SimShape {
   final String catalogValue;
   final SimCutFamily family;
   final double ratio;
-
-  String get svgAsset => 'assets/shapes/$catalogValue.svg';
-
-  /// Whether a well cut stone of this shape shows hearts & arrows. The
-  /// pattern needs a round brilliant's eight-fold symmetry; fancy shapes
-  /// cannot form it (a few patented square and cushion designs imitate it
-  /// with their own facet plans).
-  bool get showsHeartsArrows => this == SimShape.round;
 }

@@ -17,6 +17,8 @@ class CartItem {
     this.quantityEditable = false,
     this.isAvailable = true,
     this.availabilityLabel,
+    this.offerId,
+    this.listedPriceUsd,
   });
 
   /// Cart row id — use as `cartId` for update/remove.
@@ -42,6 +44,15 @@ class CartItem {
 
   /// Short UI label when [isAvailable] is false (e.g. `Sold`, `Unavailable`).
   final String? availabilityLabel;
+
+  /// Accepted offer this line is bought through (`specifications.offerId`).
+  final String? offerId;
+
+  /// Original list price of an offer line; the line itself is priced at the
+  /// offered amount.
+  final double? listedPriceUsd;
+
+  bool get isOfferLine => offerId != null;
 
   String get id => cartId;
 
@@ -73,6 +84,8 @@ class CartItem {
       quantityEditable: quantityEditable,
       isAvailable: isAvailable ?? this.isAvailable,
       availabilityLabel: availabilityLabel ?? this.availabilityLabel,
+      offerId: offerId,
+      listedPriceUsd: listedPriceUsd,
     );
   }
 }

@@ -2,21 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/l10n/app_localizations.dart';
 import '../../../../../core/theme/luxe_tokens.dart';
-import '../../../../../core/widgets/luxe/luxe_button.dart';
-import '../sim_stone_view.dart';
 import 'edu_blocks.dart';
 
-/// Opening stage: a live traced diamond turning in the dark, the page
-/// promise and the way into the simulator.
+/// Opening stage: the page promise on a dark stage.
 class EduHero extends StatelessWidget {
-  const EduHero({required this.onOpenSimulator, super.key});
-
-  final VoidCallback onOpenSimulator;
+  const EduHero({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-    final stone = width >= 720 ? 260.0 : 200.0;
     return EduDarkScope(
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(
@@ -28,8 +21,8 @@ class EduHero extends StatelessWidget {
               center: const Alignment(0, -0.55),
               radius: 1.1,
               colors: [
-                SimStageTones.lit,
-                SimStageTones.mid,
+                EduStageTones.lit,
+                EduStageTones.mid,
                 LuxeStage.glow,
                 LuxeStage.obsidian,
               ],
@@ -39,20 +32,15 @@ class EduHero extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
               LuxeSpace.gutter,
-              12,
+              40,
               LuxeSpace.gutter,
-              32,
+              36,
             ),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 640),
                 child: Column(
                   children: [
-                    SimStoneView(
-                      size: stone,
-                      semanticLabel: context.tr(EducationL10n.simCardTitle),
-                    ),
-                    const SizedBox(height: 8),
                     Text(
                       context.tr(EducationL10n.eyebrow),
                       textAlign: TextAlign.center,
@@ -72,13 +60,6 @@ class EduHero extends StatelessWidget {
                       context.tr(EducationL10n.body),
                       textAlign: TextAlign.center,
                       style: LuxeType.body(LuxeStage.inkMuted),
-                    ),
-                    const SizedBox(height: 22),
-                    LuxeButton(
-                      label: context.tr(EducationL10n.simCta),
-                      icon: Icons.view_in_ar_outlined,
-                      variant: LuxeButtonVariant.accent,
-                      onPressed: onOpenSimulator,
                     ),
                   ],
                 ),

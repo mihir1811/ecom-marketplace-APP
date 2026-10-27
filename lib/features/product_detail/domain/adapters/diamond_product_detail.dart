@@ -227,6 +227,9 @@ ProductDetail diamondProductDetail(Diamond d) {
             'number before payment.',
     isMakeAnOfferAllowed: d.isMakeAnOfferAllowed,
     minimumOfferPrice: d.minimumOfferPrice,
+    maxOfferAttemptsPerUser: d.maxOfferAttemptsPerUser,
+    isSold: d.isSold,
+    isOnAuction: d.isOnAuction,
     naturalSpecTabs: d.isMelee
         ? _meleeSpecTabs(d)
         : _singleSpecTabs(d),

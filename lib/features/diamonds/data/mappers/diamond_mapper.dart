@@ -87,6 +87,7 @@ abstract final class DiamondMapper {
         isSold: dto.isSold ?? false,
         isMakeAnOfferAllowed: dto.isMakeAnOfferAllowed ?? false,
         minimumOfferPrice: dto.minimumOfferPrice,
+        maxOfferAttemptsPerUser: dto.maxOfferAttemptsPerUser ?? 5,
         totalPcs: dto.totalPcs,
         caratPerPcs: dto.caratWeightPerpcs,
         totalCaratWeight: dto.totalCaratWeight,
@@ -153,6 +154,7 @@ abstract final class DiamondMapper {
       isSold: dto.isSold ?? false,
       isMakeAnOfferAllowed: dto.isMakeAnOfferAllowed ?? false,
       minimumOfferPrice: dto.minimumOfferPrice,
+      maxOfferAttemptsPerUser: dto.maxOfferAttemptsPerUser ?? 5,
       available: _clean(dto.available),
       videoUrl: videoUrl,
     );

@@ -32,6 +32,9 @@ class Gemstone {
     this.isSeparable = false,
     this.isOnAuction = false,
     this.isSold = false,
+    this.isMakeAnOfferAllowed = false,
+    this.minimumOfferPrice,
+    this.maxOfferAttemptsPerUser = 5,
     this.availability,
     this.videoUrl,
     this.listingSeller,
@@ -68,6 +71,11 @@ class Gemstone {
   final bool isSeparable;
   final bool isOnAuction;
   final bool isSold;
+  final bool isMakeAnOfferAllowed;
+  final double? minimumOfferPrice;
+
+  /// Total offers one buyer may make on this stone, any status.
+  final int maxOfferAttemptsPerUser;
   final String? availability;
   final String? videoUrl;
   final ListingSellerInfo? listingSeller;

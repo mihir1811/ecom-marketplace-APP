@@ -63,6 +63,11 @@ class BuyerDrawer extends ConsumerWidget {
               Icons.auto_awesome_outlined,
             ),
             item(
+              AppRouteNames.buyerOffers,
+              DiamondFlowL10n.myOffers,
+              Icons.local_offer_outlined,
+            ),
+            item(
               AppRouteNames.buyerRefunds,
               AccountCommerceL10n.refunds,
               Icons.replay_outlined,

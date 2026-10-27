@@ -1,13 +1,10 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app.dart';
 import 'core/l10n/app_localizations.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/theme_preference_provider.dart';
-import 'features/diamond_education/simulation/hand_renderer.dart';
-import 'features/diamond_education/simulation/sim_renderer.dart';
 import 'features/notifications/application/push_messaging_service.dart';
 import 'features/product_detail/presentation/transition/product_sheet_launch.dart';
 
@@ -66,24 +63,6 @@ void main() {
         // In production, report to crash reporting (e.g. Sentry/Firebase Crashlytics)
         FlutterError.presentError(details);
       };
-
-      // Compiles the diamond tracer behind the splash, not on the first
-      // screen that shows a stone.
-      unawaited(SimRenderer.warmUp());
-      unawaited(HandRenderer.warmUp());
-      // The diamond simulator's 3D hand is a CC BY 3.0 scan: credit it.
-      LicenseRegistry.addLicense(
-        () => Stream.value(
-          const LicenseEntryWithLineBreaks(
-            ['LibHand hand model'],
-            'LibHand hand model and skin texture (c) Marin Saric, '
-            'libhand.org. Licensed under the Creative Commons Attribution '
-            '3.0 Unported License, https://creativecommons.org/licenses/by/3.0/. '
-            'Changed: mirrored to a left hand, rescaled, fingers slimmed, '
-            'mesh simplified, normal and occlusion maps baked.',
-          ),
-        ),
-      );
 
       runApp(
         ProviderScope(

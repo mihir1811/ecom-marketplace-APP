@@ -3,6 +3,8 @@ import 'package:gemstone/features/auction/data/mappers/auction_mapper.dart';
 
 void main() {
   test('maps live auction page envelope', () {
+    // Relative to now, so the auction stays live whenever the test runs.
+    final now = DateTime.now().toUtc();
     final page = AuctionMapper.pageFromEnvelope(
       {
         'success': true,
@@ -14,8 +16,10 @@ void main() {
               'productType': 'diamond',
               'productId': '003d45fe-f856-4918-bb3f-23d14ea4495e',
               'sellerId': '528f3eb5-1367-48ca-89d5-4fd98046e499',
-              'startTime': '2026-09-29T05:09:00.000Z',
-              'endTime': '2026-10-05T12:30:00.000Z',
+              'startTime': now
+                  .subtract(const Duration(days: 1))
+                  .toIso8601String(),
+              'endTime': now.add(const Duration(days: 5)).toIso8601String(),
               'minimumBid': 237.07,
               'reservePrice': null,
               'winnerId': null,
@@ -142,12 +146,7 @@ void main() {
               'bids': [],
             },
           ],
-          'meta': {
-            'total': 4,
-            'lastPage': 1,
-            'currentPage': 1,
-            'perPage': 20,
-          },
+          'meta': {'total': 4, 'lastPage': 1, 'currentPage': 1, 'perPage': 20},
         },
       },
       page: 1,

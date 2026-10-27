@@ -6,7 +6,7 @@ import '../../../../../core/widgets/luxe/luxe_button.dart';
 import '../../../domain/diamond_grades.dart';
 import '../../../domain/diamond_proportions.dart';
 import '../../../domain/diamond_shape.dart';
-import '../../sim_labels.dart';
+import '../../diamond_labels.dart';
 import '../diamond_profile_diagram.dart';
 import 'edu_blocks.dart';
 
@@ -152,9 +152,7 @@ class EduProportionsSection extends StatelessWidget {
 
 /// Fluorescence: the scale and how to see it.
 class EduFluorescenceSection extends StatelessWidget {
-  const EduFluorescenceSection({required this.onOpenSimulator, super.key});
-
-  final VoidCallback onOpenSimulator;
+  const EduFluorescenceSection({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -221,23 +219,9 @@ class EduFluorescenceSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 14),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                context.tr(EducationL10n.fluorTip),
-                style: LuxeType.body(p.inkMuted, size: 13),
-              ),
-            ),
-            const SizedBox(width: 12),
-            LuxeButton(
-              label: context.tr(EducationL10n.uvLight),
-              icon: Icons.light_mode_outlined,
-              variant: LuxeButtonVariant.secondary,
-              height: 44,
-              onPressed: onOpenSimulator,
-            ),
-          ],
+        Text(
+          context.tr(EducationL10n.fluorTip),
+          style: LuxeType.body(p.inkMuted, size: 13),
         ),
       ],
     );
@@ -425,13 +409,8 @@ class EduTipsSection extends StatelessWidget {
 
 /// Closing call to action.
 class EduFinalCta extends StatelessWidget {
-  const EduFinalCta({
-    required this.onOpenSimulator,
-    required this.onBrowse,
-    super.key,
-  });
+  const EduFinalCta({required this.onBrowse, super.key});
 
-  final VoidCallback onOpenSimulator;
   final VoidCallback onBrowse;
 
   @override
@@ -463,23 +442,11 @@ class EduFinalCta extends StatelessWidget {
                     style: LuxeType.body(LuxeStage.inkMuted),
                   ),
                   const SizedBox(height: 20),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      LuxeButton(
-                        label: context.tr(EducationL10n.simCta),
-                        icon: Icons.view_in_ar_outlined,
-                        variant: LuxeButtonVariant.accent,
-                        onPressed: onOpenSimulator,
-                      ),
-                      LuxeButton(
-                        label: context.tr(EducationL10n.ctaBrowse),
-                        variant: LuxeButtonVariant.ghost,
-                        trailingIcon: Icons.arrow_forward_rounded,
-                        onPressed: onBrowse,
-                      ),
-                    ],
+                  LuxeButton(
+                    label: context.tr(EducationL10n.ctaBrowse),
+                    variant: LuxeButtonVariant.accent,
+                    trailingIcon: Icons.arrow_forward_rounded,
+                    onPressed: onBrowse,
                   ),
                 ],
               ),

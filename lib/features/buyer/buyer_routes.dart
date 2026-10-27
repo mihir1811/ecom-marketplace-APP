@@ -7,6 +7,7 @@ import '../../core/router/route_names.dart';
 import '../seller/presentation/screens/seller_inquiry_detail_screen.dart';
 import '../seller/presentation/screens/seller_inquiry_form_screen.dart';
 import 'presentation/screens/buyer_inquiries_screen.dart';
+import 'presentation/screens/buyer_offers_screen.dart';
 import 'presentation/screens/buyer_order_detail_screen.dart';
 import 'presentation/screens/buyer_chat_detail_screen.dart';
 import 'presentation/screens/buyer_chat_list_screen.dart';
@@ -49,6 +50,11 @@ final List<RouteBase> buyerRoutes = [
     path: AppRouteNames.buyerRefunds,
     builder: (context, state) =>
         const VerifiedAccountGate(child: BuyerRefundsScreen()),
+  ),
+  GoRoute(
+    path: AppRouteNames.buyerOffers,
+    builder: (context, state) =>
+        const VerifiedAccountGate(child: BuyerOffersScreen()),
   ),
   GoRoute(
     path: AppRouteNames.buyerReferences,

@@ -101,10 +101,13 @@ NotificationOpenTarget notificationOpenTarget(
           : const NotificationInApp(AppRouteNames.buyerRewards);
     case 'ADMIN_BROADCAST':
       return _fromLink(notification.link, isSeller: isSeller);
-    case 'AUCTION_OUTBID':
-    case 'AUCTION_WON':
     case 'OFFER_ACCEPTED':
     case 'OFFER_REJECTED':
+    case 'OFFER_EXPIRED':
+      // Buyers pay accepted offers from My offers.
+      return const NotificationInApp(AppRouteNames.buyerOffers);
+    case 'AUCTION_OUTBID':
+    case 'AUCTION_WON':
       return _fromLink(notification.link, isSeller: isSeller);
     default:
       return _fromLink(notification.link, isSeller: isSeller);
@@ -119,6 +122,10 @@ NotificationOpenTarget _fromLink(String link, {required bool isSeller}) {
     return NotificationExternal(uri);
   }
   final path = trimmed.startsWith('/') ? trimmed : '/$trimmed';
+  // Website "Pay now" link for accepted offers.
+  if (path == '/user/offers' || path.startsWith('/user/offers/')) {
+    return const NotificationInApp(AppRouteNames.buyerOffers);
+  }
   final order = RegExp(r'^/user/orders/([^/]+)$').firstMatch(path);
   if (order != null) {
     return NotificationInApp(

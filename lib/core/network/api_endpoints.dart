@@ -199,6 +199,7 @@ abstract final class ApiEndpoints {
 
   // Product offer
   static const String productOffer = '/product-offer';
+  static const String productOfferMineAll = '/product-offer/mine';
   static String productOfferMine(String productType, String productId) =>
       '/product-offer/mine/$productType/$productId';
   static const String productOfferSeller = '/product-offer/seller';

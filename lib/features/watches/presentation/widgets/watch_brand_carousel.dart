@@ -41,7 +41,11 @@ class WatchBrandCarousel extends ConsumerStatefulWidget {
 class _WatchBrandCarouselState extends ConsumerState<WatchBrandCarousel>
     with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   static const _brands = WatchBrandAssets.featuredBrands;
-  static const _loops = 1000;
+
+  /// Copies of the brand list. Kept small: a fractional page extent times
+  /// thousands of pages drifts past the sliver's float tolerance. The strip
+  /// re-centres when a scroll settles, so it still loops endlessly.
+  static const _loops = 20;
   static const _autoScrollInterval = Duration(seconds: 4);
   static const _viewportFraction = 0.34;
 
@@ -157,6 +161,21 @@ class _WatchBrandCarouselState extends ConsumerState<WatchBrandCarousel>
     );
   }
 
+  /// Jumps back to the same brand in the middle copy once the strip has
+  /// wandered a quarter of the way to either end.
+  void _recentre() {
+    final len = _brands.length;
+    final mid = len * (_loops ~/ 2);
+    if ((_current - mid).abs() < len * (_loops ~/ 4)) return;
+    final target = mid + _current % len;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_controller.hasClients) return;
+      // Set first, so the jump's page change reads as no change.
+      setState(() => _current = target);
+      _controller.jumpToPage(target);
+    });
+  }
+
   /// The user took over; stop drifting for this visit.
   void _stopAutoScroll() {
     _userTouched = true;
@@ -215,9 +234,14 @@ class _WatchBrandCarouselState extends ConsumerState<WatchBrandCarousel>
                         ),
                       ),
                     ),
-                    NotificationListener<ScrollStartNotification>(
+                    NotificationListener<ScrollNotification>(
                       onNotification: (n) {
-                        if (n.dragDetails != null) _stopAutoScroll();
+                        if (n is ScrollStartNotification &&
+                            n.dragDetails != null) {
+                          _stopAutoScroll();
+                        } else if (n is ScrollEndNotification) {
+                          _recentre();
+                        }
                         return false;
                       },
                       child: PageView.builder(
@@ -225,6 +249,7 @@ class _WatchBrandCarouselState extends ConsumerState<WatchBrandCarousel>
                         clipBehavior: Clip.none,
                         itemCount: _brands.length * _loops,
                         onPageChanged: (i) {
+                          if (i == _current) return;
                           AppHaptics.selection();
                           setState(() => _current = i);
                         },

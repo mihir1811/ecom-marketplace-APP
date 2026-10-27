@@ -7,6 +7,7 @@ import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../../../product_offer/application/product_offer_providers.dart';
 import '../../../product_offer/domain/models/product_offer.dart';
+import '../../../product_offer/presentation/widgets/offer_countdown.dart';
 import '../atelier/atelier_components.dart';
 import '../atelier/atelier_feedback.dart';
 import '../atelier/atelier_motion.dart';
@@ -57,7 +58,9 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
       message: accepting
           ? '${offer.buyerName ?? 'The buyer'} will be notified that '
                 '${atelierMoney(offer.amount, decimals: 2)} for '
-                '${offer.displayTitle} is accepted.'
+                '${offer.displayTitle} is accepted and has 24 hours to pay. '
+                'Every other open offer on this stone is declined, and the '
+                'stone is held for this buyer until then.'
           : '${offer.buyerName ?? 'The buyer'} will be told you passed on '
                 '${atelierMoney(offer.amount, decimals: 2)}. This can’t be undone.',
       confirmLabel: accepting
@@ -135,6 +138,7 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
     final state = ref.watch(sellerOfferListProvider);
     if (state.statusFilter == null &&
         !state.isLoading &&
+        !state.hasMore &&
         state.errorMessage == null) {
       _counts = {
         for (final s in ProductOfferStatus.values)
@@ -294,7 +298,7 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
             : null,
       );
     }
-    return LayoutBuilder(
+    final grid = LayoutBuilder(
       builder: (context, constraints) {
         final cols = constraints.maxWidth >= 920 ? 2 : 1;
         const gap = AtelierSpace.s16;
@@ -317,6 +321,7 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
                         _respond(items[i], ProductOfferStatus.accepted),
                     onDecline: () =>
                         _respond(items[i], ProductOfferStatus.rejected),
+                    onExpired: _refresh,
                   ),
                 ),
               ),
@@ -324,13 +329,31 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
         );
       },
     );
+    if (!state.hasMore) return grid;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        grid,
+        const SizedBox(height: AtelierSpace.s20),
+        Center(
+          child: AtelierButton(
+            label: 'Load more offers',
+            variant: AtelierButtonVariant.secondary,
+            compact: true,
+            loading: state.isLoadingMore,
+            onPressed: () =>
+                ref.read(sellerOfferListProvider.notifier).loadMore(),
+          ),
+        ),
+      ],
+    );
   }
 
   void _openDetail(ProductOffer offer) {
     showAtelierSheet<void>(
       context: context,
       title: offer.displayTitle,
-      subtitle: '${offer.productType} · ${offer.status.label}',
+      subtitle: '${offer.productTypeLabel} · ${offer.displayStatusLabel}',
       builder: (sheetContext) => _OfferDetail(
         offer: offer,
         onAccept: offer.status.isPending
@@ -350,12 +373,37 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
   }
 }
 
-AtelierTone _toneFor(ProductOfferStatus s) => switch (s) {
+AtelierTone _toneFor(ProductOffer offer) => switch (offer.status) {
   ProductOfferStatus.pending => AtelierTone.amber,
-  ProductOfferStatus.accepted => AtelierTone.emerald,
+  ProductOfferStatus.accepted =>
+    offer.isPayable ? AtelierTone.gold : AtelierTone.emerald,
   ProductOfferStatus.rejected => AtelierTone.ruby,
   ProductOfferStatus.expired => AtelierTone.neutral,
 };
+
+/// Accepted and unpaid: how long the buyer has left to pay.
+class _PaymentWindow extends StatelessWidget {
+  const _PaymentWindow({required this.offer, this.onExpired});
+
+  final ProductOffer offer;
+  final VoidCallback? onExpired;
+
+  @override
+  Widget build(BuildContext context) {
+    return OfferCountdown(
+      expiresAt: offer.paymentExpiresAt,
+      onExpired: onExpired,
+      builder: (context, left) => AtelierNotice(
+        text:
+            'Waiting for payment · ${formatOfferTimeLeft(left)} left. The '
+            'stone is held for this buyer; unpaid offers are released after '
+            '24 hours.',
+        tone: AtelierTone.gold,
+        icon: Icons.schedule_rounded,
+      ),
+    );
+  }
+}
 
 List<String> _metaParts(BuildContext context, ProductOffer offer) => [
   if (offer.productSpecs != null) offer.productSpecs!,
@@ -373,6 +421,7 @@ class _OfferCard extends StatelessWidget {
     required this.onOpen,
     required this.onAccept,
     required this.onDecline,
+    this.onExpired,
   });
 
   final ProductOffer offer;
@@ -380,6 +429,7 @@ class _OfferCard extends StatelessWidget {
   final VoidCallback onOpen;
   final VoidCallback onAccept;
   final VoidCallback onDecline;
+  final VoidCallback? onExpired;
 
   @override
   Widget build(BuildContext context) {
@@ -409,8 +459,8 @@ class _OfferCard extends StatelessWidget {
                       children: [
                         Flexible(
                           child: AtelierPill(
-                            label: offer.status.label,
-                            tone: _toneFor(offer.status),
+                            label: offer.displayStatusLabel,
+                            tone: _toneFor(offer),
                             dense: true,
                           ),
                         ),
@@ -473,6 +523,10 @@ class _OfferCard extends StatelessWidget {
           if (offer.message != null) ...[
             const SizedBox(height: AtelierSpace.s12),
             _Quote(text: offer.message!, maxLines: 2),
+          ],
+          if (offer.isPayable) ...[
+            const SizedBox(height: AtelierSpace.s12),
+            _PaymentWindow(offer: offer, onExpired: onExpired),
           ],
           AnimatedSize(
             duration: AtelierMotion.base,
@@ -647,8 +701,8 @@ class _OfferDetail extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AtelierPill(
-                    label: offer.status.label,
-                    tone: _toneFor(offer.status),
+                    label: offer.displayStatusLabel,
+                    tone: _toneFor(offer),
                   ),
                   if (meta.isNotEmpty) ...[
                     const SizedBox(height: 8),
@@ -664,6 +718,10 @@ class _OfferDetail extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         _PriceComparison(offer: offer),
+        if (offer.isPayable) ...[
+          const SizedBox(height: 14),
+          _PaymentWindow(offer: offer),
+        ],
         if (offer.message != null) ...[
           const SizedBox(height: 18),
           Text('MESSAGE', style: AtelierType.overline(p.muted)),
@@ -681,6 +739,13 @@ class _OfferDetail extends StatelessWidget {
               AtelierKeyValue(label: 'Email', value: offer.buyerEmail!),
             AtelierKeyValue(label: 'Received', value: offer.createdAtLabel),
             AtelierKeyValue(label: 'Updated', value: offer.updatedAtLabel),
+            if (offer.acceptedAt != null)
+              AtelierKeyValue(
+                label: 'Accepted',
+                value: atelierDate(offer.acceptedAt!),
+              ),
+            if (offer.paidAt != null)
+              AtelierKeyValue(label: 'Paid', value: atelierDate(offer.paidAt!)),
             if (offer.productId.isNotEmpty)
               AtelierKeyValue(
                 label: 'Product ID',

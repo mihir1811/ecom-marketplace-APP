@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../../../core/catalog/catalog_purchase_policy.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
+import '../../../product_offer/domain/models/product_offer.dart';
 import 'listing_seller_info.dart';
 import 'product_jewelry_detail.dart';
 import 'product_bullion_detail.dart';
@@ -417,6 +418,9 @@ class ProductDetail {
     this.note,
     this.isMakeAnOfferAllowed = false,
     this.minimumOfferPrice,
+    this.maxOfferAttemptsPerUser = 5,
+    this.isSold = false,
+    this.isOnAuction = false,
     this.naturalSpecTabs,
     this.jewelryDetail,
     this.bullionDetail,
@@ -458,6 +462,11 @@ class ProductDetail {
   final bool isMakeAnOfferAllowed;
   final double? minimumOfferPrice;
 
+  /// Total offers one buyer may make on this stone, any status.
+  final int maxOfferAttemptsPerUser;
+  final bool isSold;
+  final bool isOnAuction;
+
   /// Overview / Advance for singles; Summary / Details for melee (natural + lab).
   final ProductTabbedSpecs? naturalSpecTabs;
 
@@ -467,9 +476,13 @@ class ProductDetail {
   /// Bullion layout: Overview / Specifications / Seller tabs.
   final ProductBullionDetail? bullionDetail;
 
+  /// Offers are for diamonds, melee parcels and gemstones the seller opened
+  /// to offers, while the stone is not sold or on auction.
   bool get canMakeAnOffer =>
       isMakeAnOfferAllowed &&
-      (apiProductType == 'diamond' || apiProductType == 'meleeDiamond');
+      !isSold &&
+      !isOnAuction &&
+      OfferProductType.supports(apiProductType);
 
   /// Sections in canonical group order with empty ones removed.
   List<ProductSpecSection> get orderedSpecs {

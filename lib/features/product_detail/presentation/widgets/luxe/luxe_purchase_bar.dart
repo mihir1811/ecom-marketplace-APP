@@ -9,6 +9,8 @@ import '../../../../../core/theme/luxe_tokens.dart';
 import '../../../../../core/utils/app_currency.dart';
 import '../../../../../core/widgets/luxe/luxe_button.dart';
 import '../../../../../core/widgets/luxe/luxe_feedback.dart';
+import '../../../../product_offer/application/product_offer_providers.dart';
+import '../../../../product_offer/presentation/widgets/offer_countdown.dart';
 import '../../../application/product_purchase_actions.dart';
 import '../../../domain/models/product_detail.dart';
 import '../../../domain/models/product_price_labels.dart';
@@ -26,7 +28,21 @@ PurchaseCopy luxePurchaseCopy(BuildContext context) => PurchaseCopy(
   signInToOffer: context.tr(DiamondFlowL10n.signInToOffer),
   ownListingOffer: context.tr(DiamondFlowL10n.ownListingOffer),
   offerSent: context.tr(DiamondFlowL10n.offerSent),
+  offerAddedToBag: context.tr(DiamondFlowL10n.offerAddedToBag),
 );
+
+/// Label for the offer control in each [OfferButtonKind].
+String luxeOfferLabel(BuildContext context, OfferButtonKind kind, Duration left) =>
+    switch (kind) {
+      OfferButtonKind.makeOffer => context.tr(CatalogL10n.makeOffer),
+      OfferButtonKind.pending => context.tr(DiamondFlowL10n.offerPending),
+      OfferButtonKind.limitReached =>
+        context.tr(DiamondFlowL10n.offerLimitReached),
+      OfferButtonKind.payNow => context.tr(DiamondFlowL10n.offerPayNowLeft, {
+        'time': formatOfferTimeLeft(left),
+      }),
+      OfferButtonKind.paid => context.tr(DiamondFlowL10n.offerPaid),
+    };
 
 /// Sticky commitment bar: compact price, optional offer, primary cart CTA.
 class LuxePurchaseBar extends ConsumerWidget {
@@ -135,18 +151,35 @@ class LuxePurchaseBar extends ConsumerWidget {
             if (showPrice) const SizedBox(width: 8),
             Expanded(
               flex: 4,
-              child: LuxeButton(
-                expand: true,
-                label: context.tr(CatalogL10n.makeOffer),
-                variant: LuxeButtonVariant.secondary,
-                loading: state.offerBusy,
-                onPressed: () => ProductPurchaseActions.makeOffer(
-                  context,
-                  ref,
-                  detail,
-                  ask: () => showLuxeOfferSheet(context, detail),
-                  copy: copy,
-                  notify: notify,
+              child: OfferCountdown(
+                expiresAt: state.offerEligibility.payable?.paymentExpiresAt,
+                onExpired: () => ref.invalidate(
+                  productOfferEligibilityProvider(
+                    ProductPurchaseActions.offerKey(detail),
+                  ),
+                ),
+                builder: (context, left) => LuxeButton(
+                  expand: true,
+                  label: luxeOfferLabel(context, state.offerKind, left),
+                  variant: state.offerKind == OfferButtonKind.payNow
+                      ? LuxeButtonVariant.accent
+                      : LuxeButtonVariant.secondary,
+                  loading: state.offerBusy,
+                  onPressed: state.offerEnabled
+                      ? () => ProductPurchaseActions.offerAction(
+                          context,
+                          ref,
+                          detail,
+                          state: state,
+                          ask: () => showLuxeOfferSheet(
+                            context,
+                            detail,
+                            attemptsLeft: state.offerEligibility.attemptsLeft,
+                          ),
+                          copy: copy,
+                          notify: notify,
+                        )
+                      : null,
                 ),
               ),
             ),
@@ -183,22 +216,34 @@ class LuxePurchaseBar extends ConsumerWidget {
 /// Offer form in a luxe sheet; returns the amount and optional message.
 Future<({String amount, String? message})?> showLuxeOfferSheet(
   BuildContext context,
-  ProductDetail detail,
-) {
+  ProductDetail detail, {
+  int? attemptsLeft,
+}) {
   return showLuxeSheet<({String amount, String? message})>(
     context,
     title: context.tr(CatalogL10n.makeOffer),
     subtitle: context.tr(DiamondFlowL10n.offerSubtitle, {
       'price': ProductPriceLabels.resolve(detail.price).sale,
     }),
-    builder: (context) => _OfferForm(minimum: detail.minimumOfferPrice),
+    builder: (context) => _OfferForm(
+      minimum: detail.minimumOfferPrice,
+      attemptsNote: attemptsLeft == null
+          ? null
+          : context.tr(DiamondFlowL10n.offerAttemptsLeft, {
+              'count': attemptsLeft,
+              'max': detail.maxOfferAttemptsPerUser,
+            }),
+    ),
   );
 }
 
 class _OfferForm extends StatefulWidget {
-  const _OfferForm({required this.minimum});
+  const _OfferForm({required this.minimum, this.attemptsNote});
 
   final double? minimum;
+
+  /// e.g. "3 of 5 offers left on this stone".
+  final String? attemptsNote;
 
   @override
   State<_OfferForm> createState() => _OfferFormState();
@@ -280,6 +325,13 @@ class _OfferFormState extends State<_OfferForm> {
               labelText: context.tr(CatalogL10n.messageOptional),
             ),
           ),
+          if (widget.attemptsNote != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              widget.attemptsNote!,
+              style: LuxeType.label(p.inkMuted, size: 12),
+            ),
+          ],
           const SizedBox(height: 22),
           LuxeButton(
             label: context.tr(CatalogL10n.submitOffer),

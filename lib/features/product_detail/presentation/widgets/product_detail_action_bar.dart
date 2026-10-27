@@ -7,6 +7,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/widgets/app_dialog.dart';
+import '../../../product_offer/application/product_offer_providers.dart';
+import '../../../product_offer/presentation/widgets/offer_countdown.dart';
 import '../../application/product_purchase_actions.dart';
 import '../../domain/models/product_detail.dart';
 
@@ -128,24 +130,46 @@ class ProductDetailActionBar extends ConsumerWidget {
         children: [
           if (showOffer) ...[
             Expanded(
-              child: OutlinedButton(
-                onPressed: offerMutating
-                    ? null
-                    : () => ProductPurchaseActions.makeOffer(
-                        context,
-                        ref,
-                        detail,
-                        ask: () => _askOffer(context),
-                        copy: PurchaseCopy.english,
-                        notify: notify,
-                      ),
-                child: offerMutating
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(context.tr(CatalogL10n.makeOffer)),
+              child: OfferCountdown(
+                expiresAt: state.offerEligibility.payable?.paymentExpiresAt,
+                onExpired: () => ref.invalidate(
+                  productOfferEligibilityProvider(
+                    ProductPurchaseActions.offerKey(detail),
+                  ),
+                ),
+                builder: (context, left) => OutlinedButton(
+                  onPressed: offerMutating || !state.offerEnabled
+                      ? null
+                      : () => ProductPurchaseActions.offerAction(
+                          context,
+                          ref,
+                          detail,
+                          state: state,
+                          ask: () => _askOffer(context),
+                          copy: PurchaseCopy.english,
+                          notify: notify,
+                        ),
+                  child: offerMutating
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(
+                          switch (state.offerKind) {
+                            OfferButtonKind.makeOffer => context.tr(
+                              CatalogL10n.makeOffer,
+                            ),
+                            OfferButtonKind.pending => 'Offer sent',
+                            OfferButtonKind.limitReached => 'No offers left',
+                            OfferButtonKind.payNow =>
+                              'Pay now · ${formatOfferTimeLeft(left)}',
+                            OfferButtonKind.paid => 'Offer paid',
+                          },
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                ),
               ),
             ),
             const SizedBox(width: AppSpacing.s12),

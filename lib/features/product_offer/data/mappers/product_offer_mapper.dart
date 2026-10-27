@@ -10,6 +10,7 @@ abstract final class ProductOfferMapper {
     final productId = json['productId']?.toString() ??
         productMap?['id']?.toString() ??
         '';
+    final createdAt = _parseDate(json['createdAt']);
 
     return ProductOffer(
       id: json['id']?.toString() ?? '',
@@ -22,8 +23,12 @@ abstract final class ProductOfferMapper {
       amount: _asDouble(json['amount']) ?? 0,
       status: ProductOfferStatus.fromApi(json['status']?.toString()),
       message: _nullableString(json['message']),
-      createdAtLabel: _label(_parseDate(json['createdAt'])),
+      createdAtLabel: _label(createdAt),
       updatedAtLabel: _label(_parseDate(json['updatedAt'])),
+      createdAt: createdAt,
+      acceptedAt: _parseDate(json['acceptedAt']),
+      paidAt: _parseDate(json['paidAt']),
+      paymentExpiresAt: _parseDate(json['paymentExpiresAt']),
       productLabel: _productLabel(productMap, json),
       stockNumber: _nullableString(productMap?['stockNumber']) ??
           _nullableString(json['stockNumber']),
@@ -36,6 +41,7 @@ abstract final class ProductOfferMapper {
       imageUrl: _imageUrl(productMap) ?? _imageUrl(json),
       productSpecs: _productSpecs(productMap),
       certificateLabel: _certificateLabel(productMap),
+      productIsSold: productMap?['isSold'] == true,
     );
   }
 
@@ -134,6 +140,7 @@ abstract final class ProductOfferMapper {
   static String? _imageUrl(Map<String, dynamic>? map) {
     if (map == null) return null;
     for (final key in [
+      'image',
       'imageUrl',
       'image1',
       'image2',
@@ -174,7 +181,7 @@ abstract final class ProductOfferMapper {
 
   static DateTime? _parseDate(Object? raw) {
     if (raw == null) return null;
-    return DateTime.tryParse(raw.toString());
+    return DateTime.tryParse(raw.toString())?.toLocal();
   }
 
   static String _label(DateTime? date) {

@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -84,23 +82,56 @@ class ProductOfferRepositoryImpl implements ProductOfferRepository {
   }
 
   @override
+  Future<Result<ProductOfferListPage, Failure>> listMineAll({
+    required int page,
+    int limit = 20,
+    String? statusFilter,
+    CancelToken? cancelToken,
+  }) =>
+      _listPage(
+        ApiEndpoints.productOfferMineAll,
+        page: page,
+        limit: limit,
+        defaultLimit: 20,
+        statusFilter: statusFilter,
+        cancelToken: cancelToken,
+      );
+
+  @override
   Future<Result<ProductOfferListPage, Failure>> listSeller({
     required int page,
     int limit = 10,
-    String? search,
+    String? statusFilter,
+    CancelToken? cancelToken,
+  }) =>
+      _listPage(
+        ApiEndpoints.productOfferSeller,
+        page: page,
+        limit: limit,
+        defaultLimit: 10,
+        statusFilter: statusFilter,
+        cancelToken: cancelToken,
+      );
+
+  /// Paged offer list; `status` filters by an own column of the offer.
+  Future<Result<ProductOfferListPage, Failure>> _listPage(
+    String path, {
+    required int page,
+    required int limit,
+    required int defaultLimit,
     String? statusFilter,
     CancelToken? cancelToken,
   }) async {
+    final safeLimit = limit < 1 ? defaultLimit : limit;
     try {
       final response = await _dio.get<Map<String, dynamic>>(
-        ApiEndpoints.productOfferSeller,
+        path,
         queryParameters: {
           'page': page < 1 ? 1 : page,
-          'limit': limit < 1 ? 10 : limit,
+          'limit': safeLimit,
           'sort': '-createdAt',
-          if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
           if (statusFilter != null && statusFilter.isNotEmpty)
-            'filters': jsonEncode({'status': statusFilter}),
+            'status': statusFilter,
         },
         cancelToken: cancelToken,
       );
@@ -108,7 +139,7 @@ class ProductOfferRepositoryImpl implements ProductOfferRepository {
         ProductOfferMapper.listPageFromJson(
           response.data,
           page: page,
-          limit: limit,
+          limit: safeLimit,
         ),
       );
     } on DioException catch (e) {
