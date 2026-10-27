@@ -30,8 +30,14 @@ import '../widgets/jewelry_filter_labels.dart';
 /// Options and counts come from `GET /marketplace/listings/facets` for the
 /// open collection, search and shop, so every value shown has pieces behind
 /// it. Edits a draft that is applied on "Show results".
+///
+/// With a [scope] (a house's collection page) the draft starts from the
+/// scope's filters and "Show results" pops with the draft instead of
+/// changing the shared results page.
 class JewelryFilterScreen extends ConsumerStatefulWidget {
-  const JewelryFilterScreen({super.key});
+  const JewelryFilterScreen({super.key, this.scope});
+
+  final JewelryFilterScope? scope;
 
   @override
   ConsumerState<JewelryFilterScreen> createState() =>
@@ -61,7 +67,9 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen>
     super.initState();
     catalogScrollController.addListener(finderOnScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _n.syncFromApplied();
+      if (!mounted) return;
+      final scope = widget.scope;
+      scope == null ? _n.syncFromApplied() : _n.replaceDraft(scope.filters);
     });
   }
 
@@ -86,6 +94,10 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen>
   }
 
   void _showResults() {
+    if (widget.scope != null) {
+      Navigator.of(context).pop(ref.read(jewelryFilterDraftProvider));
+      return;
+    }
     _n.apply();
     ref.read(jewelryListProvider.notifier).refresh();
     context.goBack();
@@ -101,7 +113,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen>
     final summary = JewelryFilterSummary.of(draft);
     final facets = ref.watch(jewelryFacetsProvider(jewelryFacetKeyOf(draft)));
     return LuxeFinderScaffold<JewelryFilterSection>(
-      title: JewelryCollectionTitle.watch(context, ref),
+      title: widget.scope?.title ?? JewelryCollectionTitle.watch(context, ref),
       onBack: () => context.goBack(),
       sections: finderVisibleSections,
       active: finderActive,
@@ -386,4 +398,13 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen>
       showLessLabel: context.tr(CatalogFlowL10n.showLess),
     );
   }
+}
+
+/// Filters owned by another screen: [filters] to start from, [title] to
+/// show. The filter screen pops with the edited [JewelryFilterState].
+class JewelryFilterScope {
+  const JewelryFilterScope({required this.filters, required this.title});
+
+  final JewelryFilterState filters;
+  final String title;
 }

@@ -88,7 +88,10 @@ class _LuxeJewelryPurchasePanelState
   @override
   void didUpdateWidget(LuxeJewelryPurchasePanel oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!identical(oldWidget.detail.jewelryDetail, widget.detail.jewelryDetail)) {
+    if (!identical(
+      oldWidget.detail.jewelryDetail,
+      widget.detail.jewelryDetail,
+    )) {
       _seed();
     }
   }
@@ -124,8 +127,7 @@ class _LuxeJewelryPurchasePanelState
     Widget options(ProductJewelryVariation v) {
       final chosen = selected[v.name];
       // Options no active SKU carries at all can't be chosen.
-      bool exists(String o) =>
-          j.activeSkus.any((s) => s.options[v.name] == o);
+      bool exists(String o) => j.activeSkus.any((s) => s.options[v.name] == o);
       if (v.options.length > 8) {
         return LuxeDropdownField<String>(
           value: v.options.contains(chosen) ? chosen : null,
@@ -351,9 +353,7 @@ class _StockNote extends StatelessWidget {
       children: [
         Icon(icon, size: 16, color: tone),
         const SizedBox(width: 8),
-        Expanded(
-          child: Text(text, style: LuxeType.label(tone, size: 13)),
-        ),
+        Expanded(child: Text(text, style: LuxeType.label(tone, size: 13))),
       ],
     );
   }
@@ -405,10 +405,7 @@ class _TextOptionState extends State<_TextOption> {
           minLines: 1,
           maxLines: 3,
           onChanged: widget.onChanged,
-          decoration: InputDecoration(
-            hintText: widget.hint,
-            counterText: '',
-          ),
+          decoration: InputDecoration(hintText: widget.hint, counterText: ''),
         ),
       ],
     );
@@ -574,7 +571,9 @@ class _Specs extends StatelessWidget {
     final symbol = j.currencySymbol;
     final sku = _selectedSku(j, draft);
     String grams(double? v) => (v ?? 0) > 0 ? '${_fmt(v!)}g' : '—';
-    final breakdown = j.shop?.showPriceBreakdown == true ? sku?.breakdown : null;
+    final breakdown = j.shop?.showPriceBreakdown == true
+        ? sku?.breakdown
+        : null;
     final parts = <(String, String)>[
       ('metal', context.tr(CatalogL10n.metal)),
       ('stone', context.tr(CatalogL10n.stones)),
@@ -636,7 +635,10 @@ class _Specs extends StatelessWidget {
                 context.tr(CatalogL10n.stoneType),
                 _dash(j.gemstoneOrigin),
               ),
-              LuxeSpecLine(context.tr(CatalogL10n.shape), _dash(j.primaryShape)),
+              LuxeSpecLine(
+                context.tr(CatalogL10n.shape),
+                _dash(j.primaryShape),
+              ),
               LuxeSpecLine(
                 context.tr(CatalogL10n.carat),
                 (j.totalCaratWeight ?? 0) > 0
@@ -659,7 +661,10 @@ class _Specs extends StatelessWidget {
                 context.tr(CatalogL10n.stoneType),
                 _dash(j.stones[i].origin),
               ),
-              LuxeSpecLine(context.tr(CatalogL10n.shape), _dash(j.stones[i].shape)),
+              LuxeSpecLine(
+                context.tr(CatalogL10n.shape),
+                _dash(j.stones[i].shape),
+              ),
               LuxeSpecLine(
                 context.tr(CatalogL10n.carat),
                 (j.stones[i].caratWeight ?? 0) > 0
@@ -672,7 +677,10 @@ class _Specs extends StatelessWidget {
                     ? '${j.stones[i].quantity}'
                     : '—',
               ),
-              LuxeSpecLine(context.tr(CatalogL10n.color), _dash(j.stones[i].color)),
+              LuxeSpecLine(
+                context.tr(CatalogL10n.color),
+                _dash(j.stones[i].color),
+              ),
               LuxeSpecLine(
                 context.tr(CatalogL10n.clarity),
                 _dash(j.stones[i].clarity),
@@ -820,7 +828,11 @@ class _Care extends StatelessWidget {
                       shape: BoxShape.circle,
                       color: p.positive.withValues(alpha: 0.1),
                     ),
-                    child: Icon(Icons.check_rounded, size: 14, color: p.positive),
+                    child: Icon(
+                      Icons.check_rounded,
+                      size: 14,
+                      color: p.positive,
+                    ),
                   ),
                   Expanded(
                     child: Text(
@@ -848,13 +860,26 @@ class _Care extends StatelessWidget {
 }
 
 /// Purchase bar priced for the chosen SKU and quantity. Adds to the
-/// on-device jewellery bag (no sign-in needed until checkout).
+/// on-device jewellery bag; guests are sent to sign in first, like the cart.
 class LuxeJewelryPurchaseBar extends ConsumerWidget {
   const LuxeJewelryPurchaseBar({required this.detail, super.key});
 
   final ProductDetail detail;
 
+  /// False (after asking the guest to sign in) when signed out.
+  bool _signedIn(BuildContext context, WidgetRef ref) {
+    if (ref.read(authProvider).isAuthenticated) return true;
+    showLuxeToast(
+      context,
+      context.tr(DiamondFlowL10n.signInToBuy),
+      tone: LuxeTone.info,
+    );
+    context.push(AppRouteNames.login);
+    return false;
+  }
+
   void _add(BuildContext context, WidgetRef ref, BagLine line, int max) {
+    if (!_signedIn(context, ref)) return;
     final issue = ref
         .read(jewelryBagProvider.notifier)
         .add(line, maxQuantity: max);

@@ -11,10 +11,9 @@ import '../domain/models/marketplace_listing.dart';
 import '../domain/repositories/jewelry_repository.dart';
 import 'jewellery_categories_provider.dart';
 
-/// One house's pieces: shop slug, optional parent category slug and sort.
+/// One house's pieces: filters (with the shop slug set) and sort.
 typedef JewelryHouseQuery = ({
-  String shop,
-  String? category,
+  JewelryFilterState filters,
   JewelrySortOption? sort,
 });
 
@@ -100,7 +99,7 @@ class JewelryHousePiecesNotifier
     return ref
         .read(jewelryRepositoryProvider)
         .getJewelry(
-          filters: JewelryFilterState(shop: arg.shop, category: arg.category),
+          filters: arg.filters,
           page: page,
           pageSize: JewelryPageSize.defaultSize,
           sort: arg.sort,
