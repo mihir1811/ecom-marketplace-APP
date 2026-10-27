@@ -24,6 +24,21 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Plugins with prebuilt .so files (WebRTC via livekit_client) ship every ABI
+        // regardless of --target-platform. Package only the ABIs Flutter itself built.
+        (project.findProperty("target-platform") as String?)?.let { platforms ->
+            val abiByPlatform = mapOf(
+                "android-arm" to "armeabi-v7a",
+                "android-arm64" to "arm64-v8a",
+                "android-x64" to "x86_64",
+            )
+            // The Flutter plugin presets all three ABIs, so replace rather than append.
+            ndk {
+                abiFilters.clear()
+                abiFilters += platforms.split(",").mapNotNull { abiByPlatform[it.trim()] }
+            }
+        }
     }
 
     buildTypes {

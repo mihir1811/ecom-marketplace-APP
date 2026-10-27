@@ -18,7 +18,7 @@ subprojects {
 subprojects {
     // Plugins still compile with Java 8 source/target; silence their javac lint noise.
     tasks.withType<JavaCompile>().configureEach {
-        options.compilerArgs.addAll(listOf("-Xlint:-options", "-Xlint:-deprecation", "-Xlint:-unchecked"))
+        options.compilerArgs.addAll(listOf("-Xlint:-options", "-XDsuppressNotes"))
     }
 }
 subprojects {
