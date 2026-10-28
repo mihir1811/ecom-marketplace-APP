@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/widgets/app_network_image.dart';
+import 'live_ambient.dart';
 
 /// Noir salon palette for every live surface. Always dark: the video and
 /// the jewels are the colour; the chrome is ink, glass and champagne.
@@ -63,18 +64,28 @@ abstract final class LiveType {
   static const _serif = 'Instrument Serif';
   static const _sans = 'Manrope';
 
+  // Clocks, prices and chat lines ask for styles on every build; each
+  // distinct style resolves its Google font once.
+  static final _cache = <Object, TextStyle>{};
+
+  static TextStyle _cached(Object key, TextStyle Function() make) =>
+      _cache[key] ??= make();
+
   static TextStyle display(
     double size, {
     Color color = LiveStage.ink,
     bool italic = false,
     double height = 1.05,
-  }) => GoogleFonts.getFont(
-    _serif,
-    fontSize: size,
-    color: color,
-    height: height,
-    fontStyle: italic ? FontStyle.italic : FontStyle.normal,
-    letterSpacing: -0.2,
+  }) => _cached(
+    (#display, size, color, italic, height),
+    () => GoogleFonts.getFont(
+      _serif,
+      fontSize: size,
+      color: color,
+      height: height,
+      fontStyle: italic ? FontStyle.italic : FontStyle.normal,
+      letterSpacing: -0.2,
+    ),
   );
 
   static TextStyle body(
@@ -82,25 +93,34 @@ abstract final class LiveType {
     Color? color,
     FontWeight weight = FontWeight.w500,
     double height = 1.35,
-  }) => GoogleFonts.getFont(
-    _sans,
-    fontSize: size,
-    color: color ?? LiveStage.inkMuted,
-    fontWeight: weight,
-    height: height,
-  );
+  }) {
+    final c = color ?? LiveStage.inkMuted;
+    return _cached(
+      (#body, size, c, weight, height),
+      () => GoogleFonts.getFont(
+        _sans,
+        fontSize: size,
+        color: c,
+        fontWeight: weight,
+        height: height,
+      ),
+    );
+  }
 
   static TextStyle label(
     double size, {
     Color color = LiveStage.ink,
     FontWeight weight = FontWeight.w700,
-  }) => GoogleFonts.getFont(
-    _sans,
-    fontSize: size,
-    color: color,
-    fontWeight: weight,
-    height: 1.2,
-    letterSpacing: 0.1,
+  }) => _cached(
+    (#label, size, color, weight),
+    () => GoogleFonts.getFont(
+      _sans,
+      fontSize: size,
+      color: color,
+      fontWeight: weight,
+      height: 1.2,
+      letterSpacing: 0.1,
+    ),
   );
 
   /// Tabular figures for clocks and counts that tick.
@@ -108,24 +128,32 @@ abstract final class LiveType {
     double size, {
     Color color = LiveStage.ink,
     FontWeight weight = FontWeight.w700,
-  }) => GoogleFonts.getFont(
-    _sans,
-    fontSize: size,
-    color: color,
-    fontWeight: weight,
-    height: 1.1,
-    fontFeatures: const [FontFeature.tabularFigures()],
+  }) => _cached(
+    (#figure, size, color, weight),
+    () => GoogleFonts.getFont(
+      _sans,
+      fontSize: size,
+      color: color,
+      fontWeight: weight,
+      height: 1.1,
+      fontFeatures: const [FontFeature.tabularFigures()],
+    ),
   );
 
-  static TextStyle eyebrow({Color? color, double size = 10.5}) =>
-      GoogleFonts.getFont(
+  static TextStyle eyebrow({Color? color, double size = 10.5}) {
+    final c = color ?? LiveStage.inkFaint;
+    return _cached(
+      (#eyebrow, size, c),
+      () => GoogleFonts.getFont(
         _sans,
         fontSize: size,
-        color: color ?? LiveStage.inkFaint,
+        color: c,
         fontWeight: FontWeight.w800,
         letterSpacing: 1.8,
         height: 1.2,
-      );
+      ),
+    );
+  }
 }
 
 abstract final class LiveMotion {
@@ -139,8 +167,9 @@ abstract final class LiveMotion {
 
 // ── Primitives ──────────────────────────────────────────────────────────────
 
-/// "● LIVE" with a ruby dot that breathes and sends out a ring.
-class LiveBadge extends StatefulWidget {
+/// "● LIVE" with a ruby dot that breathes and sends out a ring, on the
+/// shared ambient clock so a grid of cards costs one low-rate timer.
+class LiveBadge extends StatelessWidget {
   const LiveBadge({super.key, this.compact = false, this.solid = false});
 
   final bool compact;
@@ -148,40 +177,24 @@ class LiveBadge extends StatefulWidget {
   /// Ruby fill instead of glass, for small cards over busy images.
   final bool solid;
 
-  @override
-  State<LiveBadge> createState() => _LiveBadgeState();
-}
-
-class _LiveBadgeState extends State<LiveBadge>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _pulse = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1600),
-  )..repeat();
-
-  @override
-  void dispose() {
-    _pulse.dispose();
-    super.dispose();
-  }
+  static const _pulse = 1.6;
 
   @override
   Widget build(BuildContext context) {
-    final still = MediaQuery.disableAnimationsOf(context);
-    final dot = widget.compact ? 5.0 : 6.0;
-    final fg = widget.solid ? Colors.white : LiveStage.live;
+    final dot = compact ? 5.0 : 6.0;
+    final fg = solid ? Colors.white : LiveStage.live;
     return Semantics(
       label: 'Live',
       excludeSemantics: true,
       child: Container(
         padding: EdgeInsets.symmetric(
-          horizontal: widget.compact ? 7 : 9,
-          vertical: widget.compact ? 3.5 : 5,
+          horizontal: compact ? 7 : 9,
+          vertical: compact ? 3.5 : 5,
         ),
         decoration: BoxDecoration(
-          color: widget.solid ? LiveStage.live : LiveStage.glass,
+          color: solid ? LiveStage.live : LiveStage.glass,
           borderRadius: BorderRadius.circular(999),
-          border: widget.solid
+          border: solid
               ? null
               : Border.all(color: LiveStage.live.withValues(alpha: 0.45)),
         ),
@@ -190,40 +203,42 @@ class _LiveBadgeState extends State<LiveBadge>
           children: [
             SizedBox.square(
               dimension: dot * 2.2,
-              child: AnimatedBuilder(
-                animation: _pulse,
-                builder: (context, _) {
-                  final t = still ? 0.0 : _pulse.value;
-                  return Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        width: dot * (1 + t * 1.2),
-                        height: dot * (1 + t * 1.2),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: fg.withValues(alpha: 0.45 * (1 - t)),
+              child: LiveAmbient(
+                builder: (context, time) => AnimatedBuilder(
+                  animation: time,
+                  builder: (context, _) {
+                    final t = (time.value % _pulse) / _pulse;
+                    return Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Container(
+                          width: dot * (1 + t * 1.2),
+                          height: dot * (1 + t * 1.2),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: fg.withValues(alpha: 0.45 * (1 - t)),
+                          ),
                         ),
-                      ),
-                      Container(
-                        width: dot,
-                        height: dot,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: fg,
+                        Container(
+                          width: dot,
+                          height: dot,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: fg,
+                          ),
                         ),
-                      ),
-                    ],
-                  );
-                },
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
             const SizedBox(width: 4),
             Text(
               'LIVE',
               style: LiveType.eyebrow(
-                color: widget.solid ? Colors.white : LiveStage.ink,
-                size: widget.compact ? 9.5 : 10.5,
+                color: solid ? Colors.white : LiveStage.ink,
+                size: compact ? 9.5 : 10.5,
               ).copyWith(letterSpacing: 1.4),
             ),
           ],
@@ -289,14 +304,14 @@ class LiveViewerPill extends StatelessWidget {
   }
 }
 
-/// Frosted panel. [blur] is costly over video; use it for one or two
-/// surfaces at a time.
+/// Smoked-glass panel. [blur] frosts what is behind it, but over video
+/// that blur re-runs on every frame of the stream, so it is off by default.
 class LiveGlass extends StatelessWidget {
   const LiveGlass({
     required this.child,
     super.key,
     this.radius = 24,
-    this.blur = true,
+    this.blur = false,
     this.padding,
     this.color,
     this.border,

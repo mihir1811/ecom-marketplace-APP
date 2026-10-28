@@ -437,6 +437,11 @@ class _HlsPlayerState extends State<_HlsPlayer> {
   }
 }
 
+/// Android WebView players draw into a Flutter texture rather than use
+/// hybrid composition, which moves the whole UI over the stream onto the
+/// platform thread and drops frames under the bid dock and chat.
+const _hybridComposition = false;
+
 /// Cloudflare's embeddable player page. Browser broadcasts there are
 /// WebRTC, which HLS cannot play, so the page is used as is.
 class _CloudflarePlayer extends StatelessWidget {
@@ -453,6 +458,7 @@ class _CloudflarePlayer extends StatelessWidget {
     return InAppWebView(
       initialUrlRequest: URLRequest(url: WebUri(_src)),
       initialSettings: InAppWebViewSettings(
+        useHybridComposition: _hybridComposition,
         javaScriptEnabled: true,
         mediaPlaybackRequiresUserGesture: false,
         allowsInlineMediaPlayback: true,
@@ -622,6 +628,7 @@ video{position:fixed;inset:0;width:100%;height:100%;object-fit:contain}</style>
         baseUrl: WebUri('https://web-broadcast.live-video.net/'),
       ),
       initialSettings: InAppWebViewSettings(
+        useHybridComposition: _hybridComposition,
         javaScriptEnabled: true,
         mediaPlaybackRequiresUserGesture: false,
         allowsInlineMediaPlayback: true,

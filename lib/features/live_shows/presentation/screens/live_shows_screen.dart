@@ -342,11 +342,7 @@ class _EmptyOrErrorState extends State<_EmptyOrError> {
         // new shows, so only a lost signal gets a message and a retry.
         if (error != null) ...[
           const SizedBox(height: 10),
-          Text(
-            error,
-            textAlign: TextAlign.center,
-            style: LiveType.body(14),
-          ),
+          Text(error, textAlign: TextAlign.center, style: LiveType.body(14)),
           const SizedBox(height: 26),
           LiveButton(
             label: 'Try again',

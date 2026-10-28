@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -128,21 +127,20 @@ class LiveWonOverlay extends StatelessWidget {
       ],
     );
 
-    Widget backdrop = BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: const Alignment(0, -0.25),
-            radius: 1.1,
-            colors: [
-              const Color(0xFF2A2114).withValues(alpha: 0.82),
-              Colors.black.withValues(alpha: 0.92),
-            ],
-          ),
+    // A deep veil, not a backdrop blur: the video under it keeps playing,
+    // and a blur would be recomputed on every one of its frames.
+    Widget backdrop = DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: RadialGradient(
+          center: const Alignment(0, -0.25),
+          radius: 1.1,
+          colors: [
+            const Color(0xFF2A2114).withValues(alpha: 0.9),
+            Colors.black.withValues(alpha: 0.95),
+          ],
         ),
-        child: const SizedBox.expand(),
       ),
+      child: const SizedBox.expand(),
     );
     if (!still) backdrop = backdrop.animate().fadeIn(duration: 300.ms);
 

@@ -175,7 +175,13 @@ class _LiveAuctionDockState extends ConsumerState<LiveAuctionDock>
 
   @override
   Widget build(BuildContext context) {
-    final s = ref.watch(liveShowRoomProvider(widget.showId));
+    // Only the lot, wallet, bid in flight and clock: chat lines arrive far
+    // more often and never change the dock.
+    final room = liveShowRoomProvider(widget.showId);
+    ref.watch(
+      room.select((s) => (s.auction, s.me, s.placingAmount, s.clockOffset)),
+    );
+    final s = ref.read(room);
     final signedIn = ref.watch(authProvider.select((a) => a.isAuthenticated));
     _armCloseTimer(s);
     final lot = s.current;
@@ -282,16 +288,19 @@ class _LiveAuctionDockState extends ConsumerState<LiveAuctionDock>
         ),
       ),
     );
-    return AnimatedBuilder(
-      animation: _shake,
-      builder: (context, child) {
-        final t = _shake.value;
-        final dx = t == 0 || t == 1
-            ? 0.0
-            : math.sin(t * math.pi * 7) * 7 * (1 - t);
-        return Transform.translate(offset: Offset(dx, 0), child: child);
-      },
-      child: dock,
+    // Its clocks and slider repaint here without repainting the stage.
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _shake,
+        builder: (context, child) {
+          final t = _shake.value;
+          final dx = t == 0 || t == 1
+              ? 0.0
+              : math.sin(t * math.pi * 7) * 7 * (1 - t);
+          return Transform.translate(offset: Offset(dx, 0), child: child);
+        },
+        child: dock,
+      ),
     );
   }
 }
@@ -360,9 +369,7 @@ class _Idle extends StatelessWidget {
             semanticLabel: 'Open the lineup',
             child: Row(
               children: [
-                _Breathing(
-                  child: LiveThumb(url: next?.image ?? last?.image, size: 44),
-                ),
+                LiveThumb(url: next?.image ?? last?.image, size: 44),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -415,21 +422,6 @@ String _resultLine(LiveAuctionLot lot) => switch (lot.status) {
   LotStatus.unsold => 'No bids on ${lot.title}',
   _ => '${lot.title} was withdrawn',
 };
-
-/// Slow opacity breath for "waiting" imagery.
-class _Breathing extends StatelessWidget {
-  const _Breathing({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    if (MediaQuery.disableAnimationsOf(context)) return child;
-    return child
-        .animate(onPlay: (c) => c.repeat(reverse: true))
-        .fade(begin: 0.6, end: 1, duration: 1600.ms, curve: Curves.easeInOut);
-  }
-}
 
 class _Expanded extends ConsumerWidget {
   const _Expanded({
@@ -1078,14 +1070,14 @@ class _Banner extends StatelessWidget {
         ],
       ),
     );
+    // One glint when the lead is taken; a looping one would keep the
+    // stage redrawing for as long as the viewer leads.
     if (!still && strong) {
-      banner = banner
-          .animate(onPlay: (c) => c.repeat())
-          .shimmer(
-            duration: 2400.ms,
-            delay: 800.ms,
-            color: Colors.white.withValues(alpha: 0.18),
-          );
+      banner = banner.animate().shimmer(
+        duration: 1600.ms,
+        delay: 300.ms,
+        color: Colors.white.withValues(alpha: 0.18),
+      );
     }
     if (!still && pulse) {
       banner = banner

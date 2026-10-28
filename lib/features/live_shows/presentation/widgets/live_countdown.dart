@@ -1,15 +1,13 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 
 import '../../domain/live_format.dart';
 import 'live_stage_tokens.dart';
 
-/// Lot clock on the server's time, redrawn 4× a second. Turns ruby and
-/// beats once a second under 10 s; reads "Closing" at 0 until the result
-/// push lands.
+/// Lot clock on the server's time, rebuilt only when the shown second
+/// changes. Turns ruby and beats on each second under 10 s; reads
+/// "Closing" at 0 until the result push lands.
 class LiveCountdown extends StatefulWidget {
   const LiveCountdown({
     required this.endsAt,
@@ -26,29 +24,64 @@ class LiveCountdown extends StatefulWidget {
   State<LiveCountdown> createState() => _LiveCountdownState();
 }
 
-class _LiveCountdownState extends State<LiveCountdown> {
+class _LiveCountdownState extends State<LiveCountdown>
+    with SingleTickerProviderStateMixin {
   Timer? _tick;
+  late final AnimationController _beat = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 260),
+    value: 1,
+  );
+
+  Duration get _left {
+    final ends = widget.endsAt;
+    return ends == null ? Duration.zero : ends.difference(widget.serverNow());
+  }
 
   @override
   void initState() {
     super.initState();
-    _tick = Timer.periodic(const Duration(milliseconds: 250), (_) {
-      if (mounted) setState(() {});
-    });
+    _schedule();
+  }
+
+  @override
+  void didUpdateWidget(covariant LiveCountdown old) {
+    super.didUpdateWidget(old);
+    _schedule();
   }
 
   @override
   void dispose() {
     _tick?.cancel();
+    _beat.dispose();
     super.dispose();
+  }
+
+  /// Wakes just past the next whole second, when the label changes.
+  void _schedule() {
+    _tick?.cancel();
+    _tick = null;
+    if (widget.endsAt == null) return;
+    final left = _left;
+    if (left <= Duration.zero) return;
+    final ms = left.inMilliseconds % 1000;
+    _tick = Timer(Duration(milliseconds: (ms == 0 ? 1000 : ms) + 5), () {
+      if (!mounted) return;
+      final now = _left;
+      if (now > Duration.zero &&
+          now < const Duration(seconds: 10) &&
+          !MediaQuery.disableAnimationsOf(context)) {
+        unawaited(_beat.forward(from: 0));
+      }
+      setState(() {});
+      _schedule();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final ends = widget.endsAt;
-    final left = ends == null
-        ? Duration.zero
-        : ends.difference(widget.serverNow());
+    final left = _left;
     final closing = ends != null && left <= Duration.zero;
     final urgent = !closing && left < const Duration(seconds: 10);
     final label = ends == null
@@ -58,17 +91,17 @@ class _LiveCountdownState extends State<LiveCountdown> {
         : liveClock(left + const Duration(milliseconds: 999));
     final hot = urgent || closing;
     final color = hot ? LiveStage.urgent : LiveStage.ink;
-    final still = MediaQuery.disableAnimationsOf(context);
-    final beat = urgent && !still
-        ? 1 + 0.08 * math.max(0, 1 - (left.inMilliseconds % 1000) / 250)
-        : 1.0;
 
     return Semantics(
       liveRegion: urgent,
       label: closing ? 'Closing' : 'Time left $label',
       excludeSemantics: true,
-      child: Transform.scale(
-        scale: beat,
+      child: AnimatedBuilder(
+        animation: _beat,
+        builder: (context, child) => Transform.scale(
+          scale: 1 + 0.08 * (1 - Curves.easeOut.transform(_beat.value)),
+          child: child,
+        ),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 240),
           padding: EdgeInsets.symmetric(
@@ -113,7 +146,8 @@ class _LiveCountdownState extends State<LiveCountdown> {
 
 /// Wraps [child] (the lot image) in a hairline ring that drains as the
 /// lot's time runs out: champagne, then ruby in the last 10 s. Painted on
-/// its own layer at display rate.
+/// its own layer, stepped about half a pixel at a time rather than every
+/// display frame.
 class LiveCountdownRing extends StatefulWidget {
   const LiveCountdownRing({
     required this.child,
@@ -138,16 +172,62 @@ class LiveCountdownRing extends StatefulWidget {
   State<LiveCountdownRing> createState() => _LiveCountdownRingState();
 }
 
-class _LiveCountdownRingState extends State<LiveCountdownRing>
-    with SingleTickerProviderStateMixin {
+class _LiveCountdownRingState extends State<LiveCountdownRing> {
   final _progress = ValueNotifier<double>(1);
-  late final Ticker _ticker = createTicker((_) => _update());
+  Timer? _tick;
+  var _enabled = true;
 
   @override
   void initState() {
     super.initState();
     _update();
-    _ticker.start();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Same rule as a Ticker: a covered route stops drawing its clock.
+    _enabled = TickerMode.valuesOf(context).enabled;
+    _restart();
+  }
+
+  @override
+  void didUpdateWidget(covariant LiveCountdownRing old) {
+    super.didUpdateWidget(old);
+    if (old.endsAt != widget.endsAt ||
+        old.startedAt != widget.startedAt ||
+        old.durationSeconds != widget.durationSeconds ||
+        old.size != widget.size) {
+      _restart();
+    }
+  }
+
+  Duration get _total {
+    final ends = widget.endsAt;
+    return widget.durationSeconds > 0
+        ? Duration(seconds: widget.durationSeconds)
+        : widget.startedAt == null || ends == null
+        ? const Duration(seconds: 60)
+        : ends.difference(widget.startedAt!);
+  }
+
+  void _restart() {
+    _tick?.cancel();
+    _tick = null;
+    _update();
+    if (!_enabled || widget.endsAt == null || _progress.value <= 0) return;
+    // The ring runs a little under 4 sides long; one step is ~0.5 px.
+    final step = _total.inMilliseconds * 0.5 / (widget.size * 3.6);
+    _tick = Timer.periodic(
+      Duration(milliseconds: step.clamp(16, 500).round()),
+      (_) {
+        _update();
+        if (_progress.value <= 0) {
+          _tick?.cancel();
+          _tick = null;
+        }
+      },
+    );
   }
 
   void _update() {
@@ -156,13 +236,8 @@ class _LiveCountdownRingState extends State<LiveCountdownRing>
       _progress.value = 1;
       return;
     }
-    final total = widget.durationSeconds > 0
-        ? Duration(seconds: widget.durationSeconds)
-        : widget.startedAt == null
-        ? const Duration(seconds: 60)
-        : ends.difference(widget.startedAt!);
     final left = ends.difference(widget.serverNow());
-    final ms = total.inMilliseconds;
+    final ms = _total.inMilliseconds;
     _progress.value = ms <= 0
         ? 0
         : (left.inMilliseconds / ms).clamp(0.0, 1.0).toDouble();
@@ -170,7 +245,7 @@ class _LiveCountdownRingState extends State<LiveCountdownRing>
 
   @override
   void dispose() {
-    _ticker.dispose();
+    _tick?.cancel();
     _progress.dispose();
     super.dispose();
   }

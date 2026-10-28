@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'dart:ui';
+import 'dart:ui' as ui;
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -11,6 +12,7 @@ import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
+import '../../../../core/utils/cdn_image_url.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../application/live_show_room.dart';
 import '../../domain/live_format.dart';
@@ -131,18 +133,22 @@ class _LiveShowScreenState extends ConsumerState<LiveShowScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final s = ref.watch(liveShowRoomProvider(widget.showId));
-    final show = s.show;
+    // The stage itself only follows the show; chat, lineup, bidding and
+    // results watch their own slices, so a comment or a bid never rebuilds
+    // the video and everything over it.
+    final room = liveShowRoomProvider(widget.showId);
+    final (show, isLoading, errorMessage) = ref.watch(
+      room.select((s) => (s.show, s.isLoading, s.errorMessage)),
+    );
     if (show == null) {
       return _Shell(
         child: AnimatedSwitcher(
           duration: LiveMotion.slow,
-          child: s.isLoading
+          child: isLoading
               ? _Joining(key: const ValueKey('joining'), onBack: _back)
               : _Unavailable(
                   key: const ValueKey('error'),
-                  message:
-                      s.errorMessage ?? 'This live show could not be found.',
+                  message: errorMessage ?? 'This live show could not be found.',
                   onRetry: _room.retry,
                   onBrowse: () =>
                       context.switchToRoute(AppRouteNames.liveShows),
@@ -154,7 +160,6 @@ class _LiveShowScreenState extends ConsumerState<LiveShowScreen> {
 
     final signedIn = ref.watch(authProvider.select((a) => a.isAuthenticated));
     final ended = show.hasEnded;
-    final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
     // Every provider has a player now; an unknown one is probed by token.
     final waiting = !ended && (!show.isStreaming || !_hasVideo);
     final still = MediaQuery.disableAnimationsOf(context);
@@ -193,20 +198,34 @@ class _LiveShowScreenState extends ConsumerState<LiveShowScreen> {
             ),
             child: _outbid == null || ended
                 ? const SizedBox(width: double.infinity)
-                : LiveOutbidBanner(
+                : Consumer(
                     key: ValueKey(_outbid!.id),
-                    lot: s.current?.id == _outbid!.id ? s.current! : _outbid!,
-                    onClose: () => setState(() => _outbid = null),
+                    builder: (context, ref, _) {
+                      final outbid = _outbid!;
+                      final current = ref.watch(room.select((s) => s.current));
+                      return LiveOutbidBanner(
+                        lot: current?.id == outbid.id ? current! : outbid,
+                        onClose: () => setState(() => _outbid = null),
+                      );
+                    },
                   ),
           ),
           if (ended) ...[
             const Spacer(),
-            _EndedPanel(
-              sellerName: show.seller.companyName,
-              results: s.results,
-              wins: s.me?.wins.length ?? 0,
-              onResults: () => _openLineup(results: true),
-              onBrowse: () => context.switchToRoute(AppRouteNames.liveShows),
+            Consumer(
+              builder: (context, ref, _) {
+                final (results, wins) = ref.watch(
+                  room.select((s) => (s.results, s.me?.wins.length ?? 0)),
+                );
+                return _EndedPanel(
+                  sellerName: show.seller.companyName,
+                  results: results,
+                  wins: wins,
+                  onResults: () => _openLineup(results: true),
+                  onBrowse: () =>
+                      context.switchToRoute(AppRouteNames.liveShows),
+                );
+              },
             ),
           ] else ...[
             // Comments take whatever height the dock leaves, up to about a
@@ -241,7 +260,7 @@ class _LiveShowScreenState extends ConsumerState<LiveShowScreen> {
                                     maxWidth:
                                         MediaQuery.sizeOf(context).width * 0.72,
                                   ),
-                                  child: LiveChatFeed(items: s.feed),
+                                  child: _Feed(showId: widget.showId),
                                 )
                               : const SizedBox(
                                   key: ValueKey('none'),
@@ -257,9 +276,8 @@ class _LiveShowScreenState extends ConsumerState<LiveShowScreen> {
                         fit: BoxFit.scaleDown,
                         alignment: Alignment.bottomCenter,
                         child: _Rail(
+                          showId: widget.showId,
                           commentsOn: _showComments,
-                          lineupCount:
-                              s.upNext.length + (s.current == null ? 0 : 1),
                           onComments: () =>
                               setState(() => _showComments = !_showComments),
                           onLineup: _openLineup,
@@ -273,9 +291,7 @@ class _LiveShowScreenState extends ConsumerState<LiveShowScreen> {
             const SizedBox(height: 12),
             // Hidden, not removed, under the keyboard: the bid number pad
             // raises it and must hand its amount back.
-            Visibility(
-              visible: !keyboard,
-              maintainState: true,
+            _HideUnderKeyboard(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: LiveAuctionDock(
@@ -287,12 +303,14 @@ class _LiveShowScreenState extends ConsumerState<LiveShowScreen> {
             const SizedBox(height: 10),
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-              child: LiveCommentBar(
-                signedIn: signedIn,
-                muted: s.chatMuted,
-                onSend: _room.sendChat,
-                onHeart: _heart,
-                onSignIn: () => openLiveSignIn(context),
+              child: Consumer(
+                builder: (context, ref, _) => LiveCommentBar(
+                  signedIn: signedIn,
+                  muted: ref.watch(room.select((s) => s.chatMuted)),
+                  onSend: _room.sendChat,
+                  onHeart: _heart,
+                  onSignIn: () => openLiveSignIn(context),
+                ),
               ),
             ),
           ],
@@ -311,10 +329,13 @@ class _LiveShowScreenState extends ConsumerState<LiveShowScreen> {
           );
     }
 
+    final won = _won;
     return _Shell(
       child: Stack(
         fit: StackFit.expand,
         children: [
+          // The video keeps the whole screen while the keyboard is up, so
+          // it never re-lays out or asks the stream for another size.
           _Poster(url: show.posterUrl, dim: _hasVideo && !ended ? 0 : 0.35),
           if (!ended)
             LiveShowPlayer(
@@ -326,64 +347,78 @@ class _LiveShowScreenState extends ConsumerState<LiveShowScreen> {
               },
               onEnded: _room.refreshShow,
             ),
-          const Positioned(
-            left: 0,
-            right: 0,
-            top: 0,
-            height: 200,
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(gradient: LiveStage.topScrim),
-              ),
+          _AboveKeyboard(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                const Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  height: 200,
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(gradient: LiveStage.topScrim),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: ended ? 560 : 420,
+                  child: const IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LiveStage.bottomScrim,
+                      ),
+                    ),
+                  ),
+                ),
+                Align(
+                  alignment: const Alignment(0, -0.35),
+                  child: AnimatedSwitcher(
+                    duration: LiveMotion.slow,
+                    child: waiting
+                        ? _Waiting(key: const ValueKey('waiting'), show: show)
+                        : const SizedBox.shrink(),
+                  ),
+                ),
+                chrome,
+                if (!ended)
+                  Positioned(
+                    right: 12,
+                    bottom: MediaQuery.paddingOf(context).bottom + 60,
+                    width: 64,
+                    height: 360,
+                    child: LiveHeartsLayer(controller: _hearts),
+                  ),
+                if (won != null)
+                  Consumer(
+                    key: ValueKey(won.id),
+                    builder: (context, ref, _) => LiveWonOverlay(
+                      lot: won,
+                      orderId: ref.watch(
+                        room.select((s) => s.me?.winFor(won.id)?.orderId),
+                      ),
+                      onViewOrder: (id) {
+                        setState(() => _won = null);
+                        openLiveOrder(context, id);
+                      },
+                      onClose: () => setState(() => _won = null),
+                    ),
+                  ),
+              ],
             ),
           ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: ended ? 560 : 420,
-            child: const IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(gradient: LiveStage.bottomScrim),
-              ),
-            ),
-          ),
-          Align(
-            alignment: const Alignment(0, -0.35),
-            child: AnimatedSwitcher(
-              duration: LiveMotion.slow,
-              child: waiting
-                  ? _Waiting(key: const ValueKey('waiting'), show: show)
-                  : const SizedBox.shrink(),
-            ),
-          ),
-          chrome,
-          if (!ended)
-            Positioned(
-              right: 12,
-              bottom: MediaQuery.paddingOf(context).bottom + 60,
-              width: 64,
-              height: 360,
-              child: LiveHeartsLayer(controller: _hearts),
-            ),
-          if (_won != null)
-            LiveWonOverlay(
-              key: ValueKey(_won!.id),
-              lot: _won!,
-              orderId: s.me?.winFor(_won!.id)?.orderId,
-              onViewOrder: (id) {
-                setState(() => _won = null);
-                openLiveOrder(context, id);
-              },
-              onClose: () => setState(() => _won = null),
-            ),
         ],
       ),
     );
   }
 }
 
-/// Black, edge-to-edge frame with light status-bar icons.
+/// Black, edge-to-edge frame with light status-bar icons. The body is not
+/// resized for the keyboard; [_AboveKeyboard] lifts only the chrome.
 class _Shell extends StatelessWidget {
   const _Shell({required this.child});
 
@@ -395,10 +430,54 @@ class _Shell extends StatelessWidget {
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: LiveStage.void_,
-        resizeToAvoidBottomInset: true,
+        resizeToAvoidBottomInset: false,
         body: child,
       ),
     );
+  }
+}
+
+/// Lifts [child] clear of the keyboard. Only this rebuilds on each frame
+/// of the keyboard animation; [child] is reused as is.
+class _AboveKeyboard extends StatelessWidget {
+  const _AboveKeyboard({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: child,
+    );
+  }
+}
+
+class _HideUnderKeyboard extends StatelessWidget {
+  const _HideUnderKeyboard({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Visibility(
+      visible: MediaQuery.viewInsetsOf(context).bottom == 0,
+      maintainState: true,
+      child: child,
+    );
+  }
+}
+
+/// The comment feed, rebuilt only when it changes.
+class _Feed extends ConsumerWidget {
+  const _Feed({required this.showId});
+
+  final String showId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final feed = ref.watch(liveShowRoomProvider(showId).select((s) => s.feed));
+    return LiveChatFeed(items: feed);
   }
 }
 
@@ -411,19 +490,111 @@ class _Poster extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (url == null) return const LiveAurora();
+    final width = MediaQuery.sizeOf(context).width;
+    final dpr = MediaQuery.devicePixelRatioOf(context);
     return Stack(
       fit: StackFit.expand,
       children: [
-        ImageFiltered(
-          imageFilter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-          child: AppNetworkImage(url: url!),
+        _BlurredPoster(url: url!),
+        AppNetworkImage(
+          url: url!,
+          fit: BoxFit.contain,
+          memCacheWidth: (width * dpr).round(),
         ),
-        AppNetworkImage(url: url!, fit: BoxFit.contain),
         AnimatedContainer(
           duration: LiveMotion.slow,
           color: Colors.black.withValues(alpha: 0.3 + dim),
         ),
       ],
+    );
+  }
+}
+
+/// The poster as a soft colour wash behind letterboxed video. It is
+/// decoded tiny, blurred once into an image and stretched to fill: a live
+/// blur filter here would re-run over the whole screen on every frame of
+/// the stream.
+class _BlurredPoster extends StatefulWidget {
+  const _BlurredPoster({required this.url});
+
+  final String url;
+
+  @override
+  State<_BlurredPoster> createState() => _BlurredPosterState();
+}
+
+class _BlurredPosterState extends State<_BlurredPoster> {
+  static const _decodeWidth = 48;
+
+  ImageStream? _stream;
+  late final _listener = ImageStreamListener(_onImage, onError: (_, _) {});
+  ui.Image? _image;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _resolve();
+  }
+
+  @override
+  void didUpdateWidget(covariant _BlurredPoster old) {
+    super.didUpdateWidget(old);
+    if (old.url != widget.url) _resolve();
+  }
+
+  void _resolve() {
+    final url = CdnImageUrl.normalize(widget.url) ?? widget.url;
+    final stream = ResizeImage(
+      CachedNetworkImageProvider(url),
+      width: _decodeWidth,
+    ).resolve(createLocalImageConfiguration(context));
+    if (stream.key == _stream?.key) return;
+    _stream?.removeListener(_listener);
+    _stream = stream..addListener(_listener);
+  }
+
+  void _onImage(ImageInfo info, bool _) {
+    final src = info.image;
+    final recorder = ui.PictureRecorder();
+    Canvas(recorder).drawImage(
+      src,
+      Offset.zero,
+      Paint()
+        ..imageFilter = ui.ImageFilter.blur(
+          sigmaX: 2.5,
+          sigmaY: 2.5,
+          tileMode: TileMode.clamp,
+        ),
+    );
+    final picture = recorder.endRecording();
+    final blurred = picture.toImageSync(src.width, src.height);
+    picture.dispose();
+    info.dispose();
+    if (!mounted) {
+      blurred.dispose();
+      return;
+    }
+    setState(() {
+      _image?.dispose();
+      _image = blurred;
+    });
+  }
+
+  @override
+  void dispose() {
+    _stream?.removeListener(_listener);
+    _image?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final image = _image;
+    if (image == null) return const SizedBox.expand();
+    return RawImage(
+      image: image,
+      fit: BoxFit.cover,
+      filterQuality: FilterQuality.medium,
     );
   }
 }
@@ -585,21 +756,26 @@ class _Header extends StatelessWidget {
 
 /// Labelled toggles on the right edge: the lineup (with how many pieces
 /// are up or coming) and the chat.
-class _Rail extends StatelessWidget {
+class _Rail extends ConsumerWidget {
   const _Rail({
+    required this.showId,
     required this.commentsOn,
-    required this.lineupCount,
     required this.onComments,
     required this.onLineup,
   });
 
+  final String showId;
   final bool commentsOn;
-  final int lineupCount;
   final VoidCallback onComments;
   final VoidCallback onLineup;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lineupCount = ref.watch(
+      liveShowRoomProvider(
+        showId,
+      ).select((s) => s.upNext.length + (s.current == null ? 0 : 1)),
+    );
     Widget item(Widget button, String label) => Column(
       mainAxisSize: MainAxisSize.min,
       children: [

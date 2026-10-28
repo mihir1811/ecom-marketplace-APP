@@ -3,6 +3,15 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import 'live_stage_tokens.dart';
 
+// Built once: the sheet rebuilds on every keyboard frame, and a ThemeData
+// is costly to make.
+final _sheetTheme = ThemeData.dark(useMaterial3: true).copyWith(
+  textSelectionTheme: const TextSelectionThemeData(
+    cursorColor: LiveStage.champagne,
+    selectionHandleColor: LiveStage.champagne,
+  ),
+);
+
 /// Noir bottom sheet for everything opened over the stage: a grab handle,
 /// a serif title, an optional line under it, then [builder]'s content,
 /// which fades up a beat after the sheet lands.
@@ -59,12 +68,7 @@ Future<T?> showLiveSheet<T>(
             ],
           ),
           child: Theme(
-            data: ThemeData.dark(useMaterial3: true).copyWith(
-              textSelectionTheme: const TextSelectionThemeData(
-                cursorColor: LiveStage.champagne,
-                selectionHandleColor: LiveStage.champagne,
-              ),
-            ),
+            data: _sheetTheme,
             child: Material(
               type: MaterialType.transparency,
               child: Column(

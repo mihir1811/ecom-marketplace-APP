@@ -32,42 +32,45 @@ class LiveChatFeed extends StatelessWidget {
         ),
       );
     }
-    return ShaderMask(
-      shaderCallback: (rect) => const LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [Colors.transparent, Colors.black, Colors.black],
-        stops: [0, 0.32, 1],
-      ).createShader(rect),
-      blendMode: BlendMode.dstIn,
-      child: ListView.builder(
-        reverse: true,
-        padding: const EdgeInsets.only(top: 48, bottom: 2),
-        physics: const BouncingScrollPhysics(),
-        itemCount: shown.length,
-        itemBuilder: (context, i) {
-          final item = shown[shown.length - 1 - i];
-          Widget line = Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: item.isMoment ? _Moment(item: item) : _Comment(item: item),
-            ),
-          );
-          if (!still && i == 0) {
-            line = line
-                .animate(key: ValueKey(item.id))
-                .fadeIn(duration: 280.ms)
-                .moveY(
-                  begin: 14,
-                  end: 0,
-                  duration: 380.ms,
-                  curve: Curves.easeOutCubic,
-                )
-                .blurXY(begin: 6, end: 0, duration: 300.ms);
-          }
-          return KeyedSubtree(key: ValueKey(item.id), child: line);
-        },
+    return RepaintBoundary(
+      child: ShaderMask(
+        shaderCallback: (rect) => const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.transparent, Colors.black, Colors.black],
+          stops: [0, 0.32, 1],
+        ).createShader(rect),
+        blendMode: BlendMode.dstIn,
+        child: ListView.builder(
+          reverse: true,
+          padding: const EdgeInsets.only(top: 48, bottom: 2),
+          physics: const BouncingScrollPhysics(),
+          itemCount: shown.length,
+          itemBuilder: (context, i) {
+            final item = shown[shown.length - 1 - i];
+            Widget line = Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: item.isMoment
+                    ? _Moment(item: item)
+                    : _Comment(item: item),
+              ),
+            );
+            if (!still && i == 0) {
+              line = line
+                  .animate(key: ValueKey(item.id))
+                  .fadeIn(duration: 280.ms)
+                  .moveY(
+                    begin: 14,
+                    end: 0,
+                    duration: 380.ms,
+                    curve: Curves.easeOutCubic,
+                  );
+            }
+            return KeyedSubtree(key: ValueKey(item.id), child: line);
+          },
+        ),
       ),
     );
   }
@@ -170,7 +173,9 @@ class _Comment extends StatelessWidget {
   }
 }
 
-const _shadow = [Shadow(blurRadius: 8, color: Color(0xB3000000))];
+// A crisp drop rather than a blurred halo: a blurred shadow is one
+// offscreen pass per line, redrawn with every video frame.
+const _shadow = [Shadow(offset: Offset(0, 1), color: Color(0xCC000000))];
 
 class _Moment extends StatelessWidget {
   const _Moment({required this.item});

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../domain/live_format.dart';
 import '../../domain/models/live_show_models.dart';
+import 'live_ambient.dart';
 import 'live_stage_tokens.dart';
 
 /// Portrait show card. The cover drifts in a slow push-in so the card
@@ -21,7 +21,6 @@ class LiveShowCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final poster = show.posterUrl;
     final dpr = MediaQuery.devicePixelRatioOf(context);
-    final still = MediaQuery.disableAnimationsOf(context);
     final radius = featured ? 30.0 : 22.0;
 
     Widget cover = poster == null
@@ -30,16 +29,7 @@ class LiveShowCard extends StatelessWidget {
             url: poster,
             memCacheWidth: ((featured ? 460 : 240) * dpr).round(),
           );
-    if (!still && poster != null) {
-      cover = cover
-          .animate(onPlay: (c) => c.repeat(reverse: true))
-          .scaleXY(
-            begin: 1,
-            end: featured ? 1.08 : 1.05,
-            duration: (featured ? 14 : 11).seconds,
-            curve: Curves.easeInOut,
-          );
-    }
+    if (poster != null) cover = _PushIn(featured: featured, child: cover);
 
     final description = show.description?.trim();
     return LivePressable(
@@ -203,6 +193,33 @@ class LiveShowCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Slow push-in and back (8% over 14 s on the hero, 5% over 11 s on
+/// cards), on the ambient clock: a few pixels a second needs no more.
+class _PushIn extends StatelessWidget {
+  const _PushIn({required this.featured, required this.child});
+
+  final bool featured;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final period = featured ? 14.0 : 11.0;
+    final depth = featured ? 0.08 : 0.05;
+    return LiveAmbient(
+      builder: (context, time) => AnimatedBuilder(
+        animation: time,
+        builder: (context, child) {
+          // 0 → 1 → 0 over two periods, eased at both ends.
+          final phase = (time.value / period) % 2;
+          final t = Curves.easeInOut.transform(phase > 1 ? 2 - phase : phase);
+          return Transform.scale(scale: 1 + depth * t, child: child);
+        },
+        child: child,
       ),
     );
   }

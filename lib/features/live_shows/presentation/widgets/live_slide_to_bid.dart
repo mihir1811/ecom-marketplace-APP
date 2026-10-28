@@ -47,14 +47,23 @@ class _LiveSlideToBidState extends State<LiveSlideToBid>
     damping: 18,
   );
 
+  static const _hintRest = Duration(milliseconds: 1600);
+
   /// 0 = home, 1 = end of the track; unbounded so the spring can overshoot.
   late final AnimationController _pos = AnimationController.unbounded(
     vsync: this,
   );
-  late final AnimationController _hint = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 2200),
-  )..repeat();
+
+  /// One sweep of the label highlight; it then rests, so the stage draws
+  /// no frames for it in between.
+  late final AnimationController _hint =
+      AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 1100),
+      )..addStatusListener((s) {
+        if (s == AnimationStatus.completed) _restHint();
+      });
+  Timer? _hintTimer;
 
   var _submitting = false;
   var _armed = false;
@@ -62,10 +71,31 @@ class _LiveSlideToBidState extends State<LiveSlideToBid>
   bool get _enabled => widget.onSubmit != null && !widget.busy;
 
   @override
+  void initState() {
+    super.initState();
+    _restHint();
+  }
+
+  @override
   void dispose() {
+    _hintTimer?.cancel();
     _pos.dispose();
     _hint.dispose();
     super.dispose();
+  }
+
+  void _restHint() {
+    _hintTimer?.cancel();
+    _hintTimer = Timer(_hintRest, () {
+      if (!mounted) return;
+      if (_enabled &&
+          !_submitting &&
+          !MediaQuery.disableAnimationsOf(context)) {
+        unawaited(_hint.forward(from: 0));
+      } else {
+        _restHint();
+      }
+    });
   }
 
   void _drag(DragUpdateDetails d, double travel) {
@@ -138,7 +168,7 @@ class _LiveSlideToBidState extends State<LiveSlideToBid>
                 unawaited(_release(d.primaryVelocity ?? 0, travel)),
             onHorizontalDragCancel: () => unawaited(_release(0, travel)),
             child: AnimatedBuilder(
-              animation: Listenable.merge([_pos, _hint]),
+              animation: _pos,
               builder: (context, _) {
                 final t = _pos.value.clamp(-0.05, 1.05);
                 final x = _pad + travel * t;
@@ -190,10 +220,17 @@ class _LiveSlideToBidState extends State<LiveSlideToBid>
                                 ? 1
                                 : (1 - t * 1.6).clamp(0.0, 1.0),
                             child: Center(
-                              child: _Label(
-                                text: working ? 'Placing your bid…' : label,
-                                onFill: working,
-                                shimmer: still || working ? null : _hint.value,
+                              child: AnimatedBuilder(
+                                animation: _hint,
+                                // The sweep crosses the label between
+                                // 0.1 and 0.57.
+                                builder: (context, _) => _Label(
+                                  text: working ? 'Placing your bid…' : label,
+                                  onFill: working,
+                                  shimmer: still || working
+                                      ? null
+                                      : 0.1 + _hint.value * 0.47,
+                                ),
                               ),
                             ),
                           ),
