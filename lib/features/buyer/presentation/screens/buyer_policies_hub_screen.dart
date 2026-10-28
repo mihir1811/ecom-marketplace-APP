@@ -131,7 +131,7 @@ class _BuyerPoliciesHubScreenState extends State<BuyerPoliciesHubScreen> {
                       )
                     else if (visible.isEmpty)
                       reveal(
-                        MaisonEmptyState(
+                        const MaisonEmptyState(
                           title: 'No matching policies',
                           message: 'Try a different search term.',
                         ),

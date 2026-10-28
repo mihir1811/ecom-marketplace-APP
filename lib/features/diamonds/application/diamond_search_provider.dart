@@ -834,7 +834,7 @@ int computeMatchingCount(Ref ref) {
   multiplier *= (priceSpan / DiamondFilterState.priceMax).clamp(0.02, 1.0);
 
   final caratSpan = state.maxCarat - state.minCarat;
-  final caratFullSpan =
+  const caratFullSpan =
       DiamondFilterState.caratMax - DiamondFilterState.caratMin;
   multiplier *= (caratSpan / caratFullSpan).clamp(0.02, 1.0);
 

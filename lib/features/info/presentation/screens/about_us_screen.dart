@@ -231,7 +231,7 @@ class AboutUsScreen extends StatelessWidget {
           LayoutBuilder(
             builder: (context, constraints) {
               final cols = constraints.maxWidth >= 640 ? 2 : 1;
-              final gap = 12.0;
+              const gap = 12.0;
               final w = (constraints.maxWidth - gap * (cols - 1)) / cols;
               return Wrap(
                 spacing: gap,

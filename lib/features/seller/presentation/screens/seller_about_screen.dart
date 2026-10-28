@@ -196,7 +196,7 @@ class SellerAboutScreen extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    AtelierIconBadge(icon: Icons.storefront_outlined),
+                    const AtelierIconBadge(icon: Icons.storefront_outlined),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(

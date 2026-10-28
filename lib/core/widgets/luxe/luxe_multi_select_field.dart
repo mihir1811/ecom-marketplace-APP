@@ -114,7 +114,7 @@ class LuxeMultiSelectField extends StatelessWidget {
                         ),
                         decoration: ShapeDecoration(
                           color: AppColors.bronze,
-                          shape: StadiumBorder(),
+                          shape: const StadiumBorder(),
                         ),
                         child: Text(
                           '${selected.length}',

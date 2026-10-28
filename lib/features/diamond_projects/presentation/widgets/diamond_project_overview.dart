@@ -99,7 +99,7 @@ class DiamondProjectHero extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(compact ? 22 : 28),
         gradient: RadialGradient(
-          center: Alignment(0.75, -0.4),
+          center: const Alignment(0.75, -0.4),
           radius: 1.2,
           colors: [LuxeStage.raised, LuxeStage.obsidian],
         ),

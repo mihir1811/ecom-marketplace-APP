@@ -35,8 +35,9 @@ const _cancelledPayments = {'CANCELLED', 'CANCELED', 'FAILED'};
 SellerOrderCategory sellerOrderCategoryOf(SellerOrder order) {
   final payment = order.paymentStatus?.trim().toUpperCase() ?? '';
   final raw = order.rawStatus.trim().toUpperCase();
-  if (_cancelledPayments.contains(payment))
+  if (_cancelledPayments.contains(payment)) {
     return SellerOrderCategory.cancelled;
+  }
   return switch (order.status) {
     SellerOrderStatus.pending => SellerOrderCategory.pending,
     SellerOrderStatus.accepted => SellerOrderCategory.confirmed,

@@ -92,8 +92,8 @@ class AppTheme {
           borderRadius: const BorderRadius.all(Radius.circular(AppSpacing.r8)),
           borderSide: BorderSide(color: c.charcoal, width: 1.5),
         ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(AppSpacing.r8)),
+        errorBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(AppSpacing.r8)),
           borderSide: BorderSide(color: AppColors.error, width: 1.0),
         ),
         labelStyle: AppTypography.label.copyWith(color: c.textSecondaryLight),
@@ -255,8 +255,8 @@ class AppTheme {
           borderRadius: const BorderRadius.all(Radius.circular(AppSpacing.r8)),
           borderSide: BorderSide(color: c.bronzeLight, width: 1.5),
         ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(AppSpacing.r8)),
+        errorBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(AppSpacing.r8)),
           borderSide: BorderSide(color: AppColors.error, width: 1.0),
         ),
         labelStyle: AppTypography.label.copyWith(color: c.textSecondaryDark),

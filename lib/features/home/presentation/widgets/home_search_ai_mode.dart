@@ -250,7 +250,7 @@ class _GemAiMark extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(
-          center: Alignment(-0.35, -0.45),
+          center: const Alignment(-0.35, -0.45),
           radius: 1.05,
           colors: [HomeStage.raised, HomeStage.obsidian],
         ),
