@@ -58,6 +58,16 @@ dependencies:
   livekit_client: ^2.13.2
   wakelock_plus: ^1.8.2
   video_player: ^2.14.1
+
+# Vendored copies (pub 1.6.3 / 2.13.2) with the conditional `apply plugin: 'kotlin-android'`
+# removed: Flutter's KGP check greps for that line and warns even though it never runs.
+# Drop these once upstream releases ship without it.
+dependency_overrides:
+  flutter_webrtc:
+    path: third_party/flutter_webrtc
+  livekit_client:
+    path: third_party/livekit_client
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

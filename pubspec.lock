@@ -686,12 +686,11 @@ packages:
     source: sdk
     version: "0.0.0"
   flutter_webrtc:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: flutter_webrtc
-      sha256: b98ef03376401e54ff87fc78907b38e562b15ca8424aba589c263eddc3c1ecf9
-      url: "https://pub.dev"
-    source: hosted
+      path: "third_party/flutter_webrtc"
+      relative: true
+    source: path
     version: "1.6.3"
   freezed_annotation:
     dependency: transitive
@@ -928,10 +927,9 @@ packages:
   livekit_client:
     dependency: "direct main"
     description:
-      name: livekit_client
-      sha256: c63211bd5073b308417de2b048809c156f50cb5bda02713150478742be2a1bc1
-      url: "https://pub.dev"
-    source: hosted
+      path: "third_party/livekit_client"
+      relative: true
+    source: path
     version: "2.13.2"
   logger:
     dependency: transitive
