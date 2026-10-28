@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../features/home/presentation/home_content.dart';
 import '../../../haptics/app_haptics.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../router/route_names.dart';
 import '../../../theme/luxe_tokens.dart';
 import '../../app_network_image.dart';
 
@@ -165,6 +166,17 @@ class _CategoryMenu extends StatelessWidget {
                               ],
                             ),
                           ),
+                          const SizedBox(height: 14),
+                          _LiveShowsRow(
+                            reveal: CurvedAnimation(
+                              parent: animation,
+                              curve: const Interval(
+                                0.3,
+                                1,
+                                curve: LuxeMotion.settle,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -235,6 +247,63 @@ class _CategoryTile extends StatelessWidget {
                 style: LuxeType.label(p.ink, size: 12),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Live shows sit beside the categories so every viewer, signed in or not,
+/// reaches them from the dock.
+class _LiveShowsRow extends StatelessWidget {
+  const _LiveShowsRow({required this.reveal});
+
+  final Animation<double> reveal;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    final title = context.tr(NavL10n.liveShows);
+
+    return FadeTransition(
+      opacity: reveal,
+      child: Semantics(
+        button: true,
+        label: title,
+        excludeSemantics: true,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
+          onTap: () {
+            AppHaptics.selection();
+            Navigator.of(context).pop(AppRouteNames.liveShows);
+          },
+          child: Ink(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: p.surfaceRaised,
+              borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
+              border: Border.all(color: p.hairline, width: 0.8),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.live_tv_outlined,
+                  size: 20,
+                  color: Color(0xFFFF3D57),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: LuxeType.label(p.ink, size: 13),
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded, size: 20, color: p.inkMuted),
+              ],
+            ),
           ),
         ),
       ),
