@@ -130,7 +130,7 @@ class AppTopBar extends ConsumerWidget implements PreferredSizeWidget {
               isLabelVisible: liveCartCount > 0,
               label: Text('$liveCartCount'),
               backgroundColor: AppColors.bronze,
-              child: const Icon(Icons.shopping_bag_outlined),
+              child: const Icon(Icons.shopping_cart_outlined),
             ),
           ),
         );

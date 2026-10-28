@@ -106,7 +106,7 @@ class AppTabTopBar extends ConsumerWidget implements PreferredSizeWidget {
                         backgroundColor: p.accent,
                         textColor: p.onAccent,
                         label: Text(bag > 99 ? '99+' : '$bag'),
-                        child: const Icon(Icons.shopping_bag_outlined),
+                        child: const Icon(Icons.shopping_cart_outlined),
                       ),
                     ),
                   const SizedBox(width: 6),

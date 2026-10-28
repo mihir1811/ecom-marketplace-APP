@@ -144,7 +144,7 @@ class MaisonTopBar extends ConsumerWidget implements PreferredSizeWidget {
                         ),
                 ),
                 AtelierIconButton(
-                  icon: Icons.shopping_bag_outlined,
+                  icon: Icons.shopping_cart_outlined,
                   tooltip: context.tr(CoreL10n.cart),
                   badgeCount: bag,
                   onPressed: () => context.openRoute(AppRouteNames.cart),

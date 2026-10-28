@@ -15,7 +15,6 @@ import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
-import '../../../jewelry_checkout/presentation/widgets/jewelry_bag_button.dart';
 import '../../../product_detail/presentation/widgets/luxe/luxe_detail_parts.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/jewellery_categories_provider.dart';
@@ -297,8 +296,7 @@ class _JewelryHouseCollectionScreenState
               solidAfter: heroHeight - topInset,
               darkBackdrop: true,
               actions: (glass) => [
-                JewelryBagButton(glass: glass),
-                CatalogFlowActions(glass: glass),
+                CatalogFlowActions(glass: glass, jewelryBag: true),
               ],
             ),
           ),

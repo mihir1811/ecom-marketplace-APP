@@ -556,21 +556,28 @@ class _IvsRealtimePlayerState extends ConsumerState<_IvsRealtimePlayer> {
     widget.onVideo(has);
   }
 
+  // The charset matters: inline HTML has none by default, and the SDK
+  // (served without one) then fails to parse, so no video ever arrives.
+  // WebKit ignores tracks added to a stream already playing, so every
+  // change re-attaches a fresh MediaStream.
   String _html(String token) =>
       '''
-<!doctype html><html><head>
+<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <style>html,body{margin:0;height:100%;background:transparent;overflow:hidden}
 video{position:fixed;inset:0;width:100%;height:100%;object-fit:contain}</style>
-<script src="$_sdk"></script>
+<script src="$_sdk" charset="utf-8"></script>
 </head><body><video id="v" autoplay playsinline></video><script>
 (function(){
   function post(n,d){try{window.flutter_inappwebview.callHandler(n,d)}catch(e){}}
   if(!window.IVSBroadcastClient){post('ivsError','sdk not loaded');return}
   var C=IVSBroadcastClient, video=document.getElementById('v');
-  var media=new MediaStream(); video.srcObject=media; video.muted=${widget.muted};
+  var media=new MediaStream(); video.muted=${widget.muted};
   window.setMuted=function(m){video.muted=m; if(!m) video.play().catch(function(){})};
-  function play(){video.play().catch(function(){video.muted=true;video.play().catch(function(){})})}
+  function play(){
+    video.srcObject=new MediaStream(media.getTracks());
+    video.play().catch(function(){video.muted=true;video.play().catch(function(){})});
+  }
   var strategy={
     stageStreamsToPublish:function(){return []},
     shouldPublishParticipant:function(){return false},
@@ -593,6 +600,7 @@ video{position:fixed;inset:0;width:100%;height:100%;object-fit:contain}</style>
   });
   stage.on(C.StageEvents.STAGE_PARTICIPANT_STREAMS_REMOVED,function(p,streams){
     streams.forEach(function(s){try{media.removeTrack(s.mediaStreamTrack)}catch(e){}});
+    if(media.getTracks().length) play();
     if(owner===p.id && !media.getVideoTracks().length){owner=null;post('ivsVideo',false)}
   });
   stage.on(C.StageEvents.STAGE_PARTICIPANT_LEFT,function(p){

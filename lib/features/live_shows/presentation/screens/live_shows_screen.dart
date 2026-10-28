@@ -338,25 +338,24 @@ class _EmptyOrErrorState extends State<_EmptyOrError> {
           textAlign: TextAlign.center,
           style: LiveType.display(32),
         ),
-        const SizedBox(height: 10),
-        Text(
-          error ??
-              'Shows appear here the moment a seller goes live. We check '
-                  'every 30 seconds, or pull down to look again.',
-          textAlign: TextAlign.center,
-          style: LiveType.body(14),
-        ),
-        const SizedBox(height: 26),
-        LiveButton(
-          label: error != null ? 'Try again' : 'Check again',
-          icon: Icons.refresh_rounded,
-          kind: error != null
-              ? LiveButtonKind.primary
-              : LiveButtonKind.secondary,
-          expand: false,
-          busy: _busy,
-          onTap: _retry,
-        ),
+        // Empty state stays quiet: polling and pull-to-refresh pick up
+        // new shows, so only a lost signal gets a message and a retry.
+        if (error != null) ...[
+          const SizedBox(height: 10),
+          Text(
+            error,
+            textAlign: TextAlign.center,
+            style: LiveType.body(14),
+          ),
+          const SizedBox(height: 26),
+          LiveButton(
+            label: 'Try again',
+            icon: Icons.refresh_rounded,
+            expand: false,
+            busy: _busy,
+            onTap: _retry,
+          ),
+        ],
       ],
     );
     if (!still) {

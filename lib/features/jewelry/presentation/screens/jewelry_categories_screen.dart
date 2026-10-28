@@ -16,7 +16,6 @@ import '../../../../core/widgets/luxe/luxe_metal_swatch.dart';
 import '../../../../core/widgets/luxe/press_tilt.dart';
 import '../../../../core/widgets/luxe/scroll_reveal.dart';
 import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
-import '../../../jewelry_checkout/presentation/widgets/jewelry_bag_button.dart';
 import '../../../product_detail/presentation/widgets/luxe/luxe_detail_parts.dart';
 import '../../application/jewellery_categories_provider.dart';
 import '../../application/jewelry_catalogue_providers.dart';
@@ -184,8 +183,7 @@ class _JewelryCategoriesScreenState
               solidAfter: topInset + 120,
               darkBackdrop: true,
               actions: (glass) => [
-                JewelryBagButton(glass: glass),
-                CatalogFlowActions(glass: glass),
+                CatalogFlowActions(glass: glass, jewelryBag: true),
               ],
             ),
           ),
