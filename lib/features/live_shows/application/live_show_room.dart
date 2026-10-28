@@ -454,22 +454,27 @@ class LiveShowRoomController
     if (state.placingAmount != null) {
       return const LiveBidRejected('Your last bid is still being placed.');
     }
+    // Always check the wallet fresh-ish: never send a bid the wallet can't
+    // cover, and never send one blind when the wallet couldn't be read.
     var me = state.me;
     if (me == null) {
       await refreshMe();
       me = state.me;
     }
-    if (me != null) {
-      if (me.isSeller) {
-        return const LiveBidRejected('You cannot bid in your own show.');
-      }
-      if (me.leadingAmount(lot.id) != null) {
-        return const LiveBidRejected("You're already the highest bidder.");
-      }
-      if (!me.hasDeliveryAddress) return const LiveBidNeedsAddress();
-      final free = me.wallet.availableBalance;
-      if (amount > free) return LiveBidNeedsTopUp(amount - free);
+    if (me == null) {
+      return const LiveBidRejected(
+        "We couldn't check your wallet. Please try again.",
+      );
     }
+    if (me.isSeller) {
+      return const LiveBidRejected('You cannot bid in your own show.');
+    }
+    if (me.leadingAmount(lot.id) != null) {
+      return const LiveBidRejected("You're already the highest bidder.");
+    }
+    if (!me.hasDeliveryAddress) return const LiveBidNeedsAddress();
+    final free = me.wallet.availableBalance;
+    if (amount > free) return LiveBidNeedsTopUp(amount - free);
     if (amount < lot.minNextBid) {
       return LiveBidRejected(
         'The minimum bid is ${liveInr(lot.minNextBid)}.',

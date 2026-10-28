@@ -9,14 +9,42 @@ enum LiveProvider {
   cloudflare,
   unknown;
 
-  static LiveProvider fromApi(Object? raw) =>
-      switch (raw?.toString().trim().toUpperCase()) {
-        'LIVEKIT' => LiveProvider.livekit,
-        'AWS_IVS_REALTIME' => LiveProvider.awsIvsRealtime,
-        'AWS_IVS' => LiveProvider.awsIvs,
-        'CLOUDFLARE' => LiveProvider.cloudflare,
-        _ => LiveProvider.unknown,
-      };
+  /// Tolerates case and separators (`LiveKit`, `aws-ivs-realtime`,
+  /// `IVS_REAL_TIME`, `cloudflare_stream`).
+  static LiveProvider fromApi(Object? raw) {
+    final key = (raw?.toString() ?? '').toUpperCase().replaceAll(
+      RegExp('[^A-Z0-9]'),
+      '',
+    );
+    if (key.isEmpty) return LiveProvider.unknown;
+    if (key.contains('LIVEKIT')) return LiveProvider.livekit;
+    if (key.contains('IVS')) {
+      return key.contains('REALTIME') || key.contains('STAGE')
+          ? LiveProvider.awsIvsRealtime
+          : LiveProvider.awsIvs;
+    }
+    if (key.contains('CLOUDFLARE')) return LiveProvider.cloudflare;
+    return LiveProvider.unknown;
+  }
+
+  /// [fromApi], falling back to what [playbackUrl] looks like when the
+  /// provider is missing or new.
+  static LiveProvider resolve(Object? raw, String? playbackUrl) {
+    final named = fromApi(raw);
+    if (named != LiveProvider.unknown) return named;
+    final url = (playbackUrl ?? '').toLowerCase();
+    if (url.isEmpty) return LiveProvider.unknown;
+    if (url.contains('livekit') ||
+        url.startsWith('wss://') ||
+        url.startsWith('ws://')) {
+      return LiveProvider.livekit;
+    }
+    if (url.contains('.m3u8')) return LiveProvider.awsIvs;
+    if (url.contains('cloudflarestream') || url.contains('videodelivery')) {
+      return LiveProvider.cloudflare;
+    }
+    return LiveProvider.unknown;
+  }
 }
 
 class LiveSeller {

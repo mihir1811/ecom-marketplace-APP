@@ -159,13 +159,8 @@ class _LiveShowScreenState extends ConsumerState<LiveShowScreen> {
     final signedIn = ref.watch(authProvider.select((a) => a.isAuthenticated));
     final ended = show.hasEnded;
     final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
-    final playable = switch (show.provider) {
-      LiveProvider.livekit ||
-      LiveProvider.awsIvs ||
-      LiveProvider.cloudflare => true,
-      _ => false,
-    };
-    final waiting = !ended && playable && (!show.isStreaming || !_hasVideo);
+    // Every provider has a player now; an unknown one is probed by token.
+    final waiting = !ended && (!show.isStreaming || !_hasVideo);
 
     return _Shell(
       child: Stack(
@@ -215,7 +210,7 @@ class _LiveShowScreenState extends ConsumerState<LiveShowScreen> {
                 _Header(
                   show: show,
                   muted: _muted,
-                  canMute: !ended && playable,
+                  canMute: !ended,
                   onBack: () =>
                       context.goBack(fallbackLocation: AppRouteNames.liveShows),
                   onMute: () => setState(() => _muted = !_muted),
@@ -296,14 +291,19 @@ class _LiveShowScreenState extends ConsumerState<LiveShowScreen> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  if (!keyboard)
-                    Padding(
+                  // Hidden, not removed, under the keyboard: the bid
+                  // number pad raises it and must hand its amount back.
+                  Visibility(
+                    visible: !keyboard,
+                    maintainState: true,
+                    child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: LiveAuctionDock(
                         showId: widget.showId,
                         onOpenLineup: _openLineup,
                       ),
                     ),
+                  ),
                   const SizedBox(height: 10),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),

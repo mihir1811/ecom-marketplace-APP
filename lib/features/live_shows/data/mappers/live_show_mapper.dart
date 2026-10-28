@@ -33,9 +33,16 @@ abstract final class LiveShowMapper {
 
   static LiveShow showFromJson(Map<String, dynamic> json) {
     final seller = _map(json['seller']) ?? const {};
+    final playbackUrl = _str(json['playbackUrl']);
     return LiveShow(
       id: _str(json['id']) ?? '',
-      provider: LiveProvider.fromApi(json['provider']),
+      provider: LiveProvider.resolve(
+        json['provider'] ??
+            json['streamProvider'] ??
+            json['streamingProvider'] ??
+            json['providerType'],
+        playbackUrl,
+      ),
       title: _str(json['title']) ?? 'Live show',
       description: _str(json['description']),
       thumbnailUrl: _str(json['thumbnailUrl']),
@@ -45,7 +52,7 @@ abstract final class LiveShowMapper {
       peakViewerCount: _int(json['peakViewerCount']) ?? 0,
       startedAt: _date(json['startedAt']),
       endedAt: _date(json['endedAt']),
-      playbackUrl: _str(json['playbackUrl']),
+      playbackUrl: playbackUrl,
       seller: LiveSeller(
         id: _str(seller['id']) ?? '',
         companyName: _str(seller['companyName']) ?? 'Seller',
@@ -163,11 +170,15 @@ abstract final class LiveShowMapper {
 
   static LiveViewerToken? tokenFromEnvelope(Object? root) {
     final json = _map(data(root));
-    final token = json == null ? null : _str(json['token']);
+    final token = json == null
+        ? null
+        : _str(
+            json['token'] ?? json['participantToken'] ?? json['accessToken'],
+          );
     if (token == null) return null;
     return LiveViewerToken(
       token: token,
-      serverUrl: _str(json!['serverUrl']),
+      serverUrl: _str(json!['serverUrl'] ?? json['url'] ?? json['wsUrl']),
       expiresAt: _date(json['expiresAt']),
     );
   }

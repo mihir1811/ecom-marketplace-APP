@@ -10,8 +10,9 @@ import '../../domain/models/live_show_models.dart';
 
 const _maxBid = 100000000;
 
-/// Custom bid: whole rupees, at least `minNextBid`, nudged by the lot's
-/// bid step. Returns the amount to send, or `null`.
+/// Number pad for the bid box: whole rupees, at least `minNextBid`, nudged
+/// by the lot's bid step. Returns the amount to put in the box (the slider
+/// then places it), or `null`.
 Future<int?> showLiveBidSheet(
   BuildContext context, {
   required LiveAuctionLot lot,
@@ -24,76 +25,6 @@ Future<int?> showLiveBidSheet(
     subtitle: lot.title,
     builder: (_) =>
         _LiveBidSheet(lot: lot, initial: initial, freeToBid: freeToBid),
-  );
-}
-
-/// First bid of a show: say once that bids are binding and a win pays from
-/// the wallet on its own.
-Future<bool?> confirmLiveBid(
-  BuildContext context, {
-  required int amount,
-  required String lotTitle,
-}) {
-  return showLuxeSheet<bool>(
-    context,
-    title: 'Bid ${liveInr(amount)}?',
-    subtitle: lotTitle,
-    builder: (context) {
-      final p = LuxePalette.of(context);
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (final (icon, text) in const [
-              (
-                Icons.lock_outline_rounded,
-                'Held in your wallet while you lead; released if outbid.',
-              ),
-              (
-                Icons.receipt_long_outlined,
-                'A win pays automatically. No checkout step.',
-              ),
-              (
-                Icons.gavel_rounded,
-                'Bids are final. Late bids reset the clock to 10 s.',
-              ),
-            ]) ...[
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(icon, size: 20, color: p.accent),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      text,
-                      style: LuxeType.body(p.inkMuted, size: 13.5),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-            ],
-            const SizedBox(height: 6),
-            LuxeButton(
-              label: 'Place bid',
-              icon: Icons.gavel_rounded,
-              variant: LuxeButtonVariant.accent,
-              expand: true,
-              onPressed: () => Navigator.of(context).pop(true),
-            ),
-            const SizedBox(height: 6),
-            LuxeButton(
-              label: 'Not now',
-              variant: LuxeButtonVariant.ghost,
-              expand: true,
-              onPressed: () => Navigator.of(context).pop(false),
-            ),
-          ],
-        ),
-      );
-    },
   );
 }
 
@@ -202,8 +133,9 @@ class _LiveBidSheetState extends State<_LiveBidSheet> {
             const SizedBox(height: 4),
             Text(
               short
-                  ? 'Free to bid ${liveInr(free)}. You will be asked to add '
-                        '${liveInr((amount - free).ceil())}.'
+                  ? 'Free to bid ${liveInr(free)}. Add '
+                        '${liveInr((amount - free).ceil())} to your wallet '
+                        'to bid this much.'
                   : 'Free to bid ${liveInr(free)}',
               textAlign: TextAlign.center,
               style: LuxeType.body(short ? p.caution : p.inkFaint, size: 12.5),
@@ -211,10 +143,8 @@ class _LiveBidSheetState extends State<_LiveBidSheet> {
           ],
           const SizedBox(height: 18),
           LuxeButton(
-            label: amount == null
-                ? 'Place bid'
-                : 'Place bid ${liveInr(amount)}',
-            icon: Icons.gavel_rounded,
+            label: amount == null ? 'Set bid' : 'Set bid ${liveInr(amount)}',
+            icon: Icons.check_rounded,
             variant: LuxeButtonVariant.accent,
             expand: true,
             onPressed: error == null
@@ -223,7 +153,7 @@ class _LiveBidSheetState extends State<_LiveBidSheet> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Bids are binding. A win pays from your wallet automatically.',
+            'Then slide to bid. Bids are binding.',
             textAlign: TextAlign.center,
             style: LuxeType.body(p.inkFaint, size: 12),
           ),

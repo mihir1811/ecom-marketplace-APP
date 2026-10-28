@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -14,12 +15,15 @@ import '../../domain/models/live_show_models.dart';
 import '../live_show_actions.dart';
 import 'live_bid_sheet.dart';
 import 'live_countdown.dart';
+import 'live_slide_to_bid.dart';
 import 'live_stage_tokens.dart';
 
 /// Bottom bidding card over the video: the item up now with its current
-/// bid and server-clock countdown, one-tap bid at the minimum plus +1 / +2
-/// steps and a custom amount, and the wallet and ship-to lines that can be
-/// fixed in a sheet without leaving the show. Collapses to a single row.
+/// bid, bid count, next minimum and server-clock countdown; a bid amount
+/// box with −/+ steps and quick picks; and a slide-to-bid track that stays
+/// locked until the amount fits the wallet's "Free to bid". Wallet and
+/// ship-to can be fixed in a sheet without leaving the show. Collapses to
+/// a single row.
 class LiveAuctionDock extends ConsumerStatefulWidget {
   const LiveAuctionDock({
     required this.showId,
@@ -40,7 +44,10 @@ class _LiveAuctionDockState extends ConsumerState<LiveAuctionDock> {
   String? _closeTimerFor;
   var _collapsed = false;
   var _flashOutbid = false;
-  var _confirmedOnce = false;
+
+  /// The amount in the bid box, for [_amountFor]'s lot.
+  int? _amount;
+  String? _amountFor;
 
   LiveShowRoomController get _room =>
       ref.read(liveShowRoomProvider(widget.showId).notifier);
@@ -82,18 +89,23 @@ class _LiveAuctionDockState extends ConsumerState<LiveAuctionDock> {
     });
   }
 
+  /// The bid box amount: the next minimum for a new lot, and never below
+  /// the minimum once others bid past it.
+  int _amountOf(LiveAuctionLot lot) {
+    final min = lot.minNextBid.ceil();
+    final amount = _amountFor == lot.id ? (_amount ?? min) : min;
+    return math.max(amount, min);
+  }
+
+  void _setAmount(LiveAuctionLot lot, int amount) {
+    AppHaptics.selection();
+    setState(() {
+      _amountFor = lot.id;
+      _amount = math.max(amount, lot.minNextBid.ceil());
+    });
+  }
+
   Future<void> _bid(int amount) async {
-    final s = ref.read(liveShowRoomProvider(widget.showId));
-    if (!_confirmedOnce) {
-      final ok = await confirmLiveBid(
-        context,
-        amount: amount,
-        lotTitle: s.current?.title ?? 'this item',
-      );
-      if (ok != true || !mounted) return;
-      _confirmedOnce = true;
-    }
-    AppHaptics.medium();
     final outcome = await _room.placeBid(amount);
     if (!mounted) return;
     await _handle(outcome);
@@ -105,9 +117,11 @@ class _LiveAuctionDockState extends ConsumerState<LiveAuctionDock> {
         AppHaptics.success();
         showLuxeToast(context, 'Bid placed at ${liveInr(amount)}');
       case LiveBidNeedsTopUp(:final shortfall):
+        AppHaptics.warning();
         showLuxeToast(
           context,
-          'Add ${liveInr(shortfall.ceil())} to your wallet to bid this much.',
+          'Not enough in your wallet. Add ${liveInr(shortfall.ceil())} to '
+          'bid this much.',
           tone: LuxeTone.info,
         );
         await openLiveTopUp(context, ref, widget.showId, shortfall: shortfall);
@@ -122,25 +136,22 @@ class _LiveAuctionDockState extends ConsumerState<LiveAuctionDock> {
         openLiveSignIn(context);
       case LiveBidRejected(:final message, :final minBid):
         showLuxeToast(context, message, tone: LuxeTone.error);
-        if (minBid != null) await _custom(prefill: minBid.ceil());
+        final lot = ref.read(liveShowRoomProvider(widget.showId)).current;
+        if (minBid != null && lot != null) _setAmount(lot, minBid.ceil());
     }
   }
 
-  Future<void> _custom({int? prefill}) async {
+  /// Type an amount on a number pad; the slider then confirms it.
+  Future<void> _editAmount(LiveAuctionLot lot) async {
     final s = ref.read(liveShowRoomProvider(widget.showId));
-    final lot = s.current;
-    if (lot == null) return;
     final amount = await showLiveBidSheet(
       context,
       lot: lot,
-      initial: prefill ?? lot.minNextBid.ceil(),
+      initial: _amountOf(lot),
       freeToBid: s.me?.wallet.availableBalance,
     );
     if (amount == null || !mounted) return;
-    _confirmedOnce = true;
-    final outcome = await _room.placeBid(amount);
-    if (!mounted) return;
-    await _handle(outcome);
+    _setAmount(lot, amount);
   }
 
   @override
@@ -152,28 +163,37 @@ class _LiveAuctionDockState extends ConsumerState<LiveAuctionDock> {
 
     final Widget body;
     if (lot == null) {
-      body = _Idle(state: s, onOpenLineup: widget.onOpenLineup);
+      body = _Idle(
+        showId: widget.showId,
+        state: s,
+        signedIn: signedIn,
+        onOpenLineup: widget.onOpenLineup,
+      );
     } else if (_collapsed) {
       body = _Collapsed(
         state: s,
         lot: lot,
+        amount: _amountOf(lot),
         signedIn: signedIn,
         onExpand: () => setState(() => _collapsed = false),
-        onBid: _bid,
       );
     } else {
       body = _Expanded(
         showId: widget.showId,
         state: s,
         lot: lot,
+        amount: _amountOf(lot),
         signedIn: signedIn,
         onCollapse: () => setState(() => _collapsed = true),
+        onAmount: (a) => _setAmount(lot, a),
+        onEditAmount: () => _editAmount(lot),
         onBid: _bid,
-        onCustom: _custom,
         onOpenLineup: widget.onOpenLineup,
       );
     }
 
+    // Never taller than about 60% of the screen; scrolls on small phones.
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.6;
     return ClipRRect(
       borderRadius: BorderRadius.circular(22),
       child: BackdropFilter(
@@ -193,7 +213,10 @@ class _LiveAuctionDockState extends ConsumerState<LiveAuctionDock> {
             duration: const Duration(milliseconds: 260),
             curve: Curves.easeOutCubic,
             alignment: Alignment.bottomCenter,
-            child: body,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: maxHeight),
+              child: SingleChildScrollView(child: body),
+            ),
           ),
         ),
       ),
@@ -204,54 +227,73 @@ class _LiveAuctionDockState extends ConsumerState<LiveAuctionDock> {
 // ── States ────────────────────────────────────────────────────────────────
 
 class _Idle extends StatelessWidget {
-  const _Idle({required this.state, required this.onOpenLineup});
+  const _Idle({
+    required this.showId,
+    required this.state,
+    required this.signedIn,
+    required this.onOpenLineup,
+  });
 
+  final String showId;
   final LiveShowRoomState state;
+  final bool signedIn;
   final VoidCallback onOpenLineup;
 
   @override
   Widget build(BuildContext context) {
     final next = state.upNext.isEmpty ? null : state.upNext.first;
     final last = state.results.isEmpty ? null : state.results.first;
-    return InkWell(
-      onTap: onOpenLineup,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
-        child: Row(
-          children: [
-            _Thumb(url: next?.image, size: 44),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    next != null ? 'UP NEXT' : 'NO ITEM UP RIGHT NOW',
-                    style: _eyebrow,
+    final me = state.me;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        InkWell(
+          onTap: onOpenLineup,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+            child: Row(
+              children: [
+                _Thumb(url: next?.image, size: 44),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        next != null ? 'UP NEXT' : 'NO ITEM UP RIGHT NOW',
+                        style: _eyebrow,
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        next != null
+                            ? '${next.title} · from ${liveInr(next.startingBid)}'
+                            : last != null
+                            ? _resultLine(last)
+                            : 'Bidding opens when the seller puts an item up.',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 3),
-                  Text(
-                    next != null
-                        ? '${next.title} · from ${liveInr(next.startingBid)}'
-                        : last != null
-                        ? _resultLine(last)
-                        : 'The seller will put an item up soon.',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                if (state.upNext.isNotEmpty || state.results.isNotEmpty)
+                  Icon(Icons.chevron_right_rounded, color: LiveStage.inkMuted),
+              ],
             ),
-            if (state.upNext.isNotEmpty || state.results.isNotEmpty)
-              Icon(Icons.chevron_right_rounded, color: LiveStage.inkMuted),
-          ],
+          ),
         ),
-      ),
+        if (signedIn && me != null && !me.isSeller)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 0, 8, 10),
+            child: _WalletLine(showId: showId, wallet: me.wallet),
+          ),
+      ],
     );
   }
 }
@@ -267,20 +309,24 @@ class _Expanded extends ConsumerWidget {
     required this.showId,
     required this.state,
     required this.lot,
+    required this.amount,
     required this.signedIn,
     required this.onCollapse,
+    required this.onAmount,
+    required this.onEditAmount,
     required this.onBid,
-    required this.onCustom,
     required this.onOpenLineup,
   });
 
   final String showId;
   final LiveShowRoomState state;
   final LiveAuctionLot lot;
+  final int amount;
   final bool signedIn;
   final VoidCallback onCollapse;
-  final ValueChanged<int> onBid;
-  final VoidCallback onCustom;
+  final ValueChanged<int> onAmount;
+  final VoidCallback onEditAmount;
+  final Future<void> Function(int amount) onBid;
   final VoidCallback onOpenLineup;
 
   @override
@@ -289,6 +335,7 @@ class _Expanded extends ConsumerWidget {
     final leading = state.leadingAmount(lot.id);
     final closed = state.remaining(lot) <= Duration.zero;
     final top = lot.recentBids.isEmpty ? null : lot.recentBids.first;
+    final leader = lot.leaderName ?? top?.bidderName;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
@@ -301,7 +348,7 @@ class _Expanded extends ConsumerWidget {
             children: [
               GestureDetector(
                 onTap: () => openLiveLot(context, ref, lot),
-                child: _Thumb(url: lot.image, size: 54),
+                child: _Thumb(url: lot.image, size: 48),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -333,8 +380,25 @@ class _Expanded extends ConsumerWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
-                      _BidLine(lot: lot, leaderName: top?.bidderName),
+                      const SizedBox(height: 3),
+                      Text(
+                        lot.hasBids
+                            ? (leading != null
+                                  ? 'You are the top bidder'
+                                  : 'Top bidder: ${leader ?? 'another buyer'}')
+                            : 'Be the first to bid',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: leading != null
+                              ? LiveStage.leading
+                              : LiveStage.inkMuted,
+                          fontSize: 12,
+                          fontWeight: leading != null
+                              ? FontWeight.w700
+                              : FontWeight.w400,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -354,24 +418,29 @@ class _Expanded extends ConsumerWidget {
               ),
             ],
           ),
+          const SizedBox(height: 10),
+          _Stats(lot: lot),
           const SizedBox(height: 12),
           _Actions(
+            showId: showId,
             state: state,
             lot: lot,
+            amount: amount,
             signedIn: signedIn,
             leading: leading,
             closed: closed,
+            onAmount: onAmount,
+            onEditAmount: onEditAmount,
             onBid: onBid,
-            onCustom: onCustom,
           ),
           if (signedIn && me != null && !me.isSeller) ...[
             const SizedBox(height: 10),
             _WalletLine(showId: showId, wallet: me.wallet),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             _ShipToLine(showId: showId, hasAddress: me.hasDeliveryAddress),
           ],
           if (state.upNext.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             GestureDetector(
               onTap: onOpenLineup,
               behavior: HitTestBehavior.opaque,
@@ -402,75 +471,134 @@ class _Expanded extends ConsumerWidget {
   }
 }
 
-class _BidLine extends StatelessWidget {
-  const _BidLine({required this.lot, this.leaderName});
+/// Current (or starting) bid, bid count and the next minimum, side by side.
+class _Stats extends StatelessWidget {
+  const _Stats({required this.lot});
 
   final LiveAuctionLot lot;
-  final String? leaderName;
 
   @override
   Widget build(BuildContext context) {
     final hasBids = lot.hasBids;
-    final leader = lot.leaderName ?? leaderName;
-    return Wrap(
-      crossAxisAlignment: WrapCrossAlignment.end,
-      spacing: 6,
-      children: [
-        Text(
-          hasBids ? 'Current bid' : 'Starting bid',
-          style: TextStyle(color: LiveStage.inkMuted, fontSize: 12),
-        ),
-        TweenAnimationBuilder<double>(
-          key: ValueKey(lot.currentBid),
-          tween: Tween(begin: 1.18, end: 1),
-          duration: const Duration(milliseconds: 380),
-          curve: Curves.easeOutBack,
-          builder: (context, scale, child) => Transform.scale(
-            scale: scale,
-            alignment: Alignment.centerLeft,
-            child: child,
-          ),
-          child: Text(
-            liveInr(hasBids ? lot.currentBid! : lot.startingBid),
-            style: TextStyle(
-              color: LiveStage.gold,
-              fontSize: 19,
-              fontWeight: FontWeight.w800,
-              height: 1.05,
-              fontFeatures: const [FontFeature.tabularFigures()],
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: LiveStage.glassBorder),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            Expanded(
+              flex: 5,
+              child: _Stat(
+                label: hasBids ? 'CURRENT BID' : 'STARTING BID',
+                value: liveInr(hasBids ? lot.currentBid! : lot.startingBid),
+                pulseKey: lot.currentBid,
+                gold: true,
+              ),
             ),
-          ),
+            VerticalDivider(width: 1, color: LiveStage.glassBorder),
+            Expanded(
+              flex: 3,
+              child: _Stat(label: 'BIDS', value: '${lot.bidCount}'),
+            ),
+            VerticalDivider(width: 1, color: LiveStage.glassBorder),
+            Expanded(
+              flex: 5,
+              child: _Stat(
+                label: 'NEXT MIN',
+                value: liveInr(lot.minNextBid.ceil()),
+              ),
+            ),
+          ],
         ),
-        Text(
-          hasBids
-              ? '${leader ?? 'Top bidder'} · ${lot.bidCount} '
-                    '${lot.bidCount == 1 ? 'bid' : 'bids'}'
-              : 'No bids yet',
-          style: TextStyle(color: LiveStage.inkMuted, fontSize: 12),
+      ),
+    );
+  }
+}
+
+class _Stat extends StatelessWidget {
+  const _Stat({
+    required this.label,
+    required this.value,
+    this.gold = false,
+    this.pulseKey,
+  });
+
+  final String label;
+  final String value;
+  final bool gold;
+
+  /// Pops the value when this changes (a new bid).
+  final Object? pulseKey;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text(
+        value,
+        maxLines: 1,
+        style: TextStyle(
+          color: gold ? LiveStage.gold : Colors.white,
+          fontSize: gold ? 18 : 15,
+          fontWeight: FontWeight.w800,
+          height: 1.1,
+          fontFeatures: const [FontFeature.tabularFigures()],
         ),
-      ],
+      ),
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(label, style: _eyebrow.copyWith(fontSize: 9.5)),
+          const SizedBox(height: 3),
+          if (pulseKey == null)
+            text
+          else
+            TweenAnimationBuilder<double>(
+              key: ValueKey(pulseKey),
+              tween: Tween(begin: 1.2, end: 1),
+              duration: const Duration(milliseconds: 380),
+              curve: Curves.easeOutBack,
+              builder: (context, scale, child) =>
+                  Transform.scale(scale: scale, child: child),
+              child: text,
+            ),
+        ],
+      ),
     );
   }
 }
 
 class _Actions extends ConsumerWidget {
   const _Actions({
+    required this.showId,
     required this.state,
     required this.lot,
+    required this.amount,
     required this.signedIn,
     required this.leading,
     required this.closed,
+    required this.onAmount,
+    required this.onEditAmount,
     required this.onBid,
-    required this.onCustom,
   });
 
+  final String showId;
   final LiveShowRoomState state;
   final LiveAuctionLot lot;
+  final int amount;
   final bool signedIn;
   final double? leading;
   final bool closed;
-  final ValueChanged<int> onBid;
-  final VoidCallback onCustom;
+  final ValueChanged<int> onAmount;
+  final VoidCallback onEditAmount;
+  final Future<void> Function(int amount) onBid;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -500,52 +628,306 @@ class _Actions extends ConsumerWidget {
       );
     }
 
+    final room = ref.read(liveShowRoomProvider(showId).notifier);
     final min = lot.minNextBid.ceil();
-    final step = lot.bidStep.ceil();
+    final rawStep = lot.bidStep.ceil();
+    final step = rawStep > 0 ? rawStep : 100;
     final placing = state.placingAmount;
+    final me = state.me;
+    final free = me?.wallet.availableBalance;
+    final shortfall = free == null ? 0.0 : amount - free;
+
+    // Why the slider is locked, and what tapping it does.
+    final (String? lock, VoidCallback? fix) = switch (me) {
+      null => ('Checking your wallet…', () => unawaited(room.refreshMe())),
+      _ when !me.hasDeliveryAddress => (
+        'Add a delivery address to bid',
+        () => unawaited(openLiveAddress(context, ref, showId)),
+      ),
+      _ when shortfall > 0 => (
+        'Add ${liveInr(shortfall.ceil())} to bid',
+        () => unawaited(
+          openLiveTopUp(context, ref, showId, shortfall: shortfall),
+        ),
+      ),
+      _ => (null, null),
+    };
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (step > 0)
+        Row(
+          children: [
+            _RoundStep(
+              icon: Icons.remove_rounded,
+              tooltip: 'Lower by ${liveInr(step)}',
+              onTap: amount - step >= min
+                  ? () => onAmount(amount - step)
+                  : null,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _AmountBox(
+                amount: amount,
+                short: shortfall > 0,
+                onTap: onEditAmount,
+              ),
+            ),
+            const SizedBox(width: 8),
+            _RoundStep(
+              icon: Icons.add_rounded,
+              tooltip: 'Raise by ${liveInr(step)}',
+              onTap: () => onAmount(amount + step),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            for (final (i, (label, value)) in [
+              ('Min', min),
+              if (rawStep > 0) ('+1 step', min + step),
+              if (rawStep > 0) ('+2 steps', min + step * 2),
+            ].indexed) ...[
+              if (i > 0) const SizedBox(width: 6),
+              Expanded(
+                child: _PickChip(
+                  hint: label,
+                  label: liveInr(value),
+                  selected: amount == value,
+                  short: free != null && value > free,
+                  onTap: () => onAmount(value),
+                ),
+              ),
+            ],
+          ],
+        ),
+        if (shortfall > 0 && free != null) ...[
+          const SizedBox(height: 8),
           Row(
             children: [
-              Expanded(
-                child: _StepChip(
-                  label: liveInr(min + step),
-                  hint: '+1 step',
-                  busy: placing == min + step,
-                  onTap: placing == null ? () => onBid(min + step) : null,
-                ),
+              const Icon(
+                Icons.error_outline_rounded,
+                size: 15,
+                color: LiveStage.urgent,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Expanded(
-                child: _StepChip(
-                  label: liveInr(min + step * 2),
-                  hint: '+2 steps',
-                  busy: placing == min + step * 2,
-                  onTap: placing == null ? () => onBid(min + step * 2) : null,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _StepChip(
-                  label: 'Custom',
-                  hint: 'Any amount',
-                  icon: Icons.edit_rounded,
-                  onTap: placing == null ? onCustom : null,
+                child: Text(
+                  'Not enough in your wallet. Free to bid ${liveInr(free)}.',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
           ),
-        if (step > 0) const SizedBox(height: 8),
-        _BidButton(
-          label: 'Bid ${liveInr(min)}',
-          icon: Icons.gavel_rounded,
-          busy: placing == min,
-          onTap: placing == null ? () => onBid(min) : null,
+        ],
+        const SizedBox(height: 10),
+        LiveSlideToBid(
+          key: ValueKey('slide-${lot.id}'),
+          label: 'Slide to bid ${liveInr(amount)}',
+          busy: placing != null,
+          lockedLabel: lock,
+          onLockedTap: fix,
+          onSubmit: lock == null && placing == null
+              ? () => onBid(amount)
+              : null,
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Bids are binding. The amount is held in your wallet while you '
+          'lead, and a win pays automatically.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: LiveStage.inkFaint, fontSize: 10.5),
         ),
       ],
+    );
+  }
+}
+
+/// The bid amount; tap to type one on a number pad.
+class _AmountBox extends StatelessWidget {
+  const _AmountBox({
+    required this.amount,
+    required this.short,
+    required this.onTap,
+  });
+
+  final int amount;
+  final bool short;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final border = short ? LiveStage.urgent : LiveStage.gold;
+    return Semantics(
+      button: true,
+      label: 'Your bid ${liveInr(amount)}. Tap to enter an amount.',
+      excludeSemantics: true,
+      child: Material(
+        color: Colors.white.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: onTap,
+          child: Container(
+            height: 52,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: border.withValues(alpha: 0.7),
+                width: 1.4,
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text('YOUR BID', style: _eyebrow.copyWith(fontSize: 9)),
+                      const SizedBox(height: 2),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          liveInr(amount),
+                          style: TextStyle(
+                            color: short ? LiveStage.urgent : Colors.white,
+                            fontSize: 19,
+                            fontWeight: FontWeight.w800,
+                            height: 1.05,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.edit_rounded, size: 16, color: LiveStage.inkMuted),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RoundStep extends StatelessWidget {
+  const _RoundStep({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Semantics(
+        button: true,
+        enabled: onTap != null,
+        label: tooltip,
+        child: InkResponse(
+          onTap: onTap,
+          radius: 28,
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: 0.08),
+              border: Border.all(color: LiveStage.glassBorder),
+            ),
+            child: Icon(
+              icon,
+              color: onTap == null ? LiveStage.inkFaint : Colors.white,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Quick pick that fills the bid box (the slider still confirms).
+class _PickChip extends StatelessWidget {
+  const _PickChip({
+    required this.hint,
+    required this.label,
+    required this.selected,
+    required this.short,
+    required this.onTap,
+  });
+
+  final String hint;
+  final String label;
+  final bool selected;
+  final bool short;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final gold = LiveStage.gold;
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: '$hint, $label',
+      excludeSemantics: true,
+      child: Material(
+        color: selected
+            ? gold.withValues(alpha: 0.18)
+            : Colors.white.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            constraints: const BoxConstraints(minHeight: 44),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: selected ? gold : LiveStage.glassBorder,
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: short
+                          ? LiveStage.inkFaint
+                          : (selected ? gold : Colors.white),
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+                Text(
+                  hint,
+                  style: TextStyle(color: LiveStage.inkFaint, fontSize: 10),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -554,22 +936,22 @@ class _Collapsed extends StatelessWidget {
   const _Collapsed({
     required this.state,
     required this.lot,
+    required this.amount,
     required this.signedIn,
     required this.onExpand,
-    required this.onBid,
   });
 
   final LiveShowRoomState state;
   final LiveAuctionLot lot;
+  final int amount;
   final bool signedIn;
   final VoidCallback onExpand;
-  final ValueChanged<int> onBid;
 
   @override
   Widget build(BuildContext context) {
     final leading = state.leadingAmount(lot.id);
     final closed = state.remaining(lot) <= Duration.zero;
-    final canQuickBid =
+    final canBid =
         signedIn &&
         leading == null &&
         !closed &&
@@ -600,7 +982,11 @@ class _Collapsed extends StatelessWidget {
                   Text(
                     leading != null
                         ? 'You lead at ${liveInr(leading)}'
-                        : liveInr(lot.currentBid ?? lot.startingBid),
+                        : '${liveInr(lot.currentBid ?? lot.startingBid)} · '
+                              '${lot.bidCount} '
+                              '${lot.bidCount == 1 ? 'bid' : 'bids'}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: leading != null
                           ? LiveStage.leading
@@ -614,12 +1000,10 @@ class _Collapsed extends StatelessWidget {
             ),
             LiveCountdown(endsAt: lot.endsAt, serverNow: state.serverNow),
             const SizedBox(width: 8),
-            if (canQuickBid)
+            // Opens the full card: bids are always confirmed by sliding.
+            if (canBid)
               Flexible(
-                child: _MiniBid(
-                  label: liveInr(lot.minNextBid.ceil()),
-                  onTap: () => onBid(lot.minNextBid.ceil()),
-                ),
+                child: _MiniBid(label: liveInr(amount), onTap: onExpand),
               )
             else
               Icon(Icons.keyboard_arrow_up_rounded, color: LiveStage.inkMuted),
@@ -775,21 +1159,15 @@ class _Thumb extends StatelessWidget {
 }
 
 class _BidButton extends StatelessWidget {
-  const _BidButton({
-    required this.label,
-    required this.onTap,
-    this.icon,
-    this.busy = false,
-  });
+  const _BidButton({required this.label, required this.onTap, this.icon});
 
   final String label;
   final IconData? icon;
-  final bool busy;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final enabled = onTap != null && !busy;
+    final enabled = onTap != null;
     final gold = LiveStage.gold;
     return Semantics(
       button: true,
@@ -797,7 +1175,7 @@ class _BidButton extends StatelessWidget {
       label: label,
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 160),
-        opacity: onTap == null && !busy ? 0.55 : 1,
+        opacity: enabled ? 1 : 0.55,
         child: Material(
           color: Colors.transparent,
           child: Ink(
@@ -819,125 +1197,27 @@ class _BidButton extends StatelessWidget {
               borderRadius: BorderRadius.circular(999),
               onTap: enabled ? onTap : null,
               child: Center(
-                child: busy
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.4,
-                          color: Color(0xFF16140F),
-                        ),
-                      )
-                    : Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (icon != null) ...[
-                            Icon(
-                              icon,
-                              size: 19,
-                              color: const Color(0xFF16140F),
-                            ),
-                            const SizedBox(width: 8),
-                          ],
-                          Text(
-                            label,
-                            style: const TextStyle(
-                              color: Color(0xFF16140F),
-                              fontSize: 16.5,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.2,
-                              fontFeatures: [FontFeature.tabularFigures()],
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _StepChip extends StatelessWidget {
-  const _StepChip({
-    required this.label,
-    required this.hint,
-    required this.onTap,
-    this.icon,
-    this.busy = false,
-  });
-
-  final String label;
-  final String hint;
-  final IconData? icon;
-  final bool busy;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: '$label, $hint',
-      child: Material(
-        color: Colors.white.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: onTap,
-          child: Container(
-            constraints: const BoxConstraints(minHeight: 48),
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: LiveStage.glassBorder),
-            ),
-            child: busy
-                ? const Center(
-                    child: SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (icon != null) ...[
+                      Icon(icon, size: 19, color: const Color(0xFF16140F)),
+                      const SizedBox(width: 8),
+                    ],
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        color: Color(0xFF16140F),
+                        fontSize: 16.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.2,
+                        fontFeatures: [FontFeature.tabularFigures()],
                       ),
                     ),
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (icon != null) ...[
-                              Icon(icon, size: 13, color: Colors.white),
-                              const SizedBox(width: 4),
-                            ],
-                            Text(
-                              label,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                fontFeatures: [FontFeature.tabularFigures()],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 1),
-                      Text(
-                        hint,
-                        style: TextStyle(
-                          color: LiveStage.inkFaint,
-                          fontSize: 10.5,
-                        ),
-                      ),
-                    ],
-                  ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       ),

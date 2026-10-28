@@ -56,16 +56,17 @@ class _QuietSocket extends LiveShowSocket {
 }
 
 class _Repo implements LiveShowRepository {
-  _Repo({this.ended = false});
+  _Repo({this.ended = false, this.free = 348000});
 
   final bool ended;
+  final double free;
 
   @override
   Future<Result<LiveShow, Failure>> show(String showId) async => Success(
     LiveShow(
       id: showId,
-      // A provider with no in-app player keeps native video out of tests.
-      provider: LiveProvider.awsIvsRealtime,
+      // Unknown provider + no viewer token keeps native video out of tests.
+      provider: LiveProvider.unknown,
       title: 'Friday ovals: 1-3 ct, G-H VS',
       isLive: !ended,
       isStreaming: true,
@@ -108,12 +109,12 @@ class _Repo implements LiveShowRepository {
   );
 
   @override
-  Future<Result<MyShowState, Failure>> me(String showId) async => const Success(
+  Future<Result<MyShowState, Failure>> me(String showId) async => Success(
     MyShowState(
       wallet: LiveWallet(
-        balance: 500000,
+        balance: free + 152000,
         heldAmount: 152000,
-        availableBalance: 348000,
+        availableBalance: free,
       ),
       hasDeliveryAddress: true,
     ),
@@ -140,7 +141,7 @@ class _Repo implements LiveShowRepository {
 
   @override
   Future<Result<LiveViewerToken, Failure>> viewerToken(String showId) async =>
-      const Success(LiveViewerToken(token: 't'));
+      const ResultFailure(UnknownFailure('no video in tests'));
 
   @override
   Future<Result<LiveBidResult, LiveBidError>> bid({
@@ -190,6 +191,7 @@ class _Delivery implements DeliveryRepository {
 Future<void> _pump(
   WidgetTester tester, {
   bool ended = false,
+  double free = 348000,
   Size size = const Size(390, 844),
   double textScale = 1,
 }) async {
@@ -200,7 +202,9 @@ Future<void> _pump(
     ProviderScope(
       overrides: [
         authProvider.overrideWith(_SignedIn.new),
-        liveShowRepositoryProvider.overrideWithValue(_Repo(ended: ended)),
+        liveShowRepositoryProvider.overrideWithValue(
+          _Repo(ended: ended, free: free),
+        ),
         liveShowSocketFactoryProvider.overrideWithValue(_QuietSocket.new),
         deliveryRepositoryProvider.overrideWithValue(_Delivery()),
       ],
@@ -239,9 +243,14 @@ void main() {
     expect(find.text('Shree Gems'), findsWidgets);
     expect(find.text('1.50ct Oval G VS1'), findsOneWidget);
     expect(find.text('₹1,52,000'), findsOneWidget);
-    expect(find.text('Bid ₹1,54,000'), findsOneWidget);
+    // Current bid, count and next minimum; the bid box, quick picks and
+    // the slide-to-bid track.
+    expect(find.text('CURRENT BID'), findsOneWidget);
+    expect(find.text('NEXT MIN'), findsOneWidget);
+    expect(find.text('YOUR BID'), findsOneWidget);
     expect(find.text('₹1,56,000'), findsOneWidget);
     expect(find.text('₹1,58,000'), findsOneWidget);
+    expect(find.text('Slide to bid ₹1,54,000'), findsOneWidget);
     expect(find.textContaining('Free to bid'), findsOneWidget);
     expect(
       find.textContaining('Wins ship to Asha Patel, Surat'),
@@ -252,23 +261,37 @@ void main() {
     expect(find.text('1.3K'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
-    // First bid explains holds and auto-pay before it is sent.
-    await tester.tap(find.text('Bid ₹1,54,000'));
+    // A quick pick fills the box; the slider follows it.
+    await tester.tap(find.text('₹1,56,000'));
+    await tester.pump();
+    expect(find.text('Slide to bid ₹1,56,000'), findsOneWidget);
+
+    // Sliding all the way sends the bid (the fake server is offline).
+    await tester.drag(find.byIcon(Icons.gavel_rounded), const Offset(400, 0));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
-    expect(find.text('Bid ₹1,54,000?'), findsOneWidget);
-    await tester.tap(find.text('Not now'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 600));
-    expect(find.text('Bid ₹1,54,000?'), findsNothing);
+    expect(find.text('offline'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 5));
 
     // Minimise the dock to a single row.
     await tester.tap(find.byTooltip('Minimise'));
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('Bid ₹1,54,000'), findsOneWidget);
-    expect(find.text('₹1,56,000'), findsNothing);
+    expect(find.text('Bid ₹1,56,000'), findsOneWidget);
+    expect(find.text('₹1,58,000'), findsNothing);
     expect(tester.takeException(), isNull);
 
+    await _teardown(tester);
+  });
+
+  testWidgets('slider stays locked when the wallet cannot cover the bid', (
+    tester,
+  ) async {
+    await _pump(tester, free: 100000);
+    expect(find.text('Add ₹54,000 to bid'), findsOneWidget);
+    expect(find.textContaining('Not enough in your wallet'), findsOneWidget);
+    expect(find.text('Slide to bid ₹1,54,000'), findsNothing);
+    expect(find.byIcon(Icons.lock_rounded), findsOneWidget);
+    expect(tester.takeException(), isNull);
     await _teardown(tester);
   });
 
@@ -285,7 +308,7 @@ void main() {
 
   testWidgets('stage holds on a small phone with large text', (tester) async {
     await _pump(tester, size: const Size(360, 740), textScale: 1.3);
-    expect(find.text('Bid ₹1,54,000'), findsOneWidget);
+    expect(find.text('Slide to bid ₹1,54,000'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await _teardown(tester);
   });
