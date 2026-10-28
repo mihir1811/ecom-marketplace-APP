@@ -1,29 +1,30 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/haptics/app_haptics.dart';
-import '../../../../core/widgets/app_network_image.dart';
-import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../application/live_show_room.dart';
 import '../../domain/live_format.dart';
 import '../../domain/models/live_show_models.dart';
 import '../live_show_actions.dart';
 import 'live_bid_sheet.dart';
 import 'live_countdown.dart';
+import 'live_rolling_amount.dart';
 import 'live_slide_to_bid.dart';
 import 'live_stage_tokens.dart';
+import 'live_toast.dart';
 
-/// Bottom bidding card over the video: the item up now with its current
-/// bid, bid count, next minimum and server-clock countdown; a bid amount
-/// box with −/+ steps and quick picks; and a slide-to-bid track that stays
-/// locked until the amount fits the wallet's "Free to bid". Wallet and
-/// ship-to can be fixed in a sheet without leaving the show. Collapses to
-/// a single row.
+/// Compact auction bar over the video, built to leave the stream clear:
+///  1. the piece (image ringed by its draining clock), its live price,
+///     bid count and countdown — one glance;
+///  2. "Custom" (exact amount, steps, quick picks) beside slide-to-bid at
+///     the next minimum — one gesture;
+///  3. a hairline strip with free-to-bid and ship-to, each fixable in place.
+/// Swipe down or tap the handle to fold it to a single line.
 class LiveAuctionDock extends ConsumerStatefulWidget {
   const LiveAuctionDock({
     required this.showId,
@@ -38,12 +39,17 @@ class LiveAuctionDock extends ConsumerStatefulWidget {
   ConsumerState<LiveAuctionDock> createState() => _LiveAuctionDockState();
 }
 
-class _LiveAuctionDockState extends ConsumerState<LiveAuctionDock> {
+class _LiveAuctionDockState extends ConsumerState<LiveAuctionDock>
+    with SingleTickerProviderStateMixin {
   StreamSubscription<LiveNotice>? _notices;
   Timer? _closeTimer;
   String? _closeTimerFor;
   var _collapsed = false;
   var _flashOutbid = false;
+  late final AnimationController _shake = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 520),
+  );
 
   /// The amount in the bid box, for [_amountFor]'s lot.
   int? _amount;
@@ -61,7 +67,10 @@ class _LiveAuctionDockState extends ConsumerState<LiveAuctionDock> {
         _flashOutbid = true;
         _collapsed = false;
       });
-      Timer(const Duration(milliseconds: 1600), () {
+      if (!MediaQuery.disableAnimationsOf(context)) {
+        unawaited(_shake.forward(from: 0));
+      }
+      Timer(const Duration(milliseconds: 1800), () {
         if (mounted) setState(() => _flashOutbid = false);
       });
     });
@@ -71,6 +80,7 @@ class _LiveAuctionDockState extends ConsumerState<LiveAuctionDock> {
   void dispose() {
     _notices?.cancel();
     _closeTimer?.cancel();
+    _shake.dispose();
     super.dispose();
   }
 
@@ -114,34 +124,37 @@ class _LiveAuctionDockState extends ConsumerState<LiveAuctionDock> {
   Future<void> _handle(LiveBidOutcome outcome) async {
     switch (outcome) {
       case LiveBidPlaced(:final amount):
-        AppHaptics.success();
-        showLuxeToast(context, 'Bid placed at ${liveInr(amount)}');
+        showLiveToast(
+          context,
+          'Bid placed at ${liveInr(amount)}',
+          tone: LiveToastTone.success,
+        );
       case LiveBidNeedsTopUp(:final shortfall):
         AppHaptics.warning();
-        showLuxeToast(
+        showLiveToast(
           context,
           'Not enough in your wallet. Add ${liveInr(shortfall.ceil())} to '
           'bid this much.',
-          tone: LuxeTone.info,
+          tone: LiveToastTone.info,
         );
         await openLiveTopUp(context, ref, widget.showId, shortfall: shortfall);
       case LiveBidNeedsAddress():
-        showLuxeToast(
+        showLiveToast(
           context,
           'Add a delivery address first. Wins ship there.',
-          tone: LuxeTone.info,
+          tone: LiveToastTone.info,
         );
         await openLiveAddress(context, ref, widget.showId);
       case LiveBidNeedsSignIn():
         openLiveSignIn(context);
       case LiveBidRejected(:final message, :final minBid):
-        showLuxeToast(context, message, tone: LuxeTone.error);
+        showLiveToast(context, message, tone: LiveToastTone.error);
         final lot = ref.read(liveShowRoomProvider(widget.showId)).current;
         if (minBid != null && lot != null) _setAmount(lot, minBid.ceil());
     }
   }
 
-  /// Type an amount on a number pad; the slider then confirms it.
+  /// Type an exact amount; the slider then confirms it.
   Future<void> _editAmount(LiveAuctionLot lot) async {
     final s = ref.read(liveShowRoomProvider(widget.showId));
     final amount = await showLiveBidSheet(
@@ -154,6 +167,12 @@ class _LiveAuctionDockState extends ConsumerState<LiveAuctionDock> {
     _setAmount(lot, amount);
   }
 
+  void _toggle(bool collapse) {
+    if (collapse == _collapsed) return;
+    AppHaptics.selection();
+    setState(() => _collapsed = collapse);
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = ref.watch(liveShowRoomProvider(widget.showId));
@@ -162,7 +181,9 @@ class _LiveAuctionDockState extends ConsumerState<LiveAuctionDock> {
     final lot = s.current;
 
     final Widget body;
+    final String mode;
     if (lot == null) {
+      mode = 'idle';
       body = _Idle(
         showId: widget.showId,
         state: s,
@@ -170,52 +191,136 @@ class _LiveAuctionDockState extends ConsumerState<LiveAuctionDock> {
         onOpenLineup: widget.onOpenLineup,
       );
     } else if (_collapsed) {
+      mode = 'mini';
       body = _Collapsed(
         state: s,
         lot: lot,
         amount: _amountOf(lot),
         signedIn: signedIn,
-        onExpand: () => setState(() => _collapsed = false),
+        onExpand: () => _toggle(false),
       );
     } else {
+      mode = 'full:${lot.id}';
       body = _Expanded(
         showId: widget.showId,
         state: s,
         lot: lot,
         amount: _amountOf(lot),
         signedIn: signedIn,
-        onCollapse: () => setState(() => _collapsed = true),
-        onAmount: (a) => _setAmount(lot, a),
+        onCollapse: () => _toggle(true),
         onEditAmount: () => _editAmount(lot),
         onBid: _bid,
-        onOpenLineup: widget.onOpenLineup,
       );
     }
 
-    // Never taller than about 60% of the screen; scrolls on small phones.
-    final maxHeight = MediaQuery.sizeOf(context).height * 0.6;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(22),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 260),
-          curve: Curves.easeOutCubic,
-          decoration: BoxDecoration(
-            color: LiveStage.glassStrong,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: _flashOutbid ? LiveStage.urgent : LiveStage.glassBorder,
-              width: _flashOutbid ? 2 : 1,
+    // Never taller than ~45% of the screen; scrolls on tiny phones.
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.45;
+    final dock = GestureDetector(
+      onVerticalDragEnd: lot == null
+          ? null
+          : (d) {
+              final v = d.primaryVelocity ?? 0;
+              if (v > 250) _toggle(true);
+              if (v < -250) _toggle(false);
+            },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: LiveMotion.ease,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: _flashOutbid
+                  ? LiveStage.urgent.withValues(alpha: 0.45)
+                  : Colors.black.withValues(alpha: 0.35),
+              blurRadius: _flashOutbid ? 30 : 24,
+              offset: const Offset(0, 10),
             ),
+          ],
+        ),
+        child: LiveGlass(
+          radius: 24,
+          border: Border.all(
+            color: _flashOutbid ? LiveStage.urgent : LiveStage.hairlineStrong,
+            width: _flashOutbid ? 1.6 : 1,
           ),
           child: AnimatedSize(
-            duration: const Duration(milliseconds: 260),
-            curve: Curves.easeOutCubic,
+            duration: const Duration(milliseconds: 380),
+            curve: LiveMotion.emphasized,
             alignment: Alignment.bottomCenter,
             child: ConstrainedBox(
               constraints: BoxConstraints(maxHeight: maxHeight),
-              child: SingleChildScrollView(child: body),
+              child: SingleChildScrollView(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 340),
+                  switchInCurve: LiveMotion.ease,
+                  switchOutCurve: Curves.easeIn,
+                  transitionBuilder: (child, a) => FadeTransition(
+                    opacity: a,
+                    child: SlideTransition(
+                      position: Tween(
+                        begin: const Offset(0, 0.06),
+                        end: Offset.zero,
+                      ).animate(a),
+                      child: child,
+                    ),
+                  ),
+                  layoutBuilder: (current, previous) => Stack(
+                    alignment: Alignment.bottomCenter,
+                    children: [
+                      // Outgoing states keep their own height, pinned to the foot.
+                      for (final p in previous)
+                        Positioned(left: 0, right: 0, bottom: 0, child: p),
+                      ?current,
+                    ],
+                  ),
+                  child: KeyedSubtree(key: ValueKey(mode), child: body),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    return AnimatedBuilder(
+      animation: _shake,
+      builder: (context, child) {
+        final t = _shake.value;
+        final dx = t == 0 || t == 1
+            ? 0.0
+            : math.sin(t * math.pi * 7) * 7 * (1 - t);
+        return Transform.translate(offset: Offset(dx, 0), child: child);
+      },
+      child: dock,
+    );
+  }
+}
+
+// ── States ────────────────────────────────────────────────────────────────
+
+class _Handle extends StatelessWidget {
+  const _Handle({required this.onTap, required this.tooltip});
+
+  final VoidCallback onTap;
+  final String tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox(
+          height: 16,
+          child: Center(
+            child: Container(
+              width: 34,
+              height: 4,
+              decoration: BoxDecoration(
+                color: LiveStage.hairlineStrong,
+                borderRadius: BorderRadius.circular(99),
+              ),
             ),
           ),
         ),
@@ -223,8 +328,6 @@ class _LiveAuctionDockState extends ConsumerState<LiveAuctionDock> {
     );
   }
 }
-
-// ── States ────────────────────────────────────────────────────────────────
 
 class _Idle extends StatelessWidget {
   const _Idle({
@@ -244,56 +347,65 @@ class _Idle extends StatelessWidget {
     final next = state.upNext.isEmpty ? null : state.upNext.first;
     final last = state.results.isEmpty ? null : state.results.first;
     final me = state.me;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        InkWell(
-          onTap: onOpenLineup,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+    final browsable = state.upNext.isNotEmpty || state.results.isNotEmpty;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 10, 12, 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          LivePressable(
+            scale: 0.98,
+            onTap: browsable ? onOpenLineup : null,
+            semanticLabel: 'Open the lineup',
             child: Row(
               children: [
-                _Thumb(url: next?.image, size: 44),
+                _Breathing(
+                  child: LiveThumb(url: next?.image ?? last?.image, size: 44),
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        next != null ? 'UP NEXT' : 'NO ITEM UP RIGHT NOW',
-                        style: _eyebrow,
+                        next != null
+                            ? 'UP NEXT · OPENS AT ${liveInr(next.startingBid)}'
+                            : 'BETWEEN PIECES',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: LiveType.eyebrow(
+                          size: 9.5,
+                          color: next != null ? LiveStage.champagne : null,
+                        ),
                       ),
                       const SizedBox(height: 3),
                       Text(
                         next != null
-                            ? '${next.title} · from ${liveInr(next.startingBid)}'
+                            ? next.title
                             : last != null
                             ? _resultLine(last)
-                            : 'Bidding opens when the seller puts an item up.',
-                        maxLines: 2,
+                            : 'Bidding opens when the seller puts a piece up.',
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: next != null
+                            ? LiveType.display(17)
+                            : LiveType.body(13, color: LiveStage.ink),
                       ),
                     ],
                   ),
                 ),
-                if (state.upNext.isNotEmpty || state.results.isNotEmpty)
+                if (browsable)
                   Icon(Icons.chevron_right_rounded, color: LiveStage.inkMuted),
               ],
             ),
           ),
-        ),
-        if (signedIn && me != null && !me.isSeller)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 0, 8, 10),
-            child: _WalletLine(showId: showId, wallet: me.wallet),
-          ),
-      ],
+          if (signedIn && me != null && !me.isSeller) ...[
+            const SizedBox(height: 8),
+            _AccountStrip(showId: showId, me: me),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -304,6 +416,21 @@ String _resultLine(LiveAuctionLot lot) => switch (lot.status) {
   _ => '${lot.title} was withdrawn',
 };
 
+/// Slow opacity breath for "waiting" imagery.
+class _Breathing extends StatelessWidget {
+  const _Breathing({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (MediaQuery.disableAnimationsOf(context)) return child;
+    return child
+        .animate(onPlay: (c) => c.repeat(reverse: true))
+        .fade(begin: 0.6, end: 1, duration: 1600.ms, curve: Curves.easeInOut);
+  }
+}
+
 class _Expanded extends ConsumerWidget {
   const _Expanded({
     required this.showId,
@@ -312,10 +439,8 @@ class _Expanded extends ConsumerWidget {
     required this.amount,
     required this.signedIn,
     required this.onCollapse,
-    required this.onAmount,
     required this.onEditAmount,
     required this.onBid,
-    required this.onOpenLineup,
   });
 
   final String showId;
@@ -324,10 +449,8 @@ class _Expanded extends ConsumerWidget {
   final int amount;
   final bool signedIn;
   final VoidCallback onCollapse;
-  final ValueChanged<int> onAmount;
   final VoidCallback onEditAmount;
   final Future<void> Function(int amount) onBid;
-  final VoidCallback onOpenLineup;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -336,28 +459,69 @@ class _Expanded extends ConsumerWidget {
     final closed = state.remaining(lot) <= Duration.zero;
     final top = lot.recentBids.isEmpty ? null : lot.recentBids.first;
     final leader = lot.leaderName ?? top?.bidderName;
+    final hasBids = lot.hasBids;
+    final price = hasBids ? lot.currentBid! : lot.startingBid;
+
+    final (String status, Color statusColor) = !hasBids
+        ? ('Starting bid · be the first', LiveStage.inkMuted)
+        : leading != null
+        ? ('You are the top bidder', LiveStage.leading)
+        : ('Top · ${leader ?? 'another buyer'}', LiveStage.inkMuted);
+    final eyebrow = [
+      if (lot.position > 0) 'LOT ${lot.position.toString().padLeft(2, '0')}',
+      '${lot.bidCount} ${lot.bidCount == 1 ? 'BID' : 'BIDS'}',
+    ].join(' · ');
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GestureDetector(
-                onTap: () => openLiveLot(context, ref, lot),
-                child: _Thumb(url: lot.image, size: 48),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => openLiveLot(context, ref, lot),
+          _Handle(onTap: onCollapse, tooltip: 'Minimise'),
+          // One glance: piece, price, clock.
+          LivePressable(
+            scale: 0.98,
+            semanticLabel: '${lot.title}. Open details.',
+            onTap: () => openLiveLot(context, ref, lot),
+            child: Row(
+              children: [
+                LiveCountdownRing(
+                  endsAt: lot.endsAt,
+                  startedAt: lot.startedAt,
+                  durationSeconds: lot.durationSeconds,
+                  serverNow: state.serverNow,
+                  size: 52,
+                  stroke: 2.2,
+                  child: LiveThumb(url: lot.image, size: 40, radius: 12),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 5,
+                            height: 5,
+                            decoration: const BoxDecoration(
+                              color: LiveStage.live,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              eyebrow,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: LiveType.eyebrow(size: 9),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
                       Row(
                         children: [
                           Flexible(
@@ -365,63 +529,66 @@ class _Expanded extends ConsumerWidget {
                               lot.title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14.5,
-                                fontWeight: FontWeight.w700,
-                              ),
+                              style: LiveType.display(17),
                             ),
                           ),
                           const SizedBox(width: 4),
                           Icon(
-                            Icons.info_outline_rounded,
-                            size: 14,
+                            Icons.north_east_rounded,
+                            size: 12,
                             color: LiveStage.inkFaint,
                           ),
                         ],
                       ),
-                      const SizedBox(height: 3),
-                      Text(
-                        lot.hasBids
-                            ? (leading != null
-                                  ? 'You are the top bidder'
-                                  : 'Top bidder: ${leader ?? 'another buyer'}')
-                            : 'Be the first to bid',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: leading != null
-                              ? LiveStage.leading
-                              : LiveStage.inkMuted,
-                          fontSize: 12,
-                          fontWeight: leading != null
-                              ? FontWeight.w700
-                              : FontWeight.w400,
+                      const SizedBox(height: 1),
+                      AnimatedSwitcher(
+                        duration: LiveMotion.base,
+                        child: Text(
+                          status,
+                          key: ValueKey(status),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: LiveType.label(
+                            11.5,
+                            color: statusColor,
+                            weight: leading != null
+                                ? FontWeight.w800
+                                : FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  LiveCountdown(endsAt: lot.endsAt, serverNow: state.serverNow),
-                  const SizedBox(height: 6),
-                  _IconChip(
-                    icon: Icons.keyboard_arrow_down_rounded,
-                    tooltip: 'Minimise',
-                    onTap: onCollapse,
-                  ),
-                ],
-              ),
-            ],
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    LiveCountdown(
+                      endsAt: lot.endsAt,
+                      serverNow: state.serverNow,
+                    ),
+                    const SizedBox(height: 4),
+                    ShaderMask(
+                      blendMode: BlendMode.srcIn,
+                      shaderCallback: (r) =>
+                          LiveStage.champagneGradient.createShader(r),
+                      child: LiveRollingText(
+                        liveInr(price),
+                        semanticsLabel:
+                            '${hasBids ? 'Current bid' : 'Starting bid'} '
+                            '${liveInr(price)}',
+                        style: LiveType.display(25, height: 1),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 10),
-          _Stats(lot: lot),
-          const SizedBox(height: 12),
-          _Actions(
+          // One gesture: custom amount, or slide at the next minimum.
+          _Controls(
             showId: showId,
             state: state,
             lot: lot,
@@ -429,41 +596,12 @@ class _Expanded extends ConsumerWidget {
             signedIn: signedIn,
             leading: leading,
             closed: closed,
-            onAmount: onAmount,
             onEditAmount: onEditAmount,
             onBid: onBid,
           ),
           if (signedIn && me != null && !me.isSeller) ...[
-            const SizedBox(height: 10),
-            _WalletLine(showId: showId, wallet: me.wallet),
-            const SizedBox(height: 4),
-            _ShipToLine(showId: showId, hasAddress: me.hasDeliveryAddress),
-          ],
-          if (state.upNext.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            GestureDetector(
-              onTap: onOpenLineup,
-              behavior: HitTestBehavior.opaque,
-              child: Row(
-                children: [
-                  Text('UP NEXT', style: _eyebrow),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      state.upNext.map((l) => l.title).join('  ·  '),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: LiveStage.inkMuted, fontSize: 12),
-                    ),
-                  ),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    size: 18,
-                    color: LiveStage.inkMuted,
-                  ),
-                ],
-              ),
-            ),
+            const SizedBox(height: 8),
+            _AccountStrip(showId: showId, me: me),
           ],
         ],
       ),
@@ -471,112 +609,8 @@ class _Expanded extends ConsumerWidget {
   }
 }
 
-/// Current (or starting) bid, bid count and the next minimum, side by side.
-class _Stats extends StatelessWidget {
-  const _Stats({required this.lot});
-
-  final LiveAuctionLot lot;
-
-  @override
-  Widget build(BuildContext context) {
-    final hasBids = lot.hasBids;
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: LiveStage.glassBorder),
-      ),
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            Expanded(
-              flex: 5,
-              child: _Stat(
-                label: hasBids ? 'CURRENT BID' : 'STARTING BID',
-                value: liveInr(hasBids ? lot.currentBid! : lot.startingBid),
-                pulseKey: lot.currentBid,
-                gold: true,
-              ),
-            ),
-            VerticalDivider(width: 1, color: LiveStage.glassBorder),
-            Expanded(
-              flex: 3,
-              child: _Stat(label: 'BIDS', value: '${lot.bidCount}'),
-            ),
-            VerticalDivider(width: 1, color: LiveStage.glassBorder),
-            Expanded(
-              flex: 5,
-              child: _Stat(
-                label: 'NEXT MIN',
-                value: liveInr(lot.minNextBid.ceil()),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Stat extends StatelessWidget {
-  const _Stat({
-    required this.label,
-    required this.value,
-    this.gold = false,
-    this.pulseKey,
-  });
-
-  final String label;
-  final String value;
-  final bool gold;
-
-  /// Pops the value when this changes (a new bid).
-  final Object? pulseKey;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Text(
-        value,
-        maxLines: 1,
-        style: TextStyle(
-          color: gold ? LiveStage.gold : Colors.white,
-          fontSize: gold ? 18 : 15,
-          fontWeight: FontWeight.w800,
-          height: 1.1,
-          fontFeatures: const [FontFeature.tabularFigures()],
-        ),
-      ),
-    );
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(label, style: _eyebrow.copyWith(fontSize: 9.5)),
-          const SizedBox(height: 3),
-          if (pulseKey == null)
-            text
-          else
-            TweenAnimationBuilder<double>(
-              key: ValueKey(pulseKey),
-              tween: Tween(begin: 1.2, end: 1),
-              duration: const Duration(milliseconds: 380),
-              curve: Curves.easeOutBack,
-              builder: (context, scale, child) =>
-                  Transform.scale(scale: scale, child: child),
-              child: text,
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Actions extends ConsumerWidget {
-  const _Actions({
+class _Controls extends ConsumerWidget {
+  const _Controls({
     required this.showId,
     required this.state,
     required this.lot,
@@ -584,7 +618,6 @@ class _Actions extends ConsumerWidget {
     required this.signedIn,
     required this.leading,
     required this.closed,
-    required this.onAmount,
     required this.onEditAmount,
     required this.onBid,
   });
@@ -596,14 +629,13 @@ class _Actions extends ConsumerWidget {
   final bool signedIn;
   final double? leading;
   final bool closed;
-  final ValueChanged<int> onAmount;
   final VoidCallback onEditAmount;
   final Future<void> Function(int amount) onBid;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (!signedIn) {
-      return _BidButton(
+      return LiveButton(
         label: 'Sign in to bid',
         icon: Icons.login_rounded,
         onTap: () => openLiveSignIn(context),
@@ -611,17 +643,22 @@ class _Actions extends ConsumerWidget {
     }
     if (state.me?.isSeller ?? false) {
       return _Banner(
-        icon: Icons.storefront_rounded,
+        icon: Icons.storefront_outlined,
         color: LiveStage.inkMuted,
         text: 'This is your show, so bidding is off.',
       );
     }
     if (closed) {
-      return const _BidButton(label: 'Closing…', onTap: null);
+      return const _Banner(
+        icon: Icons.gavel_rounded,
+        color: LiveStage.urgent,
+        text: 'Going, going… closing this piece',
+        pulse: true,
+      );
     }
     if (leading != null) {
       return _Banner(
-        icon: Icons.emoji_events_rounded,
+        icon: Icons.workspace_premium_rounded,
         color: LiveStage.leading,
         text: "You're the highest bidder at ${liveInr(leading!)}",
         strong: true,
@@ -629,19 +666,17 @@ class _Actions extends ConsumerWidget {
     }
 
     final room = ref.read(liveShowRoomProvider(showId).notifier);
-    final min = lot.minNextBid.ceil();
-    final rawStep = lot.bidStep.ceil();
-    final step = rawStep > 0 ? rawStep : 100;
     final placing = state.placingAmount;
     final me = state.me;
     final free = me?.wallet.availableBalance;
     final shortfall = free == null ? 0.0 : amount - free;
+    final custom = amount != lot.minNextBid.ceil();
 
     // Why the slider is locked, and what tapping it does.
     final (String? lock, VoidCallback? fix) = switch (me) {
       null => ('Checking your wallet…', () => unawaited(room.refreshMe())),
       _ when !me.hasDeliveryAddress => (
-        'Add a delivery address to bid',
+        'Add a delivery address',
         () => unawaited(openLiveAddress(context, ref, showId)),
       ),
       _ when shortfall > 0 => (
@@ -653,278 +688,84 @@ class _Actions extends ConsumerWidget {
       _ => (null, null),
     };
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Row(
       children: [
-        Row(
-          children: [
-            _RoundStep(
-              icon: Icons.remove_rounded,
-              tooltip: 'Lower by ${liveInr(step)}',
-              onTap: amount - step >= min
-                  ? () => onAmount(amount - step)
-                  : null,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _AmountBox(
-                amount: amount,
-                short: shortfall > 0,
-                onTap: onEditAmount,
-              ),
-            ),
-            const SizedBox(width: 8),
-            _RoundStep(
-              icon: Icons.add_rounded,
-              tooltip: 'Raise by ${liveInr(step)}',
-              onTap: () => onAmount(amount + step),
-            ),
-          ],
+        _CustomButton(
+          amount: amount,
+          custom: custom,
+          short: shortfall > 0,
+          onTap: onEditAmount,
         ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            for (final (i, (label, value)) in [
-              ('Min', min),
-              if (rawStep > 0) ('+1 step', min + step),
-              if (rawStep > 0) ('+2 steps', min + step * 2),
-            ].indexed) ...[
-              if (i > 0) const SizedBox(width: 6),
-              Expanded(
-                child: _PickChip(
-                  hint: label,
-                  label: liveInr(value),
-                  selected: amount == value,
-                  short: free != null && value > free,
-                  onTap: () => onAmount(value),
-                ),
-              ),
-            ],
-          ],
-        ),
-        if (shortfall > 0 && free != null) ...[
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(
-                Icons.error_outline_rounded,
-                size: 15,
-                color: LiveStage.urgent,
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  'Not enough in your wallet. Free to bid ${liveInr(free)}.',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
+        const SizedBox(width: 8),
+        Expanded(
+          child: LiveSlideToBid(
+            key: ValueKey('slide-${lot.id}'),
+            label: 'Bid ${liveInr(amount)}',
+            busy: placing != null,
+            lockedLabel: lock,
+            onLockedTap: fix,
+            onSubmit: lock == null && placing == null
+                ? () => onBid(amount)
+                : null,
           ),
-        ],
-        const SizedBox(height: 10),
-        LiveSlideToBid(
-          key: ValueKey('slide-${lot.id}'),
-          label: 'Slide to bid ${liveInr(amount)}',
-          busy: placing != null,
-          lockedLabel: lock,
-          onLockedTap: fix,
-          onSubmit: lock == null && placing == null
-              ? () => onBid(amount)
-              : null,
-        ),
-        const SizedBox(height: 6),
-        Text(
-          'Bids are binding. The amount is held in your wallet while you '
-          'lead, and a win pays automatically.',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: LiveStage.inkFaint, fontSize: 10.5),
         ),
       ],
     );
   }
 }
 
-/// The bid amount; tap to type one on a number pad.
-class _AmountBox extends StatelessWidget {
-  const _AmountBox({
+/// "Custom": opens the exact-amount pad with steps and quick picks. Lights
+/// champagne once the bid is above the minimum.
+class _CustomButton extends StatelessWidget {
+  const _CustomButton({
     required this.amount,
+    required this.custom,
     required this.short,
     required this.onTap,
   });
 
   final int amount;
+  final bool custom;
   final bool short;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final border = short ? LiveStage.urgent : LiveStage.gold;
-    return Semantics(
-      button: true,
-      label: 'Your bid ${liveInr(amount)}. Tap to enter an amount.',
-      excludeSemantics: true,
-      child: Material(
-        color: Colors.white.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(14),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: onTap,
-          child: Container(
-            height: 52,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: border.withValues(alpha: 0.7),
-                width: 1.4,
-              ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text('YOUR BID', style: _eyebrow.copyWith(fontSize: 9)),
-                      const SizedBox(height: 2),
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          liveInr(amount),
-                          style: TextStyle(
-                            color: short ? LiveStage.urgent : Colors.white,
-                            fontSize: 19,
-                            fontWeight: FontWeight.w800,
-                            height: 1.05,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(Icons.edit_rounded, size: 16, color: LiveStage.inkMuted),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _RoundStep extends StatelessWidget {
-  const _RoundStep({
-    required this.icon,
-    required this.tooltip,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
+    final accent = short
+        ? LiveStage.urgent
+        : custom
+        ? LiveStage.champagne
+        : LiveStage.ink;
+    final lit = custom || short;
     return Tooltip(
-      message: tooltip,
-      child: Semantics(
-        button: true,
-        enabled: onTap != null,
-        label: tooltip,
-        child: InkResponse(
-          onTap: onTap,
-          radius: 28,
-          child: Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.08),
-              border: Border.all(color: LiveStage.glassBorder),
-            ),
-            child: Icon(
-              icon,
-              color: onTap == null ? LiveStage.inkFaint : Colors.white,
+      message: 'Custom bid',
+      child: LivePressable(
+        scale: 0.94,
+        semanticLabel:
+            'Custom bid. Now ${liveInr(amount)}. Tap to change the amount.',
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: LiveMotion.quick,
+          width: 64,
+          height: 60,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: lit
+                ? accent.withValues(alpha: 0.12)
+                : LiveStage.ink.withValues(alpha: 0.06),
+            border: Border.all(
+              color: lit
+                  ? accent.withValues(alpha: 0.6)
+                  : LiveStage.hairlineStrong,
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Quick pick that fills the bid box (the slider still confirms).
-class _PickChip extends StatelessWidget {
-  const _PickChip({
-    required this.hint,
-    required this.label,
-    required this.selected,
-    required this.short,
-    required this.onTap,
-  });
-
-  final String hint;
-  final String label;
-  final bool selected;
-  final bool short;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final gold = LiveStage.gold;
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: '$hint, $label',
-      excludeSemantics: true,
-      child: Material(
-        color: selected
-            ? gold.withValues(alpha: 0.18)
-            : Colors.white.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            constraints: const BoxConstraints(minHeight: 44),
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: selected ? gold : LiveStage.glassBorder,
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      color: short
-                          ? LiveStage.inkFaint
-                          : (selected ? gold : Colors.white),
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w700,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
-                  ),
-                ),
-                Text(
-                  hint,
-                  style: TextStyle(color: LiveStage.inkFaint, fontSize: 10),
-                ),
-              ],
-            ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.tune_rounded, size: 18, color: accent),
+              const SizedBox(height: 3),
+              Text('Custom', style: LiveType.label(10.5, color: accent)),
+            ],
           ),
         ),
       ),
@@ -957,57 +798,114 @@ class _Collapsed extends StatelessWidget {
         !closed &&
         !(state.me?.isSeller ?? false) &&
         state.placingAmount == null;
-    return InkWell(
-      onTap: onExpand,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
-        child: Row(
-          children: [
-            _Thumb(url: lot.image, size: 38),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    lot.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Text(
-                    leading != null
-                        ? 'You lead at ${liveInr(leading)}'
-                        : '${liveInr(lot.currentBid ?? lot.startingBid)} · '
-                              '${lot.bidCount} '
-                              '${lot.bidCount == 1 ? 'bid' : 'bids'}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: leading != null
-                          ? LiveStage.leading
-                          : LiveStage.gold,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
+    return Semantics(
+      button: true,
+      label: '${lot.title}. Expand bidding.',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onExpand,
+        child: Padding(
+          padding: const EdgeInsets.all(7),
+          child: Row(
+            children: [
+              LiveCountdownRing(
+                endsAt: lot.endsAt,
+                startedAt: lot.startedAt,
+                durationSeconds: lot.durationSeconds,
+                serverNow: state.serverNow,
+                size: 44,
+                stroke: 2,
+                child: LiveThumb(url: lot.image, size: 34, radius: 10),
               ),
-            ),
-            LiveCountdown(endsAt: lot.endsAt, serverNow: state.serverNow),
-            const SizedBox(width: 8),
-            // Opens the full card: bids are always confirmed by sliding.
-            if (canBid)
-              Flexible(
-                child: _MiniBid(label: liveInr(amount), onTap: onExpand),
-              )
-            else
-              Icon(Icons.keyboard_arrow_up_rounded, color: LiveStage.inkMuted),
-          ],
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      lot.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: LiveType.display(15),
+                    ),
+                    const SizedBox(height: 1),
+                    if (leading != null)
+                      Text(
+                        'You lead at ${liveInr(leading)}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: LiveType.label(12, color: LiveStage.leading),
+                      )
+                    else
+                      Row(
+                        children: [
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: LiveRollingText(
+                                liveInr(lot.currentBid ?? lot.startingBid),
+                                style: LiveType.figure(
+                                  12.5,
+                                  color: LiveStage.champagne,
+                                  weight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Flexible(
+                            child: Text(
+                              '  ·  ${lot.bidCount} '
+                              '${lot.bidCount == 1 ? 'bid' : 'bids'}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: LiveType.body(11.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 6),
+              LiveCountdown(endsAt: lot.endsAt, serverNow: state.serverNow),
+              const SizedBox(width: 6),
+              // Opens the full bar: a bid is always confirmed by sliding.
+              if (canBid)
+                Flexible(
+                  child: LivePressable(
+                    onTap: onExpand,
+                    semanticLabel: 'Bid ${liveInr(amount)}',
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 13,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LiveStage.champagneGradient,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Bid ${liveInr(amount)}',
+                          style: LiveType.label(
+                            12.5,
+                            color: LiveStage.onChampagne,
+                            weight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              else
+                Icon(
+                  Icons.keyboard_arrow_up_rounded,
+                  color: LiveStage.inkMuted,
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -1016,242 +914,118 @@ class _Collapsed extends StatelessWidget {
 
 // ── Wallet and address ────────────────────────────────────────────────────
 
-class _WalletLine extends ConsumerWidget {
-  const _WalletLine({required this.showId, required this.wallet});
+/// Hairline strip: free-to-bid (with any hold) on the left, ship-to on the
+/// right. Each half opens its fix in place.
+class _AccountStrip extends ConsumerWidget {
+  const _AccountStrip({required this.showId, required this.me});
 
   final String showId;
-  final LiveWallet wallet;
+  final MyShowState me;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final muted = TextStyle(color: LiveStage.inkMuted, fontSize: 12);
-    return Row(
-      children: [
-        Icon(
-          Icons.account_balance_wallet_outlined,
-          size: 15,
-          color: LiveStage.inkMuted,
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text.rich(
-                TextSpan(
-                  children: [
-                    const TextSpan(text: 'Free to bid '),
-                    TextSpan(
-                      text: liveInr(wallet.availableBalance),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: muted,
-              ),
-              if (wallet.heldAmount > 0)
-                Text(
-                  '${liveInr(wallet.heldAmount)} on hold for your leading bids',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: muted.copyWith(
-                    fontSize: 11,
-                    color: LiveStage.inkFaint,
-                  ),
-                ),
-            ],
-          ),
-        ),
-        _LinkButton(
-          label: 'Add funds',
-          onTap: () => openLiveTopUp(context, ref, showId),
-        ),
-      ],
-    );
-  }
-}
-
-class _ShipToLine extends ConsumerWidget {
-  const _ShipToLine({required this.showId, required this.hasAddress});
-
-  final String showId;
-  final bool hasAddress;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
+    final wallet = me.wallet;
+    final hasAddress = me.hasDeliveryAddress;
     final address = hasAddress
         ? ref.watch(liveShipToProvider).asData?.value
         : null;
-    final text = !hasAddress
-        ? 'Add a delivery address to bid'
-        : address == null
-        ? 'Wins ship to your saved address'
-        : 'Wins ship to ${address.fullName}, ${address.city}';
-    return Row(
-      children: [
-        Icon(
-          hasAddress
-              ? Icons.local_shipping_outlined
-              : Icons.error_outline_rounded,
-          size: 15,
-          color: hasAddress ? LiveStage.inkMuted : LiveStage.urgent,
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            text,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: hasAddress ? LiveStage.inkMuted : Colors.white,
-              fontSize: 12,
+    final held = wallet.heldAmount > 0;
+    final free = liveInr(wallet.availableBalance);
+    final hold = liveInr(wallet.heldAmount);
+    return Container(
+      height: 40,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        color: LiveStage.ink.withValues(alpha: 0.035),
+        border: Border.all(color: LiveStage.hairline),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _StripHalf(
+              icon: Icons.account_balance_wallet_outlined,
+              text: held ? '$free free · $hold held' : '$free free to bid',
+              action: 'Add',
+              semanticLabel: held
+                  ? 'Free to bid $free, $hold on hold for your leading '
+                        'bids. Add funds.'
+                  : 'Free to bid $free. Add funds.',
+              onTap: () => openLiveTopUp(context, ref, showId),
             ),
           ),
-        ),
-        _LinkButton(
-          label: hasAddress ? 'Change' : 'Add',
-          onTap: () => openLiveAddress(context, ref, showId),
-        ),
-      ],
-    );
-  }
-}
-
-// ── Pieces ────────────────────────────────────────────────────────────────
-
-final _eyebrow = TextStyle(
-  color: Colors.white.withValues(alpha: 0.55),
-  fontSize: 10.5,
-  fontWeight: FontWeight.w700,
-  letterSpacing: 1.4,
-);
-
-class _Thumb extends StatelessWidget {
-  const _Thumb({required this.url, required this.size});
-
-  final String? url;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    final dpr = MediaQuery.devicePixelRatioOf(context);
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: size,
-        height: size,
-        color: Colors.white.withValues(alpha: 0.08),
-        child: url == null || url!.isEmpty
-            ? Icon(
-                Icons.diamond_outlined,
-                color: LiveStage.inkFaint,
-                size: size * 0.45,
-              )
-            : AppNetworkImage(url: url!, memCacheWidth: (size * dpr).round()),
+          Container(width: 1, height: 18, color: LiveStage.hairline),
+          Expanded(
+            child: _StripHalf(
+              icon: hasAddress
+                  ? Icons.local_shipping_outlined
+                  : Icons.error_outline_rounded,
+              warn: !hasAddress,
+              text: !hasAddress
+                  ? 'No delivery address'
+                  : address == null
+                  ? 'Ships to saved address'
+                  : 'Ships to ${address.city}',
+              action: hasAddress ? 'Change' : 'Add',
+              semanticLabel: !hasAddress
+                  ? 'Add a delivery address to bid'
+                  : address == null
+                  ? 'Wins ship to your saved address. Change.'
+                  : 'Wins ship to ${address.fullName}, ${address.city}. '
+                        'Change.',
+              onTap: () => openLiveAddress(context, ref, showId),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _BidButton extends StatelessWidget {
-  const _BidButton({required this.label, required this.onTap, this.icon});
+class _StripHalf extends StatelessWidget {
+  const _StripHalf({
+    required this.icon,
+    required this.text,
+    required this.action,
+    required this.semanticLabel,
+    required this.onTap,
+    this.warn = false,
+  });
 
-  final String label;
-  final IconData? icon;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final enabled = onTap != null;
-    final gold = LiveStage.gold;
-    return Semantics(
-      button: true,
-      enabled: enabled,
-      label: label,
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 160),
-        opacity: enabled ? 1 : 0.55,
-        child: Material(
-          color: Colors.transparent,
-          child: Ink(
-            height: 52,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(999),
-              gradient: LinearGradient(
-                colors: [gold, Color.lerp(gold, Colors.white, 0.25)!],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: gold.withValues(alpha: 0.35),
-                  blurRadius: 18,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(999),
-              onTap: enabled ? onTap : null,
-              child: Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (icon != null) ...[
-                      Icon(icon, size: 19, color: const Color(0xFF16140F)),
-                      const SizedBox(width: 8),
-                    ],
-                    Text(
-                      label,
-                      style: const TextStyle(
-                        color: Color(0xFF16140F),
-                        fontSize: 16.5,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.2,
-                        fontFeatures: [FontFeature.tabularFigures()],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MiniBid extends StatelessWidget {
-  const _MiniBid({required this.label, required this.onTap});
-
-  final String label;
+  final IconData icon;
+  final String text;
+  final String action;
+  final String semanticLabel;
   final VoidCallback onTap;
+  final bool warn;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: LiveStage.gold,
-      borderRadius: BorderRadius.circular(999),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(999),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              'Bid $label',
-              style: const TextStyle(
-                color: Color(0xFF16140F),
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
+    final accent = warn ? LiveStage.urgent : LiveStage.champagne;
+    return LivePressable(
+      scale: 0.97,
+      semanticLabel: semanticLabel,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Row(
+          children: [
+            Icon(icon, size: 14, color: warn ? accent : LiveStage.inkFaint),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: LiveType.body(
+                  11.5,
+                  color: warn ? LiveStage.ink : LiveStage.inkMuted,
+                  weight: FontWeight.w600,
+                ),
               ),
             ),
-          ),
+            const SizedBox(width: 4),
+            Text(action, style: LiveType.label(11, color: accent)),
+          ],
         ),
       ),
     );
@@ -1264,103 +1038,60 @@ class _Banner extends StatelessWidget {
     required this.color,
     required this.text,
     this.strong = false,
+    this.pulse = false,
   });
 
   final IconData icon;
   final Color color;
   final String text;
   final bool strong;
+  final bool pulse;
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      liveRegion: true,
-      child: Container(
-        height: 52,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: strong ? 0.16 : 0.08),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: color.withValues(alpha: 0.5)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 18, color: color),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                text,
-                maxLines: 2,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: strong ? color : Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                ),
+    final still = MediaQuery.disableAnimationsOf(context);
+    Widget banner = Container(
+      height: 52,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: strong ? 0.12 : 0.07),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.45)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              style: LiveType.label(
+                13.5,
+                color: strong ? color : LiveStage.ink,
+                weight: FontWeight.w800,
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _IconChip extends StatelessWidget {
-  const _IconChip({
-    required this.icon,
-    required this.tooltip,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: InkResponse(
-        onTap: onTap,
-        radius: 20,
-        child: Container(
-          width: 30,
-          height: 24,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(999),
           ),
-          child: Icon(icon, size: 18, color: LiveStage.inkMuted),
-        ),
+        ],
       ),
     );
-  }
-}
-
-class _LinkButton extends StatelessWidget {
-  const _LinkButton({required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: LiveStage.gold,
-            fontSize: 12.5,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
-    );
+    if (!still && strong) {
+      banner = banner
+          .animate(onPlay: (c) => c.repeat())
+          .shimmer(
+            duration: 2400.ms,
+            delay: 800.ms,
+            color: Colors.white.withValues(alpha: 0.18),
+          );
+    }
+    if (!still && pulse) {
+      banner = banner
+          .animate(onPlay: (c) => c.repeat(reverse: true))
+          .fade(begin: 0.6, end: 1, duration: 600.ms);
+    }
+    return Semantics(liveRegion: true, child: banner);
   }
 }

@@ -1,12 +1,15 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../../domain/live_format.dart';
 import 'live_stage_tokens.dart';
 
-/// Lot countdown on the server's clock, redrawn 4 times a second. Red
-/// under 10 s; "Closing…" at 0 until the result push lands.
+/// Lot clock on the server's time, redrawn 4× a second. Turns ruby and
+/// beats once a second under 10 s; reads "Closing" at 0 until the result
+/// push lands.
 class LiveCountdown extends StatefulWidget {
   const LiveCountdown({
     required this.endsAt,
@@ -51,50 +54,217 @@ class _LiveCountdownState extends State<LiveCountdown> {
     final label = ends == null
         ? '--:--'
         : closing
-        ? 'Closing…'
+        ? 'Closing'
         : liveClock(left + const Duration(milliseconds: 999));
-    final color = urgent || closing ? LiveStage.urgent : Colors.white;
+    final hot = urgent || closing;
+    final color = hot ? LiveStage.urgent : LiveStage.ink;
+    final still = MediaQuery.disableAnimationsOf(context);
+    final beat = urgent && !still
+        ? 1 + 0.08 * math.max(0, 1 - (left.inMilliseconds % 1000) / 250)
+        : 1.0;
+
     return Semantics(
       liveRegion: urgent,
       label: closing ? 'Closing' : 'Time left $label',
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(
-          horizontal: widget.large ? 12 : 9,
-          vertical: widget.large ? 7 : 5,
-        ),
-        decoration: BoxDecoration(
-          color: urgent || closing
-              ? LiveStage.urgent.withValues(alpha: 0.18)
-              : Colors.white.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: urgent || closing
-                ? LiveStage.urgent.withValues(alpha: 0.7)
-                : LiveStage.glassBorder,
+      excludeSemantics: true,
+      child: Transform.scale(
+        scale: beat,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 240),
+          padding: EdgeInsets.symmetric(
+            horizontal: widget.large ? 12 : 9,
+            vertical: widget.large ? 7 : 5,
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.timer_outlined,
-              size: widget.large ? 16 : 14,
-              color: color,
+          decoration: BoxDecoration(
+            color: hot
+                ? LiveStage.urgent.withValues(alpha: 0.16)
+                : LiveStage.ink.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: hot
+                  ? LiveStage.urgent.withValues(alpha: 0.6)
+                  : LiveStage.hairline,
             ),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                closing ? Icons.gavel_rounded : Icons.schedule_rounded,
+                size: widget.large ? 15 : 13,
                 color: color,
-                fontSize: widget.large ? 16 : 13,
-                fontWeight: FontWeight.w800,
-                fontFeatures: const [FontFeature.tabularFigures()],
               ),
-            ),
-          ],
+              const SizedBox(width: 5),
+              Text(
+                label,
+                style: LiveType.figure(
+                  widget.large ? 15 : 12.5,
+                  color: color,
+                  weight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+}
+
+/// Wraps [child] (the lot image) in a hairline ring that drains as the
+/// lot's time runs out: champagne, then ruby in the last 10 s. Painted on
+/// its own layer at display rate.
+class LiveCountdownRing extends StatefulWidget {
+  const LiveCountdownRing({
+    required this.child,
+    required this.endsAt,
+    required this.serverNow,
+    super.key,
+    this.startedAt,
+    this.durationSeconds = 0,
+    this.size = 56,
+    this.stroke = 2.4,
+  });
+
+  final Widget child;
+  final DateTime? endsAt;
+  final DateTime? startedAt;
+  final int durationSeconds;
+  final DateTime Function() serverNow;
+  final double size;
+  final double stroke;
+
+  @override
+  State<LiveCountdownRing> createState() => _LiveCountdownRingState();
+}
+
+class _LiveCountdownRingState extends State<LiveCountdownRing>
+    with SingleTickerProviderStateMixin {
+  final _progress = ValueNotifier<double>(1);
+  late final Ticker _ticker = createTicker((_) => _update());
+
+  @override
+  void initState() {
+    super.initState();
+    _update();
+    _ticker.start();
+  }
+
+  void _update() {
+    final ends = widget.endsAt;
+    if (ends == null) {
+      _progress.value = 1;
+      return;
+    }
+    final total = widget.durationSeconds > 0
+        ? Duration(seconds: widget.durationSeconds)
+        : widget.startedAt == null
+        ? const Duration(seconds: 60)
+        : ends.difference(widget.startedAt!);
+    final left = ends.difference(widget.serverNow());
+    final ms = total.inMilliseconds;
+    _progress.value = ms <= 0
+        ? 0
+        : (left.inMilliseconds / ms).clamp(0.0, 1.0).toDouble();
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    _progress.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final inner = widget.size - (widget.stroke + 3) * 2;
+    return SizedBox.square(
+      dimension: widget.size,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned.fill(
+            child: RepaintBoundary(
+              child: CustomPaint(
+                painter: _RingPainter(
+                  progress: _progress,
+                  stroke: widget.stroke,
+                  endsAt: widget.endsAt,
+                  serverNow: widget.serverNow,
+                ),
+              ),
+            ),
+          ),
+          SizedBox.square(dimension: inner, child: widget.child),
+        ],
+      ),
+    );
+  }
+}
+
+class _RingPainter extends CustomPainter {
+  _RingPainter({
+    required this.progress,
+    required this.stroke,
+    required this.endsAt,
+    required this.serverNow,
+  }) : super(repaint: progress);
+
+  final ValueNotifier<double> progress;
+  final double stroke;
+  final DateTime? endsAt;
+  final DateTime Function() serverNow;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final r = RRect.fromRectAndRadius(
+      rect.deflate(stroke / 2),
+      Radius.circular(size.width * 0.32),
+    );
+    final track = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = stroke
+      ..color = LiveStage.hairlineStrong;
+    canvas.drawRRect(r, track);
+
+    final p = progress.value;
+    if (p <= 0) return;
+    final ends = endsAt;
+    final urgent =
+        ends != null &&
+        ends.difference(serverNow()) < const Duration(seconds: 10);
+    final path = Path()..addRRect(r);
+    final metric = path.computeMetrics().first;
+    // Start at top-centre, run clockwise.
+    final len = metric.length;
+    final start = len * 0.125 + size.width * 0.18;
+    final arc = len * p;
+    final drawn = Path();
+    final from = start % len;
+    final to = from + arc;
+    if (to <= len) {
+      drawn.addPath(metric.extractPath(from, to), Offset.zero);
+    } else {
+      drawn
+        ..addPath(metric.extractPath(from, len), Offset.zero)
+        ..addPath(metric.extractPath(0, to - len), Offset.zero);
+    }
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = stroke
+      ..strokeCap = StrokeCap.round
+      ..shader =
+          (urgent
+                  ? const LinearGradient(
+                      colors: [LiveStage.urgent, LiveStage.live],
+                    )
+                  : LiveStage.champagneGradient)
+              .createShader(rect);
+    canvas.drawPath(drawn, paint);
+  }
+
+  @override
+  bool shouldRepaint(_RingPainter old) =>
+      old.endsAt != endsAt || old.stroke != stroke;
 }

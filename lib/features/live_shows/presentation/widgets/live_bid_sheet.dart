@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../../core/haptics/app_haptics.dart';
-import '../../../../core/theme/luxe_tokens.dart';
-import '../../../../core/widgets/luxe/luxe_button.dart';
-import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../domain/live_format.dart';
 import '../../domain/models/live_show_models.dart';
+import 'live_sheet.dart';
+import 'live_stage_tokens.dart';
 
 const _maxBid = 100000000;
 
-/// Number pad for the bid box: whole rupees, at least `minNextBid`, nudged
-/// by the lot's bid step. Returns the amount to put in the box (the slider
-/// then places it), or `null`.
+/// Exact-amount pad for the bid: whole rupees, at least `minNextBid`,
+/// nudged by the lot's step. Returns the amount to put in the dock (the
+/// slider then places it), or `null`.
 Future<int?> showLiveBidSheet(
   BuildContext context, {
   required LiveAuctionLot lot,
   required int initial,
   double? freeToBid,
 }) {
-  return showLuxeSheet<int>(
+  return showLiveSheet<int>(
     context,
-    title: 'Your bid',
+    title: 'Custom bid',
     subtitle: lot.title,
     builder: (_) =>
         _LiveBidSheet(lot: lot, initial: initial, freeToBid: freeToBid),
@@ -76,86 +76,166 @@ class _LiveBidSheetState extends State<_LiveBidSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final p = LuxePalette.of(context);
     final error = _error;
     final amount = _amount;
     final free = widget.freeToBid;
     final short = free != null && amount != null && amount > free;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 6, 24, 20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(8, 18, 8, 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              color: LiveStage.ink.withValues(alpha: 0.04),
+              border: Border.all(
+                color: error != null || short
+                    ? LiveStage.urgent.withValues(alpha: 0.5)
+                    : LiveStage.champagne.withValues(alpha: 0.35),
+              ),
+            ),
+            child: Column(
+              children: [
+                Text('ENTER AMOUNT', style: LiveType.eyebrow()),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    _Step(
+                      icon: Icons.remove_rounded,
+                      label: 'Lower by ${liveInr(_step)}',
+                      onTap: (amount ?? _min) > _min
+                          ? () => _nudge(-_step)
+                          : null,
+                    ),
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        autofocus: true,
+                        textAlign: TextAlign.center,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        cursorColor: LiveStage.champagne,
+                        style: LiveType.display(
+                          44,
+                          color: short || error != null
+                              ? LiveStage.urgent
+                              : LiveStage.champagne,
+                        ),
+                        decoration: InputDecoration(
+                          prefixText: '₹',
+                          prefixStyle: LiveType.display(
+                            30,
+                            color: LiveStage.inkFaint,
+                          ),
+                          filled: false,
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          isDense: true,
+                        ),
+                        onChanged: (_) => setState(() {}),
+                      ),
+                    ),
+                    _Step(
+                      icon: Icons.add_rounded,
+                      label: 'Raise by ${liveInr(_step)}',
+                      onTap: () => _nudge(_step),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                AnimatedSwitcher(
+                  duration: LiveMotion.quick,
+                  child: Text(
+                    error ??
+                        'Minimum ${liveInr(_min)} · steps of ${liveInr(_step)}',
+                    key: ValueKey(error),
+                    textAlign: TextAlign.center,
+                    style: LiveType.body(
+                      12.5,
+                      color: error != null
+                          ? LiveStage.urgent
+                          : LiveStage.inkMuted,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
           Row(
             children: [
-              _StepButton(
-                icon: Icons.remove_rounded,
-                label: 'Lower by ${liveInr(_step)}',
-                onTap: (amount ?? _min) > _min ? () => _nudge(-_step) : null,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextField(
-                  controller: _controller,
-                  autofocus: true,
-                  textAlign: TextAlign.center,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  style: LuxeType.figure(p.ink, size: 30),
-                  decoration: InputDecoration(
-                    prefixText: '₹ ',
-                    prefixStyle: LuxeType.figure(p.inkMuted, size: 22),
-                    border: InputBorder.none,
-                    isDense: true,
+              for (final (i, (label, value)) in [
+                ('Min', _min),
+                if (widget.lot.bidStep.ceil() > 0) ('+1 step', _min + _step),
+                if (widget.lot.bidStep.ceil() > 0)
+                  ('+2 steps', _min + _step * 2),
+                if (widget.lot.bidStep.ceil() > 0)
+                  ('+5 steps', _min + _step * 5),
+              ].indexed) ...[
+                if (i > 0) const SizedBox(width: 8),
+                Expanded(
+                  child: _Pick(
+                    hint: label,
+                    label: liveInr(value),
+                    selected: amount == value,
+                    short: free != null && value > free,
+                    onTap: () {
+                      AppHaptics.selection();
+                      setState(() => _controller.text = '$value');
+                    },
                   ),
-                  onChanged: (_) => setState(() {}),
                 ),
-              ),
-              const SizedBox(width: 12),
-              _StepButton(
-                icon: Icons.add_rounded,
-                label: 'Raise by ${liveInr(_step)}',
-                onTap: () => _nudge(_step),
-              ),
+              ],
             ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            error ?? 'Minimum ${liveInr(_min)} · steps of ${liveInr(_step)}',
-            textAlign: TextAlign.center,
-            style: LuxeType.body(
-              error != null ? p.caution : p.inkMuted,
-              size: 13,
-            ),
-          ),
           if (free != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              short
-                  ? 'Free to bid ${liveInr(free)}. Add '
-                        '${liveInr((amount - free).ceil())} to your wallet '
-                        'to bid this much.'
-                  : 'Free to bid ${liveInr(free)}',
-              textAlign: TextAlign.center,
-              style: LuxeType.body(short ? p.caution : p.inkFaint, size: 12.5),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(
+                  short
+                      ? Icons.error_outline_rounded
+                      : Icons.account_balance_wallet_outlined,
+                  size: 16,
+                  color: short ? LiveStage.urgent : LiveStage.inkMuted,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    short
+                        ? 'Free to bid ${liveInr(free)}. Add '
+                              '${liveInr((amount - free).ceil())} to your '
+                              'wallet to bid this much.'
+                        : 'Free to bid ${liveInr(free)}',
+                    style: LiveType.body(
+                      12.5,
+                      color: short ? LiveStage.ink : LiveStage.inkMuted,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
-          const SizedBox(height: 18),
-          LuxeButton(
+          const SizedBox(height: 20),
+          LiveButton(
             label: amount == null ? 'Set bid' : 'Set bid ${liveInr(amount)}',
             icon: Icons.check_rounded,
-            variant: LuxeButtonVariant.accent,
-            expand: true,
-            onPressed: error == null
+            onTap: error == null
                 ? () => Navigator.of(context).pop(amount)
                 : null,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
-            'Then slide to bid. Bids are binding.',
+            'You confirm by sliding. Bids are binding: the amount is held in '
+            'your wallet while you lead, and a win pays automatically.',
             textAlign: TextAlign.center,
-            style: LuxeType.body(p.inkFaint, size: 12),
+            style: LiveType.body(11.5, color: LiveStage.inkFaint),
           ),
         ],
       ),
@@ -163,8 +243,72 @@ class _LiveBidSheetState extends State<_LiveBidSheet> {
   }
 }
 
-class _StepButton extends StatelessWidget {
-  const _StepButton({required this.icon, required this.label, this.onTap});
+class _Pick extends StatelessWidget {
+  const _Pick({
+    required this.hint,
+    required this.label,
+    required this.selected,
+    required this.short,
+    required this.onTap,
+  });
+
+  final String hint;
+  final String label;
+  final bool selected;
+  final bool short;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      selected: selected,
+      child: LivePressable(
+        haptic: false,
+        semanticLabel: '$hint, $label',
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: LiveMotion.ease,
+          height: 50,
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: selected
+                ? LiveStage.champagne.withValues(alpha: 0.14)
+                : LiveStage.ink.withValues(alpha: 0.04),
+            border: Border.all(
+              color: selected
+                  ? LiveStage.champagne.withValues(alpha: 0.8)
+                  : LiveStage.hairline,
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  style: LiveType.figure(
+                    13,
+                    color: short
+                        ? LiveStage.inkFaint
+                        : (selected ? LiveStage.champagne : LiveStage.ink),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 1),
+              Text(hint, style: LiveType.body(10, color: LiveStage.inkFaint)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Step extends StatelessWidget {
+  const _Step({required this.icon, required this.label, this.onTap});
 
   final IconData icon;
   final String label;
@@ -172,24 +316,8 @@ class _StepButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final p = LuxePalette.of(context);
-    return Semantics(
-      button: true,
-      label: label,
-      child: InkResponse(
-        onTap: onTap,
-        radius: 28,
-        child: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: p.surfaceRaised,
-            border: Border.all(color: p.hairline),
-          ),
-          child: Icon(icon, color: onTap == null ? p.inkFaint : p.ink),
-        ),
-      ),
-    );
+    return LiveIconButton(icon: icon, tooltip: label, onTap: onTap, size: 46)
+        .animate(target: onTap == null ? 0 : 1)
+        .fade(begin: 0.35, end: 1, duration: LiveMotion.quick);
   }
 }

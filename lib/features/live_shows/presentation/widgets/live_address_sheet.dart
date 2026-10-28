@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../../core/haptics/app_haptics.dart';
-import '../../../../core/theme/luxe_tokens.dart';
-import '../../../../core/widgets/luxe/luxe_button.dart';
-import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../cart/domain/models/delivery_address.dart';
+import 'live_sheet.dart';
+import 'live_stage_tokens.dart';
 
 class LiveAddressPick {
   const LiveAddressPick.address(DeliveryAddress this.address) : addNew = false;
@@ -14,46 +14,55 @@ class LiveAddressPick {
   final bool addNew;
 }
 
-/// "Wins ship to" picker: saved addresses, the current one ticked, and a
-/// way to add a new one.
+/// "Ship wins to" picker: saved addresses with the current one ticked, and
+/// a way to add a new one.
 Future<LiveAddressPick?> showLiveAddressPicker(
   BuildContext context, {
   required List<DeliveryAddress> addresses,
   String? selectedId,
 }) {
-  return showLuxeSheet<LiveAddressPick>(
+  return showLiveSheet<LiveAddressPick>(
     context,
     title: 'Ship wins to',
-    subtitle: 'A win ships to the address picked here, even mid-auction.',
+    subtitle: 'Anything you win ships here, even if you change it mid-auction.',
     builder: (context) {
-      final p = LuxePalette.of(context);
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      final still = MediaQuery.disableAnimationsOf(context);
+      return SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            for (final a in addresses) ...[
-              _AddressTile(
-                address: a,
-                selected: a.id == selectedId,
-                onTap: () {
-                  AppHaptics.selection();
-                  Navigator.of(context).pop(LiveAddressPick.address(a));
+            for (final (i, a) in addresses.indexed) ...[
+              Builder(
+                builder: (context) {
+                  Widget tile = _AddressTile(
+                    address: a,
+                    selected: a.id == selectedId,
+                    onTap: () {
+                      AppHaptics.selection();
+                      Navigator.of(context).pop(LiveAddressPick.address(a));
+                    },
+                  );
+                  if (!still) {
+                    tile = tile
+                        .animate(delay: (50 * i).ms)
+                        .fadeIn(duration: 240.ms)
+                        .moveY(begin: 8, end: 0, curve: LiveMotion.ease);
+                  }
+                  return tile;
                 },
               ),
               const SizedBox(height: 8),
             ],
-            const SizedBox(height: 8),
-            LuxeButton(
+            const SizedBox(height: 10),
+            LiveButton(
               label: 'Add a new address',
               icon: Icons.add_location_alt_outlined,
-              variant: LuxeButtonVariant.secondary,
-              expand: true,
-              onPressed: () =>
+              kind: LiveButtonKind.secondary,
+              onTap: () =>
                   Navigator.of(context).pop(const LiveAddressPick.addNew()),
             ),
-            SizedBox(height: p.isDark ? 4 : 0),
           ],
         ),
       );
@@ -74,58 +83,70 @@ class _AddressTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final p = LuxePalette.of(context);
     final label = address.label?.trim();
     return Semantics(
-      button: true,
       selected: selected,
-      child: Material(
-        color: selected ? p.accentSoft : p.surfaceRaised,
-        borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
-              border: Border.all(
-                color: selected ? p.accent : p.hairline,
-                width: selected ? 1.4 : 1,
+      child: LivePressable(
+        scale: 0.98,
+        semanticLabel: '${address.fullName}, ${address.summaryLine}',
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: LiveMotion.quick,
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: selected
+                ? LiveStage.champagne.withValues(alpha: 0.08)
+                : LiveStage.ink.withValues(alpha: 0.035),
+            border: Border.all(
+              color: selected
+                  ? LiveStage.champagne.withValues(alpha: 0.6)
+                  : LiveStage.hairline,
+            ),
+          ),
+          child: Row(
+            children: [
+              AnimatedContainer(
+                duration: LiveMotion.quick,
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: selected ? LiveStage.champagneGradient : null,
+                  border: selected
+                      ? null
+                      : Border.all(color: LiveStage.hairlineStrong, width: 1.5),
+                ),
+                child: selected
+                    ? const Icon(
+                        Icons.check_rounded,
+                        size: 14,
+                        color: LiveStage.onChampagne,
+                      )
+                    : null,
               ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  selected
-                      ? Icons.radio_button_checked_rounded
-                      : Icons.radio_button_off_rounded,
-                  color: selected ? p.accent : p.inkFaint,
-                  size: 22,
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label == null || label.isEmpty
+                          ? address.fullName
+                          : '$label · ${address.fullName}',
+                      style: LiveType.label(14),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      address.summaryLine,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: LiveType.body(12.5),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        label == null || label.isEmpty
-                            ? address.fullName
-                            : '$label · ${address.fullName}',
-                        style: LuxeType.label(p.ink, size: 14),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        address.summaryLine,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: LuxeType.body(p.inkMuted, size: 12.5),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

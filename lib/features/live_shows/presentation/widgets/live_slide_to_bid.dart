@@ -1,16 +1,18 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
 
 import '../../../../core/haptics/app_haptics.dart';
 import 'live_stage_tokens.dart';
 
-/// Slide-to-confirm bid track: drag the gavel to the end to place the bid.
-/// Letting go early springs it back. While [onSubmit] runs the thumb stays
-/// at the end with a spinner; it returns home when the future completes.
+/// Slide-to-confirm bid: drag the champagne gavel to the end to place the
+/// bid. Letting go early springs it home on a real spring. While
+/// [onSubmit] runs the thumb waits at the end; it returns when done.
 ///
-/// When [onSubmit] is `null` the track is locked; tapping it calls
-/// [onLockedTap] (e.g. to add funds).
+/// When [onSubmit] is `null` the track is locked and shows [lockedLabel];
+/// tapping it calls [onLockedTap] (e.g. to add funds).
 class LiveSlideToBid extends StatefulWidget {
   const LiveSlideToBid({
     required this.label,
@@ -26,7 +28,7 @@ class LiveSlideToBid extends StatefulWidget {
   final String? lockedLabel;
   final VoidCallback? onLockedTap;
 
-  /// A bid is in flight elsewhere (e.g. from the collapsed dock).
+  /// A bid is in flight elsewhere.
   final bool busy;
 
   @override
@@ -35,19 +37,23 @@ class LiveSlideToBid extends StatefulWidget {
 
 class _LiveSlideToBidState extends State<LiveSlideToBid>
     with TickerProviderStateMixin {
-  static const _height = 58.0;
-  static const _pad = 4.0;
+  static const _height = 60.0;
+  static const _pad = 5.0;
   static const _thumb = _height - _pad * 2;
-  static const _commitAt = 0.86;
+  static const _commitAt = 0.88;
+  static const _spring = SpringDescription(
+    mass: 1,
+    stiffness: 260,
+    damping: 18,
+  );
 
-  /// 0 = home, 1 = end of the track.
-  late final AnimationController _pos = AnimationController(
+  /// 0 = home, 1 = end of the track; unbounded so the spring can overshoot.
+  late final AnimationController _pos = AnimationController.unbounded(
     vsync: this,
-    duration: const Duration(milliseconds: 280),
   );
   late final AnimationController _hint = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1600),
+    duration: const Duration(milliseconds: 2200),
   )..repeat();
 
   var _submitting = false;
@@ -68,17 +74,18 @@ class _LiveSlideToBidState extends State<LiveSlideToBid>
     final armed = _pos.value >= _commitAt;
     if (armed != _armed) {
       _armed = armed;
-      AppHaptics.selection();
+      armed ? AppHaptics.medium() : AppHaptics.selection();
     }
   }
 
-  Future<void> _release() async {
+  Future<void> _release(double velocity, double travel) async {
     if (!_enabled || _submitting) return;
-    if (_pos.value >= _commitAt) {
+    final v = travel <= 0 ? 0.0 : velocity / travel;
+    if (_pos.value >= _commitAt || (_pos.value > 0.55 && v > 2.2)) {
       await _submit();
     } else {
       _armed = false;
-      await _pos.animateTo(0, curve: Curves.easeOutBack);
+      await _pos.animateWith(SpringSimulation(_spring, _pos.value, 0, v));
     }
   }
 
@@ -86,21 +93,19 @@ class _LiveSlideToBidState extends State<LiveSlideToBid>
     final submit = widget.onSubmit;
     if (submit == null || _submitting) return;
     setState(() => _submitting = true);
-    AppHaptics.medium();
-    await _pos.animateTo(1, curve: Curves.easeOutCubic);
+    AppHaptics.heavy();
+    await _pos.animateTo(
+      1,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOutCubic,
+    );
     try {
       await submit();
     } finally {
       if (mounted) {
         _armed = false;
         setState(() => _submitting = false);
-        unawaited(
-          _pos.animateTo(
-            0,
-            duration: const Duration(milliseconds: 420),
-            curve: Curves.easeOutCubic,
-          ),
-        );
+        unawaited(_pos.animateWith(SpringSimulation(_spring, 1, 0, 0)));
       }
     }
   }
@@ -108,7 +113,6 @@ class _LiveSlideToBidState extends State<LiveSlideToBid>
   @override
   Widget build(BuildContext context) {
     final still = MediaQuery.disableAnimationsOf(context);
-    final gold = LiveStage.gold;
     final locked = widget.onSubmit == null && !widget.busy;
     final working = _submitting || widget.busy;
     final label = locked ? (widget.lockedLabel ?? widget.label) : widget.label;
@@ -124,89 +128,86 @@ class _LiveSlideToBidState extends State<LiveSlideToBid>
       child: LayoutBuilder(
         builder: (context, box) {
           final travel = box.maxWidth - _thumb - _pad * 2;
+          if (locked) {
+            return _Locked(text: label, onTap: widget.onLockedTap);
+          }
           return GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: locked ? widget.onLockedTap : null,
             onHorizontalDragUpdate: (d) => _drag(d, travel),
-            onHorizontalDragEnd: (_) => unawaited(_release()),
-            onHorizontalDragCancel: () => unawaited(_release()),
+            onHorizontalDragEnd: (d) =>
+                unawaited(_release(d.primaryVelocity ?? 0, travel)),
+            onHorizontalDragCancel: () => unawaited(_release(0, travel)),
             child: AnimatedBuilder(
               animation: Listenable.merge([_pos, _hint]),
               builder: (context, _) {
-                final t = _pos.value;
+                final t = _pos.value.clamp(-0.05, 1.05);
                 final x = _pad + travel * t;
+                final fill = (x + _thumb + _pad).clamp(0.0, box.maxWidth);
                 return SizedBox(
                   height: _height,
                   child: Stack(
+                    clipBehavior: Clip.none,
                     children: [
-                      // Track.
                       Positioned.fill(
                         child: DecoratedBox(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(999),
-                            color: locked
-                                ? Colors.white.withValues(alpha: 0.06)
-                                : gold.withValues(alpha: 0.14),
+                            color: LiveStage.ink.withValues(alpha: 0.05),
                             border: Border.all(
-                              color: locked
-                                  ? LiveStage.glassBorder
-                                  : gold.withValues(alpha: 0.55),
-                            ),
-                          ),
-                        ),
-                      ),
-                      // Gold fill that follows the thumb.
-                      if (!locked)
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          bottom: 0,
-                          width: x + _thumb + _pad,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(999),
-                              gradient: LinearGradient(
-                                colors: [
-                                  gold.withValues(alpha: 0.35),
-                                  gold.withValues(alpha: 0.85),
-                                ],
+                              color: LiveStage.champagne.withValues(
+                                alpha: 0.35 + 0.4 * t.clamp(0.0, 1.0),
                               ),
                             ),
                           ),
                         ),
-                      // Label, fading as the thumb covers it.
+                      ),
+                      // Champagne wash that follows the thumb.
+                      Positioned(
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: fill,
+                        child: Opacity(
+                          opacity: (0.25 + t * 0.75).clamp(0.0, 1.0),
+                          child: const DecoratedBox(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(999),
+                              ),
+                              gradient: LiveStage.champagneGradient,
+                            ),
+                          ),
+                        ),
+                      ),
                       Positioned.fill(
                         child: Padding(
                           padding: const EdgeInsets.only(
-                            left: _thumb + 14,
-                            right: 18,
+                            left: _thumb + 16,
+                            right: 20,
                           ),
                           child: Opacity(
                             opacity: working
                                 ? 1
-                                : (1 - t * 1.4).clamp(0.0, 1.0),
+                                : (1 - t * 1.6).clamp(0.0, 1.0),
                             child: Center(
                               child: _Label(
                                 text: working ? 'Placing your bid…' : label,
-                                locked: locked,
-                                shimmer: still || locked || working
-                                    ? null
-                                    : _hint.value,
+                                onFill: working,
+                                shimmer: still || working ? null : _hint.value,
                               ),
                             ),
                           ),
                         ),
                       ),
-                      // Thumb.
                       Positioned(
                         left: x,
                         top: _pad,
                         width: _thumb,
                         height: _thumb,
                         child: _Thumb(
-                          locked: locked,
                           working: working,
                           armed: t >= _commitAt,
+                          swing: still ? 0 : t,
                         ),
                       ),
                     ],
@@ -221,45 +222,94 @@ class _LiveSlideToBidState extends State<LiveSlideToBid>
   }
 }
 
-class _Label extends StatelessWidget {
-  const _Label({required this.text, required this.locked, this.shimmer});
+class _Locked extends StatelessWidget {
+  const _Locked({required this.text, required this.onTap});
 
   final String text;
-  final bool locked;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return LivePressable(
+      onTap: onTap,
+      child: Container(
+        height: 60,
+        padding: const EdgeInsets.fromLTRB(6, 6, 18, 6),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(999),
+          color: LiveStage.ink.withValues(alpha: 0.05),
+          border: Border.all(color: LiveStage.hairlineStrong),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: LiveStage.ink.withValues(alpha: 0.08),
+              ),
+              child: Icon(
+                Icons.lock_outline_rounded,
+                size: 20,
+                color: LiveStage.inkMuted,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: LiveType.label(14.5),
+              ),
+            ),
+            if (onTap != null)
+              const Icon(
+                Icons.arrow_forward_rounded,
+                size: 18,
+                color: LiveStage.champagne,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Label extends StatelessWidget {
+  const _Label({required this.text, required this.onFill, this.shimmer});
+
+  final String text;
+  final bool onFill;
 
   /// 0..1 sweep of the highlight, or `null` for a plain label.
   final double? shimmer;
 
   @override
   Widget build(BuildContext context) {
-    final style = TextStyle(
-      color: locked ? LiveStage.inkMuted : Colors.white,
-      fontSize: 15.5,
-      fontWeight: FontWeight.w800,
-      letterSpacing: 0.2,
-      fontFeatures: const [FontFeature.tabularFigures()],
-    );
+    final color = onFill ? LiveStage.onChampagne : LiveStage.ink;
     Widget label = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (locked) ...[
-          Icon(Icons.lock_outline_rounded, size: 16, color: LiveStage.inkMuted),
-          const SizedBox(width: 6),
-        ],
         Flexible(
           child: Text(
             text,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: style,
+            style: LiveType.label(
+              15,
+              color: color,
+              weight: FontWeight.w800,
+            ).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
           ),
         ),
-        if (!locked) ...[
+        if (!onFill) ...[
           const SizedBox(width: 6),
           Icon(
             Icons.keyboard_double_arrow_right_rounded,
             size: 18,
-            color: Colors.white.withValues(alpha: 0.8),
+            color: LiveStage.champagne.withValues(alpha: 0.9),
           ),
         ],
       ],
@@ -270,13 +320,13 @@ class _Label extends StatelessWidget {
       blendMode: BlendMode.srcATop,
       shaderCallback: (rect) => LinearGradient(
         colors: [
-          Colors.white.withValues(alpha: 0.75),
-          Colors.white,
-          Colors.white.withValues(alpha: 0.75),
+          LiveStage.ink.withValues(alpha: 0.7),
+          LiveStage.champagneLight,
+          LiveStage.ink.withValues(alpha: 0.7),
         ],
-        stops: const [0, 0.5, 1],
-        begin: Alignment(-1 + s * 4 - 1.5, 0),
-        end: Alignment(s * 4 - 1.5, 0),
+        stops: const [0.35, 0.5, 0.65],
+        begin: Alignment(-3 + s * 6, 0),
+        end: Alignment(-1 + s * 6, 0),
       ).createShader(rect),
       child: label,
     );
@@ -285,55 +335,66 @@ class _Label extends StatelessWidget {
 
 class _Thumb extends StatelessWidget {
   const _Thumb({
-    required this.locked,
     required this.working,
     required this.armed,
+    required this.swing,
   });
 
-  final bool locked;
   final bool working;
   final bool armed;
 
+  /// Track position; tips the gavel forward as it travels.
+  final double swing;
+
   @override
   Widget build(BuildContext context) {
-    final gold = LiveStage.gold;
-    const ink = Color(0xFF16140F);
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 160),
+      duration: const Duration(milliseconds: 180),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: locked ? Colors.white.withValues(alpha: 0.14) : null,
-        gradient: locked
-            ? null
-            : LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color.lerp(gold, Colors.white, 0.3)!, gold],
-              ),
-        boxShadow: locked
-            ? null
-            : [
-                BoxShadow(
-                  color: gold.withValues(alpha: armed ? 0.7 : 0.4),
-                  blurRadius: armed ? 20 : 12,
-                ),
-              ],
+        gradient: armed || working
+            ? const LinearGradient(
+                colors: [Colors.white, LiveStage.champagneLight],
+              )
+            : LiveStage.champagneGradient,
+        boxShadow: [
+          BoxShadow(
+            color: LiveStage.champagne.withValues(alpha: armed ? 0.75 : 0.4),
+            blurRadius: armed ? 26 : 14,
+            spreadRadius: armed ? 2 : 0,
+          ),
+        ],
       ),
       child: Center(
         child: working
             ? const SizedBox(
                 width: 22,
                 height: 22,
-                child: CircularProgressIndicator(strokeWidth: 2.4, color: ink),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.4,
+                  color: LiveStage.onChampagne,
+                ),
               )
-            : Icon(
-                locked
-                    ? Icons.lock_rounded
-                    : armed
-                    ? Icons.check_rounded
-                    : Icons.gavel_rounded,
-                size: 22,
-                color: locked ? LiveStage.inkMuted : ink,
+            : AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                transitionBuilder: (c, a) =>
+                    ScaleTransition(scale: a, child: c),
+                child: armed
+                    ? const Icon(
+                        Icons.check_rounded,
+                        key: ValueKey('ok'),
+                        size: 24,
+                        color: LiveStage.onChampagne,
+                      )
+                    : Transform.rotate(
+                        key: const ValueKey('gavel'),
+                        angle: -math.pi / 7 * swing.clamp(0.0, 1.0),
+                        child: const Icon(
+                          Icons.gavel_rounded,
+                          size: 22,
+                          color: LiveStage.onChampagne,
+                        ),
+                      ),
               ),
       ),
     );

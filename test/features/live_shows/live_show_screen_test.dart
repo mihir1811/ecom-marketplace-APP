@@ -22,6 +22,7 @@ import 'package:gemstone/features/live_shows/data/repositories/live_show_reposit
 import 'package:gemstone/features/live_shows/domain/models/live_show_models.dart';
 import 'package:gemstone/features/live_shows/domain/repositories/live_show_repository.dart';
 import 'package:gemstone/features/live_shows/presentation/screens/live_show_screen.dart';
+import 'package:gemstone/features/live_shows/presentation/widgets/live_rolling_amount.dart';
 
 class _SignedIn extends AuthController {
   @override
@@ -242,29 +243,30 @@ void main() {
 
     expect(find.text('Shree Gems'), findsWidgets);
     expect(find.text('1.50ct Oval G VS1'), findsOneWidget);
-    expect(find.text('₹1,52,000'), findsOneWidget);
-    // Current bid, count and next minimum; the bid box, quick picks and
-    // the slide-to-bid track.
-    expect(find.text('CURRENT BID'), findsOneWidget);
-    expect(find.text('NEXT MIN'), findsOneWidget);
-    expect(find.text('YOUR BID'), findsOneWidget);
-    expect(find.text('₹1,56,000'), findsOneWidget);
-    expect(find.text('₹1,58,000'), findsOneWidget);
-    expect(find.text('Slide to bid ₹1,54,000'), findsOneWidget);
-    expect(find.textContaining('Free to bid'), findsOneWidget);
-    expect(
-      find.textContaining('Wins ship to Asha Patel, Surat'),
-      findsOneWidget,
-    );
+    // Compact bar: price, bid count, custom amount and slide-to-bid at the
+    // next minimum; free-to-bid and ship-to on one strip.
+    expect(_rolling('₹1,52,000'), findsOneWidget);
+    expect(find.text('3 BIDS'), findsOneWidget);
+    expect(find.byTooltip('Custom bid'), findsOneWidget);
+    expect(find.text('Bid ₹1,54,000'), findsOneWidget);
+    expect(find.text('₹3,48,000 free · ₹1,52,000 held'), findsOneWidget);
+    expect(find.text('Ships to Surat'), findsOneWidget);
     expect(find.textContaining('eye clean'), findsWidgets);
     expect(find.text('SELLER'), findsOneWidget);
     expect(find.text('1.3K'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
-    // A quick pick fills the box; the slider follows it.
+    // Custom: a quick pick in the sheet sets the amount the slider places.
+    await tester.tap(find.byTooltip('Custom bid'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(find.text('Custom bid'), findsWidgets);
     await tester.tap(find.text('₹1,56,000'));
     await tester.pump();
-    expect(find.text('Slide to bid ₹1,56,000'), findsOneWidget);
+    await tester.tap(find.text('Set bid ₹1,56,000'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.text('Bid ₹1,56,000'), findsOneWidget);
 
     // Sliding all the way sends the bid (the fake server is offline).
     await tester.drag(find.byIcon(Icons.gavel_rounded), const Offset(400, 0));
@@ -273,11 +275,13 @@ void main() {
     expect(find.text('offline'), findsOneWidget);
     await tester.pump(const Duration(seconds: 5));
 
-    // Minimise the dock to a single row.
+    // Minimise the bar to a single row.
     await tester.tap(find.byTooltip('Minimise'));
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pump();
     expect(find.text('Bid ₹1,56,000'), findsOneWidget);
-    expect(find.text('₹1,58,000'), findsNothing);
+    expect(find.byTooltip('Custom bid'), findsNothing);
     expect(tester.takeException(), isNull);
 
     await _teardown(tester);
@@ -288,9 +292,9 @@ void main() {
   ) async {
     await _pump(tester, free: 100000);
     expect(find.text('Add ₹54,000 to bid'), findsOneWidget);
-    expect(find.textContaining('Not enough in your wallet'), findsOneWidget);
-    expect(find.text('Slide to bid ₹1,54,000'), findsNothing);
-    expect(find.byIcon(Icons.lock_rounded), findsOneWidget);
+    expect(find.text('₹1,00,000 free · ₹1,52,000 held'), findsOneWidget);
+    expect(find.text('Bid ₹1,54,000'), findsNothing);
+    expect(find.byIcon(Icons.lock_outline_rounded), findsOneWidget);
     expect(tester.takeException(), isNull);
     await _teardown(tester);
   });
@@ -299,7 +303,7 @@ void main() {
     tester,
   ) async {
     await _pump(tester, ended: true);
-    expect(find.text('This live show has ended'), findsOneWidget);
+    expect(find.text('The show has ended'), findsOneWidget);
     expect(find.text('Browse live shows'), findsOneWidget);
     expect(find.text('LIVE'), findsNothing);
     expect(tester.takeException(), isNull);
@@ -308,8 +312,11 @@ void main() {
 
   testWidgets('stage holds on a small phone with large text', (tester) async {
     await _pump(tester, size: const Size(360, 740), textScale: 1.3);
-    expect(find.text('Slide to bid ₹1,54,000'), findsOneWidget);
+    expect(find.text('Bid ₹1,54,000'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await _teardown(tester);
   });
 }
+
+Finder _rolling(String text) =>
+    find.byWidgetPredicate((w) => w is LiveRollingText && w.text == text);

@@ -5,7 +5,6 @@ import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
 import '../../../core/router/app_navigation.dart';
 import '../../../core/router/route_names.dart';
-import '../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../cart/data/repositories/delivery_repository_impl.dart';
 import '../../cart/domain/models/delivery_address.dart';
 import '../../cart/presentation/widgets/delivery_address_sheet.dart';
@@ -14,8 +13,10 @@ import '../../product_detail/product_detail_navigation.dart';
 import '../../wallet/application/wallet_top_up_provider.dart';
 import '../../wallet/presentation/widgets/wallet/wallet_top_up_sheet.dart';
 import '../application/live_show_room.dart';
+import '../domain/live_format.dart';
 import '../domain/models/live_show_models.dart';
 import 'widgets/live_address_sheet.dart';
+import 'widgets/live_toast.dart';
 
 /// Where wins ship: the checkout-selected address, else default, else newest.
 final liveShipToProvider = FutureProvider.autoDispose<DeliveryAddress?>((
@@ -42,11 +43,11 @@ Future<void> openLiveTopUp(
       ? null
       : shortfall.ceilToDouble().clamp(WalletTopUpNotifier.minAmountInr, max);
   if (shortfall != null && shortfall > max) {
-    showLuxeToast(
+    showLiveToast(
       context,
-      'You need ${shortfall.ceil()} more. Top-ups go up to 1,00,000 at a '
-      'time, so add it in two steps.',
-      tone: LuxeTone.info,
+      'You need ${liveInr(shortfall.ceil())} more. Top-ups go up to '
+      '${liveInr(max)} at a time, so add it in steps.',
+      tone: LiveToastTone.info,
       duration: const Duration(seconds: 4),
     );
   }
@@ -88,10 +89,10 @@ Future<void> openLiveAddress(
   final selected = await repo.selectAddress(addressId: chosen!.id!);
   if (!context.mounted) return;
   if (selected case ResultFailure(:final failure)) {
-    showLuxeToast(context, failure.message, tone: LuxeTone.error);
+    showLiveToast(context, failure.message, tone: LiveToastTone.error);
     return;
   }
-  showLuxeToast(context, 'Wins will ship to ${chosen.city}.');
+  showLiveToast(context, 'Wins will ship to ${chosen.city}.');
   ref.invalidate(liveShipToProvider);
   await ref.read(liveShowRoomProvider(showId).notifier).refreshMe();
 }
@@ -110,7 +111,7 @@ Future<DeliveryAddress?> _addAddress(
     case Success(:final value):
       return value;
     case ResultFailure(:final failure):
-      showLuxeToast(context, failure.message, tone: LuxeTone.error);
+      showLiveToast(context, failure.message, tone: LiveToastTone.error);
       return null;
   }
 }
@@ -130,7 +131,7 @@ Future<void> openLiveLot(
   );
   if (!context.mounted) return;
   if (detail == null) {
-    showLuxeToast(context, 'This item could not be opened right now.');
+    showLiveToast(context, 'This item could not be opened right now.');
     return;
   }
   openProductDetail(context, detail);

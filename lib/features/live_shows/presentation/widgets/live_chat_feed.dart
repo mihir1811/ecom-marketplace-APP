@@ -4,8 +4,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../application/live_show_room.dart';
 import 'live_stage_tokens.dart';
 
-/// Comments over the video, Instagram Live style: newest at the bottom,
-/// older lines fade out towards the top. Auction moments are mixed in.
+/// Comments over the video, newest at the bottom, older lines dissolving
+/// toward the top. Auction moments (bids, sales) sit inline as champagne
+/// notes so the story of the auction reads alongside the conversation.
 class LiveChatFeed extends StatelessWidget {
   const LiveChatFeed({required this.items, super.key});
 
@@ -19,23 +20,35 @@ class LiveChatFeed extends StatelessWidget {
         ? items.sublist(items.length - _visible)
         : items;
     final still = MediaQuery.disableAnimationsOf(context);
+    if (shown.isEmpty) {
+      return Align(
+        alignment: Alignment.bottomLeft,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Text(
+            'Say hello — the seller reads every comment.',
+            style: LiveType.body(12.5, color: LiveStage.inkFaint),
+          ),
+        ),
+      );
+    }
     return ShaderMask(
       shaderCallback: (rect) => const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [Colors.transparent, Colors.black, Colors.black],
-        stops: [0, 0.28, 1],
+        stops: [0, 0.32, 1],
       ).createShader(rect),
       blendMode: BlendMode.dstIn,
       child: ListView.builder(
         reverse: true,
-        padding: const EdgeInsets.only(top: 40, bottom: 4),
+        padding: const EdgeInsets.only(top: 48, bottom: 2),
         physics: const BouncingScrollPhysics(),
         itemCount: shown.length,
         itemBuilder: (context, i) {
           final item = shown[shown.length - 1 - i];
           Widget line = Padding(
-            padding: const EdgeInsets.only(bottom: 6),
+            padding: const EdgeInsets.only(bottom: 8),
             child: Align(
               alignment: Alignment.centerLeft,
               child: item.isMoment ? _Moment(item: item) : _Comment(item: item),
@@ -44,13 +57,14 @@ class LiveChatFeed extends StatelessWidget {
           if (!still && i == 0) {
             line = line
                 .animate(key: ValueKey(item.id))
-                .fadeIn(duration: 260.ms)
+                .fadeIn(duration: 280.ms)
                 .moveY(
-                  begin: 12,
+                  begin: 14,
                   end: 0,
-                  duration: 320.ms,
+                  duration: 380.ms,
                   curve: Curves.easeOutCubic,
-                );
+                )
+                .blurXY(begin: 6, end: 0, duration: 300.ms);
           }
           return KeyedSubtree(key: ValueKey(item.id), child: line);
         },
@@ -66,59 +80,97 @@ class _Comment extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.26),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Text.rich(
-        TextSpan(
-          children: [
-            if (item.isSeller)
-              WidgetSpan(
-                alignment: PlaceholderAlignment.middle,
-                child: Container(
-                  margin: const EdgeInsets.only(right: 6),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 5,
-                    vertical: 1,
-                  ),
-                  decoration: BoxDecoration(
-                    color: LiveStage.gold,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text(
-                    'SELLER',
-                    style: TextStyle(
-                      color: Color(0xFF16140F),
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.6,
+    final name = item.author?.trim().isNotEmpty == true
+        ? item.author!
+        : 'Guest';
+    final seller = item.isSeller;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          margin: const EdgeInsets.only(top: 1),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: seller ? LiveStage.champagneGradient : null,
+            color: seller ? null : LiveStage.ink.withValues(alpha: 0.14),
+          ),
+          child: Text(
+            name[0].toUpperCase(),
+            style: LiveType.label(
+              11,
+              color: seller ? LiveStage.onChampagne : LiveStage.ink,
+              weight: FontWeight.w800,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: LiveType.label(
+                        11.5,
+                        color: seller
+                            ? LiveStage.champagne
+                            : LiveStage.ink.withValues(alpha: 0.6),
+                      ).copyWith(shadows: _shadow),
                     ),
                   ),
-                ),
+                  if (seller) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 1.5,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                          color: LiveStage.champagne.withValues(alpha: 0.7),
+                        ),
+                      ),
+                      child: Text(
+                        'SELLER',
+                        style: LiveType.eyebrow(
+                          color: LiveStage.champagne,
+                          size: 8,
+                        ).copyWith(letterSpacing: 1),
+                      ),
+                    ),
+                  ],
+                ],
               ),
-            TextSpan(
-              text: '${item.author ?? 'Guest'}  ',
-              style: TextStyle(
-                color: item.isSeller ? LiveStage.gold : LiveStage.inkMuted,
-                fontWeight: FontWeight.w700,
+              const SizedBox(height: 1),
+              Text(
+                item.body,
+                style: LiveType.body(
+                  13.5,
+                  color: LiveStage.ink,
+                  weight: FontWeight.w500,
+                  height: 1.3,
+                ).copyWith(shadows: _shadow),
               ),
-            ),
-            TextSpan(text: item.body),
-          ],
+            ],
+          ),
         ),
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 13.5,
-          height: 1.3,
-          shadows: [Shadow(blurRadius: 6, color: Color(0x99000000))],
-        ),
-      ),
+      ],
     );
   }
 }
+
+const _shadow = [Shadow(blurRadius: 8, color: Color(0xB3000000))];
 
 class _Moment extends StatelessWidget {
   const _Moment({required this.item});
@@ -128,25 +180,33 @@ class _Moment extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.fromLTRB(8, 6, 12, 6),
       decoration: BoxDecoration(
-        color: LiveStage.gold.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: LiveStage.gold.withValues(alpha: 0.45)),
+        color: Colors.black.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: LiveStage.champagne.withValues(alpha: 0.4)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.gavel_rounded, size: 14, color: LiveStage.gold),
-          const SizedBox(width: 6),
+          Container(
+            width: 20,
+            height: 20,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LiveStage.champagneGradient,
+            ),
+            child: const Icon(
+              Icons.gavel_rounded,
+              size: 11,
+              color: LiveStage.onChampagne,
+            ),
+          ),
+          const SizedBox(width: 8),
           Flexible(
             child: Text(
               item.body,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
+              style: LiveType.label(12.5, color: LiveStage.champagneLight),
             ),
           ),
         ],
