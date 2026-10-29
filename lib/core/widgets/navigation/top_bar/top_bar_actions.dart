@@ -77,7 +77,8 @@ List<ResolvedTopBarAction> resolveTopBarActions(
         result.add(
           ResolvedTopBarAction(
             action: action,
-            icon: unread > 0
+            // Outlined at rest, solid on its own screen (same for all below).
+            icon: on(route)
                 ? Icons.notifications_rounded
                 : Icons.notifications_none_rounded,
             tooltip: context.tr(NavL10n.notifications),
@@ -90,7 +91,9 @@ List<ResolvedTopBarAction> resolveTopBarActions(
         result.add(
           ResolvedTopBarAction(
             action: action,
-            icon: Icons.shopping_cart_outlined,
+            icon: on(AppRouteNames.cart)
+                ? Icons.shopping_cart_rounded
+                : Icons.shopping_cart_outlined,
             tooltip: context.tr(CoreL10n.cart),
             badge: ref.watch(cartItemCountProvider),
             active: on(AppRouteNames.cart),
@@ -101,7 +104,9 @@ List<ResolvedTopBarAction> resolveTopBarActions(
         result.add(
           ResolvedTopBarAction(
             action: action,
-            icon: Icons.shopping_bag_outlined,
+            icon: on(AppRouteNames.jewelryBag)
+                ? Icons.shopping_bag_rounded
+                : Icons.shopping_bag_outlined,
             tooltip: context.tr(JewelryMarketL10n.bagTitle),
             badge: ref.watch(jewelryBagCountProvider),
             active: on(AppRouteNames.jewelryBag),
@@ -116,7 +121,9 @@ List<ResolvedTopBarAction> resolveTopBarActions(
         result.add(
           ResolvedTopBarAction(
             action: action,
-            icon: Icons.receipt_long_outlined,
+            icon: on(route)
+                ? Icons.receipt_long_rounded
+                : Icons.receipt_long_outlined,
             tooltip: context.tr(RemainingL10n.orders),
             badge: seller
                 ? ref.watch(sellerPendingOrdersProvider).asData?.value.total ??
@@ -131,7 +138,9 @@ List<ResolvedTopBarAction> resolveTopBarActions(
         result.add(
           ResolvedTopBarAction(
             action: action,
-            icon: Icons.chat_bubble_outline_rounded,
+            icon: on(AppRouteNames.sellerChat)
+                ? Icons.chat_bubble_rounded
+                : Icons.chat_bubble_outline_rounded,
             tooltip: context.tr(CoreL10n.messages),
             dot: ref.watch(chatHasUnreadProvider),
             active: on(AppRouteNames.sellerChat),
