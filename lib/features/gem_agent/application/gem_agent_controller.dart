@@ -3,9 +3,14 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/auth/auth_providers.dart';
 import '../../../core/l10n/locale_preference_provider.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/router/workspace_mode.dart';
+import '../domain/agent_effect.dart';
 import '../domain/agent_outcome.dart';
+import '../domain/agent_session.dart';
+import '../engine/guardrails.dart';
 import '../engine/system_prompt_builder.dart';
 import 'gem_agent_providers.dart';
 import 'gem_agent_state.dart';
@@ -42,6 +47,14 @@ class GemAgentController extends Notifier<GemAgentState> {
       _flashTimer?.cancel();
       _turn?.cancel();
     });
+    // A different account never sees the previous one's conversation; the
+    // engine (and its memory) is rebuilt for the new user at the same time.
+    ref.listen(authProvider.select((s) => s.user?.id), (previous, next) {
+      if (previous == next) return;
+      _turn?.cancel('account-changed');
+      _turn = null;
+      state = GemAgentState(voiceAvailable: state.voiceAvailable);
+    });
     return const GemAgentState();
   }
 
@@ -68,7 +81,7 @@ class GemAgentController extends Notifier<GemAgentState> {
   void newSession() {
     _turn?.cancel('reset');
     _turn = null;
-    ref.read(gemAgentEngineProvider).memory.clear();
+    ref.read(gemAgentEngineProvider).reset();
     state = GemAgentState(
       isOpen: state.isOpen,
       voiceAvailable: state.voiceAvailable,
@@ -155,6 +168,16 @@ class GemAgentController extends Notifier<GemAgentState> {
 
   /// Typed request or quick reply.
   Future<void> submitText(String text) => _submit(text, viaVoice: false);
+
+  /// Starter prompts for who is asking and which side of the app they are on.
+  List<String> starterPrompts() =>
+      InputGuard.starterOptions(_runtime().session);
+
+  /// Opens a page from an answer card (row or button).
+  Future<void> openFromCard(String route) async {
+    await close();
+    await OpenPageEffect(route).apply(ref);
+  }
 
   Future<void> _onListeningEnded(int session, SpeechFailure? failure) async {
     if (session != _listenSession) return;
@@ -275,10 +298,11 @@ class GemAgentController extends Notifier<GemAgentState> {
 
   Future<void> _handle(AgentOutcome outcome) async {
     switch (outcome) {
-      case AgentReply(:final text):
+      case AgentReply(:final text, :final options):
         state = state.copyWith(
           phase: GemAgentPhase.idle,
           activity: null,
+          options: options,
           entries: _append(GemAgentEntry.agent(text)),
         );
       case AgentClarification(:final question, :final options):
@@ -288,12 +312,20 @@ class GemAgentController extends Notifier<GemAgentState> {
           options: options,
           entries: _append(GemAgentEntry.agent(question)),
         );
-      case AgentActionCompleted(:final summary, :final effects):
+      case AgentActionCompleted(:final summary, :final effects, :final cards)
+          when effects.isEmpty:
+        // Small answers stay in the sheet, with their cards.
+        state = state.copyWith(
+          phase: GemAgentPhase.idle,
+          activity: null,
+          entries: _append(GemAgentEntry.agent(summary, cards: cards)),
+        );
+      case AgentActionCompleted(:final summary, :final effects, :final cards):
         state = state.copyWith(
           phase: GemAgentPhase.idle,
           activity: null,
           isOpen: false,
-          entries: _append(GemAgentEntry.agent(summary)),
+          entries: _append(GemAgentEntry.agent(summary, cards: cards)),
         );
         for (final effect in effects) {
           await effect.apply(ref);
@@ -330,10 +362,18 @@ class GemAgentController extends Notifier<GemAgentState> {
     } catch (_) {
       route = appRouter.routerDelegate.currentConfiguration.uri.path;
     }
+    final auth = ref.read(authProvider);
     return AgentRuntimeContext(
       route: route,
       languageCode: ref.read(localePreferenceProvider).languageCode,
       now: DateTime.now(),
+      session: AgentSession(
+        signedIn: auth.isAuthenticated,
+        isSeller: auth.isSeller,
+        workspace: workspaceForPath(route) == AppWorkspace.seller
+            ? AgentWorkspace.seller
+            : AgentWorkspace.buyer,
+      ),
     );
   }
 

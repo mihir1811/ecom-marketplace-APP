@@ -30,7 +30,10 @@ import '../widgets/seller_order_summary_card.dart';
 /// them, so an order moves from Pending to Confirmed (or a refund to
 /// Approved) as soon as the backend reports it.
 class SellerOrdersScreen extends ConsumerStatefulWidget {
-  const SellerOrdersScreen({super.key});
+  const SellerOrdersScreen({super.key, this.preset});
+
+  /// Tab, dates, search and sort from the URL (e.g. a Gem Agent hand-off).
+  final SellerOrdersPreset? preset;
 
   @override
   ConsumerState<SellerOrdersScreen> createState() => _SellerOrdersScreenState();
@@ -49,10 +52,32 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _categories.length, vsync: this)
-      ..addListener(() {
-        if (!_tabController.indexIsChanging) setState(() {});
-      });
+    _tabController =
+        TabController(
+          length: _categories.length,
+          vsync: this,
+          initialIndex: widget.preset?.category?.index ?? 0,
+        )..addListener(() {
+          if (!_tabController.indexIsChanging) setState(() {});
+        });
+    _applyPreset(widget.preset);
+  }
+
+  @override
+  void didUpdateWidget(SellerOrdersScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final preset = widget.preset;
+    if (preset?.location == oldWidget.preset?.location) return;
+    setState(() => _applyPreset(preset));
+    final category = preset?.category;
+    if (category != null) _goTo(category);
+  }
+
+  /// A preset replaces the filters wholesale; no preset keeps them.
+  void _applyPreset(SellerOrdersPreset? preset) {
+    if (preset == null) return;
+    _filters = preset.filters;
+    _searchCtrl.text = preset.search;
   }
 
   @override

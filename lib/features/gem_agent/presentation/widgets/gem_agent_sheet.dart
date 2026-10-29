@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/widgets/navigation/bottom_nav/app_bottom_nav_destinations.dart';
 import '../../application/gem_agent_controller.dart';
 import '../../application/gem_agent_state.dart';
+import 'gem_agent_cards.dart';
 import 'gem_agent_input_bar.dart';
 
 /// The command card: conversation, live status, quick replies and input.
@@ -191,7 +193,7 @@ class _Conversation extends ConsumerWidget {
       gemAgentControllerProvider.select((s) => s.entries),
     );
     if (entries.isEmpty) return const _Suggestions();
-    final maxHeight = MediaQuery.sizeOf(context).height * 0.34;
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.5;
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: ConstrainedBox(
@@ -209,37 +211,44 @@ class _Conversation extends ConsumerWidget {
   }
 }
 
-/// Starter prompts shown while the conversation is empty.
+/// Starter prompts shown while the conversation is empty, matched to the
+/// account (guest, buyer, seller) and the side of the app.
 class _Suggestions extends ConsumerWidget {
   const _Suggestions();
 
-  static const _prompts = [
-    (Icons.diamond_outlined, '2ct round diamond'),
-    (Icons.circle_outlined, '18K gold ring'),
-    (Icons.watch_outlined, 'Luxury watches'),
-    (Icons.auto_awesome_outlined, 'Blue sapphire'),
-  ];
+  static IconData _iconFor(String prompt) {
+    final p = prompt.toLowerCase();
+    if (p.contains('cart')) return Icons.shopping_bag_outlined;
+    if (p.contains('order')) return Icons.receipt_long_outlined;
+    if (p.contains('sales')) return Icons.insights_outlined;
+    if (p.contains('auction')) return Icons.gavel_rounded;
+    if (p.contains('offer')) return Icons.local_offer_outlined;
+    if (p.contains('watch')) return Icons.watch_outlined;
+    if (p.contains('ring')) return Icons.circle_outlined;
+    if (p.contains('diamond')) return Icons.diamond_outlined;
+    return Icons.auto_awesome_outlined;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Rebuild when the account (and so the starters) changes.
+    ref.watch(authProvider.select((s) => (s.isAuthenticated, s.isSeller)));
     final controller = ref.read(gemAgentControllerProvider.notifier);
+    final prompts = controller.starterPrompts();
     return Padding(
       padding: const EdgeInsets.only(top: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'What are you looking for?',
-            style: LuxeType.display(24, LuxeStage.ink),
-          ),
+          Text('How can I help?', style: LuxeType.display(24, LuxeStage.ink)),
           const SizedBox(height: 14),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              for (final (icon, label) in _prompts)
+              for (final label in prompts)
                 _Chip(
-                  icon: icon,
+                  icon: _iconFor(label),
                   label: label,
                   onTap: () => controller.submitText(label),
                 ),
@@ -301,6 +310,25 @@ class _Bubble extends StatelessWidget {
         : LuxeStage.ink;
     const r = Radius.circular(18);
     const tail = Radius.circular(4);
+    final bubble = _bubble(context, user, textColor, r, tail);
+    if (entry.cards.isEmpty) return bubble;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        bubble,
+        GemAgentCards(cards: entry.cards),
+        const SizedBox(height: 4),
+      ],
+    );
+  }
+
+  Widget _bubble(
+    BuildContext context,
+    bool user,
+    Color textColor,
+    Radius r,
+    Radius tail,
+  ) {
     return Align(
       alignment: user ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -421,11 +449,7 @@ class _QuickReplies extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final options = ref.watch(
       gemAgentControllerProvider.select(
-        (s) =>
-            s.phase == GemAgentPhase.awaitingInput ||
-                s.phase == GemAgentPhase.listening
-            ? s.options
-            : const <String>[],
+        (s) => s.isBusy ? const <String>[] : s.options,
       ),
     );
     if (options.isEmpty) return const SizedBox.shrink();

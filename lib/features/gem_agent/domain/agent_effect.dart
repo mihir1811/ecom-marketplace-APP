@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_navigation.dart';
 import '../../../core/router/navigator_keys.dart';
@@ -29,6 +30,36 @@ class NavigateEffect extends AgentEffect {
       AppNavigation.resetTo(context, route);
     } else {
       AppNavigation.open(context, route);
+    }
+  }
+}
+
+/// Opens a workspace page (seller / buyer account area) whose state lives in
+/// its query string, e.g. `/seller/orders?tab=pending&from=2026-10-29`.
+///
+/// Shell siblings are switched with `go`, so the page rebuilds with the new
+/// query even when it is already on screen; other pages stack like
+/// [NavigateEffect].
+class OpenPageEffect extends AgentEffect {
+  const OpenPageEffect(this.location);
+
+  final String location;
+
+  @override
+  Future<void> apply(Ref ref) async {
+    final context = rootNavigatorKey.currentContext;
+    if (context == null || !context.mounted) return;
+    final router = GoRouter.of(context);
+    final current = router.routerDelegate.currentConfiguration.uri.toString();
+    if (current == location) return;
+    final path = AppNavigation.canonicalPath(location);
+    final peer =
+        path.startsWith('/seller/') ||
+        AppNavigation.canonicalPath(current) == path;
+    if (peer) {
+      router.go(location);
+    } else {
+      AppNavigation.open(context, location);
     }
   }
 }

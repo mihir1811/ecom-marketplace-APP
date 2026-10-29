@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'agent_card.dart';
 import 'agent_effect.dart';
 
 /// Outcome of one tool execution. Its [toModelContent] is what the model
@@ -18,13 +19,19 @@ final class ToolSuccess extends ToolResult {
     required this.summary,
     this.data = const {},
     this.effects = const [],
+    this.cards = const [],
     this.completesTurn = false,
   });
 
   /// Short user-facing line shown when the turn completes.
   final String summary;
   final Map<String, Object?> data;
+
+  /// Applied after the turn; any effect closes the sheet (navigation).
   final List<AgentEffect> effects;
+
+  /// Shown in the sheet with [summary] when nothing navigates.
+  final List<AgentCard> cards;
   final bool completesTurn;
 
   @override

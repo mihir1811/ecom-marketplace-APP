@@ -354,3 +354,76 @@ class SellerOrderBoard {
 
   static DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
 }
+
+/// Orders-screen state carried in its URL (`/seller/orders?tab=pending&
+/// from=2026-10-29&to=2026-10-29&q=ruby&sort=highestValue`), so a link —
+/// from Gem Agent, a push or a share — opens the board already filtered.
+class SellerOrdersPreset {
+  const SellerOrdersPreset({
+    this.category,
+    this.from,
+    this.to,
+    this.search = '',
+    this.sort = SellerOrderSort.newest,
+  });
+
+  final SellerOrderCategory? category;
+  final DateTime? from;
+  final DateTime? to;
+  final String search;
+  final SellerOrderSort sort;
+
+  /// Null when the query carries no preset.
+  static SellerOrdersPreset? fromQuery(Map<String, String> query) {
+    if (query.isEmpty) return null;
+    DateTime? day(String key) {
+      final d = DateTime.tryParse(query[key] ?? '');
+      return d == null ? null : DateTime(d.year, d.month, d.day);
+    }
+
+    SellerOrderCategory? category;
+    for (final c in SellerOrderCategory.values) {
+      if (c.name == query['tab']) category = c;
+    }
+    var sort = SellerOrderSort.newest;
+    for (final s in SellerOrderSort.values) {
+      if (s.name == query['sort']) sort = s;
+    }
+    final preset = SellerOrdersPreset(
+      category: category,
+      from: day('from'),
+      to: day('to'),
+      search: (query['q'] ?? '').trim(),
+      sort: sort,
+    );
+    return preset.isEmpty ? null : preset;
+  }
+
+  bool get isEmpty =>
+      category == null &&
+      from == null &&
+      to == null &&
+      search.isEmpty &&
+      sort == SellerOrderSort.newest;
+
+  SellerOrderFilters get filters =>
+      SellerOrderFilters(sort: sort, from: from, to: to, search: search);
+
+  String get location {
+    String day(DateTime d) =>
+        '${d.year.toString().padLeft(4, '0')}-'
+        '${d.month.toString().padLeft(2, '0')}-'
+        '${d.day.toString().padLeft(2, '0')}';
+    final query = {
+      'tab': ?category?.name,
+      if (from != null) 'from': day(from!),
+      if (to != null) 'to': day(to!),
+      if (search.isNotEmpty) 'q': search,
+      if (sort != SellerOrderSort.newest) 'sort': sort.name,
+    };
+    return Uri(
+      path: '/seller/orders',
+      queryParameters: query.isEmpty ? null : query,
+    ).toString();
+  }
+}

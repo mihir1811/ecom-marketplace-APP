@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'agent_session.dart';
 import 'llm_client.dart';
 import 'tool_result.dart';
 
@@ -10,6 +11,8 @@ class AgentToolContext {
     required this.ref,
     required this.cancelToken,
     required this.userUtterances,
+    this.session = AgentSession.guest,
+    this.clock,
   });
 
   /// Read app repositories/providers. Prefer returning effects over
@@ -22,6 +25,14 @@ class AgentToolContext {
   /// Everything the user said in this session, oldest first — lets tools
   /// verify that a required slot was really stated, not guessed by the model.
   final List<String> userUtterances;
+
+  /// Who is asking (signed in, seller, which side of the app).
+  final AgentSession session;
+
+  /// Fixed "now" for date windows ("today"); the device clock when null.
+  final DateTime? clock;
+
+  DateTime get now => clock ?? DateTime.now();
 }
 
 /// One capability the agent can invoke. Add a tool by implementing this
@@ -41,6 +52,10 @@ abstract class AgentTool {
   /// Rules, vocabulary and examples merged into the system prompt while the
   /// tool is registered. Keep it terse; it is sent on every request.
   String get promptGuidance => '';
+
+  /// Account the tool needs. Tools the session may not use are neither
+  /// advertised to the model nor executed.
+  AgentToolAccess get access => AgentToolAccess.public;
 
   /// Status line shown while the tool runs.
   String progressLabel(Map<String, Object?> args) => 'Working on it…';

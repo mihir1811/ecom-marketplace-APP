@@ -11,7 +11,7 @@ import 'gem_agent_config.dart';
 /// Uses its own Dio so the app's auth interceptor never sends GemWorld
 /// tokens to the model provider.
 class OpenAiChatClient implements LlmClient {
-  OpenAiChatClient(this._config, {Dio? dio})
+  OpenAiChatClient(this._config, {Dio? dio, this.readSessionToken})
     : _dio =
           dio ??
           Dio(
@@ -26,6 +26,10 @@ class OpenAiChatClient implements LlmClient {
   final GemAgentConfig _config;
   final Dio _dio;
 
+  /// The signed-in user's GemWorld token, sent instead of the provider key
+  /// when [GemAgentConfig.proxyAuth] is on.
+  final Future<String?> Function()? readSessionToken;
+
   @override
   Future<Result<LlmResponse, LlmFailure>> complete(
     LlmRequest request, {
@@ -35,30 +39,64 @@ class OpenAiChatClient implements LlmClient {
       return const ResultFailure(
         LlmFailure(
           LlmFailureKind.notConfigured,
-          'Gem Agent is not set up yet. Add OPENAI_API_KEY to .env.',
+          kDebugMode
+              ? 'Gem Agent is not set up yet. Add OPENAI_API_KEY (or '
+                    'GEM_AGENT_PROXY_AUTH) to .env.'
+              : 'Gem Agent is unavailable right now. Please try again later.',
         ),
       );
     }
-    try {
-      final response = await _dio.post<Map<String, dynamic>>(
-        '/chat/completions',
-        data: _body(request),
-        options: Options(
-          headers: {'Authorization': 'Bearer ${_config.apiKey}'},
-        ),
-        cancelToken: cancelToken,
-      );
-      final parsed = _parse(response.data);
-      return parsed == null
-          ? const ResultFailure(
-              LlmFailure(
-                LlmFailureKind.invalidResponse,
-                'I did not get a usable answer. Please try again.',
-              ),
-            )
-          : Success(parsed);
-    } on DioException catch (e) {
-      return ResultFailure(_failureFor(e));
+    final String bearer;
+    if (_config.proxyAuth) {
+      final token = (await readSessionToken?.call())?.trim() ?? '';
+      if (token.isEmpty) {
+        return const ResultFailure(
+          LlmFailure(
+            LlmFailureKind.unauthorized,
+            'Please sign in to use Gem Agent.',
+          ),
+        );
+      }
+      bearer = token;
+    } else {
+      bearer = _config.apiKey;
+    }
+
+    for (var attempt = 0; ; attempt++) {
+      try {
+        final response = await _dio.post<Map<String, dynamic>>(
+          '/chat/completions',
+          data: _body(request),
+          options: Options(headers: {'Authorization': 'Bearer $bearer'}),
+          cancelToken: cancelToken,
+        );
+        final parsed = _parse(response.data);
+        return parsed == null
+            ? const ResultFailure(
+                LlmFailure(
+                  LlmFailureKind.invalidResponse,
+                  'I did not get a usable answer. Please try again.',
+                ),
+              )
+            : Success(parsed);
+      } on DioException catch (e) {
+        final failure = _failureFor(e);
+        final transient =
+            failure.kind == LlmFailureKind.rateLimited ||
+            (failure.kind == LlmFailureKind.server &&
+                (e.response?.statusCode ?? 500) >= 500);
+        if (!transient ||
+            attempt >= GemAgentConfig.retries ||
+            (cancelToken?.isCancelled ?? false)) {
+          return ResultFailure(failure);
+        }
+        await Future<void>.delayed(Duration(milliseconds: 700 * (attempt + 1)));
+        if (cancelToken?.isCancelled ?? false) {
+          return const ResultFailure(
+            LlmFailure(LlmFailureKind.cancelled, 'Cancelled.'),
+          );
+        }
+      }
     }
   }
 
@@ -66,6 +104,8 @@ class OpenAiChatClient implements LlmClient {
     'model': _config.model,
     if (_config.reasoningEffort.isNotEmpty)
       'reasoning_effort': _config.reasoningEffort,
+    if (_config.maxOutputTokens > 0)
+      'max_completion_tokens': _config.maxOutputTokens,
     'messages': [
       {'role': 'system', 'content': request.systemPrompt},
       for (final message in request.messages) _encode(message),
@@ -83,6 +123,8 @@ class OpenAiChatClient implements LlmClient {
           },
       ],
       'tool_choice': 'auto',
+      // Independent questions ("cart and wallet?") resolve in one round.
+      'parallel_tool_calls': true,
     },
   };
 
@@ -155,7 +197,11 @@ class OpenAiChatClient implements LlmClient {
     }
     final status = e.response?.statusCode;
     // Provider detail stays in debug logs only.
-    debugPrint('Gem Agent LLM error $status: ${e.response?.data ?? e.message}');
+    if (kDebugMode) {
+      debugPrint(
+        'Gem Agent LLM error $status: ${e.response?.data ?? e.message}',
+      );
+    }
     return switch (status) {
       401 || 403 => const LlmFailure(
         LlmFailureKind.unauthorized,
@@ -163,7 +209,9 @@ class OpenAiChatClient implements LlmClient {
       ),
       404 => LlmFailure(
         LlmFailureKind.modelUnavailable,
-        'The AI model "${_config.model}" is not available.',
+        kDebugMode
+            ? 'The AI model "${_config.model}" is not available.'
+            : 'Gem Agent is unavailable right now. Please try again later.',
       ),
       429 => const LlmFailure(
         LlmFailureKind.rateLimited,

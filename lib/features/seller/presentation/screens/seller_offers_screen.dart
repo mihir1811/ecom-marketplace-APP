@@ -17,7 +17,10 @@ import '../atelier/atelier_theme.dart';
 /// Negotiation desk: every buyer price offer, with the ones awaiting a
 /// decision surfaced first and accept / decline one tap away.
 class SellerOffersScreen extends ConsumerStatefulWidget {
-  const SellerOffersScreen({super.key});
+  const SellerOffersScreen({super.key, this.initialStatus});
+
+  /// `status` query value (`PENDING`, `ACCEPTED`…) to open filtered.
+  final String? initialStatus;
 
   @override
   ConsumerState<SellerOffersScreen> createState() => _SellerOffersScreenState();
@@ -38,6 +41,26 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    final initial = _statusFrom(widget.initialStatus);
+    if (initial != null) {
+      _filter = initial;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _filter == initial) _applyFilter(initial);
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(SellerOffersScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialStatus != oldWidget.initialStatus) {
+      _applyFilter(_statusFrom(widget.initialStatus));
+    }
+  }
+
+  static ProductOfferStatus? _statusFrom(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return null;
+    return ProductOfferStatus.fromApi(raw);
   }
 
   @override

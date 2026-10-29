@@ -1,3 +1,4 @@
+import 'agent_card.dart';
 import 'agent_effect.dart';
 
 /// How a user turn ended.
@@ -7,8 +8,11 @@ sealed class AgentOutcome {
 
 /// Conversational answer; nothing was executed.
 final class AgentReply extends AgentOutcome {
-  const AgentReply(this.text);
+  const AgentReply(this.text, {this.options = const []});
   final String text;
+
+  /// Suggested next requests offered as chips.
+  final List<String> options;
 }
 
 /// The agent is holding the request until the user answers.
@@ -18,11 +22,19 @@ final class AgentClarification extends AgentOutcome {
   final List<String> options;
 }
 
-/// An action tool finished; [effects] still need applying.
+/// Tools finished; [effects] still need applying. Without effects the
+/// answer stays in the sheet with its [cards].
 final class AgentActionCompleted extends AgentOutcome {
-  const AgentActionCompleted(this.summary, {this.effects = const []});
+  const AgentActionCompleted(
+    this.summary, {
+    this.effects = const [],
+    this.cards = const [],
+  });
   final String summary;
   final List<AgentEffect> effects;
+  final List<AgentCard> cards;
+
+  bool get navigates => effects.isNotEmpty;
 }
 
 final class AgentFailed extends AgentOutcome {

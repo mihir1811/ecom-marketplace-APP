@@ -1,3 +1,5 @@
+import '../domain/agent_card.dart';
+
 /// Where the agent is in a turn.
 enum GemAgentPhase { idle, listening, thinking, acting, awaitingInput, error }
 
@@ -7,17 +9,24 @@ class GemAgentEntry {
     this.text, {
     required this.fromUser,
     this.isError = false,
+    this.cards = const [],
   });
 
   factory GemAgentEntry.user(String text) =>
       GemAgentEntry._(text, fromUser: true);
 
-  factory GemAgentEntry.agent(String text, {bool isError = false}) =>
-      GemAgentEntry._(text, fromUser: false, isError: isError);
+  factory GemAgentEntry.agent(
+    String text, {
+    bool isError = false,
+    List<AgentCard> cards = const [],
+  }) => GemAgentEntry._(text, fromUser: false, isError: isError, cards: cards);
 
   final String text;
   final bool fromUser;
   final bool isError;
+
+  /// Stats, lists and charts shown under the agent's line.
+  final List<AgentCard> cards;
 }
 
 /// UI state of the Gem Agent sheet and result flash.

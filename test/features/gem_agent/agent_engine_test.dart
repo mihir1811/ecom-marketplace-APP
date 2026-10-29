@@ -14,6 +14,7 @@ import 'package:gemstone/features/gem_agent/domain/agent_outcome.dart';
 import 'package:gemstone/features/gem_agent/domain/llm_client.dart';
 import 'package:gemstone/features/gem_agent/engine/agent_engine.dart';
 import 'package:gemstone/features/gem_agent/engine/conversation_memory.dart';
+import 'package:gemstone/features/gem_agent/engine/local_router.dart';
 import 'package:gemstone/features/gem_agent/engine/system_prompt_builder.dart';
 import 'package:gemstone/features/gem_agent/engine/tool_registry.dart';
 import 'package:gemstone/features/gem_agent/tools/gem_agent_tools.dart';
@@ -76,12 +77,16 @@ void main() {
   });
   tearDown(() => container.dispose());
 
-  AgentEngine engine(_ScriptedLlm llm, ConversationMemory memory) =>
-      AgentEngine(
-        llm: llm,
-        registry: ToolRegistry(gemAgentTools),
-        memory: memory,
-      );
+  AgentEngine engine(
+    _ScriptedLlm llm,
+    ConversationMemory memory, {
+    bool localRouter = true,
+  }) => AgentEngine(
+    llm: llm,
+    registry: ToolRegistry(gemAgentTools),
+    memory: memory,
+    router: localRouter ? const LocalRouter() : null,
+  );
 
   Future<AgentOutcome> say(AgentEngine e, String text) => e.run(
     text,
@@ -94,7 +99,7 @@ void main() {
     cancelToken: CancelToken(),
   );
 
-  test('holds a search missing origin, then searches once answered', () async {
+  test('model-driven: asks for origin via ask_user, then searches', () async {
     final memory = ConversationMemory();
     final llm = _ScriptedLlm([
       _call(
@@ -106,7 +111,7 @@ void main() {
         '{"origin":"natural","shapes":["Round"],"carat":2}',
       ),
     ]);
-    final e = engine(llm, memory);
+    final e = engine(llm, memory, localRouter: false);
 
     final first = await say(e, 'find me 2 carat round diamond');
     expect(first, isA<AgentClarification>());
@@ -135,7 +140,7 @@ void main() {
       _call('search_diamonds', '{"origin":"natural","shapes":["Oval"]}'),
     ]);
     final outcome = await say(
-      engine(llm, ConversationMemory()),
+      engine(llm, ConversationMemory(), localRouter: false),
       'show me oval diamonds',
     );
     expect(outcome, isA<AgentClarification>());
@@ -147,9 +152,36 @@ void main() {
       _call('no_such_tool', '{}'),
       const LlmResponse(text: 'I can search diamonds for you.'),
     ]);
-    final outcome = await say(engine(llm, ConversationMemory()), 'hello');
+    final outcome = await say(
+      engine(llm, ConversationMemory(), localRouter: false),
+      'hello',
+    );
     expect(outcome, isA<AgentReply>());
     expect(llm.requests, hasLength(2));
+  });
+
+  test('local router asks for origin without a model call', () async {
+    final memory = ConversationMemory();
+    final llm = _ScriptedLlm([
+      _call(
+        'search_diamonds',
+        '{"origin":"natural","shapes":["Round"],"carat":2}',
+      ),
+    ]);
+    final e = engine(llm, memory);
+
+    final first = await say(e, 'find me 2 carat round diamond');
+    expect(first, isA<AgentClarification>());
+    expect((first as AgentClarification).options, ['Natural', 'Lab-grown']);
+    expect(llm.requests, isEmpty);
+
+    final second = await say(e, 'natural');
+    expect(second, isA<AgentActionCompleted>());
+    expect(llm.requests, hasLength(1));
+    // The model saw the locally asked question in history.
+    final history = llm.requests.single.messages;
+    expect(history.map((m) => m.content), contains(contains('lab-grown')));
+    expect(repo.calls.single.$2, DiamondCatalogType.natural);
   });
 
   test('system prompt carries tool guidance and runtime context', () {

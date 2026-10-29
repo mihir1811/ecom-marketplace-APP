@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 
 import '../../core/router/route_names.dart';
+import 'domain/seller_order_board.dart';
 import 'presentation/screens/seller_analytics_screen.dart';
 import 'presentation/screens/seller_auctions_screen.dart';
 import 'presentation/screens/seller_chat_detail_screen.dart';
@@ -51,7 +52,9 @@ final List<RouteBase> sellerRoutes = [
       ),
       GoRoute(
         path: AppRouteNames.sellerOrders,
-        builder: (context, state) => const SellerOrdersScreen(),
+        builder: (context, state) => SellerOrdersScreen(
+          preset: SellerOrdersPreset.fromQuery(state.uri.queryParameters),
+        ),
       ),
       GoRoute(
         path: AppRouteNames.sellerWallet,
@@ -79,13 +82,14 @@ final List<RouteBase> sellerRoutes = [
       ),
       GoRoute(
         path: AppRouteNames.sellerOffers,
-        builder: (context, state) => const SellerOffersScreen(),
+        builder: (context, state) => SellerOffersScreen(
+          initialStatus: state.uri.queryParameters['status'],
+        ),
       ),
       GoRoute(
         path: AppRouteNames.sellerAuctions,
-        builder: (context, state) => SellerAuctionsScreen(
-          initialTab: state.uri.queryParameters['tab'],
-        ),
+        builder: (context, state) =>
+            SellerAuctionsScreen(initialTab: state.uri.queryParameters['tab']),
       ),
       GoRoute(
         path: AppRouteNames.sellerAnalytics,
