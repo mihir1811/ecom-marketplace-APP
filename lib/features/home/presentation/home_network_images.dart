@@ -42,23 +42,40 @@ abstract final class HomeNetworkImages {
     return _catalog[i];
   }
 
-  static const hero = 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1600&q=80';
+  static const hero =
+      'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1600&q=80';
 
   static const naturalDiamonds =
-      'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=900&q=80';
+      'https://images.unsplash.com/photo-1640405172860-076f1ef62ea5?auto=format&fit=crop&w=1000&q=80';
 
   static const labGrown =
-      'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=900&q=80';
+      'https://images.unsplash.com/photo-1736855719599-c0298b8faf95?auto=format&fit=crop&w=1000&q=80';
 
   static const gemstones =
-      'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=900&q=80';
+      'https://images.unsplash.com/photo-1583937443351-f2f669fbe2cf?auto=format&fit=crop&w=1000&q=80';
 
   static const watches =
-      'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=900&q=80';
+      'https://images.unsplash.com/photo-1772638904187-1d1e8f1452f3?auto=format&fit=crop&w=1000&q=80';
 
   static const jewelry =
-      'https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?auto=format&fit=crop&w=900&q=80';
+      'https://images.unsplash.com/photo-1777126413461-26387cfe5ce5?auto=format&fit=crop&w=1000&q=80';
 
   static const bullion =
-      'https://images.unsplash.com/photo-1610375461246-83df859d849d?auto=format&fit=crop&w=900&q=80';
+      'https://images.unsplash.com/photo-1718752773168-a44aa1601ddd?auto=format&fit=crop&w=1000&q=80';
+
+  // Festive sale banners (hero carousel).
+  static const saleDiwali =
+      'https://images.unsplash.com/photo-1677768061375-cd600727e274?auto=format&fit=crop&w=700&q=80';
+
+  static const saleDhanteras =
+      'https://images.unsplash.com/photo-1624365168056-daf44387e2ae?auto=format&fit=crop&w=700&q=80';
+
+  static const saleWedding =
+      'https://images.unsplash.com/photo-1756483560049-e7b2208f99a0?auto=format&fit=crop&w=700&q=80';
+
+  static const saleGem =
+      'https://images.unsplash.com/photo-1592317295760-5c1f677dfc78?auto=format&fit=crop&w=700&q=80';
+
+  static const saleGold =
+      'https://images.unsplash.com/photo-1587271511223-18b7ef9a327a?auto=format&fit=crop&w=700&q=80';
 }

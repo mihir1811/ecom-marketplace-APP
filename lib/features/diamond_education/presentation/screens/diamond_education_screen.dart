@@ -8,7 +8,6 @@ import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/scroll_reveal.dart';
 import '../widgets/education/edu_four_cs.dart';
-import '../widgets/education/edu_hero.dart';
 import '../widgets/education/edu_reference_sections.dart';
 
 /// Diamond education: the 4Cs, anatomy, proportions, shapes,
@@ -61,7 +60,6 @@ class _DiamondEducationScreenState extends State<DiamondEducationScreen> {
           controller: _scroll,
           physics: const BouncingScrollPhysics(),
           slivers: [
-            const SliverToBoxAdapter(child: EduHero()),
             SliverPadding(
               padding: EdgeInsets.fromLTRB(gutter, 0, gutter, 48),
               sliver: SliverList.list(

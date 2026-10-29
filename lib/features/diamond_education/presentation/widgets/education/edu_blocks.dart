@@ -131,15 +131,18 @@ class EduSubhead extends StatelessWidget {
 
 /// Section wrapper: reveal on scroll, consistent vertical rhythm.
 class EduSection extends StatelessWidget {
-  const EduSection({required this.children, super.key});
+  const EduSection({required this.children, this.top = 56, super.key});
 
   final List<Widget> children;
+
+  /// Gap above the section; the page's first section sits closer.
+  final double top;
 
   @override
   Widget build(BuildContext context) {
     return ScrollReveal(
       child: Padding(
-        padding: const EdgeInsets.only(top: 56),
+        padding: EdgeInsets.only(top: top),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: children,

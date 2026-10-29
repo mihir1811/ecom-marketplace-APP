@@ -64,23 +64,22 @@ abstract final class HomeL10n {
   static const formGlyph = 'home.formGlyph';
   static const formGem = 'home.formGem';
   static const formGalaxy = 'home.formGalaxy';
-  static const spotlightExplore = 'home.spotlightExplore';
-  static const spotlightBid = 'home.spotlightBid';
-  static const spotlightAuctionsTag = 'home.spotlightAuctionsTag';
-  static const spotlightAuctionsTitle = 'home.spotlightAuctionsTitle';
-  static const spotlightAuctionsBody = 'home.spotlightAuctionsBody';
-  static const spotlightDiamondsTag = 'home.spotlightDiamondsTag';
-  static const spotlightDiamondsTitle = 'home.spotlightDiamondsTitle';
-  static const spotlightDiamondsBody = 'home.spotlightDiamondsBody';
-  static const spotlightGemstonesTag = 'home.spotlightGemstonesTag';
-  static const spotlightGemstonesTitle = 'home.spotlightGemstonesTitle';
-  static const spotlightGemstonesBody = 'home.spotlightGemstonesBody';
-  static const spotlightLabTag = 'home.spotlightLabTag';
-  static const spotlightLabTitle = 'home.spotlightLabTitle';
-  static const spotlightLabBody = 'home.spotlightLabBody';
-  static const spotlightBullionTag = 'home.spotlightBullionTag';
-  static const spotlightBullionTitle = 'home.spotlightBullionTitle';
-  static const spotlightBullionBody = 'home.spotlightBullionBody';
+  static const saleShop = 'home.saleShop';
+  static const saleDiwaliTag = 'home.saleDiwaliTag';
+  static const saleDiwaliTitle = 'home.saleDiwaliTitle';
+  static const saleDiwaliBody = 'home.saleDiwaliBody';
+  static const saleDhanterasTag = 'home.saleDhanterasTag';
+  static const saleDhanterasTitle = 'home.saleDhanterasTitle';
+  static const saleDhanterasBody = 'home.saleDhanterasBody';
+  static const saleWeddingTag = 'home.saleWeddingTag';
+  static const saleWeddingTitle = 'home.saleWeddingTitle';
+  static const saleWeddingBody = 'home.saleWeddingBody';
+  static const saleGemTag = 'home.saleGemTag';
+  static const saleGemTitle = 'home.saleGemTitle';
+  static const saleGemBody = 'home.saleGemBody';
+  static const saleGoldTag = 'home.saleGoldTag';
+  static const saleGoldTitle = 'home.saleGoldTitle';
+  static const saleGoldBody = 'home.saleGoldBody';
 }
 
 const homeMessages = <String, LocalizedMessage>{
@@ -398,89 +397,84 @@ const homeMessages = <String, LocalizedMessage>{
     hindi: 'हर रत्न की शुरुआत तारों की धूल से हुई',
     gujarati: 'દરેક રત્નની શરૂઆત તારાઓની ધૂળથી થઈ',
   ),
-  HomeL10n.spotlightExplore: LocalizedMessage(
-    english: 'Explore',
-    hindi: 'देखें',
-    gujarati: 'જુઓ',
+  HomeL10n.saleShop: LocalizedMessage(
+    english: 'Shop now',
+    hindi: 'अभी खरीदें',
+    gujarati: 'હમણાં ખરીદો',
   ),
-  HomeL10n.spotlightBid: LocalizedMessage(
-    english: 'Bid now',
-    hindi: 'अभी बोली लगाएँ',
-    gujarati: 'હમણાં બોલી લગાવો',
+  HomeL10n.saleDiwaliTag: LocalizedMessage(
+    english: 'Diwali sale',
+    hindi: 'दिवाली सेल',
+    gujarati: 'દિવાળી સેલ',
   ),
-  HomeL10n.spotlightAuctionsTag: LocalizedMessage(
-    english: 'Live now',
-    hindi: 'अभी लाइव',
-    gujarati: 'હમણાં લાઇવ',
+  HomeL10n.saleDiwaliTitle: LocalizedMessage(
+    english: 'Up to 25% off',
+    hindi: '25% तक की छूट',
+    gujarati: '25% સુધીની છૂટ',
   ),
-  HomeL10n.spotlightAuctionsTitle: LocalizedMessage(
-    english: 'Bid on rare stones',
-    hindi: 'दुर्लभ रत्नों पर बोली लगाएँ',
-    gujarati: 'દુર્લભ રત્નો પર બોલી લગાવો',
+  HomeL10n.saleDiwaliBody: LocalizedMessage(
+    english: 'Certified natural diamond jewellery',
+    hindi: 'प्रमाणित प्राकृतिक हीरे के गहने',
+    gujarati: 'પ્રમાણિત કુદરતી હીરાના દાગીના',
   ),
-  HomeL10n.spotlightAuctionsBody: LocalizedMessage(
-    english: 'Live auctions from verified sellers. Bid in real time.',
-    hindi: 'सत्यापित विक्रेताओं की लाइव नीलामी। रियल टाइम में बोली लगाएँ।',
-    gujarati: 'ચકાસાયેલ વેચાણકર્તાઓની લાઇવ હરાજી. રીઅલ ટાઇમમાં બોલી લગાવો.',
+  HomeL10n.saleDhanterasTag: LocalizedMessage(
+    english: 'Dhanteras special',
+    hindi: 'धनतेरस स्पेशल',
+    gujarati: 'ધનતેરસ સ્પેશિયલ',
   ),
-  HomeL10n.spotlightDiamondsTag: LocalizedMessage(
-    english: 'Certified',
-    hindi: 'प्रमाणित',
-    gujarati: 'પ્રમાણિત',
+  HomeL10n.saleDhanterasTitle: LocalizedMessage(
+    english: '0% making charges',
+    hindi: '0% मेकिंग चार्ज',
+    gujarati: '0% મેકિંગ ચાર્જ',
   ),
-  HomeL10n.spotlightDiamondsTitle: LocalizedMessage(
-    english: 'Natural diamonds',
-    hindi: 'प्राकृतिक हीरे',
-    gujarati: 'કુદરતી હીરા',
+  HomeL10n.saleDhanterasBody: LocalizedMessage(
+    english: 'On gold coins and bars',
+    hindi: 'सोने के सिक्कों और बार पर',
+    gujarati: 'સોનાના સિક્કા અને બાર પર',
   ),
-  HomeL10n.spotlightDiamondsBody: LocalizedMessage(
-    english: 'Search by shape, carat, colour and clarity, certificate in view.',
-    hindi: 'आकार, कैरेट, रंग और क्लैरिटी से खोजें, प्रमाणपत्र के साथ।',
-    gujarati: 'આકાર, કેરેટ, રંગ અને ક્લેરિટીથી શોધો, પ્રમાણપત્ર સાથે.',
+  HomeL10n.saleWeddingTag: LocalizedMessage(
+    english: 'Wedding season',
+    hindi: 'शादी का सीज़न',
+    gujarati: 'લગ્નની સીઝન',
   ),
-  HomeL10n.spotlightGemstonesTag: LocalizedMessage(
-    english: 'Gemstones',
-    hindi: 'रत्न',
-    gujarati: 'રત્નો',
+  HomeL10n.saleWeddingTitle: LocalizedMessage(
+    english: 'Flat 20% off',
+    hindi: 'सीधे 20% की छूट',
+    gujarati: 'સીધી 20% છૂટ',
   ),
-  HomeL10n.spotlightGemstonesTitle: LocalizedMessage(
-    english: 'Colour, rarely seen',
-    hindi: 'दुर्लभ रंगों के रत्न',
-    gujarati: 'દુર્લભ રંગોના રત્નો',
+  HomeL10n.saleWeddingBody: LocalizedMessage(
+    english: 'Bridal jewellery sets',
+    hindi: 'दुल्हन के गहनों के सेट',
+    gujarati: 'દુલ્હનના દાગીનાના સેટ',
   ),
-  HomeL10n.spotlightGemstonesBody: LocalizedMessage(
-    english: 'Sapphires, rubies, emeralds and more from verified sellers.',
-    hindi: 'नीलम, माणिक, पन्ना और भी बहुत कुछ, सत्यापित विक्रेताओं से।',
-    gujarati: 'નીલમ, માણેક, પન્ના અને ઘણું બધું, ચકાસાયેલ વેચાણકર્તાઓ પાસેથી.',
+  HomeL10n.saleGemTag: LocalizedMessage(
+    english: 'Festive gems',
+    hindi: 'त्योहारी रत्न',
+    gujarati: 'તહેવારના રત્નો',
   ),
-  HomeL10n.spotlightLabTag: LocalizedMessage(
-    english: 'Lab-grown',
-    hindi: 'लैब-ग्रोन',
-    gujarati: 'લેબ-ગ્રોન',
+  HomeL10n.saleGemTitle: LocalizedMessage(
+    english: 'Up to 30% off',
+    hindi: '30% तक की छूट',
+    gujarati: '30% સુધીની છૂટ',
   ),
-  HomeL10n.spotlightLabTitle: LocalizedMessage(
-    english: 'Same fire, smarter price',
-    hindi: 'वही चमक, समझदार कीमत',
-    gujarati: 'એ જ ચમક, સમજદાર કિંમત',
+  HomeL10n.saleGemBody: LocalizedMessage(
+    english: 'Sapphires, rubies and emeralds',
+    hindi: 'नीलम, माणिक और पन्ना',
+    gujarati: 'નીલમ, માણેક અને પન્ના',
   ),
-  HomeL10n.spotlightLabBody: LocalizedMessage(
-    english: 'Lab-grown diamonds with full grading details.',
-    hindi: 'पूरी ग्रेडिंग जानकारी के साथ लैब-ग्रोन हीरे।',
-    gujarati: 'સંપૂર્ણ ગ્રેડિંગ વિગતો સાથે લેબ-ગ્રોન હીરા.',
+  HomeL10n.saleGoldTag: LocalizedMessage(
+    english: 'Festive offer',
+    hindi: 'त्योहारी ऑफ़र',
+    gujarati: 'તહેવારની ઓફર',
   ),
-  HomeL10n.spotlightBullionTag: LocalizedMessage(
-    english: 'Bullion',
-    hindi: 'बुलियन',
-    gujarati: 'બુલિયન',
+  HomeL10n.saleGoldTitle: LocalizedMessage(
+    english: 'Extra 10% off',
+    hindi: 'अतिरिक्त 10% छूट',
+    gujarati: 'વધારાની 10% છૂટ',
   ),
-  HomeL10n.spotlightBullionTitle: LocalizedMessage(
-    english: 'Gold & silver',
-    hindi: 'सोना और चाँदी',
-    gujarati: 'સોનું અને ચાંદી',
-  ),
-  HomeL10n.spotlightBullionBody: LocalizedMessage(
-    english: 'Coins and bars from trusted sellers.',
-    hindi: 'भरोसेमंद विक्रेताओं से सिक्के और बार।',
-    gujarati: 'વિશ્વસનીય વેચાણકર્તાઓ પાસેથી સિક્કા અને બાર.',
+  HomeL10n.saleGoldBody: LocalizedMessage(
+    english: 'Gold and diamond necklaces',
+    hindi: 'सोने और हीरे के हार',
+    gujarati: 'સોના અને હીરાના હાર',
   ),
 };

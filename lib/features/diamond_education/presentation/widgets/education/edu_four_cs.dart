@@ -45,6 +45,7 @@ class _EduFourCsOverviewState extends State<EduFourCsOverview> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         EduSection(
+          top: 24,
           children: [
             EduSectionHeader(
               eyebrow: context.tr(EducationL10n.c4Eyebrow),

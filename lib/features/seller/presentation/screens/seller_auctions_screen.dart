@@ -25,7 +25,10 @@ import '../widgets/seller_auction_create_sheet.dart';
 /// Auction house: live lots with countdowns, outcomes awaiting a decision,
 /// bid ladders and one-tap creation.
 class SellerAuctionsScreen extends ConsumerStatefulWidget {
-  const SellerAuctionsScreen({super.key});
+  const SellerAuctionsScreen({this.initialTab, super.key});
+
+  /// `?tab=` on the route: `active`, `upcoming`, `ended` or `decision`.
+  final String? initialTab;
 
   @override
   ConsumerState<SellerAuctionsScreen> createState() =>
@@ -40,14 +43,51 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
   final Set<String> _loadingBids = {};
   final Set<String> _acting = {};
 
-  AuctionFeedQuery get _query =>
-      AuctionFeedQuery(kind: AuctionFeedKind.seller, status: _status);
+  /// Client-side tab: the finished lots from the standing scan that wait on
+  /// the seller. The backend has no status filter for them.
+  static const _decisionTab = 'decision';
 
-  Future<void> _refresh() {
+  bool get _deciding => _status == _decisionTab;
+
+  @override
+  void initState() {
+    super.initState();
+    _status = _tabFrom(widget.initialTab);
+    if (_deciding) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _deciding) _openDecisionBids();
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(SellerAuctionsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialTab != oldWidget.initialTab) {
+      _setStatus(_tabFrom(widget.initialTab));
+    }
+  }
+
+  static String? _tabFrom(String? tab) => switch (tab) {
+    'active' || 'upcoming' || 'ended' || _decisionTab => tab,
+    _ => null,
+  };
+
+  AuctionFeedQuery get _query => AuctionFeedQuery(
+    kind: AuctionFeedKind.seller,
+    status: _deciding ? null : _status,
+  );
+
+  Future<void> _refresh() async {
     ref.invalidate(sellerAuctionStandingProvider);
     _bids.clear();
     _bidErrors.clear();
-    return ref.read(auctionFeedProvider(_query).notifier).refresh();
+    await ref.read(auctionFeedProvider(_query).notifier).refresh();
+    if (!mounted) return;
+    // Open ladders would otherwise read "No bids yet" after the reset.
+    for (final id in _expanded.toList()) {
+      _loadBids(id);
+    }
   }
 
   Future<void> _create() async {
@@ -58,6 +98,20 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
   void _setStatus(String? status) {
     if (status == _status) return;
     setState(() => _status = status);
+    if (status == _decisionTab) _openDecisionBids();
+  }
+
+  /// Opens the bid ladder on every lot awaiting a decision so the seller can
+  /// accept or pick a bidder straight away.
+  void _openDecisionBids() {
+    final awaiting =
+        ref.read(sellerAuctionStandingProvider).valueOrNull?.awaitingDecision ??
+        const <AuctionListing>[];
+    if (awaiting.isEmpty) return;
+    setState(() => _expanded.addAll(awaiting.map((a) => a.id)));
+    for (final a in awaiting) {
+      if (!_bids.containsKey(a.id)) _loadBids(a.id);
+    }
   }
 
   @override
@@ -65,6 +119,9 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
     final feed = ref.watch(auctionFeedProvider(_query));
     final standingAsync = ref.watch(sellerAuctionStandingProvider);
     final standing = standingAsync.asData?.value;
+    ref.listen(sellerAuctionStandingProvider, (_, next) {
+      if (_deciding && next.hasValue && !next.isLoading) _openDecisionBids();
+    });
     String count(int? v) => v == null ? '—' : '$v';
 
     return AtelierPage(
@@ -118,8 +175,7 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
             actionLabel: context.tr(RemainingL10n.retry),
             onAction: () => ref.invalidate(sellerAuctionStandingProvider),
           ),
-        ] else if ((standing?.needsDecision ?? 0) > 0 &&
-            _status != 'ended') ...[
+        ] else if ((standing?.needsDecision ?? 0) > 0 && !_deciding) ...[
           const SizedBox(height: AtelierSpace.s12),
           Reveal(
             index: 1,
@@ -131,7 +187,7 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
               tone: AtelierTone.amber,
               icon: Icons.gavel_rounded,
               actionLabel: 'Review',
-              onAction: () => _setStatus('ended'),
+              onAction: () => _setStatus(_decisionTab),
             ),
           ),
         ],
@@ -163,6 +219,13 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
                 icon: Icons.flag_outlined,
                 count: standing?.ended,
               ),
+              if ((standing?.needsDecision ?? 0) > 0 || _deciding)
+                AtelierSegment(
+                  value: _decisionTab,
+                  label: 'Needs decision',
+                  icon: Icons.gavel_rounded,
+                  count: standing?.needsDecision,
+                ),
             ],
             selected: _status,
             onChanged: _setStatus,
@@ -172,10 +235,19 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
         AnimatedSwitcher(
           duration: AtelierMotion.base,
           switchInCurve: AtelierMotion.emphasized,
-          child: KeyedSubtree(
-            key: ValueKey('$_status-${feed.isLoading && feed.items.isEmpty}'),
-            child: _body(context, feed),
-          ),
+          child: _deciding
+              ? KeyedSubtree(
+                  key: ValueKey(
+                    '$_status-${standingAsync.valueOrNull == null}',
+                  ),
+                  child: _decisionBody(standingAsync),
+                )
+              : KeyedSubtree(
+                  key: ValueKey(
+                    '$_status-${feed.isLoading && feed.items.isEmpty}',
+                  ),
+                  child: _body(context, feed),
+                ),
         ),
       ],
     );
@@ -205,45 +277,7 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final cols = constraints.maxWidth >= 920 ? 2 : 1;
-            const gap = AtelierSpace.s16;
-            final w = (constraints.maxWidth - gap * (cols - 1)) / cols;
-            return Wrap(
-              spacing: gap,
-              runSpacing: gap,
-              children: [
-                for (var i = 0; i < feed.items.length; i++)
-                  SizedBox(
-                    width: w,
-                    child: Reveal(
-                      key: ValueKey(feed.items[i].id),
-                      index: i < 8 ? i : 0,
-                      child: _AuctionCard(
-                        auction: feed.items[i],
-                        expanded: _expanded.contains(feed.items[i].id),
-                        bids: _bids[feed.items[i].id],
-                        bidError: _bidErrors[feed.items[i].id],
-                        loadingBids: _loadingBids.contains(feed.items[i].id),
-                        acting: _acting.contains(feed.items[i].id),
-                        onToggleBids: () => _toggle(feed.items[i].id),
-                        onRetryBids: () => _loadBids(feed.items[i].id),
-                        onOpen: () => context.openRoute(
-                          AppRouteNames.auctionDetailPath(feed.items[i].id),
-                        ),
-                        onEnd: () => _end(feed.items[i]),
-                        onAccept: () => _accept(feed.items[i]),
-                        onMore: () => _more(feed.items[i]),
-                        onSelectWinner: (bid) =>
-                            _selectWinner(feed.items[i], bid),
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          },
-        ),
+        _grid(feed.items),
         const SizedBox(height: AtelierSpace.s16),
         if (feed.isLoadingMore)
           Center(
@@ -273,6 +307,88 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
             ),
           ),
       ],
+    );
+  }
+
+  Widget _decisionBody(AsyncValue<SellerAuctionStanding> standing) {
+    final items = standing.valueOrNull?.awaitingDecision;
+    if (items == null) {
+      if (standing.hasError) {
+        return AtelierErrorState(
+          title: 'Auctions unavailable',
+          message: standing.error is Failure
+              ? (standing.error! as Failure).message
+              : 'Could not load auction outcomes.',
+          onRetry: _refresh,
+        );
+      }
+      return const AtelierSkeletonList(count: 2, height: 190);
+    }
+    if (items.isEmpty) {
+      return AtelierEmptyState(
+        icon: Icons.task_alt_rounded,
+        title: 'All decided',
+        message: 'No finished auctions are waiting for you.',
+        actionLabel: 'See all auctions',
+        onAction: () => _setStatus(null),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const AtelierNotice(
+          text:
+              'Bidding has closed on these lots. Accept the highest bid, '
+              'select another bidder from the list, or reject to restart or '
+              'remove the auction.',
+          tone: AtelierTone.amber,
+          icon: Icons.info_outline_rounded,
+        ),
+        const SizedBox(height: AtelierSpace.s16),
+        _grid(items),
+      ],
+    );
+  }
+
+  Widget _grid(List<AuctionListing> items) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cols = constraints.maxWidth >= 920 ? 2 : 1;
+        const gap = AtelierSpace.s16;
+        final w = (constraints.maxWidth - gap * (cols - 1)) / cols;
+        return Wrap(
+          spacing: gap,
+          runSpacing: gap,
+          children: [
+            for (var i = 0; i < items.length; i++)
+              SizedBox(
+                width: w,
+                child: Reveal(
+                  key: ValueKey(items[i].id),
+                  index: i < 8 ? i : 0,
+                  child: _AuctionCard(
+                    auction: items[i],
+                    expanded: _expanded.contains(items[i].id),
+                    bids: _bids[items[i].id],
+                    bidError: _bidErrors[items[i].id],
+                    loadingBids: _loadingBids.contains(items[i].id),
+                    acting: _acting.contains(items[i].id),
+                    onToggleBids: () => _toggle(items[i].id),
+                    onRetryBids: () => _loadBids(items[i].id),
+                    onOpen: () => context.openRoute(
+                      AppRouteNames.auctionDetailPath(items[i].id),
+                    ),
+                    onEnd: () => _end(items[i]),
+                    onAccept: () => _accept(items[i]),
+                    onReject: () => _reject(items[i]),
+                    onMore: () => _more(items[i]),
+                    onSelectWinner: (bid) => _selectWinner(items[i], bid),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
@@ -328,12 +444,30 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
       confirmLabel: 'Accept',
       icon: Icons.handshake_outlined,
     );
-    if (ok) {
-      await _act(
-        a,
-        () => ref.read(auctionRepositoryProvider).accept(auctionId: a.id),
+    if (!ok) return;
+    // The backend needs the bid being accepted; an empty body is a 400.
+    if (!_bids.containsKey(a.id)) await _loadBids(a.id);
+    if (!mounted) return;
+    final top = (_bids[a.id] ?? a.bids)
+        .where((b) => b.id.isNotEmpty && !b.id.startsWith('live:'))
+        .fold<AuctionBid?>(
+          null,
+          (best, b) => best == null || b.amount > best.amount ? b : best,
+        );
+    if (top == null) {
+      showAtelierToast(
+        context,
+        _bidErrors[a.id] ?? 'Could not load the bids. Try again.',
+        tone: AtelierTone.ruby,
       );
+      return;
     }
+    await _act(
+      a,
+      () => ref
+          .read(auctionRepositoryProvider)
+          .accept(auctionId: a.id, bidId: top.id),
+    );
   }
 
   Future<void> _selectWinner(AuctionListing a, AuctionBid bid) async {
@@ -489,6 +623,7 @@ class _AuctionCard extends StatelessWidget {
     required this.onOpen,
     required this.onEnd,
     required this.onAccept,
+    required this.onReject,
     required this.onMore,
     required this.onSelectWinner,
     this.bids,
@@ -506,6 +641,7 @@ class _AuctionCard extends StatelessWidget {
   final VoidCallback onOpen;
   final VoidCallback onEnd;
   final VoidCallback onAccept;
+  final VoidCallback onReject;
   final VoidCallback onMore;
   final ValueChanged<AuctionBid> onSelectWinner;
 
@@ -701,16 +837,25 @@ class _AuctionCard extends StatelessWidget {
                 onTap: onToggleBids,
               ),
               const Spacer(),
-              if (a.awaitingSellerDecision)
+              if (a.awaitingSellerDecision) ...[
                 AtelierButton(
-                  label: 'Accept',
-                  icon: Icons.check_rounded,
+                  label: hasBids ? 'Reject' : 'Relist',
                   compact: true,
-                  variant: AtelierButtonVariant.gold,
-                  loading: acting,
-                  onPressed: onAccept,
-                )
-              else if (a.isLive)
+                  variant: AtelierButtonVariant.ghost,
+                  onPressed: acting ? null : onReject,
+                ),
+                if (hasBids) ...[
+                  const SizedBox(width: 4),
+                  AtelierButton(
+                    label: 'Accept',
+                    icon: Icons.check_rounded,
+                    compact: true,
+                    variant: AtelierButtonVariant.gold,
+                    loading: acting,
+                    onPressed: onAccept,
+                  ),
+                ],
+              ] else if (a.isLive)
                 AtelierButton(
                   label: 'End now',
                   compact: true,
@@ -793,6 +938,20 @@ class _AuctionCard extends StatelessWidget {
           text:
               'The last winner declined or didn’t pay in time. Accept the '
               'next bidder, restart or remove the auction.',
+          done: false,
+        );
+      }
+      if (a.awaitingSellerDecision) {
+        final reserve = a.reservePrice;
+        return (
+          icon: Icons.gavel_rounded,
+          text: a.highestBidAmount == null
+              ? 'Ended without bids. Relist it or remove the listing.'
+              : reserve != null && !a.isReserveMet
+              ? 'Ended below your reserve of ${auctionBidAmount(reserve)}. '
+                    'Accept the highest bid, pick another bidder or reject.'
+              : 'Bidding closed. Accept the highest bid, pick another bidder '
+                    'or reject.',
           done: false,
         );
       }

@@ -7,81 +7,73 @@ import '../../../../../core/haptics/app_haptics.dart';
 import '../../../../../core/l10n/app_localizations.dart';
 import '../../../../../core/router/app_navigation.dart';
 import '../../../../../core/router/route_names.dart';
+import '../../../../../core/widgets/app_network_image.dart';
+import '../../home_network_images.dart';
 import '../../theme/home_tokens.dart';
 
 class _Slide {
   const _Slide({
-    required this.icon,
-    required this.accent,
+    required this.color,
+    required this.image,
     required this.tag,
     required this.title,
     required this.body,
-    required this.cta,
     required this.route,
-    this.live = false,
   });
 
-  final IconData icon;
-  final Color accent;
+  /// Solid banner ground; copy and CTA sit on it in white.
+  final Color color;
+  final String image;
   final String tag;
   final String title;
   final String body;
-  final String cta;
   final String route;
-  final bool live;
 }
 
 const _slides = [
   _Slide(
-    icon: Icons.gavel_rounded,
-    accent: Color(0xFFE0B25C),
-    tag: HomeL10n.spotlightAuctionsTag,
-    title: HomeL10n.spotlightAuctionsTitle,
-    body: HomeL10n.spotlightAuctionsBody,
-    cta: HomeL10n.spotlightBid,
-    route: AppRouteNames.auctions,
-    live: true,
-  ),
-  _Slide(
-    icon: Icons.diamond_outlined,
-    accent: Color(0xFF9CC9E8),
-    tag: HomeL10n.spotlightDiamondsTag,
-    title: HomeL10n.spotlightDiamondsTitle,
-    body: HomeL10n.spotlightDiamondsBody,
-    cta: HomeL10n.spotlightExplore,
+    color: Color(0xFFD81B60),
+    image: HomeNetworkImages.saleDiwali,
+    tag: HomeL10n.saleDiwaliTag,
+    title: HomeL10n.saleDiwaliTitle,
+    body: HomeL10n.saleDiwaliBody,
     route: AppRouteNames.diamonds,
   ),
   _Slide(
-    icon: Icons.auto_awesome_outlined,
-    accent: Color(0xFF6FC7A4),
-    tag: HomeL10n.spotlightGemstonesTag,
-    title: HomeL10n.spotlightGemstonesTitle,
-    body: HomeL10n.spotlightGemstonesBody,
-    cta: HomeL10n.spotlightExplore,
+    color: Color(0xFFE65100),
+    image: HomeNetworkImages.saleDhanteras,
+    tag: HomeL10n.saleDhanterasTag,
+    title: HomeL10n.saleDhanterasTitle,
+    body: HomeL10n.saleDhanterasBody,
+    route: AppRouteNames.bullions,
+  ),
+  _Slide(
+    color: Color(0xFF6A1B9A),
+    image: HomeNetworkImages.saleWedding,
+    tag: HomeL10n.saleWeddingTag,
+    title: HomeL10n.saleWeddingTitle,
+    body: HomeL10n.saleWeddingBody,
+    route: AppRouteNames.jewelry,
+  ),
+  _Slide(
+    color: Color(0xFF00897B),
+    image: HomeNetworkImages.saleGem,
+    tag: HomeL10n.saleGemTag,
+    title: HomeL10n.saleGemTitle,
+    body: HomeL10n.saleGemBody,
     route: AppRouteNames.gemstones,
   ),
   _Slide(
-    icon: Icons.science_outlined,
-    accent: Color(0xFFB9A3E8),
-    tag: HomeL10n.spotlightLabTag,
-    title: HomeL10n.spotlightLabTitle,
-    body: HomeL10n.spotlightLabBody,
-    cta: HomeL10n.spotlightExplore,
-    route: AppRouteNames.labGrownDiamonds,
-  ),
-  _Slide(
-    icon: Icons.account_balance_outlined,
-    accent: Color(0xFFF0C987),
-    tag: HomeL10n.spotlightBullionTag,
-    title: HomeL10n.spotlightBullionTitle,
-    body: HomeL10n.spotlightBullionBody,
-    cta: HomeL10n.spotlightExplore,
-    route: AppRouteNames.bullions,
+    color: Color(0xFF1E4FD8),
+    image: HomeNetworkImages.saleGold,
+    tag: HomeL10n.saleGoldTag,
+    title: HomeL10n.saleGoldTitle,
+    body: HomeL10n.saleGoldBody,
+    route: AppRouteNames.jewelry,
   ),
 ];
 
-/// Hero foot: a self-advancing banner carousel of what's worth opening now,
-/// above a compact trust strip.
+/// Hero foot: a self-advancing carousel of festive sale banners.
 class HeroSpotlight extends StatefulWidget {
   const HeroSpotlight({required this.animate, required this.gutter, super.key});
 
@@ -94,7 +86,7 @@ class HeroSpotlight extends StatefulWidget {
 
 class _HeroSpotlightState extends State<HeroSpotlight> {
   static const _interval = Duration(milliseconds: 4800);
-  static const _cardHeight = 150.0;
+  static const _cardHeight = 164.0;
   // Large and a multiple of the slide count so paging loops both ways.
   static const _origin = 1000;
 
@@ -178,10 +170,7 @@ class _HeroSpotlightState extends State<HeroSpotlight> {
                 onPageChanged: (i) => _index.value = i % _slides.length,
                 itemBuilder: (context, i) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 5),
-                  child: _SpotlightCard(
-                    slide: _slides[i % _slides.length],
-                    animate: widget.animate,
-                  ),
+                  child: _SaleCard(slide: _slides[i % _slides.length]),
                 ),
               ),
             ),
@@ -214,118 +203,109 @@ class _HeroSpotlightState extends State<HeroSpotlight> {
           ),
           650,
         ),
-        const SizedBox(height: 16),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: widget.gutter),
-          child: _enter(const _TrustStrip(), 800),
-        ),
       ],
     );
   }
 }
 
-class _SpotlightCard extends StatelessWidget {
-  const _SpotlightCard({required this.slide, required this.animate});
+class _SaleCard extends StatelessWidget {
+  const _SaleCard({required this.slide});
 
   final _Slide slide;
-  final bool animate;
 
   @override
   Widget build(BuildContext context) {
-    final accent = slide.accent;
-    final radius = BorderRadius.circular(HomeSpace.radius);
+    final color = slide.color;
 
     return Semantics(
       button: true,
-      label: '${context.tr(slide.title)}. ${context.tr(slide.body)}',
+      label:
+          '${context.tr(slide.tag)}. ${context.tr(slide.title)}. '
+          '${context.tr(slide.body)}',
       excludeSemantics: true,
       child: Material(
-        color: Colors.transparent,
+        color: color,
         shape: RoundedRectangleBorder(
-          borderRadius: radius,
-          side: BorderSide(color: accent.withValues(alpha: 0.32)),
+          borderRadius: BorderRadius.circular(HomeSpace.radius),
         ),
         clipBehavior: Clip.antiAlias,
-        child: Ink(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color.alphaBlend(
-                  accent.withValues(alpha: 0.2),
-                  HomeStage.obsidian.withValues(alpha: 0.72),
-                ),
-                HomeStage.obsidian.withValues(alpha: 0.6),
-              ],
-            ),
-          ),
-          child: InkWell(
-            splashColor: accent.withValues(alpha: 0.12),
-            highlightColor: accent.withValues(alpha: 0.06),
-            onTap: () {
-              AppHaptics.selection();
-              context.openRoute(slide.route);
-            },
-            child: Stack(
-              children: [
-                Positioned(
-                  right: -18,
-                  bottom: -22,
-                  child: Icon(
-                    slide.icon,
-                    size: 128,
-                    color: accent.withValues(alpha: 0.12),
+        child: InkWell(
+          splashColor: Colors.white.withValues(alpha: 0.14),
+          highlightColor: Colors.white.withValues(alpha: 0.06),
+          onTap: () {
+            AppHaptics.selection();
+            context.openRoute(slide.route);
+          },
+          child: LayoutBuilder(
+            builder: (context, box) {
+              final photoWidth = box.maxWidth * 0.42;
+              return Stack(
+                children: [
+                  // Soft disc behind the copy lifts it off the flat ground.
+                  Positioned(
+                    left: -36,
+                    bottom: -56,
+                    child: Container(
+                      width: 140,
+                      height: 140,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withValues(alpha: 0.08),
+                      ),
+                    ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _Tag(
-                        label: context.tr(slide.tag),
-                        accent: accent,
-                        live: slide.live,
-                        animate: animate,
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    width: photoWidth,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.horizontal(
+                        left: Radius.circular(box.maxHeight / 2),
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        context.tr(slide.title),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: HomeType.display(24, HomeStage.ink),
+                      child: AppNetworkImage(
+                        url: slide.image,
+                        memCacheWidth: 600,
                       ),
-                      const SizedBox(height: 4),
-                      Padding(
-                        padding: const EdgeInsets.only(right: 56),
-                        child: Text(
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(18, 16, photoWidth + 10, 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _Tag(label: context.tr(slide.tag)),
+                        const SizedBox(height: 10),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            context.tr(slide.title),
+                            maxLines: 1,
+                            style: HomeType.display(28, Colors.white).copyWith(
+                              fontWeight: FontWeight.w700,
+                              height: 1.05,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
                           context.tr(slide.body),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: HomeType.body(HomeStage.inkMuted, size: 12.5),
+                          style: HomeType.body(
+                            Colors.white.withValues(alpha: 0.9),
+                            size: 12.5,
+                          ),
                         ),
-                      ),
-                      const Spacer(),
-                      Row(
-                        children: [
-                          Text(
-                            context.tr(slide.cta),
-                            style: HomeType.label(accent, size: 12.5),
-                          ),
-                          const SizedBox(width: 6),
-                          Icon(
-                            Icons.arrow_forward_rounded,
-                            size: 15,
-                            color: accent,
-                          ),
-                        ],
-                      ),
-                    ],
+                        const Spacer(),
+                        _ShopButton(color: color),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -333,95 +313,57 @@ class _SpotlightCard extends StatelessWidget {
   }
 }
 
+/// Sunny offer pill that reads on every banner colour.
 class _Tag extends StatelessWidget {
-  const _Tag({
-    required this.label,
-    required this.accent,
-    required this.live,
-    required this.animate,
-  });
+  const _Tag({required this.label});
 
   final String label;
-  final Color accent;
-  final bool live;
-  final bool animate;
 
   @override
   Widget build(BuildContext context) {
-    Widget dot = Container(
-      width: 6,
-      height: 6,
-      decoration: const BoxDecoration(
-        color: Color(0xFFE5484D),
-        shape: BoxShape.circle,
-      ),
-    );
-    if (animate) {
-      dot = dot
-          .animate(onPlay: (c) => c.repeat(reverse: true))
-          .fade(begin: 1, end: 0.25, duration: 800.ms);
-    }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.14),
+        color: const Color(0xFFFFD54F),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label.toUpperCase(),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: HomeType.eyebrow(
+          const Color(0xFF3E2723),
+        ).copyWith(fontSize: 10, fontWeight: FontWeight.w700),
+      ),
+    );
+  }
+}
+
+class _ShopButton extends StatelessWidget {
+  const _ShopButton({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 6, 10, 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (live) ...[dot, const SizedBox(width: 6)],
           Text(
-            label.toUpperCase(),
-            style: HomeType.eyebrow(accent).copyWith(fontSize: 10),
+            context.tr(HomeL10n.saleShop),
+            style: HomeType.label(
+              color,
+              size: 12,
+            ).copyWith(fontWeight: FontWeight.w700),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Three compact trust marks, always visible under the banners.
-class _TrustStrip extends StatelessWidget {
-  const _TrustStrip();
-
-  @override
-  Widget build(BuildContext context) {
-    const marks = [
-      (Icons.verified_outlined, HomeL10n.pillarCertifiedTitle),
-      (Icons.storefront_outlined, HomeL10n.pillarSellersTitle),
-      (Icons.lock_outline_rounded, HomeL10n.pillarPaymentsTitle),
-    ];
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
-      decoration: BoxDecoration(
-        color: HomeStage.glass,
-        borderRadius: BorderRadius.circular(HomeSpace.radiusSmall),
-        border: Border.all(color: HomeStage.glassBorder),
-      ),
-      child: Row(
-        children: [
-          for (var i = 0; i < marks.length; i++) ...[
-            if (i > 0)
-              Container(width: 1, height: 22, color: HomeStage.glassBorder),
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(marks[i].$1, size: 15, color: HomeStage.gold),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      context.tr(marks[i].$2),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: HomeType.label(HomeStage.ink, size: 11),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          const SizedBox(width: 4),
+          Icon(Icons.arrow_forward_rounded, size: 14, color: color),
         ],
       ),
     );

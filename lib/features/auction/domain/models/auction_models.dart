@@ -297,18 +297,23 @@ class SellerAuctionStanding {
     required this.active,
     required this.upcoming,
     required this.ended,
-    required this.needsDecision,
     required this.sold,
     required this.bids,
+    this.awaitingDecision = const [],
   });
 
   final int total;
   final int active;
   final int upcoming;
   final int ended;
-  final int needsDecision;
   final int sold;
   final int bids;
+
+  /// Finished auctions waiting for the seller to accept, pick a bidder,
+  /// restart or remove.
+  final List<AuctionListing> awaitingDecision;
+
+  int get needsDecision => awaitingDecision.length;
 }
 
 /// `GET /auction/settings`.

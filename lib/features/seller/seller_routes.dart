@@ -83,7 +83,9 @@ final List<RouteBase> sellerRoutes = [
       ),
       GoRoute(
         path: AppRouteNames.sellerAuctions,
-        builder: (context, state) => const SellerAuctionsScreen(),
+        builder: (context, state) => SellerAuctionsScreen(
+          initialTab: state.uri.queryParameters['tab'],
+        ),
       ),
       GoRoute(
         path: AppRouteNames.sellerAnalytics,

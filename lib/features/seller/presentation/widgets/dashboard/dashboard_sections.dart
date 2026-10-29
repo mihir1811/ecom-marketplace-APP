@@ -230,7 +230,11 @@ class DashboardAttentionStrip extends ConsumerWidget {
         loading: standing.isLoading && !standing.hasValue,
         error: standing.hasError && !standing.hasValue,
         onRetry: () => ref.invalidate(sellerAuctionStandingProvider),
-        onTap: () => context.switchToRoute(AppRouteNames.sellerAuctions),
+        onTap: () => context.switchToRoute(
+          (standing.asData?.value.needsDecision ?? 0) > 0
+              ? '${AppRouteNames.sellerAuctions}?tab=decision'
+              : AppRouteNames.sellerAuctions,
+        ),
         tone: AtelierTone.sapphire,
       ),
       _AttentionData(

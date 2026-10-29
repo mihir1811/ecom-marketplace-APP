@@ -7,9 +7,6 @@ abstract final class EducationL10n {
   static const navEducation = 'education.navEducation';
 
   // Page hero
-  static const eyebrow = 'education.eyebrow';
-  static const title = 'education.title';
-  static const body = 'education.body';
 
   // 4Cs
   static const c4Eyebrow = 'education.c4Eyebrow';
@@ -197,22 +194,6 @@ const educationMessages = <String, LocalizedMessage>{
     english: 'Diamond education',
     hindi: 'हीरा शिक्षा',
     gujarati: 'હીરા શિક્ષણ',
-  ),
-  EducationL10n.eyebrow: LocalizedMessage(
-    english: 'DIAMOND EDUCATION',
-    hindi: 'हीरा शिक्षा',
-    gujarati: 'હીરા શિક્ષણ',
-  ),
-  EducationL10n.title: LocalizedMessage(
-    english: 'Understand every diamond before you choose one.',
-    hindi: 'चुनने से पहले हर हीरे को समझें।',
-    gujarati: 'પસંદ કરતાં પહેલાં દરેક હીરાને સમજો.',
-  ),
-  EducationL10n.body: LocalizedMessage(
-    english:
-        'The 4Cs, anatomy, proportions and fluorescence, explained simply.',
-    hindi: '4C, बनावट, अनुपात और फ्लोरेसेंस, सरल भाषा में समझें।',
-    gujarati: '4C, રચના, પ્રમાણ અને ફ્લોરોસન્સ, સરળ ભાષામાં સમજો.',
   ),
   EducationL10n.c4Eyebrow: LocalizedMessage(
     english: 'THE 4Cs',
