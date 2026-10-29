@@ -38,7 +38,9 @@ AtelierTone buyerOfferTone(ProductOffer offer) {
   return switch (offer.status) {
     ProductOfferStatus.pending => AtelierTone.amber,
     ProductOfferStatus.accepted =>
-      offer.isPayable ? AtelierTone.gold : AtelierTone.neutral,
+      offer.isPayable || offer.isWithGemworld
+          ? AtelierTone.gold
+          : AtelierTone.neutral,
     ProductOfferStatus.rejected => AtelierTone.ruby,
     ProductOfferStatus.expired => AtelierTone.neutral,
   };
@@ -57,7 +59,11 @@ IconData buyerOfferIcon(ProductOffer offer) {
 /// Buyer offers (GET /product-offer/mine): what is waiting on a seller, what
 /// was accepted and must be paid within 24 hours, and what closed.
 class BuyerOffersScreen extends ConsumerStatefulWidget {
-  const BuyerOffersScreen({super.key});
+  const BuyerOffersScreen({this.payOfferId, super.key});
+
+  /// Accepted offer to put in the bag and check out on open (from the
+  /// `OFFER_ACCEPTED` push), as the website does for `?pay=<offerId>`.
+  final String? payOfferId;
 
   @override
   ConsumerState<BuyerOffersScreen> createState() => _BuyerOffersScreenState();
@@ -72,6 +78,36 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    final payId = widget.payOfferId?.trim();
+    if (payId != null && payId.isNotEmpty) {
+      _filter = _OfferFilter.accepted;
+      Future.microtask(() => _payFromLink(payId));
+    }
+  }
+
+  /// Finds the accepted offer in a fresh list, then pays it like Pay now.
+  Future<void> _payFromLink(String offerId) async {
+    await _refresh();
+    if (!mounted) return;
+    final offer = ref
+        .read(buyerOfferListProvider)
+        .items
+        .where((o) => o.id == offerId)
+        .firstOrNull;
+    if (offer != null && offer.isPayable) {
+      await _pay(offer);
+      return;
+    }
+    final message = offer == null
+        ? 'This offer is no longer available to purchase. It may have '
+              'expired after 24 hours.'
+        : offer.isPaid
+        ? 'This offer is already paid.'
+        : offer.isWithGemworld
+        ? 'GemWorld is arranging the payment for this offer.'
+        : 'This offer is no longer available to purchase. It may have '
+              'expired after 24 hours.';
+    showAtelierToast(context, message, tone: AtelierTone.neutral);
   }
 
   @override
@@ -489,6 +525,17 @@ class BuyerOfferCard extends StatelessWidget {
               'The seller has 24 hours to answer. Offers they don’t answer '
               'expire.',
               style: AtelierType.caption(p.muted, size: 11.5),
+            ),
+          ],
+          if (offer.isWithGemworld) ...[
+            const SizedBox(height: 14),
+            const AtelierNotice(
+              text:
+                  'GemWorld is arranging your payment. The stone stays held '
+                  'for you, with no time limit, until the order is paid or '
+                  'cancelled.',
+              tone: AtelierTone.gold,
+              icon: Icons.support_agent_outlined,
             ),
           ],
           AnimatedSize(

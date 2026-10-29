@@ -25,6 +25,7 @@ abstract final class ApiError {
         ValidationMessageFormatter.humanize(
           serverMessage ?? 'Please check your details and try again.',
         ),
+        code: extractCode(e.response?.data),
       );
     }
     if (serverMessage != null && serverMessage.isNotEmpty) {
@@ -41,6 +42,12 @@ abstract final class ApiError {
       return ValidationFailure(friendly);
     }
     return NetworkFailure.fromDioException(e);
+  }
+
+  static String? extractCode(Object? data) {
+    if (data is! Map) return null;
+    final code = data['code'];
+    return code is String && code.trim().isNotEmpty ? code.trim() : null;
   }
 
   static String? extractMessage(Object? data) {

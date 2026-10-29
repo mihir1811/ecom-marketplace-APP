@@ -279,6 +279,35 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
     return Result.success(order);
   }
 
+  /// Orders over the online-payment limit (charges included) can't be paid
+  /// in the app; `create-order` refuses them with this code.
+  static bool needsContactGemworld(Failure failure) =>
+      failure is ValidationFailure &&
+      failure.code == 'CONTACT_GEMWORLD_REQUIRED';
+
+  /// `POST /payment/contact-gemworld`: the bag becomes a pending order that
+  /// GemWorld completes with the buyer. Accepted offers and auction wins in
+  /// it pause their 24-hour clocks meanwhile.
+  Future<Result<String, Failure>> contactGemworld({
+    required String contactPhone,
+    String? note,
+  }) async {
+    if (state.isBusy) {
+      return Result.failure(
+        const ValidationFailure('Payment is already in progress.'),
+      );
+    }
+    final result = await _payments.contactGemworld(
+      contactPhone: contactPhone,
+      note: note,
+    );
+    if (result is Success<String, Failure>) {
+      state = state.copyWith(phase: CheckoutPhase.idle, clearError: true);
+      await ref.read(cartProvider.notifier).refresh();
+    }
+    return result;
+  }
+
   void reset() {
     if (state.isBusy) return;
     state = CheckoutState(

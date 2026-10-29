@@ -29,6 +29,8 @@ abstract final class ProductOfferMapper {
       acceptedAt: _parseDate(json['acceptedAt']),
       paidAt: _parseDate(json['paidAt']),
       paymentExpiresAt: _parseDate(json['paymentExpiresAt']),
+      paymentWithGemworld: json['paymentWithGemworld'] == true,
+      belowMinimum: json['belowMinimum'] == true,
       productLabel: _productLabel(productMap, json),
       stockNumber: _nullableString(productMap?['stockNumber']) ??
           _nullableString(json['stockNumber']),

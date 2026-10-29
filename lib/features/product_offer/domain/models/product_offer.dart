@@ -48,6 +48,8 @@ class ProductOffer {
     this.acceptedAt,
     this.paidAt,
     this.paymentExpiresAt,
+    this.paymentWithGemworld = false,
+    this.belowMinimum = false,
     this.message,
     this.productLabel,
     this.stockNumber,
@@ -78,8 +80,19 @@ class ProductOffer {
   /// Set when the buyer's order is paid. `ACCEPTED` + [paidAt] = bought.
   final DateTime? paidAt;
 
-  /// `acceptedAt + 24 h` while accepted and unpaid, otherwise null.
+  /// `acceptedAt + 24 h` while accepted and unpaid, otherwise null (also
+  /// null while [paymentWithGemworld]).
   final DateTime? paymentExpiresAt;
+
+  /// GemWorld is collecting the payment (the order was over the online
+  /// limit and the buyer chose Contact GemWorld). The 24-hour clock is
+  /// paused: no countdown and no Pay now.
+  final bool paymentWithGemworld;
+
+  /// Seller's view only: the offer is under the seller's private minimum.
+  /// While pending it is declined automatically within 10 minutes unless
+  /// accepted; when rejected, it was declined automatically.
+  final bool belowMinimum;
   final String? productLabel;
   final String? stockNumber;
   final double? listPrice;
@@ -110,12 +123,19 @@ class ProductOffer {
 
   bool get isPaid => status == ProductOfferStatus.accepted && paidAt != null;
 
+  /// Accepted, unpaid and with GemWorld arranging the payment.
+  bool get isWithGemworld =>
+      status == ProductOfferStatus.accepted &&
+      paidAt == null &&
+      paymentWithGemworld;
+
   /// Accepted, unpaid and still inside the 24-hour window.
   bool get isPayable => isPayableAt(DateTime.now());
 
   bool isPayableAt(DateTime now) =>
       status == ProductOfferStatus.accepted &&
       paidAt == null &&
+      !paymentWithGemworld &&
       paymentExpiresAt != null &&
       paymentExpiresAt!.isAfter(now);
 
@@ -129,6 +149,7 @@ class ProductOffer {
   /// Status shown to people: PAID is `ACCEPTED` with [paidAt] set.
   String get displayStatusLabel {
     if (isPaid) return 'Paid';
+    if (isWithGemworld) return 'With GemWorld';
     if (status == ProductOfferStatus.accepted) {
       return isPayable ? 'Awaiting payment' : 'Accepted';
     }
@@ -157,6 +178,8 @@ class ProductOffer {
       acceptedAt: acceptedAt,
       paidAt: paidAt,
       paymentExpiresAt: paymentExpiresAt,
+      paymentWithGemworld: paymentWithGemworld,
+      belowMinimum: belowMinimum,
       message: message,
       productLabel: this.productLabel ?? productLabel,
       stockNumber: this.stockNumber ?? stockNumber,
@@ -194,6 +217,14 @@ class ProductOfferEligibility {
     return null;
   }
 
+  /// An accepted offer whose payment GemWorld is arranging.
+  ProductOffer? get withGemworld {
+    for (final o in offers) {
+      if (o.isWithGemworld) return o;
+    }
+    return null;
+  }
+
   ProductOffer? get paid {
     for (final o in offers) {
       if (o.isPaid) return o;
@@ -210,7 +241,11 @@ class ProductOfferEligibility {
       (maxAttempts - offers.length).clamp(0, maxAttempts).toInt();
 
   bool get canSubmit =>
-      payable == null && paid == null && !hasPending && !limitReached;
+      payable == null &&
+      paid == null &&
+      withGemworld == null &&
+      !hasPending &&
+      !limitReached;
 }
 
 class ProductOfferListPage {

@@ -54,7 +54,11 @@ class NetworkFailure extends Failure {
 }
 
 class ValidationFailure extends Failure {
-  const ValidationFailure(super.message);
+  const ValidationFailure(super.message, {this.code});
+
+  /// Machine-readable `code` from the error body, when the API sends one
+  /// (e.g. `CONTACT_GEMWORLD_REQUIRED`).
+  final String? code;
 }
 
 class AuthFailure extends Failure {

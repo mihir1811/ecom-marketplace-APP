@@ -267,6 +267,7 @@ abstract final class PaymentMapper {
       isReturned: json['isReturned'] == true,
       priceCurrency: _str(json['priceCurrency']),
       auctionId: specs is Map ? _str(specs['auctionId']) : null,
+      offerId: specs is Map ? _str(specs['offerId']) : null,
     );
   }
 

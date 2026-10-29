@@ -14,6 +14,14 @@ abstract class PaymentRepository {
     bool usePoints = false,
   });
 
+  /// Hands a cart over the online-payment limit to GemWorld: the bag
+  /// becomes a pending order and GemWorld arranges payment with the buyer.
+  /// Returns the server's confirmation message.
+  Future<Result<String, Failure>> contactGemworld({
+    required String contactPhone,
+    String? note,
+  });
+
   Future<Result<PaymentOrder, Failure>> verifyPayment({
     required String orderId,
     required RazorpayPaymentSuccess success,

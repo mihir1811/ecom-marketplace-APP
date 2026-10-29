@@ -88,6 +88,11 @@ class AppRouteNames {
       '/buyer/orders/$orderId';
   static const String buyerRefunds = '/buyer/refunds';
   static const String buyerOffers = '/buyer/offers';
+
+  /// My offers, then straight to paying this accepted offer (the
+  /// `OFFER_ACCEPTED` push link `/user/offers?pay=<offerId>`).
+  static String buyerOfferPayPath(String offerId) =>
+      '/buyer/offers?pay=${Uri.encodeQueryComponent(offerId)}';
   static const String buyerReferences = '/buyer/references';
   static const String buyerInquiries = '/buyer/inquiries';
   static const String buyerInquiryNew = '/buyer/inquiries/new';

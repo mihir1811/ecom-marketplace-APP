@@ -44,6 +44,7 @@ String luxeOfferLabel(
     'time': formatOfferTimeLeft(left),
   }),
   OfferButtonKind.paid => context.tr(DiamondFlowL10n.offerPaid),
+  OfferButtonKind.withGemworld => context.tr(DiamondFlowL10n.offerWithGemworld),
 };
 
 /// Sticky commitment bar: compact price, optional offer, primary cart CTA.
@@ -228,7 +229,7 @@ Future<({String amount, String? message})?> showLuxeOfferSheet(
       'price': ProductPriceLabels.resolve(detail.price).sale,
     }),
     builder: (context) => _OfferForm(
-      minimum: detail.minimumOfferPrice,
+      maximum: ProductPurchaseActions.offerCeilingUsd(detail),
       attemptsNote: attemptsLeft == null
           ? null
           : context.tr(DiamondFlowL10n.offerAttemptsLeft, {
@@ -240,9 +241,11 @@ Future<({String amount, String? message})?> showLuxeOfferSheet(
 }
 
 class _OfferForm extends StatefulWidget {
-  const _OfferForm({required this.minimum, this.attemptsNote});
+  const _OfferForm({required this.maximum, this.attemptsNote});
 
-  final double? minimum;
+  /// Listed price; offers above it are refused. The seller's minimum is
+  /// private, so the form never mentions one.
+  final double? maximum;
 
   /// e.g. "3 of 5 offers left on this stone".
   final String? attemptsNote;
@@ -253,9 +256,7 @@ class _OfferForm extends StatefulWidget {
 
 class _OfferFormState extends State<_OfferForm> {
   final _form = GlobalKey<FormState>();
-  late final _amount = TextEditingController(
-    text: widget.minimum?.toStringAsFixed(2) ?? '',
-  );
+  final _amount = TextEditingController();
   final _message = TextEditingController();
 
   @override
@@ -277,7 +278,7 @@ class _OfferFormState extends State<_OfferForm> {
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
-    final min = widget.minimum;
+    final max = widget.maximum;
     return Form(
       key: _form,
       child: Column(
@@ -298,20 +299,15 @@ class _OfferFormState extends State<_OfferForm> {
               }),
               prefixText: '${AppCurrency.symbol} ',
               prefixStyle: LuxeType.figure(p.inkMuted, size: 22),
-              helperText: min == null
-                  ? null
-                  : context.tr(DiamondFlowL10n.offerMinimum, {
-                      'amount': AppCurrency.format(min.toStringAsFixed(2)),
-                    }),
             ),
             validator: (raw) {
               final value = double.tryParse((raw ?? '').trim());
               if (value == null || value <= 0) {
                 return context.tr(DiamondFlowL10n.offerInvalid);
               }
-              if (min != null && value < min) {
-                return context.tr(DiamondFlowL10n.offerTooLow, {
-                  'amount': AppCurrency.format(min.toStringAsFixed(2)),
+              if (max != null && value > max) {
+                return context.tr(DiamondFlowL10n.offerTooHigh, {
+                  'amount': AppCurrency.format(max.toStringAsFixed(2)),
                 });
               }
               return null;

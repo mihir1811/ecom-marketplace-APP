@@ -60,8 +60,7 @@ abstract final class DiamondFlowL10n {
   static const onlyCaratAvailable = 'diamondFlow.onlyCaratAvailable';
   static const onlyPiecesAvailable = 'diamondFlow.onlyPiecesAvailable';
   static const offerSubtitle = 'diamondFlow.offerSubtitle';
-  static const offerMinimum = 'diamondFlow.offerMinimum';
-  static const offerTooLow = 'diamondFlow.offerTooLow';
+  static const offerTooHigh = 'diamondFlow.offerTooHigh';
   static const offerInvalid = 'diamondFlow.offerInvalid';
   static const offerSent = 'diamondFlow.offerSent';
   static const offerPending = 'diamondFlow.offerPending';
@@ -69,6 +68,7 @@ abstract final class DiamondFlowL10n {
   static const offerPayNow = 'diamondFlow.offerPayNow';
   static const offerPayNowLeft = 'diamondFlow.offerPayNowLeft';
   static const offerPaid = 'diamondFlow.offerPaid';
+  static const offerWithGemworld = 'diamondFlow.offerWithGemworld';
   static const offerAddedToBag = 'diamondFlow.offerAddedToBag';
   static const offerAttemptsLeft = 'diamondFlow.offerAttemptsLeft';
   static const myOffers = 'diamondFlow.myOffers';
@@ -343,15 +343,10 @@ const diamondFlowMessages = <String, LocalizedMessage>{
     hindi: 'सूचीबद्ध कीमत {price}। विक्रेता हर प्रस्ताव की समीक्षा करता है।',
     gujarati: 'યાદી કિંમત {price}. વિક્રેતા દરેક ઓફર તપાસે છે.',
   ),
-  DiamondFlowL10n.offerMinimum: LocalizedMessage(
-    english: 'Minimum offer {amount}',
-    hindi: 'न्यूनतम प्रस्ताव {amount}',
-    gujarati: 'ન્યૂનતમ ઓફર {amount}',
-  ),
-  DiamondFlowL10n.offerTooLow: LocalizedMessage(
-    english: 'Offer must be at least {amount}',
-    hindi: 'प्रस्ताव कम से कम {amount} होना चाहिए',
-    gujarati: 'ઓફર ઓછામાં ઓછી {amount} હોવી જોઈએ',
+  DiamondFlowL10n.offerTooHigh: LocalizedMessage(
+    english: 'Offer can’t be more than the listed price of {amount}',
+    hindi: 'प्रस्ताव सूचीबद्ध कीमत {amount} से अधिक नहीं हो सकता',
+    gujarati: 'ઓફર યાદી કિંમત {amount} કરતાં વધુ ન હોઈ શકે',
   ),
   DiamondFlowL10n.offerInvalid: LocalizedMessage(
     english: 'Enter a valid amount',
@@ -387,6 +382,11 @@ const diamondFlowMessages = <String, LocalizedMessage>{
     english: 'Offer paid',
     hindi: 'प्रस्ताव का भुगतान हुआ',
     gujarati: 'ઓફરની ચુકવણી થઈ',
+  ),
+  DiamondFlowL10n.offerWithGemworld: LocalizedMessage(
+    english: 'GemWorld is arranging payment',
+    hindi: 'GemWorld भुगतान की व्यवस्था कर रहा है',
+    gujarati: 'GemWorld ચુકવણીની વ્યવસ્થા કરી રહ્યું છે',
   ),
   DiamondFlowL10n.offerAddedToBag: LocalizedMessage(
     english: 'Added to cart at your offer price',

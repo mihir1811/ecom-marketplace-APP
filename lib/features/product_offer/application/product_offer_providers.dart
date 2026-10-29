@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/auth/auth_providers.dart';
@@ -156,8 +157,8 @@ abstract class _OfferListNotifier extends Notifier<OfferListState> {
   }
 }
 
-/// Offers received (`GET /product-offer/seller`). The endpoint carries no
-/// product snapshot, so each stone is fetched once by type and id.
+/// Offers received (`GET /product-offer/seller`). The product snapshot has
+/// no price, so each stone is fetched once by type and id for it.
 class SellerOfferListNotifier extends _OfferListNotifier {
   final Map<String, ProductDetail?> _products = {};
 
@@ -176,7 +177,10 @@ class SellerOfferListNotifier extends _OfferListNotifier {
   Future<void> hydrate(List<ProductOffer> items) async {
     final missing = {
       for (final o in items)
-        if (o.productLabel == null && !_products.containsKey(o.productId))
+        // The list snapshot has title, stock and image but no price; the
+        // stone is loaded once for the list price and certificate.
+        if ((o.productLabel == null || o.listPrice == null) &&
+            !_products.containsKey(o.productId))
           o.productId: o.productType,
     };
     await Future.wait([
@@ -287,6 +291,10 @@ final productOfferEligibilityProvider = FutureProvider.autoDispose
           maxAttempts: key.maxAttempts,
         );
       }
+      // Back in the foreground: the offer may have been answered, expired
+      // or auto-declined meanwhile.
+      final lifecycle = AppLifecycleListener(onResume: ref.invalidateSelf);
+      ref.onDispose(lifecycle.dispose);
       final token = CancelToken();
       ref.onDispose(token.cancel);
       final result = await ref
@@ -356,7 +364,14 @@ class ProductOfferMutationNotifier extends Notifier<AsyncValue<void>> {
         result = Result.failure(failure);
       case Success(value: final offers):
         final current = offers.where((o) => o.id == offer.id).firstOrNull;
-        if (current == null || !current.isPayable) {
+        if (current != null && current.isWithGemworld) {
+          result = Result.failure(
+            const ValidationFailure(
+              'GemWorld is already arranging the payment for your accepted '
+              'offer on this product.',
+            ),
+          );
+        } else if (current == null || !current.isPayable) {
           result = Result.failure(
             const ValidationFailure(
               'This offer is no longer available to purchase. It may have '

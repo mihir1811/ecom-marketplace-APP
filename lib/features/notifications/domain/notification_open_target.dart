@@ -112,9 +112,16 @@ NotificationOpenTarget notificationOpenTarget(
     case 'ADMIN_BROADCAST':
       return _fromLink(notification.link, isSeller: isSeller);
     case 'OFFER_ACCEPTED':
+      // Like the website's `/user/offers?pay=<offerId>`: put the stone in
+      // the bag at the offer price and open checkout.
+      final payId = _offerPayId(notification.link) ?? data['offerId'] ?? '';
+      return NotificationInApp(
+        payId.isEmpty
+            ? AppRouteNames.buyerOffers
+            : AppRouteNames.buyerOfferPayPath(payId),
+      );
     case 'OFFER_REJECTED':
     case 'OFFER_EXPIRED':
-      // Buyers pay accepted offers from My offers.
       return const NotificationInApp(AppRouteNames.buyerOffers);
     case 'AUCTION_OUTBID':
       return _fromLink(notification.link, isSeller: isSeller);
@@ -135,8 +142,14 @@ NotificationOpenTarget _fromLink(String link, {required bool isSeller}) {
     return const NotificationInApp(AppRouteNames.cart);
   }
   // Website "Pay now" link for accepted offers.
-  if (path == '/user/offers' || path.startsWith('/user/offers/')) {
-    return const NotificationInApp(AppRouteNames.buyerOffers);
+  final offersPath = Uri.tryParse(path)?.path ?? path;
+  if (offersPath == '/user/offers' || offersPath.startsWith('/user/offers/')) {
+    final payId = _offerPayId(path);
+    return NotificationInApp(
+      payId == null
+          ? AppRouteNames.buyerOffers
+          : AppRouteNames.buyerOfferPayPath(payId),
+    );
   }
   final order = RegExp(r'^/user/orders/([^/]+)$').firstMatch(path);
   if (order != null) {
@@ -158,4 +171,11 @@ NotificationOpenTarget _fromLink(String link, {required bool isSeller}) {
     return NotificationInApp(AppRouteNames.auctionDetailPath(id));
   }
   return const NotificationStay();
+}
+
+/// `<offerId>` from `/user/offers?pay=<offerId>`.
+String? _offerPayId(String link) {
+  final uri = Uri.tryParse(link.trim());
+  final id = uri?.queryParameters['pay']?.trim();
+  return id == null || id.isEmpty ? null : id;
 }

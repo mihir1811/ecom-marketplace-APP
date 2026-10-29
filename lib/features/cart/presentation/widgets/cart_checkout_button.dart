@@ -19,6 +19,7 @@ import '../../../buyer/application/buyer_orders_provider.dart';
 import '../../../payment/application/payment_checkout_provider.dart';
 import '../../../payment/domain/models/payment_models.dart';
 import '../../../payment/presentation/payment_flow.dart';
+import '../../../payment/presentation/widgets/contact_gemworld_sheet.dart';
 import '../../../payment/presentation/widgets/payment_success_dialog.dart';
 import '../../../rewards/application/rewards_provider.dart';
 import '../../../rewards/domain/models/rewards.dart';
@@ -70,6 +71,13 @@ class CartCheckoutBar extends ConsumerWidget {
       showSuccess: (context, order) =>
           showPaymentSuccessDialog(context, order: order),
     );
+    final overLimit =
+        result is ResultFailure<PaymentOrder, Failure> &&
+        PaymentCheckoutNotifier.needsContactGemworld(result.failure);
+    if (overLimit) {
+      if (context.mounted) await _contactGemworld(context, ref);
+      return;
+    }
     if (result is! Success<PaymentOrder, Failure>) return;
     // Only after the user closed the success popup.
     ref.invalidate(buyerOrdersProvider);
@@ -79,6 +87,21 @@ class CartCheckoutBar extends ConsumerWidget {
     } else if (router != null && router.mounted) {
       router.resetTo(AppRouteNames.buyerOrders);
     }
+  }
+
+  /// Over the online-payment limit: the bag goes to GemWorld as a pending
+  /// order instead of Razorpay.
+  Future<void> _contactGemworld(BuildContext context, WidgetRef ref) async {
+    final sent = await showContactGemworldSheet(context);
+    if (sent == null || !context.mounted) return;
+    await showPaymentResultDialog(
+      context,
+      success: true,
+      title: 'Sent to GemWorld',
+      message: sent,
+    );
+    ref.invalidate(buyerOrdersProvider);
+    if (context.mounted) context.resetTo(AppRouteNames.buyerOrders);
   }
 
   static String _phaseLabel(CheckoutState checkout) {

@@ -84,6 +84,7 @@ abstract final class ApiEndpoints {
   static const String paymentExchangeRate = '/payment/exchange-rate';
   static const String paymentCreateOrder = '/payment/create-order';
   static const String paymentVerify = '/payment/verify';
+  static const String paymentContactGemworld = '/payment/contact-gemworld';
   static const String paymentOrders = '/payment/orders';
   static String paymentOrderById(String orderId) => '/payment/orders/$orderId';
 

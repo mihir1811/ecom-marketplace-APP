@@ -23,7 +23,8 @@ class SellerOffersScreen extends ConsumerStatefulWidget {
   ConsumerState<SellerOffersScreen> createState() => _SellerOffersScreenState();
 }
 
-class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
+class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen>
+    with WidgetsBindingObserver {
   ProductOfferStatus? _filter;
   final _search = TextEditingController();
   String _query = '';
@@ -34,9 +35,23 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
   Map<ProductOfferStatus, int>? _counts;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _search.dispose();
     super.dispose();
+  }
+
+  /// Both 24-hour clocks run on the backend; a fresh list on return shows
+  /// what expired or was declined automatically meanwhile.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _refresh();
   }
 
   Future<void> _applyFilter(ProductOfferStatus? filter) async {
@@ -376,7 +391,9 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen> {
 AtelierTone _toneFor(ProductOffer offer) => switch (offer.status) {
   ProductOfferStatus.pending => AtelierTone.amber,
   ProductOfferStatus.accepted =>
-    offer.isPayable ? AtelierTone.gold : AtelierTone.emerald,
+    offer.isPayable || offer.isWithGemworld
+        ? AtelierTone.gold
+        : AtelierTone.emerald,
   ProductOfferStatus.rejected => AtelierTone.ruby,
   ProductOfferStatus.expired => AtelierTone.neutral,
 };
@@ -527,6 +544,29 @@ class _OfferCard extends StatelessWidget {
           if (offer.isPayable) ...[
             const SizedBox(height: AtelierSpace.s12),
             _PaymentWindow(offer: offer, onExpired: onExpired),
+          ],
+          if (offer.isWithGemworld) ...[
+            const SizedBox(height: AtelierSpace.s12),
+            const AtelierNotice(
+              text:
+                  'GemWorld is arranging the payment with this buyer. The '
+                  'stone stays held for them until the order is paid or '
+                  'cancelled.',
+              tone: AtelierTone.gold,
+              icon: Icons.support_agent_outlined,
+            ),
+          ],
+          if (offer.belowMinimum &&
+              (pending || offer.status == ProductOfferStatus.rejected)) ...[
+            const SizedBox(height: AtelierSpace.s12),
+            AtelierNotice(
+              text: pending
+                  ? 'Below your minimum offer price: declined automatically '
+                        'within 10 minutes unless you accept it.'
+                  : 'Declined automatically: below your minimum offer price.',
+              tone: pending ? AtelierTone.amber : AtelierTone.neutral,
+              icon: Icons.south_rounded,
+            ),
           ],
           AnimatedSize(
             duration: AtelierMotion.base,

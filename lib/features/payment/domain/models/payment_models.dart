@@ -212,6 +212,7 @@ class PaymentOrderItem {
     this.isReturned = false,
     this.priceCurrency,
     this.auctionId,
+    this.offerId,
   });
 
   final String productId;
@@ -233,7 +234,12 @@ class PaymentOrderItem {
 
   bool get pricedInInr => priceCurrency?.toUpperCase() == 'INR';
 
+  /// Accepted offer this item was bought through (`specifications.offerId`).
+  final String? offerId;
+
   bool get isAuctionWin => auctionId != null;
+
+  bool get isOfferPurchase => offerId != null;
 }
 
 /// `liveAuction` block of an order won in a live show.

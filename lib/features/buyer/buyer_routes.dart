@@ -53,8 +53,9 @@ final List<RouteBase> buyerRoutes = [
   ),
   GoRoute(
     path: AppRouteNames.buyerOffers,
-    builder: (context, state) =>
-        const VerifiedAccountGate(child: BuyerOffersScreen()),
+    builder: (context, state) => VerifiedAccountGate(
+      child: BuyerOffersScreen(payOfferId: state.uri.queryParameters['pay']),
+    ),
   ),
   GoRoute(
     path: AppRouteNames.buyerReferences,

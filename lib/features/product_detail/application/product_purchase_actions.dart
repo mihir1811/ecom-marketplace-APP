@@ -7,6 +7,7 @@ import '../../../core/auth/auth_providers.dart';
 import '../../../core/catalog/catalog_purchase_policy.dart';
 import '../../../core/error/result.dart';
 import '../../../core/router/route_names.dart';
+import '../../../core/utils/app_currency.dart';
 import '../../cart/application/cart_provider.dart';
 import '../../product_offer/application/product_offer_providers.dart';
 import '../../product_offer/domain/models/product_offer.dart';
@@ -77,6 +78,9 @@ enum OfferButtonKind {
 
   /// An accepted offer is unpaid and inside its 24-hour window.
   payNow,
+
+  /// The accepted offer's order is with GemWorld; nothing to pay here.
+  withGemworld,
 
   /// The accepted offer was paid.
   paid,
@@ -153,6 +157,8 @@ abstract final class ProductPurchaseActions {
       offerBusy: offerBusy,
       offerKind: offers.payable != null
           ? OfferButtonKind.payNow
+          : offers.withGemworld != null
+          ? OfferButtonKind.withGemworld
           : offers.paid != null
           ? OfferButtonKind.paid
           : offers.hasPending
@@ -162,6 +168,14 @@ abstract final class ProductPurchaseActions {
           : OfferButtonKind.makeOffer,
       offerEligibility: offers,
     );
+  }
+
+  /// Highest offer the API takes: the listed price (`totalPrice`; a melee
+  /// parcel's whole price). The seller's minimum is private and not checked.
+  static double? offerCeilingUsd(ProductDetail detail) {
+    final price = detail.price;
+    if (price.isOnRequest || price.priceUsd <= 0) return null;
+    return price.priceUsd;
   }
 
   static OfferProductKey offerKey(ProductDetail detail) => (
@@ -334,6 +348,15 @@ abstract final class ProductPurchaseActions {
     final parsed = double.tryParse(offer.amount.trim());
     if (parsed == null || parsed <= 0) return;
     final amount = parsed.toStringAsFixed(2);
+    final ceiling = offerCeilingUsd(detail);
+    if (ceiling != null && double.parse(amount) > ceiling) {
+      notify(
+        'Offer can’t be more than the listed price of '
+        '${AppCurrency.format(ceiling.toStringAsFixed(2))}',
+        PurchaseTone.warning,
+      );
+      return;
+    }
 
     final result = await ref
         .read(productOfferMutationProvider.notifier)

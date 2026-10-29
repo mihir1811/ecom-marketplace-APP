@@ -88,6 +88,32 @@ class PaymentRepositoryImpl implements PaymentRepository {
   }
 
   @override
+  Future<Result<String, Failure>> contactGemworld({
+    required String contactPhone,
+    String? note,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        ApiEndpoints.paymentContactGemworld,
+        data: {
+          'contactPhone': contactPhone.trim(),
+          if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+        },
+      );
+      final message = response.data?['message'];
+      return Result.success(
+        message is String && message.trim().isNotEmpty
+            ? message.trim()
+            : 'Our team will contact you to arrange the payment.',
+      );
+    } on DioException catch (e) {
+      return Result.failure(ApiError.fromDio(e));
+    } catch (e) {
+      return Result.failure(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Result<PaymentOrder, Failure>> verifyPayment({
     required String orderId,
     required RazorpayPaymentSuccess success,

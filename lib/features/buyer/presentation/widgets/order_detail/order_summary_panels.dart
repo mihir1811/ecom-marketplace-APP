@@ -66,6 +66,7 @@ class _ItemRow extends StatelessWidget {
     final meta = [
       if (type.isNotEmpty) type[0].toUpperCase() + type.substring(1),
       if (item.isAuctionWin) 'Won at auction',
+      if (item.isOfferPurchase) 'Bought via accepted offer',
       if (item.quantity > 1)
         context.tr(AccountCommerceL10n.quantity, {'count': item.quantity}),
       if (showSeller && item.sellerName != null)

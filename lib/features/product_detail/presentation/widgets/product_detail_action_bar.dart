@@ -37,10 +37,8 @@ class ProductDetailActionBar extends ConsumerWidget {
   Future<({String amount, String? message})?> _askOffer(
     BuildContext context,
   ) async {
-    final minHint = detail.minimumOfferPrice;
-    final controller = TextEditingController(
-      text: minHint != null ? minHint.toStringAsFixed(2) : '',
-    );
+    // The seller's minimum is private; makeOffer caps at the listed price.
+    final controller = TextEditingController();
     final messageCtrl = TextEditingController();
     final submitted = await showAppDialog<bool>(
       context: context,
@@ -60,9 +58,6 @@ class ProductDetailActionBar extends ConsumerWidget {
                   'currency': AppCurrency.code,
                 }),
                 prefixText: AppCurrency.symbol,
-                helperText: minHint != null
-                    ? 'Minimum ${AppCurrency.format(minHint)}'
-                    : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppSpacing.r8),
                 ),
@@ -165,6 +160,8 @@ class ProductDetailActionBar extends ConsumerWidget {
                             OfferButtonKind.payNow =>
                               'Pay now · ${formatOfferTimeLeft(left)}',
                             OfferButtonKind.paid => 'Offer paid',
+                            OfferButtonKind.withGemworld =>
+                              'GemWorld is arranging payment',
                           },
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
