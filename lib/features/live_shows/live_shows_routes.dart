@@ -15,7 +15,10 @@ final List<RouteBase> liveShowsRoutes = [
   GoRoute(
     path: AppRouteNames.liveShow,
     builder: (context, state) => AppSystemBackScope(
-      child: LiveShowScreen(showId: state.pathParameters['showId']!),
+      child: LiveShowScreen(
+        showId: state.pathParameters['showId']!,
+        campaign: state.uri.queryParameters,
+      ),
     ),
   ),
 ];

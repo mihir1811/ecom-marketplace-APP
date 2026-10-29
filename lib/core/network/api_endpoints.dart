@@ -281,4 +281,7 @@ abstract final class ApiEndpoints {
   static String liveShowChat(String id) => '/live/shows/$id/chat';
   static String liveShowLikes(String id) => '/live/shows/$id/likes';
   static String liveLotBids(String lotId) => '/live/auction/lots/$lotId/bids';
+  static String liveShowJoin(String id) => '/live/shows/$id/join';
+  static String liveJoinReport(String joinId) => '/live/joins/$joinId/report';
+  static String liveJoinLeave(String joinId) => '/live/joins/$joinId/leave';
 }

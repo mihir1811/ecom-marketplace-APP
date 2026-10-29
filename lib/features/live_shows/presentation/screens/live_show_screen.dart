@@ -10,11 +10,13 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/haptics/app_haptics.dart';
+import '../../../../core/network/dio_provider.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/utils/cdn_image_url.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../application/live_show_room.dart';
+import '../../data/live_viewer_recorder.dart';
 import '../../domain/live_format.dart';
 import '../../domain/models/live_show_models.dart';
 import '../live_show_actions.dart';
@@ -36,9 +38,16 @@ import '../widgets/player/live_show_player.dart';
 ///  • bottom — the bidding card, then the comment field and heart.
 /// Watching, asking and bidding never leave this one screen.
 class LiveShowScreen extends ConsumerStatefulWidget {
-  const LiveShowScreen({required this.showId, super.key});
+  const LiveShowScreen({
+    required this.showId,
+    this.campaign = const {},
+    super.key,
+  });
 
   final String showId;
+
+  /// Query of the link that opened the show (`utm_*` for the visit record).
+  final Map<String, String> campaign;
 
   @override
   ConsumerState<LiveShowScreen> createState() => _LiveShowScreenState();
@@ -47,6 +56,7 @@ class LiveShowScreen extends ConsumerStatefulWidget {
 class _LiveShowScreenState extends ConsumerState<LiveShowScreen> {
   final _hearts = LiveHeartsController();
   late final AppLifecycleListener _lifecycle;
+  late final LiveViewerRecorder _visit;
   final _subs = <StreamSubscription<Object>>[];
 
   var _foreground = true;
@@ -64,16 +74,24 @@ class _LiveShowScreenState extends ConsumerState<LiveShowScreen> {
   void initState() {
     super.initState();
     unawaited(WakelockPlus.enable().catchError((Object _) {}));
+    _visit = LiveViewerRecorder(
+      dio: ref.read(dioProvider),
+      showId: widget.showId,
+      campaign: widget.campaign,
+    );
+    unawaited(_visit.start());
     _lifecycle = AppLifecycleListener(
       onHide: () {
         if (!_foreground) return;
         setState(() => _foreground = false);
         _room.pause();
+        _visit.hide();
       },
       onShow: () {
         if (_foreground) return;
         setState(() => _foreground = true);
         _room.resume();
+        _visit.show();
       },
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -91,6 +109,7 @@ class _LiveShowScreenState extends ConsumerState<LiveShowScreen> {
       s.cancel();
     }
     _lifecycle.dispose();
+    unawaited(_visit.stop());
     _hearts.dispose();
     unawaited(WakelockPlus.disable().catchError((Object _) {}));
     super.dispose();

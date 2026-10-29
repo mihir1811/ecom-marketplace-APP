@@ -11,6 +11,7 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         DevicePerfChannel.register(flutterEngine.dartExecutor.binaryMessenger, this)
+        LiveDeviceChannel.register(flutterEngine.dartExecutor.binaryMessenger, this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
