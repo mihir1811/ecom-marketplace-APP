@@ -58,6 +58,32 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('dial wraps round from the first shape to the last', (
+    tester,
+  ) async {
+    final changes = <int>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 390,
+              child: LuxeShapeDial(
+                shapes: _shapes,
+                onCentreTap: (_) {},
+                onChanged: changes.add,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.drag(find.byType(LuxeShapeDial), const Offset(100, 0));
+    await tester.pumpAndSettle();
+    expect(changes.last, _shapes.length - 1);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('finder picker toggles the centred shape', (tester) async {
     final selected = <String>[];
     await tester.pumpWidget(

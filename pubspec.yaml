@@ -95,6 +95,7 @@ flutter:
     - public/images/jewelryShowcase/
     - public/images/watch_logo/
     - assets/shapes/
+    - assets/shapes/simulator/
     - assets/clarity/
     - assets/models/gems.bin
     - assets/policies/policies.json

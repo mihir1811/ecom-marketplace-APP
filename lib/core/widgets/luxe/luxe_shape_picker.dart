@@ -5,11 +5,20 @@ import '../../theme/luxe_tokens.dart';
 
 /// One selectable shape: its filter value, display label and optional photo.
 class LuxeShapeOption {
-  const LuxeShapeOption({required this.value, required this.label, this.image});
+  const LuxeShapeOption({
+    required this.value,
+    required this.label,
+    this.image,
+    this.hasOutline = true,
+  });
 
   final String value;
   final String label;
   final String? image;
+
+  /// Whether the picker's icon builder has real line art for this shape;
+  /// when false the grid keeps the photo.
+  final bool hasOutline;
 }
 
 /// Draws a shape outline when no photo is available.
@@ -106,7 +115,10 @@ class _LuxeShapePickerState extends State<LuxeShapePicker> {
   }
 }
 
-/// Every shape as a centred grid of cards, sized to fill the row.
+/// Every shape as a centred grid of cards, sized to fill the row. Cards
+/// draw the outline from [iconBuilder] rather than the photo, so the grid
+/// reads as a clean line-art chart; shapes without line art
+/// ([LuxeShapeOption.hasOutline] false) keep their photo.
 class LuxeShapeGrid extends StatelessWidget {
   const LuxeShapeGrid({
     required this.shapes,
@@ -141,6 +153,7 @@ class LuxeShapeGrid extends StatelessWidget {
                 width: w,
                 selected: selected.contains(s.value),
                 iconBuilder: iconBuilder,
+                outlineOnly: true,
                 onTap: () => onToggle(s.value),
               ),
           ],
@@ -157,6 +170,7 @@ class _ShapeTile extends StatelessWidget {
     required this.selected,
     required this.iconBuilder,
     required this.onTap,
+    this.outlineOnly = false,
   });
 
   final LuxeShapeOption shape;
@@ -165,10 +179,19 @@ class _ShapeTile extends StatelessWidget {
   final LuxeShapeIconBuilder iconBuilder;
   final VoidCallback onTap;
 
+  /// Draws the [iconBuilder] outline even when the shape has a photo.
+  final bool outlineOnly;
+
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
-    final fallback = Center(child: iconBuilder(shape.value, p.inkMuted, 34));
+    final fallback = Center(
+      child: iconBuilder(
+        shape.value,
+        selected ? p.ink : p.inkMuted,
+        outlineOnly ? 40 : 34,
+      ),
+    );
     return Semantics(
       button: true,
       selected: selected,
@@ -216,7 +239,9 @@ class _ShapeTile extends StatelessWidget {
                       scale: selected ? 1.08 : 1,
                       duration: LuxeMotion.medium,
                       curve: LuxeMotion.settle,
-                      child: shape.image == null
+                      child:
+                          shape.image == null ||
+                              (outlineOnly && shape.hasOutline)
                           ? fallback
                           : Image.asset(
                               shape.image!,

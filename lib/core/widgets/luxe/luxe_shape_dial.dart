@@ -7,9 +7,10 @@ import '../../theme/luxe_tokens.dart';
 import 'luxe_shape_picker.dart';
 import 'luxe_wheel.dart';
 
-/// Jeweller's-loupe dial of shapes: an edge-to-edge carousel of shapes on
-/// a [LuxeWheel], with a graduated ring round the centred shape that turns
-/// as the wheel is swiped.
+/// Jeweller's-loupe dial of shapes: an endless edge-to-edge carousel of
+/// shapes on a [LuxeWheel], with a graduated ring round the centred shape
+/// that turns as the wheel is swiped. The shapes repeat in both directions,
+/// so the wheel never hits an end.
 ///
 /// Pass [selected] for multi-select pickers: chosen shapes carry a check
 /// and the ring turns gold while a chosen shape is centred. [onCentreTap]
@@ -47,16 +48,31 @@ class LuxeShapeDial extends StatefulWidget {
 class _LuxeShapeDialState extends State<LuxeShapeDial> {
   static const _fraction = 0.34;
 
+  /// Laps of the shape list before the start, so the wheel can turn left
+  /// far further than anyone swipes; to the right it runs on unbounded.
+  static const _laps = 1000;
+
+  int get _count => widget.shapes.length;
+  bool get _loops => _count > 1;
+
+  /// Page the wheel opens on: [LuxeShapeDial.initialIndex] in the middle lap.
+  late final int _startPage = _loops
+      ? _count * _laps + widget.initialIndex
+      : widget.initialIndex;
+
   late final PageController _controller = PageController(
     viewportFraction: _fraction,
-    initialPage: widget.initialIndex,
+    initialPage: _startPage,
   );
-  late int _current = widget.initialIndex;
+
+  /// Centred page on the wheel; the shape is `_currentPage % _count`.
+  late int _currentPage = _startPage;
+  int get _current => _currentPage % _count;
 
   double get _page =>
       _controller.hasClients && _controller.position.haveDimensions
-      ? _controller.page ?? _current.toDouble()
-      : _current.toDouble();
+      ? _controller.page ?? _currentPage.toDouble()
+      : _currentPage.toDouble();
 
   @override
   void dispose() {
@@ -64,13 +80,13 @@ class _LuxeShapeDialState extends State<LuxeShapeDial> {
     super.dispose();
   }
 
-  void _onTapItem(int index) {
-    if (index == _current) {
-      widget.onCentreTap(index);
+  void _onTapItem(int page) {
+    if (page == _currentPage) {
+      widget.onCentreTap(_current);
       return;
     }
     _controller.animateToPage(
-      index,
+      page,
       duration: const Duration(milliseconds: 650),
       curve: LuxeMotion.settle,
     );
@@ -118,35 +134,38 @@ class _LuxeShapeDialState extends State<LuxeShapeDial> {
                   PageView.builder(
                     controller: _controller,
                     clipBehavior: Clip.none,
-                    itemCount: widget.shapes.length,
+                    // Unbounded when looping: a finite extent this long
+                    // trips the sliver precision check.
+                    itemCount: _loops ? null : _count,
                     onPageChanged: (i) {
                       AppHaptics.selection();
-                      setState(() => _current = i);
-                      widget.onChanged?.call(i);
+                      setState(() => _currentPage = i);
+                      widget.onChanged?.call(_current);
                     },
-                    itemBuilder: (context, i) => LuxeWheelItem(
-                      controller: _controller,
-                      index: i,
-                      fallbackPage: _current.toDouble(),
-                      child: LuxeWheelFocus(
+                    itemBuilder: (context, i) {
+                      final shape = widget.shapes[i % _count];
+                      return LuxeWheelItem(
                         controller: _controller,
                         index: i,
-                        fallbackPage: _current.toDouble(),
-                        // Neighbours stay recognisable: a hint of softness only.
-                        sideBlur: 0.5,
-                        sideOpacity: 0.9,
-                        child: _ShapeItem(
-                          shape: widget.shapes[i],
-                          selected:
-                              widget.selected?.contains(
-                                widget.shapes[i].value,
-                              ) ??
-                              false,
-                          iconBuilder: widget.iconBuilder,
-                          onTap: () => _onTapItem(i),
+                        fallbackPage: _currentPage.toDouble(),
+                        child: LuxeWheelFocus(
+                          controller: _controller,
+                          index: i,
+                          fallbackPage: _currentPage.toDouble(),
+                          // Neighbours stay recognisable: a hint of softness
+                          // only.
+                          sideBlur: 0.5,
+                          sideOpacity: 0.9,
+                          child: _ShapeItem(
+                            shape: shape,
+                            selected:
+                                widget.selected?.contains(shape.value) ?? false,
+                            iconBuilder: widget.iconBuilder,
+                            onTap: () => _onTapItem(i),
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ],
               ),
