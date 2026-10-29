@@ -253,6 +253,7 @@ abstract final class PaymentMapper {
     final sellerMap = seller is Map<String, dynamic>
         ? seller
         : const <String, dynamic>{};
+    final specs = json['specifications'];
     return PaymentOrderItem(
       productId: _str(json['productId']) ?? '',
       productType: _str(json['productType']) ?? '',
@@ -265,6 +266,7 @@ abstract final class PaymentMapper {
       sellerName: _str(sellerMap['companyName']),
       isReturned: json['isReturned'] == true,
       priceCurrency: _str(json['priceCurrency']),
+      auctionId: specs is Map ? _str(specs['auctionId']) : null,
     );
   }
 

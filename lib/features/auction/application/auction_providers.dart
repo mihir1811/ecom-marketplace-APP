@@ -5,8 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/auth/auth_providers.dart';
 import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
-import '../../payment/application/razorpay_checkout_service.dart';
-import '../../rewards/application/rewards_provider.dart';
+import '../../cart/application/cart_provider.dart';
 import '../data/auction_socket_client.dart';
 import '../data/repositories/auction_repository_impl.dart';
 import '../domain/models/auction_models.dart';
@@ -311,14 +310,13 @@ final auctionDetailProvider = NotifierProvider.autoDispose
 
 class AuctionDetailNotifier
     extends AutoDisposeFamilyNotifier<AuctionDetailState, String> {
-  late final RazorpayCheckoutService _razorpay;
   StreamSubscription<AuctionSocketEvent>? _socketSub;
   StreamSubscription<void>? _resyncSub;
   Timer? _socketRefresh;
+  Timer? _deadlineRefresh;
 
   @override
   AuctionDetailState build(String arg) {
-    _razorpay = RazorpayCheckoutService();
     final socket = ref.read(auctionSocketProvider);
     socket.watchAuction(arg);
     socket.watchLive();
@@ -326,11 +324,11 @@ class AuctionDetailNotifier
     _resyncSub = socket.resync.listen((_) => _scheduleSync());
     ref.onDispose(() {
       _socketRefresh?.cancel();
+      _deadlineRefresh?.cancel();
       _socketSub?.cancel();
       _resyncSub?.cancel();
       socket.unwatchAuction(arg);
       socket.unwatchLive();
-      _razorpay.dispose();
     });
     Future<void>.microtask(refresh);
     return const AuctionDetailState(isLoading: true);
@@ -381,6 +379,7 @@ class AuctionDetailNotifier
           isLoading: false,
           isSubmitting: false,
         );
+        _watchDeadline(value);
       case ResultFailure(:final failure):
         if (silent) return;
         state = state.copyWith(isLoading: false, errorMessage: failure.message);
@@ -404,8 +403,64 @@ class AuctionDetailNotifier
     return message;
   }
 
-  Future<String?> declineWin() {
-    return _run(() => ref.read(auctionRepositoryProvider).declineWin(arg));
+  /// The backend releases an unpaid win within a minute of `paymentDueAt`;
+  /// reload once it should have, so the screen leaves "Time is up".
+  void _watchDeadline(AuctionListing auction) {
+    _deadlineRefresh?.cancel();
+    _deadlineRefresh = null;
+    final due = auction.paymentDueAt;
+    final payment = auction.winPayment;
+    if (due == null ||
+        (payment != AuctionWinPayment.due &&
+            payment != AuctionWinPayment.expired)) {
+      return;
+    }
+    final untilDue = due.difference(DateTime.now());
+    final wait =
+        (untilDue.isNegative ? Duration.zero : untilDue) +
+        const Duration(seconds: 65);
+    _deadlineRefresh = Timer(wait, () => unawaited(refresh(silent: true)));
+  }
+
+  /// Declining also takes the item out of the cart and may change the
+  /// buyer's warning count.
+  Future<String?> declineWin() async {
+    final message = await _run(
+      () => ref.read(auctionRepositoryProvider).declineWin(arg),
+    );
+    if (message != null) {
+      ref.invalidate(auctionPenaltyProvider);
+      unawaited(
+        ref
+            .read(cartProvider.notifier)
+            .refresh(mode: CartLoadMode.light, force: true),
+      );
+    }
+    return message;
+  }
+
+  /// Puts the win back in the cart at the winning bid (the buyer may have
+  /// removed it) before checkout opens. `POST /cart/add` succeeds whether or
+  /// not the line was already there. On failure the auction reloads, so a
+  /// lapsed, paid or GemWorld-arranged win shows its real state.
+  Future<Result<void, Failure>> addWinToCart() async {
+    final auction = state.auction;
+    if (auction == null || state.isSubmitting) {
+      return Result.failure(
+        const ValidationFailure('Please wait a moment and try again.'),
+      );
+    }
+    state = state.copyWith(isSubmitting: true, clearError: true);
+    final added = await ref
+        .read(cartProvider.notifier)
+        .addProduct(
+          productId: auction.productId,
+          productType: auction.productType,
+          specifications: {'auctionId': auction.id},
+        );
+    if (added case ResultFailure()) await refresh(silent: true);
+    state = state.copyWith(isSubmitting: false);
+    return added;
   }
 
   Future<String?> endAuction() {
@@ -451,72 +506,6 @@ class AuctionDetailNotifier
 
   Future<String?> deleteAuction() {
     return _run(() => ref.read(auctionRepositoryProvider).delete(arg));
-  }
-
-  /// Returns the success message, or the failure to show. Opens Razorpay
-  /// when the server still expects a card payment.
-  Future<Result<String, Failure>> pay({
-    required bool useWallet,
-    bool usePoints = false,
-  }) async {
-    if (state.isSubmitting) {
-      return Result.failure(
-        const ValidationFailure('Payment is already in progress.'),
-      );
-    }
-    state = state.copyWith(isSubmitting: true, clearError: true);
-    final created = await ref
-        .read(auctionRepositoryProvider)
-        .createPayment(
-          auctionId: arg,
-          useWallet: useWallet,
-          usePoints: usePoints,
-        );
-    // Points move at create (no Razorpay step) or at verify; a failure such
-    // as "Not enough reward points" also needs the fresh balance.
-    switch (created) {
-      case ResultFailure(:final failure):
-        if (usePoints) refreshRewards(ref);
-        return _payFailed(failure);
-      case Success(:final value):
-        final session = value;
-        if (session.isFullyPaidByWallet) {
-          if (usePoints) refreshRewards(ref);
-          await refresh();
-          return Result.success('Payment completed');
-        }
-        final paid = await _razorpay.open(session);
-        switch (paid) {
-          case ResultFailure(:final failure):
-            return _payFailed(failure);
-          case Success(:final value):
-            final receipt = value;
-            final verified = await ref
-                .read(auctionRepositoryProvider)
-                .verifyPayment(
-                  auctionId: arg,
-                  orderId: session.orderId,
-                  razorpayOrderId: receipt.razorpayOrderId,
-                  razorpayPaymentId: receipt.razorpayPaymentId,
-                  razorpaySignature: receipt.razorpaySignature,
-                );
-            if (usePoints) refreshRewards(ref);
-            switch (verified) {
-              case ResultFailure(:final failure):
-                return _payFailed(failure);
-              case Success(:final value):
-                await refresh();
-                return Result.success(
-                  value.message.isEmpty ? 'Payment completed' : value.message,
-                );
-            }
-        }
-    }
-  }
-
-  Result<String, Failure> _payFailed(Failure failure) {
-    state = state.copyWith(isSubmitting: false, errorMessage: failure.message);
-    return Result.failure(failure);
   }
 
   Future<String?> _run(

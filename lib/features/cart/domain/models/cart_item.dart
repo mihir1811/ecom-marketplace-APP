@@ -19,6 +19,8 @@ class CartItem {
     this.availabilityLabel,
     this.offerId,
     this.listedPriceUsd,
+    this.auctionId,
+    this.auctionPayBy,
   });
 
   /// Cart row id — use as `cartId` for update/remove.
@@ -52,7 +54,16 @@ class CartItem {
   /// offered amount.
   final double? listedPriceUsd;
 
+  /// Timed-auction win this line pays (`specifications.auctionId`). The line
+  /// is priced at the winning bid and its quantity is fixed at 1.
+  final String? auctionId;
+
+  /// Deadline from `auctionWin.payBy`; null once the win can't be paid.
+  final DateTime? auctionPayBy;
+
   bool get isOfferLine => offerId != null;
+
+  bool get isAuctionWin => auctionId != null;
 
   String get id => cartId;
 
@@ -86,6 +97,8 @@ class CartItem {
       availabilityLabel: availabilityLabel ?? this.availabilityLabel,
       offerId: offerId,
       listedPriceUsd: listedPriceUsd,
+      auctionId: auctionId,
+      auctionPayBy: auctionPayBy,
     );
   }
 }

@@ -211,6 +211,7 @@ class PaymentOrderItem {
     this.sellerName,
     this.isReturned = false,
     this.priceCurrency,
+    this.auctionId,
   });
 
   final String productId;
@@ -227,7 +228,12 @@ class PaymentOrderItem {
   /// `INR` on live-auction items; other orders' items are `USD`.
   final String? priceCurrency;
 
+  /// Timed-auction win paid from the cart (`specifications.auctionId`).
+  final String? auctionId;
+
   bool get pricedInInr => priceCurrency?.toUpperCase() == 'INR';
+
+  bool get isAuctionWin => auctionId != null;
 }
 
 /// `liveAuction` block of an order won in a live show.

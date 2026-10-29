@@ -11,12 +11,11 @@ import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/widgets/luxe/luxe_button.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/app_dialog.dart';
-import '../../../payment/presentation/payment_flow.dart';
-import '../../../rewards/application/rewards_provider.dart';
-import '../../../rewards/presentation/rewards_format.dart';
+import '../../../../core/error/result.dart';
 import '../../application/auction_providers.dart';
 import '../../domain/models/auction_models.dart';
 import 'auction_card.dart';
+import 'auction_clock.dart';
 
 /// Sticky auction actions. Replaces the product add-to-cart bar.
 class AuctionActionBar extends ConsumerStatefulWidget {
@@ -79,10 +78,9 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
     final owns =
         auction.sellerId.isNotEmpty &&
         (auction.sellerId == auth.sellerId || auction.sellerId == auth.userId);
-    final won =
-        auth.userId != null &&
-        auction.winnerId == auth.userId &&
-        !_paid(auction.winnerStatus);
+    final userId = auth.userId;
+    final lapsed = userId != null && auction.declinedWinnerIds.contains(userId);
+    final won = userId != null && !lapsed && auction.winnerId == userId;
     final suggestions = _suggestions(auction);
     final ownBidId = _ownBidId(auction, auth.userId, myBidId);
 
@@ -99,25 +97,16 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
     final Widget content;
     if (owns) {
       content = note(Icons.storefront_outlined, 'This is your auction.');
+    } else if (lapsed) {
+      content = note(
+        Icons.event_busy_outlined,
+        'This win was declined or not paid within 24 hours.',
+      );
     } else if (won) {
-      content = Row(
-        children: [
-          LuxeButton(
-            label: 'Decline win',
-            variant: LuxeButtonVariant.secondary,
-            onPressed: submitting ? null : _decline,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: LuxeButton(
-              label: 'Pay',
-              icon: Icons.lock_outline_rounded,
-              expand: true,
-              loading: submitting,
-              onPressed: submitting ? null : _pay,
-            ),
-          ),
-        ],
+      // Rebuilds each second so the panel moves to "Time is up" on its own.
+      content = ListenableBuilder(
+        listenable: AuctionClock.instance,
+        builder: (context, _) => _winnerPanel(auction, submitting, note),
       );
     } else if (!auction.isLive) {
       content = note(
@@ -223,6 +212,93 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
     );
   }
 
+  /// Winner state: the win is paid from the cart at normal checkout.
+  Widget _winnerPanel(
+    AuctionListing auction,
+    bool submitting,
+    Widget Function(IconData icon, String text) note,
+  ) {
+    final p = LuxePalette.of(context);
+    switch (auction.winPayment) {
+      case AuctionWinPayment.paid:
+        return note(Icons.verified_outlined, 'Payment complete');
+      case AuctionWinPayment.withGemworld:
+        return note(
+          Icons.support_agent_outlined,
+          'GemWorld is arranging the payment for this win with you.',
+        );
+      case AuctionWinPayment.expired:
+        return note(
+          Icons.timer_off_outlined,
+          'Your 24 hours to pay have ended.',
+        );
+      case AuctionWinPayment.none:
+        return note(
+          Icons.emoji_events_outlined,
+          'You won this auction. Waiting for the seller to confirm.',
+        );
+      case AuctionWinPayment.due:
+        break;
+    }
+    final due = auction.paymentDueAt;
+    final amount =
+        auction.winningAmount ?? auction.highestBidAmount ?? auction.currentBid;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text('Winning bid', style: LuxeType.label(p.inkMuted, size: 12.5)),
+            const SizedBox(width: 8),
+            Text(
+              auctionBidAmount(amount),
+              style: LuxeType.figure(
+                p.ink,
+                size: 17,
+              ).copyWith(fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+        if (due != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            'Check out by ${auctionWhen(due)} '
+            '(${auctionRemainingShort(due)} left)',
+            style: LuxeType.label(p.ink, size: 13),
+          ),
+        ],
+        const SizedBox(height: 2),
+        Text(
+          'Checkout adds the usual charges (GST, fees, delivery).',
+          style: LuxeType.label(p.inkFaint, size: 11.5),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            LuxeButton(
+              label: 'Decline win',
+              variant: LuxeButtonVariant.secondary,
+              onPressed: submitting ? null : _decline,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: LuxeButton(
+                label: 'Go to checkout',
+                icon: Icons.shopping_bag_outlined,
+                expand: true,
+                loading: submitting,
+                onPressed: submitting ? null : _checkout,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   int _baseAmount(AuctionListing auction) {
     final highest = auction.highestBidAmount;
     if (highest == null) {
@@ -269,11 +345,6 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
       }
     }
     return mine?.id;
-  }
-
-  bool _paid(String? status) {
-    final value = status?.toUpperCase() ?? '';
-    return value == 'PAID' || value == 'CAPTURED' || value == 'COMPLETED';
   }
 
   Future<void> _bid() async {
@@ -336,100 +407,44 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
   }
 
   Future<void> _decline() async {
+    AuctionSettings? settings;
+    try {
+      settings = await ref.read(auctionSettingsProvider.future);
+    } catch (_) {
+      // The confirm still shows without the numbers.
+    }
+    if (!mounted) return;
+    final limit = settings?.winnerRejectWarningLimit ?? 0;
+    final days = settings?.winnerRejectBlacklistDays ?? 0;
+    final confirmed = await _confirm(
+      title: 'Decline this win?',
+      message: limit > 0 && days > 0
+          ? 'You will receive a warning. After $limit declined wins you will '
+                'be blacklisted from auctions for $days days.'
+          : 'You will receive a warning.',
+      confirmLabel: 'Decline win',
+    );
+    if (!confirmed || !mounted) return;
     final message = await ref
         .read(auctionDetailProvider(widget.auctionId).notifier)
         .declineWin();
     _result(message);
   }
 
-  Future<void> _pay() async {
-    if (PaymentFlow.isActive) return;
+  /// The win already sits in the cart; make sure it still does, then open
+  /// the cart, where it checks out with the usual charges.
+  Future<void> _checkout() async {
     if (!AccountAccess.guard(context, ref)) return;
-    var useWallet = false;
-    var usePoints = false;
-    final proceed = await showAppDialog<bool>(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setLocal) {
-            return AlertDialog(
-              title: const Text('Pay for this win'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Consumer(
-                    builder: (context, ref, _) {
-                      final rewards = ref.watch(rewardsProvider).valueOrNull;
-                      final settings = rewards?.settings;
-                      if (rewards == null ||
-                          settings == null ||
-                          !settings.canRedeem ||
-                          rewards.balance <= 0) {
-                        return const SizedBox.shrink();
-                      }
-                      final locked = !rewards.canSpend;
-                      return CheckboxListTile(
-                        contentPadding: EdgeInsets.zero,
-                        value: usePoints && !locked,
-                        title: const Text('Use reward points'),
-                        subtitle: Text(
-                          locked
-                              ? 'Collect at least '
-                                    '${rewardPointsLabel(settings.minRedeemPoints)} '
-                                    'to use them'
-                              : 'Balance ${rewardPointsLabel(rewards.balance)} · '
-                                    'up to '
-                                    '${rewardPercentLabel(settings.maxRedeemPercent)} '
-                                    'of the total',
-                        ),
-                        onChanged: locked
-                            ? null
-                            : (value) =>
-                                  setLocal(() => usePoints = value ?? false),
-                      );
-                    },
-                  ),
-                  CheckboxListTile(
-                    contentPadding: EdgeInsets.zero,
-                    value: useWallet,
-                    title: const Text('Use wallet balance'),
-                    onChanged: (value) =>
-                        setLocal(() => useWallet = value ?? false),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => _popDialog(context, false),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => _popDialog(context, true),
-                  child: const Text('Continue'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-    if (proceed != true || !mounted) return;
-    final auction = widget.auction;
-    final amount = auction.highestBidAmount ?? auction.currentBid;
-    final notifier = ref.read(auctionDetailProvider(widget.auctionId).notifier);
-    await PaymentFlow.run(
-      context,
-      summary: PurchaseSummary(
-        item: auction.title.isEmpty ? 'Auction win' : auction.title,
-        method: usePoints || useWallet
-            ? '${[if (usePoints) 'Reward points', if (useWallet) 'Wallet'].join(' + ')}'
-                  ' (Razorpay for any balance)'
-            : 'Razorpay',
-        amount: auctionBidAmount(amount),
-      ),
-      process: () => notifier.pay(useWallet: useWallet, usePoints: usePoints),
-      successMessage: (message) => message,
-    );
+    final result = await ref
+        .read(auctionDetailProvider(widget.auctionId).notifier)
+        .addWinToCart();
+    if (!mounted) return;
+    switch (result) {
+      case Success():
+        context.push(AppRouteNames.cart);
+      case ResultFailure(:final failure):
+        _toast(failure.message);
+    }
   }
 
   void _result(String? message) {

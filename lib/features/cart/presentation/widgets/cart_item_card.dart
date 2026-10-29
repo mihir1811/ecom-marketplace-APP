@@ -9,6 +9,7 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_quantity_stepper.dart';
+import '../../../auction/presentation/widgets/auction_card.dart';
 import '../../../diamonds/presentation/widgets/diamond_svg_data.dart';
 import '../../../product_detail/application/catalog_product_detail_loader.dart';
 import '../../../product_detail/product_detail_navigation.dart';
@@ -186,6 +187,28 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: LuxeType.label(p.inkMuted, size: 12),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                      if (item.isAuctionWin && item.auctionPayBy != null) ...[
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.gavel_rounded,
+                              size: 13,
+                              color: p.accent,
+                            ),
+                            const SizedBox(width: 5),
+                            Flexible(
+                              child: Text(
+                                'Won at auction · Pay by '
+                                '${auctionWhen(item.auctionPayBy!)}',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: LuxeType.label(p.accent, size: 12),
                               ),
                             ),
                           ],

@@ -6,7 +6,6 @@ import '../../../../core/error/result.dart';
 import '../../../../core/network/api_endpoints.dart';
 import '../../../../core/network/api_error.dart';
 import '../../../../core/network/dio_provider.dart';
-import '../../../payment/domain/models/payment_models.dart';
 import '../../domain/models/auction_models.dart';
 import '../../domain/repositories/auction_repository.dart';
 import '../mappers/auction_mapper.dart';
@@ -208,42 +207,6 @@ class AuctionRepositoryImpl implements AuctionRepository {
     return _mutation(
       () => _dio.post<Map<String, dynamic>>(
         ApiEndpoints.auctionDeclineWin(auctionId),
-      ),
-    );
-  }
-
-  @override
-  Future<Result<PaymentCheckoutSession, Failure>> createPayment({
-    required String auctionId,
-    required bool useWallet,
-    bool usePoints = false,
-  }) {
-    return _guard(() async {
-      final response = await _dio.post<Map<String, dynamic>>(
-        ApiEndpoints.auctionCreatePayment(auctionId),
-        data: {'useWallet': useWallet, 'usePoints': usePoints},
-      );
-      return AuctionMapper.paymentFromEnvelope(response.data);
-    });
-  }
-
-  @override
-  Future<Result<AuctionMutation, Failure>> verifyPayment({
-    required String auctionId,
-    required String orderId,
-    required String razorpayOrderId,
-    required String razorpayPaymentId,
-    required String razorpaySignature,
-  }) {
-    return _mutation(
-      () => _dio.post<Map<String, dynamic>>(
-        ApiEndpoints.auctionVerifyPayment(auctionId),
-        data: {
-          'orderId': orderId,
-          'razorpayOrderId': razorpayOrderId,
-          'razorpayPaymentId': razorpayPaymentId,
-          'razorpaySignature': razorpaySignature,
-        },
       ),
     );
   }

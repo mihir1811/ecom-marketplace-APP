@@ -65,6 +65,7 @@ class _ItemRow extends StatelessWidget {
     final type = item.productType.trim().replaceAll('_', ' ');
     final meta = [
       if (type.isNotEmpty) type[0].toUpperCase() + type.substring(1),
+      if (item.isAuctionWin) 'Won at auction',
       if (item.quantity > 1)
         context.tr(AccountCommerceL10n.quantity, {'count': item.quantity}),
       if (showSeller && item.sellerName != null)

@@ -1,6 +1,5 @@
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
-import '../../../payment/domain/models/payment_models.dart';
 import '../models/auction_models.dart';
 
 /// Auction HTTP API. Screens depend on this, not on Dio.
@@ -50,20 +49,6 @@ abstract class AuctionRepository {
   Future<Result<AuctionMutation, Failure>> cancelBid(String bidId);
 
   Future<Result<AuctionMutation, Failure>> declineWin(String auctionId);
-
-  Future<Result<PaymentCheckoutSession, Failure>> createPayment({
-    required String auctionId,
-    required bool useWallet,
-    bool usePoints = false,
-  });
-
-  Future<Result<AuctionMutation, Failure>> verifyPayment({
-    required String auctionId,
-    required String orderId,
-    required String razorpayOrderId,
-    required String razorpayPaymentId,
-    required String razorpaySignature,
-  });
 
   Future<Result<AuctionMutation, Failure>> create({
     required String productId,

@@ -43,6 +43,8 @@ class AuctionListing {
     this.winnerId,
     this.winningAmount,
     this.winnerStatus,
+    this.paymentDueAt,
+    this.paymentWithGemworld = false,
     this.highestBidAmount,
     this.catalogPrice,
     this.stockNumber,
@@ -68,6 +70,14 @@ class AuctionListing {
   final double? winningAmount;
   final String? winnerId;
   final String? winnerStatus;
+
+  /// When a `PENDING` winner must have paid from the cart (24 h after the
+  /// seller accepted them). Null otherwise, and while GemWorld arranges it.
+  final DateTime? paymentDueAt;
+
+  /// True while the winner's order is with GemWorld (cart over the online
+  /// limit): no deadline and nothing to pay in the app.
+  final bool paymentWithGemworld;
   final bool isActive;
   final bool isSold;
   final bool awaitingSellerDecision;
@@ -163,6 +173,8 @@ class AuctionListing {
       winnerId: winnerId,
       winningAmount: winningAmount,
       winnerStatus: winnerStatus,
+      paymentDueAt: paymentDueAt,
+      paymentWithGemworld: paymentWithGemworld,
       catalogPrice: catalogPrice,
       stockNumber: stockNumber,
       minimumBid: minimumBid,
@@ -180,6 +192,21 @@ class AuctionListing {
       myHighestBid: myHighestBid,
       myBidCount: myBidCount,
     );
+  }
+
+  /// Where the accepted winner stands with paying from the cart.
+  AuctionWinPayment get winPayment {
+    final status = winnerStatus?.toUpperCase() ?? '';
+    if (status == 'PAID' || status == 'CAPTURED' || status == 'COMPLETED') {
+      return AuctionWinPayment.paid;
+    }
+    if (status != 'PENDING') return AuctionWinPayment.none;
+    if (paymentWithGemworld) return AuctionWinPayment.withGemworld;
+    final due = paymentDueAt;
+    if (due != null && !due.isAfter(DateTime.now())) {
+      return AuctionWinPayment.expired;
+    }
+    return AuctionWinPayment.due;
   }
 
   bool get isUpcoming {
@@ -203,6 +230,24 @@ class AuctionListing {
     if (closureStatus.isEmpty) return 'Auction';
     return closureStatus;
   }
+}
+
+/// Payment state of an accepted auction winner (`winnerStatus`,
+/// `paymentDueAt`, `paymentWithGemworld`).
+enum AuctionWinPayment {
+  /// No accepted winner, or the last one declined or ran out of time.
+  none,
+
+  /// In the winner's cart; pay before `paymentDueAt`.
+  due,
+
+  /// The winner's order is with GemWorld; no deadline.
+  withGemworld,
+
+  /// `paymentDueAt` passed; the backend releases the win within a minute.
+  expired,
+
+  paid,
 }
 
 /// Paginated auction list.

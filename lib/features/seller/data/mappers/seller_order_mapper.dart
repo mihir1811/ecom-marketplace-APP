@@ -165,6 +165,7 @@ abstract final class SellerOrderMapper {
             _map(embedded?['shippingAddress']) ??
             _map(embedded?['deliveryAddress']),
       ),
+      isAuctionSale: json['isAuctionSale'] == true,
     );
   }
 

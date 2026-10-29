@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/luxe_tokens.dart';
@@ -12,7 +14,7 @@ import 'auction_clock.dart';
 /// Auction result card on the shared luxe card layout: phase and a live
 /// countdown over the photo, title, the viewer's standing, and the
 /// current (or opening) bid.
-class AuctionCard extends StatelessWidget {
+class AuctionCard extends ConsumerWidget {
   const AuctionCard({required this.auction, this.grid = false, super.key});
 
   final AuctionListing auction;
@@ -22,8 +24,13 @@ class AuctionCard extends StatelessWidget {
       context.openRoute(AppRouteNames.auctionDetailPath(auction.id));
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final a = auction;
+    final userId = ref.watch(authProvider.select((s) => s.user?.id));
+    final standing = _standing(
+      a,
+      isWinner: userId != null && a.winnerId == userId,
+    );
     final deadline = auctionDeadline(a);
     final countdown = deadline != null && (a.isLive || a.isUpcoming)
         ? _CountdownChip(deadline: deadline, upcoming: a.isUpcoming)
@@ -35,7 +42,7 @@ class AuctionCard extends StatelessWidget {
         onTap: () => _open(context),
         media: _AuctionThumb(url: a.imageUrl),
         title: a.title,
-        subtitle: _standing(a) ?? a.sellerName ?? _typeLabel(a.productType),
+        subtitle: standing ?? a.sellerName ?? _typeLabel(a.productType),
         meta: _when(a),
         price: price,
         overlays: LuxeMediaOverlays(
@@ -48,9 +55,9 @@ class AuctionCard extends StatelessWidget {
       onTap: () => _open(context),
       media: _AuctionThumb(url: a.imageUrl),
       title: a.title,
-      subtitle: _standing(a) ?? a.sellerName ?? _typeLabel(a.productType),
+      subtitle: standing ?? a.sellerName ?? _typeLabel(a.productType),
       detail: [
-        if (_standing(a) != null && a.sellerName != null) a.sellerName!,
+        if (standing != null && a.sellerName != null) a.sellerName!,
         ?_when(a),
       ].join(' · '),
       price: price,
@@ -60,10 +67,12 @@ class AuctionCard extends StatelessWidget {
   }
 }
 
-/// "Won · Your bid $1,200 · 3 bids" for the viewer's own activity.
-String? _standing(AuctionListing a) {
+/// "Won · Pay by 2026-10-29 15:28 · Your bid $1,200" for the viewer's own
+/// activity.
+String? _standing(AuctionListing a, {required bool isWinner}) {
   final parts = [
     ?auctionOutcomeLabel(a.userOutcome),
+    if (isWinner) ?auctionWinPaymentLabel(a),
     if (a.myHighestBid != null) 'Your bid ${auctionBidAmount(a.myHighestBid!)}',
     if (a.myHighestBid != null && a.myBidCount > 1) '${a.myBidCount} bids',
   ];
@@ -194,6 +203,20 @@ String auctionWhen(DateTime value) {
 /// Whole-dollar bid. Fractional cents are not shown.
 String auctionBidAmount(num amount) =>
     AppCurrency.usd(amount.round(), decimals: 0);
+
+/// The accepted winner's payment line: deadline, GemWorld, or paid.
+String? auctionWinPaymentLabel(AuctionListing a) {
+  return switch (a.winPayment) {
+    AuctionWinPayment.due =>
+      a.paymentDueAt == null
+          ? 'Pay from your cart'
+          : 'Pay by ${auctionWhen(a.paymentDueAt!)}',
+    AuctionWinPayment.withGemworld => 'GemWorld is arranging the payment',
+    AuctionWinPayment.expired => 'Payment window ended',
+    AuctionWinPayment.paid => 'Paid',
+    AuctionWinPayment.none => null,
+  };
+}
 
 String? auctionOutcomeLabel(String? outcome) {
   return switch (outcome) {

@@ -80,7 +80,9 @@ IconData sellerOrderStatusIcon(SellerOrderStatus status) => switch (status) {
 };
 
 String sellerOrderStatusLabel(SellerOrder order) =>
-    order.status == SellerOrderStatus.unknown && order.rawStatus.isNotEmpty
+    order.isAuctionSale && order.status == SellerOrderStatus.accepted
+    ? 'Sold'
+    : order.status == SellerOrderStatus.unknown && order.rawStatus.isNotEmpty
     ? order.rawStatus.replaceAll('_', ' ')
     : order.status.label;
 

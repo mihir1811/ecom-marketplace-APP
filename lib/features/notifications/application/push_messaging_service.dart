@@ -14,6 +14,7 @@ import '../domain/models/app_notification.dart';
 import 'chat_message_alerts.dart';
 import 'in_app_notification_provider.dart';
 import 'notifications_provider.dart';
+import 'auction_push_sync.dart';
 import 'offer_push_sync.dart';
 import 'order_push_sync.dart';
 
@@ -181,6 +182,8 @@ class PushMessagingService {
     syncOrderViewsFromPush(_ref, notification);
     // Offer accepted / rejected / received refreshes the offer screens.
     syncOfferViewsFromPush(_ref, notification);
+    // Auction win in / out of the cart refreshes the bag and the auction.
+    syncAuctionViewsFromPush(_ref, notification);
 
     // Keep the badge (and the inbox, when loaded) in step.
     unawaited(_ref.read(notificationUnreadCountProvider.notifier).refresh());
@@ -208,6 +211,7 @@ class PushMessagingService {
     _log('opened from $from: ${notification.type}');
     syncOrderViewsFromPush(_ref, notification);
     syncOfferViewsFromPush(_ref, notification);
+    syncAuctionViewsFromPush(_ref, notification);
     _ref.read(inAppNotificationProvider.notifier).requestOpen(notification);
   }
 

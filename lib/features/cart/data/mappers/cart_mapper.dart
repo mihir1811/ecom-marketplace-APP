@@ -26,7 +26,17 @@ abstract final class CartMapper {
     // `listedPrice` keeps the original.
     final offerId = _str(specifications?['offerId']);
     final offerPrice = offerId == null ? null : _num(json['price']);
-    final linePrice = offerPrice ?? meleeLine;
+    // An auction win is priced at the winning bid (`product.price`, also
+    // `auctionWin.winningAmount`); `listedPrice` is the catalogue price.
+    final auctionId = _str(specifications?['auctionId']);
+    final auctionWinRaw = json['auctionWin'];
+    final auctionWin = auctionWinRaw is Map<String, dynamic>
+        ? auctionWinRaw
+        : null;
+    final auctionPrice = auctionWin == null
+        ? null
+        : _num(auctionWin['winningAmount']) ?? _num(productMap['price']);
+    final linePrice = offerPrice ?? auctionPrice ?? meleeLine;
     final price = linePrice ?? lotPrice;
 
     final name =
@@ -39,7 +49,13 @@ abstract final class CartMapper {
         _str(productMap['image']) ??
         _firstImage(productMap);
 
-    final availability = _productAvailability(json, productMap);
+    // Past the deadline the line briefly comes back with `auctionWin: null`
+    // and `inStock: false` until the backend releases it; checkout refuses it.
+    final availability =
+        auctionId != null &&
+            (auctionWin == null || productMap['inStock'] == false)
+        ? (isAvailable: false, label: 'Win expired')
+        : _productAvailability(json, productMap);
     final stoneWeight = _str(specifications?['stoneWeight']);
     final displayTitle = (stoneWeight != null &&
             stoneWeight.isNotEmpty &&
@@ -62,6 +78,8 @@ abstract final class CartMapper {
       listedPriceUsd: offerPrice == null
           ? null
           : _num(json['listedPrice']) ?? lotPrice,
+      auctionId: auctionId,
+      auctionPayBy: _date(auctionWin?['payBy']),
       imageUrl: image,
       shape: _str(productMap['shape']),
       seller: _str(json['seller']) ?? _str(productMap['sellerName']),
@@ -358,6 +376,11 @@ abstract final class CartMapper {
     if (v == null) return null;
     if (v is num) return v.toDouble();
     return double.tryParse(v.toString());
+  }
+
+  static DateTime? _date(Object? v) {
+    final s = _str(v);
+    return s == null ? null : DateTime.tryParse(s);
   }
 
   static int? _int(Object? v) {

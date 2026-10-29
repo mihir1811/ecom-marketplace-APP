@@ -1,5 +1,3 @@
-import '../../../payment/data/mappers/payment_mapper.dart';
-import '../../../payment/domain/models/payment_models.dart';
 import '../../domain/models/auction_models.dart';
 
 /// Parses auction envelopes into domain models.
@@ -129,6 +127,8 @@ abstract final class AuctionMapper {
       winningAmount: _num(json['winningAmount']),
       winnerId: _str(json['winnerId']),
       winnerStatus: _str(json['winnerStatus']),
+      paymentDueAt: _date(json['paymentDueAt']),
+      paymentWithGemworld: json['paymentWithGemworld'] == true,
       isActive: json['isActive'] == true,
       isSold: json['isSold'] == true,
       awaitingSellerDecision: json['awaitingSellerDecision'] == true,
@@ -195,22 +195,6 @@ abstract final class AuctionMapper {
       failed: _int(root['failed']) ?? results.where((r) => !r.success).length,
       results: results,
     );
-  }
-
-  static PaymentCheckoutSession paymentFromEnvelope(Map<String, dynamic>? body) {
-    var data = _map(body?['data']) ?? body ?? const <String, dynamic>{};
-    final nested = _map(data['order']) ?? _map(data['payment']);
-    if (nested != null) {
-      data = {...nested, ...data};
-    }
-    final normalized = Map<String, dynamic>.from(data);
-    normalized['keyId'] ??=
-        data['key'] ?? data['razorpayKey'] ?? data['razorpayKeyId'];
-    normalized['orderId'] ??= data['id'];
-    normalized['amount'] ??= data['amountPaise'] ?? data['amountDue'];
-    normalized['walletAppliedInr'] ??=
-        data['walletAmount'] ?? data['walletDebited'];
-    return PaymentMapper.checkoutSessionFromJson(normalized);
   }
 
   static List<AuctionBid> _bids(Object? raw) {

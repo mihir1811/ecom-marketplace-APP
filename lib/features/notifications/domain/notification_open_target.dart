@@ -86,7 +86,17 @@ NotificationOpenTarget notificationOpenTarget(
       );
     case 'AUCTION_NEW_BID':
     case 'AUCTION_ENDED_SELLER':
+    case 'AUCTION_WINNER_UNPAID_SELLER':
       return const NotificationInApp(AppRouteNames.sellerAuctions);
+    case 'AUCTION_WON':
+      // The win waits in the cart at the winning bid; it is paid there.
+      return const NotificationInApp(AppRouteNames.cart);
+    case 'AUCTION_WIN_UNPAID':
+      final auctionId = data['auctionId'] ?? '';
+      if (auctionId.isNotEmpty) {
+        return NotificationInApp(AppRouteNames.auctionDetailPath(auctionId));
+      }
+      return _fromLink(notification.link, isSeller: false);
     case 'OFFER_RECEIVED':
       return const NotificationInApp(AppRouteNames.sellerOffers);
     case 'HELP_CENTER_ANSWERED':
@@ -107,7 +117,6 @@ NotificationOpenTarget notificationOpenTarget(
       // Buyers pay accepted offers from My offers.
       return const NotificationInApp(AppRouteNames.buyerOffers);
     case 'AUCTION_OUTBID':
-    case 'AUCTION_WON':
       return _fromLink(notification.link, isSeller: isSeller);
     default:
       return _fromLink(notification.link, isSeller: isSeller);
@@ -122,6 +131,9 @@ NotificationOpenTarget _fromLink(String link, {required bool isSeller}) {
     return NotificationExternal(uri);
   }
   final path = trimmed.startsWith('/') ? trimmed : '/$trimmed';
+  if (path == '/user/cart' || path == '/cart') {
+    return const NotificationInApp(AppRouteNames.cart);
+  }
   // Website "Pay now" link for accepted offers.
   if (path == '/user/offers' || path.startsWith('/user/offers/')) {
     return const NotificationInApp(AppRouteNames.buyerOffers);

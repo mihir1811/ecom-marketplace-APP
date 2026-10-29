@@ -267,10 +267,6 @@ abstract final class ApiEndpoints {
   static String auctionAccept(String id) => '/auction/$id/accept';
   static String auctionReject(String id) => '/auction/$id/reject';
   static String auctionDeclineWin(String id) => '/auction/$id/decline-win';
-  static String auctionCreatePayment(String id) =>
-      '/auction/$id/create-payment';
-  static String auctionVerifyPayment(String id) =>
-      '/auction/$id/verify-payment';
   static String auctionBids(String id) => '/auction/$id/bids';
   static String auctionCancelBid(String bidId) => '/auction/bid/$bidId';
 

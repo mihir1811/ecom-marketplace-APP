@@ -90,6 +90,7 @@ class SellerOrder {
     this.rejectionReason,
     this.sellerNote,
     this.shippingAddress,
+    this.isAuctionSale = false,
   });
 
   /// Id used by `/seller/orders/{id}` (accept / reject / detail).
@@ -116,6 +117,10 @@ class SellerOrder {
   final String? rejectionReason;
   final String? sellerNote;
   final String? shippingAddress;
+
+  /// This seller's part of the order is only auction wins. It starts
+  /// `ACCEPTED`, with no memo and nothing to accept: it is a sale to ship.
+  final bool isAuctionSale;
 
   String get shortId {
     final display = displayId?.trim();
@@ -172,6 +177,7 @@ class SellerOrder {
       rejectionReason: rejectionReason ?? this.rejectionReason,
       sellerNote: sellerNote ?? this.sellerNote,
       shippingAddress: shippingAddress,
+      isAuctionSale: isAuctionSale,
     );
   }
 }

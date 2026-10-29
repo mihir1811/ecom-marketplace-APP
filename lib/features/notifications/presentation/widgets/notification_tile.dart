@@ -165,8 +165,10 @@ IconData notificationTypeIcon(String type) {
     'ORDER_ACCEPTED' || 'ORDER_REJECTED' => Icons.local_shipping_outlined,
     'AUCTION_OUTBID' ||
     'AUCTION_WON' ||
+    'AUCTION_WIN_UNPAID' ||
     'AUCTION_NEW_BID' ||
-    'AUCTION_ENDED_SELLER' => Icons.gavel_outlined,
+    'AUCTION_ENDED_SELLER' ||
+    'AUCTION_WINNER_UNPAID_SELLER' => Icons.gavel_outlined,
     'OFFER_RECEIVED' ||
     'OFFER_ACCEPTED' ||
     'OFFER_REJECTED' => Icons.local_offer_outlined,

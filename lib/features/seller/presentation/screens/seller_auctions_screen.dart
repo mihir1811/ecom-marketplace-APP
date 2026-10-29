@@ -661,6 +661,26 @@ class _AuctionCard extends StatelessWidget {
               ],
             ),
           ),
+          if (_winnerLine(a) case final line?) ...[
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  line.icon,
+                  size: 14,
+                  color: line.done ? p.emerald : p.amber,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    line.text,
+                    style: AtelierType.caption(p.inkSoft, size: 11.5),
+                  ),
+                ),
+              ],
+            ),
+          ],
           if (a.endTime != null || a.startTime != null) ...[
             const SizedBox(height: 10),
             Text(
@@ -736,6 +756,47 @@ class _AuctionCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// Under the winner on a sold auction: where their cart payment stands, or
+/// that the last winner declined or let the 24 hours run out.
+({IconData icon, String text, bool done})? _winnerLine(AuctionListing a) {
+  switch (a.winPayment) {
+    case AuctionWinPayment.paid:
+      return (
+        icon: Icons.verified_rounded,
+        text: 'Paid by the winner. Ship it from your orders.',
+        done: true,
+      );
+    case AuctionWinPayment.withGemworld:
+      return (
+        icon: Icons.support_agent_outlined,
+        text: 'Awaiting payment: GemWorld is arranging it with the winner.',
+        done: false,
+      );
+    case AuctionWinPayment.due:
+    case AuctionWinPayment.expired:
+      final due = a.paymentDueAt;
+      return (
+        icon: Icons.hourglass_top_rounded,
+        text: due == null
+            ? 'Awaiting payment from the winner.'
+            : 'Awaiting payment: the winner has until ${auctionWhen(due)} '
+                  'to check out, or the item comes back to you.',
+        done: false,
+      );
+    case AuctionWinPayment.none:
+      if (a.awaitingSellerDecision && a.declinedWinnerIds.isNotEmpty) {
+        return (
+          icon: Icons.replay_rounded,
+          text:
+              'The last winner declined or didn’t pay in time. Accept the '
+              'next bidder, restart or remove the auction.',
+          done: false,
+        );
+      }
+      return null;
   }
 }
 
