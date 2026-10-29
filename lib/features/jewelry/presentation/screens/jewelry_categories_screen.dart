@@ -15,7 +15,7 @@ import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../../../core/widgets/luxe/luxe_metal_swatch.dart';
 import '../../../../core/widgets/luxe/press_tilt.dart';
 import '../../../../core/widgets/luxe/scroll_reveal.dart';
-import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
+import '../../../../core/widgets/navigation/top_bar/top_bar_actions.dart';
 import '../../../product_detail/presentation/widgets/luxe/luxe_detail_parts.dart';
 import '../../application/jewellery_categories_provider.dart';
 import '../../application/jewelry_catalogue_providers.dart';
@@ -183,7 +183,7 @@ class _JewelryCategoriesScreenState
               solidAfter: topInset + 120,
               darkBackdrop: true,
               actions: (glass) => [
-                CatalogFlowActions(glass: glass, jewelryBag: true),
+                TopBarActions(glass: glass),
               ],
             ),
           ),

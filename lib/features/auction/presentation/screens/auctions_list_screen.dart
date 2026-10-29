@@ -8,8 +8,8 @@ import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
-import '../../../../core/widgets/navigation/app_tab_top_bar.dart';
-import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
+import '../../../../core/widgets/navigation/top_bar/section_top_bar.dart';
+import '../../../../core/widgets/navigation/top_bar/top_bar_actions.dart';
 import '../../application/auction_providers.dart';
 import '../../domain/models/auction_models.dart';
 import '../widgets/auction_card.dart';
@@ -140,11 +140,11 @@ class _AuctionsListScreenState extends ConsumerState<AuctionsListScreen>
       backgroundColor: p.canvas,
       // Live auctions is a bottom-nav tab: it takes the shared tab bar.
       appBar: widget.kind == AuctionFeedKind.live
-          ? const AppTabTopBar()
+          ? const SectionTopBar()
           : LuxeTopBar(
               title: widget.title,
               scrollOffset: listingOffset,
-              actions: const [CatalogFlowActions()],
+              actions: const [TopBarActions()],
             ),
       body: LuxeListingScrollView(
         controller: listingScroll,

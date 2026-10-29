@@ -11,7 +11,7 @@ import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
-import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
+import '../../../../core/widgets/navigation/top_bar/top_bar_actions.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/brand_watch_filter_provider.dart';
 import '../../application/brand_watch_list_provider.dart';
@@ -127,7 +127,7 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen>
           ),
         ),
         scrollOffset: listingOffset,
-        actions: const [CatalogFlowActions()],
+        actions: const [TopBarActions()],
       ),
       body: LuxeListingScrollView(
         controller: listingScroll,

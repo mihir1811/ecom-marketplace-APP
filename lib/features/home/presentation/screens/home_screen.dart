@@ -5,7 +5,7 @@ import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/widgets/app_scaffold.dart';
-import '../../../../core/widgets/navigation/app_tab_top_bar.dart';
+import '../../../../core/widgets/navigation/top_bar/section_top_bar.dart';
 import '../../../../core/widgets/app_system_back_scope.dart';
 import '../../../../core/widgets/luxe/scroll_reveal.dart';
 import '../../../../core/widgets/navigation/start_selling_flow.dart';
@@ -65,7 +65,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // under the floating dock; its spotlight stays clear of the dock.
     final dockClearance = media.padding.bottom;
     final viewHeight =
-        media.size.height - media.padding.top - AppTabTopBar.height;
+        media.size.height - media.padding.top - SectionTopBar.height;
     final heroHeight = viewHeight.clamp(
       560.0 + dockClearance,
       940.0 + dockClearance,
@@ -75,7 +75,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: AppScaffold(
         backgroundColor: palette.canvas,
         safeBottom: false,
-        appBar: const AppTabTopBar(),
+        appBar: const SectionTopBar(),
         body: ScrollRevealScope(
           child: CustomScrollView(
             controller: _scroll,
@@ -119,7 +119,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   stageHeight:
                       media.size.height -
                       media.padding.top -
-                      AppTabTopBar.height,
+                      SectionTopBar.height,
                 ),
               ),
             ],

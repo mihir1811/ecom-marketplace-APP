@@ -9,7 +9,6 @@ import '../../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../../../../../core/widgets/gem3d/gem_renderer.dart';
 import '../../../../../core/widgets/gem3d/gem_view.dart';
 import '../../../../../core/widgets/language_menu_button.dart';
-import '../../../../../core/widgets/theme_toggle_button.dart';
 import 'auth_backdrop.dart';
 import 'auth_hero.dart';
 import 'auth_theme_data.dart';
@@ -186,13 +185,7 @@ class _AuthTopBar extends StatelessWidget {
                 const Spacer(),
                 IconTheme.merge(
                   data: IconThemeData(color: p.inkSoft),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      LanguageMenuButton(iconSize: 20),
-                      ThemeToggleButton(size: 20),
-                    ],
-                  ),
+                  child: const LanguageMenuButton(iconSize: 20),
                 ),
               ],
             ),

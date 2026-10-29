@@ -13,7 +13,7 @@ import '../../../router/app_navigation.dart';
 import '../../../router/route_names.dart';
 import '../../../theme/luxe_tokens.dart';
 import '../app_drawer_stage.dart';
-import '../app_tab_top_bar.dart';
+import '../top_bar/section_top_bar.dart';
 import 'app_bottom_nav_bar.dart';
 import 'app_bottom_nav_destinations.dart';
 import 'app_category_menu.dart';
@@ -91,8 +91,8 @@ final appPopupRouteObserver = AppPopupRouteObserver();
 /// ([reportDrawer]).
 ///
 /// Switching tabs grows the next page out of the touch point on the bar
-/// ([TabRevealController]). The shared [AppTabTopBar] stays put above the
-/// switch.
+/// ([TabRevealController]). The shared [SectionTopBar] stays put above the
+/// switch; only its section icons change.
 class AppBottomNavHost extends ConsumerStatefulWidget {
   const AppBottomNavHost({
     required this.router,
@@ -458,14 +458,14 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
                                 alignment: Alignment.topCenter,
                                 child: SizedBox(
                                   height:
-                                      media.padding.top + AppTabTopBar.height,
+                                      media.padding.top + SectionTopBar.height,
                                   // Outside the navigator: give its tooltips
                                   // an overlay of their own.
                                   child: IgnorePointer(
                                     child: Overlay(
                                       initialEntries: [
                                         OverlayEntry(
-                                          builder: (_) => const AppTabTopBar(),
+                                          builder: (_) => SectionTopBar(location: _path),
                                         ),
                                       ],
                                     ),

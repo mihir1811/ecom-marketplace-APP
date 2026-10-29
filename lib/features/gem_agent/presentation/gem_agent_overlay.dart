@@ -21,12 +21,6 @@ class GemAgentOverlay extends ConsumerStatefulWidget {
 }
 
 class _GemAgentOverlayState extends ConsumerState<GemAgentOverlay> {
-  // Supplies the Overlay that the sheet's text field needs; this layer
-  // sits outside the router navigator.
-  late final OverlayEntry _sheetEntry = OverlayEntry(
-    builder: (_) => const _SheetLayer(),
-  );
-
   @override
   void initState() {
     super.initState();
@@ -64,7 +58,10 @@ class _GemAgentOverlayState extends ConsumerState<GemAgentOverlay> {
     return Stack(
       fit: StackFit.expand,
       children: [
-        if (isOpen) Overlay(initialEntries: [_sheetEntry]),
+        // Supplies the Overlay that the sheet's text field needs; this layer
+        // sits outside the router navigator. Overlay.wrap owns a fresh entry
+        // per mount, so reopening never reinserts a stale one.
+        if (isOpen) Overlay.wrap(child: const _SheetLayer()),
         if (!isOpen)
           Positioned(
             left: 16,

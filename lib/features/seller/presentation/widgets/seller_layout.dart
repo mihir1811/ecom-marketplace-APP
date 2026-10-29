@@ -8,6 +8,7 @@ import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/widgets/app_drawer_button.dart';
+import '../../../../core/widgets/navigation/top_bar/section_top_bar.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
 import '../atelier/atelier_shell.dart';
 import '../atelier/atelier_theme.dart';
@@ -20,7 +21,7 @@ void openSellerDrawer([BuildContext? context]) {
   }
 }
 
-/// Authenticated seller shell (drawer + theme toggle on every seller route).
+/// Authenticated seller shell (drawer + shared section top bar).
 ///
 /// Non-sellers are redirected home — dashboard and seller chat stay seller-only.
 class SellerLayout extends ConsumerWidget {
@@ -79,7 +80,7 @@ class SellerLayout extends ConsumerWidget {
       );
     }
 
-    // Product edit uses its own AppScaffold + AppTopBar (already includes theme).
+    // Product edit uses its own AppScaffold + AppTopBar.
     final ownsOwnAppBar = _ownsOwnAppBar(selectedRoute);
     final isDetail = _isDetailRoute(selectedRoute);
     final router = GoRouter.of(context);
@@ -128,13 +129,11 @@ class SellerLayout extends ConsumerWidget {
         backgroundColor: p.canvas,
         appBar: ownsOwnAppBar
             ? null
-            : AtelierTopBar(
+            : SectionTopBar(
                 location: selectedRoute,
                 showBack: isDetail,
                 onBack: () => context.goBack(fallbackLocation: backFallback),
-                // Keep Wallet one tap away on detail pages.
-                showWalletAction:
-                    !useRail && isDetail && !authState.isVerificationPending,
+                backgroundColor: p.canvas,
               ),
         body: body,
       ),

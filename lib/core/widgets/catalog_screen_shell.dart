@@ -14,7 +14,6 @@ class CatalogScreenShell extends ConsumerWidget {
     this.scaffoldKey,
     this.endDrawer,
     this.backgroundColor,
-    this.showThemeToggle = true,
     super.key,
   });
 
@@ -23,7 +22,6 @@ class CatalogScreenShell extends ConsumerWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;
   final Widget? endDrawer;
   final Color? backgroundColor;
-  final bool showThemeToggle;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,7 +31,7 @@ class CatalogScreenShell extends ConsumerWidget {
         endDrawer: endDrawer,
         endDrawerEnableOpenDragGesture: false,
         backgroundColor: backgroundColor ?? AppColors.bg(context),
-        appBar: SimpleAppTopBar(title: title, showThemeToggle: showThemeToggle),
+        appBar: SimpleAppTopBar(title: title),
         body: child,
       ),
     );

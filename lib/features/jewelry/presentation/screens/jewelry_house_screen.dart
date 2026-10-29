@@ -10,7 +10,7 @@ import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
-import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
+import '../../../../core/widgets/navigation/top_bar/top_bar_actions.dart';
 import '../../../product_detail/presentation/widgets/luxe/luxe_detail_parts.dart';
 import '../../application/jewelry_catalogue_providers.dart';
 import '../../application/jewelry_house_providers.dart';
@@ -150,7 +150,7 @@ class _JewelryHouseScreenState extends ConsumerState<JewelryHouseScreen> {
               solidAfter: 220,
               darkBackdrop: true,
               actions: (glass) => [
-                CatalogFlowActions(glass: glass, jewelryBag: true),
+                TopBarActions(glass: glass),
               ],
             ),
           ),

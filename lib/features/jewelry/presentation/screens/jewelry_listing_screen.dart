@@ -13,7 +13,7 @@ import '../../../../core/widgets/app_system_back_scope.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
-import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
+import '../../../../core/widgets/navigation/top_bar/top_bar_actions.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/jewelry_filter_provider.dart';
 import '../../application/jewelry_list_provider.dart';
@@ -208,7 +208,7 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
           ),
         ),
         scrollOffset: listingOffset,
-        actions: const [CatalogFlowActions(jewelryBag: true)],
+        actions: const [TopBarActions()],
       ),
       body: LuxeListingScrollView(
         controller: listingScroll,

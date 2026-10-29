@@ -23,7 +23,7 @@ import '../../application/diamond_search_provider.dart';
 import '../../domain/models/diamond_active_filters.dart';
 import '../../domain/models/diamond_catalog_type.dart';
 import '../../domain/models/diamond_filter_summary.dart';
-import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
+import '../../../../core/widgets/navigation/top_bar/top_bar_actions.dart';
 import '../widgets/diamond_luxe_cards.dart';
 import '../widgets/diamond_sorting_bottom_sheet.dart';
 
@@ -149,7 +149,7 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
         title: title,
         subtitle: const _CountLine(),
         scrollOffset: listingOffset,
-        actions: const [CatalogFlowActions()],
+        actions: const [TopBarActions()],
       ),
       body: LuxeListingScrollView(
         controller: listingScroll,

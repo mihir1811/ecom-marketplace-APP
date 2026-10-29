@@ -5,9 +5,7 @@ import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/theme/theme_preference_provider.dart';
 import '../../../../core/widgets/app_drawer_button.dart';
-import '../../../chat/application/chat_providers.dart';
 import '../../../notifications/application/notifications_provider.dart';
 import '../../application/seller_orders_provider.dart';
 import 'atelier_components.dart';
@@ -82,111 +80,6 @@ List<SellerDestination> sellerPrimaryDestinations(
 int _pendingOrders(WidgetRef ref) {
   final pending = ref.watch(sellerPendingOrdersProvider);
   return pending.asData?.value.total ?? 0;
-}
-
-/// Workspace app bar: menu / back and quiet circular actions. No page
-/// title — the rail and drawer already mark where the user is.
-class AtelierTopBar extends ConsumerWidget implements PreferredSizeWidget {
-  const AtelierTopBar({
-    required this.showBack,
-    required this.onBack,
-    required this.location,
-    this.showWalletAction = false,
-    super.key,
-  });
-
-  final String location;
-  final bool showBack;
-  final VoidCallback onBack;
-
-  /// Wallet lives in the rail and drawer; the bar adds it on detail pages.
-  final bool showWalletAction;
-
-  @override
-  Size get preferredSize => const Size.fromHeight(64);
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final p = context.atelier;
-    final unread = ref.watch(notificationUnreadCountProvider);
-    final chatUnread = ref.watch(chatHasUnreadProvider);
-    final dark = ref.watch(themePreferenceProvider);
-
-    return Material(
-      color: p.canvas,
-      child: SafeArea(
-        bottom: false,
-        child: SizedBox(
-          height: 64,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Row(
-              children: [
-                if (showBack)
-                  AtelierIconButton(
-                    icon: Icons.arrow_back_rounded,
-                    tooltip: MaterialLocalizations.of(
-                      context,
-                    ).backButtonTooltip,
-                    onPressed: onBack,
-                    filled: true,
-                  )
-                else
-                  Builder(
-                    builder: (context) => AtelierIconButton(
-                      icon: Icons.menu_rounded,
-                      tooltip: context.tr(RemainingL10n.menu),
-                      onPressed: () => openAppDrawer(context),
-                      filled: true,
-                    ),
-                  ),
-                const Spacer(),
-                AtelierIconButton(
-                  icon: unread > 0
-                      ? Icons.notifications_rounded
-                      : Icons.notifications_none_rounded,
-                  tooltip: 'Notifications',
-                  badgeCount: unread,
-                  onPressed: location == AppRouteNames.sellerNotifications
-                      ? null
-                      : () => context.switchToRoute(
-                          AppRouteNames.sellerNotifications,
-                        ),
-                ),
-                AtelierIconButton(
-                  icon: Icons.chat_bubble_outline_rounded,
-                  tooltip: context.tr(CoreL10n.messages),
-                  dot: chatUnread,
-                  onPressed: () =>
-                      context.switchToRoute(AppRouteNames.sellerChat),
-                ),
-                if (showWalletAction)
-                  AtelierIconButton(
-                    icon: Icons.account_balance_wallet_outlined,
-                    tooltip: context.tr(CoreL10n.wallet),
-                    onPressed: () =>
-                        context.switchToRoute(AppRouteNames.sellerWallet),
-                  ),
-                AtelierIconButton(
-                  icon: dark
-                      ? Icons.light_mode_outlined
-                      : Icons.dark_mode_outlined,
-                  tooltip: context.tr(
-                    dark
-                        ? CoreL10n.switchToLightMode
-                        : CoreL10n.switchToDarkMode,
-                  ),
-                  onPressed: () => ref
-                      .read(palettePreferenceProvider.notifier)
-                      .setDarkMode(!dark),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 /// Persistent navigation rail for tablet / desktop widths.

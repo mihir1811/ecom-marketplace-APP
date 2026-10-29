@@ -21,7 +21,7 @@ import '../../application/diamond_search_provider.dart';
 import '../../domain/models/diamond_catalog_type.dart';
 import '../../domain/models/diamond_filter_state.dart';
 import '../../domain/models/diamond_filter_summary.dart';
-import '../../../catalog_flow/presentation/widgets/catalog_flow_actions.dart';
+import '../../../../core/widgets/navigation/top_bar/top_bar_actions.dart';
 import '../../../../core/widgets/filters/filter_section_divider.dart';
 import '../widgets/diamond_shape_picker.dart';
 import '../widgets/filter_category_basic.dart';
@@ -181,7 +181,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
     return LuxeFinderScaffold<DiamondFinderSection>(
       title: widget.catalog.label,
       onBack: () => context.resetTo(AppRouteNames.home),
-      actions: const [CatalogFlowActions()],
+      actions: const [TopBarActions()],
       controls: DiamondCatalogModeControls(
         showOriginToggle: !_isLab,
         isLabCatalog: _isLab,
