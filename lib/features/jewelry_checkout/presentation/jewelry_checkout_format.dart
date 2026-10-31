@@ -3,8 +3,20 @@ import 'package:flutter/material.dart';
 import '../../../core/utils/app_currency.dart';
 import '../../../core/utils/format_catalog_price.dart';
 
-/// "₹98,610" (paise shown only when present).
-String rupees(double v) => '${AppCurrency.inrSymbol}${formatGroupedWhole(v)}';
+/// "₹98,610", or "₹41,302.10" when there are paise: always 2 decimals then,
+/// so the screen matches what Razorpay charges.
+String rupees(double v) {
+  final paise = (v * 100).round();
+  if (paise % 100 == 0) {
+    return '${AppCurrency.inrSymbol}${formatGroupedWhole(v)}';
+  }
+  final whole = formatGroupedWhole((paise.abs() ~/ 100).toDouble());
+  final frac = (paise.abs() % 100).toString().padLeft(2, '0');
+  return '${paise < 0 ? '-' : ''}${AppCurrency.inrSymbol}$whole.$frac';
+}
+
+/// "GST (3%)" rows joined: "GST (3%) + Cess (1%)".
+String taxLabels(Iterable<String> labels) => labels.join(' + ');
 
 /// "Metal: 14K Yellow Gold · Ring size: 7".
 String optionsLine(Map<String, String> options) =>

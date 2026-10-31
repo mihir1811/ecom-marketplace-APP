@@ -60,6 +60,7 @@ class JewelryBagStore {
         city: text('city'),
         state: text('state'),
         postalCode: text('postalCode'),
+        country: j['country']?.toString() ?? 'IN',
       );
     } catch (_) {
       return null;

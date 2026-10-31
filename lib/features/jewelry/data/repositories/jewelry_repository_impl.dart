@@ -8,6 +8,7 @@ import '../../../../core/network/api_error.dart';
 import '../../../../core/network/dio_provider.dart';
 import '../../domain/models/jewelry.dart';
 import '../../domain/models/jewelry_filter_state.dart';
+import '../../domain/models/jewelry_premium.dart';
 import '../../domain/models/marketplace_listing.dart';
 import '../../domain/repositories/jewelry_repository.dart';
 import '../mappers/jewelry_list_query_mapper.dart';
@@ -99,6 +100,52 @@ class JewelryRepositoryImpl implements JewelryRepository {
       cancelToken: cancelToken,
     );
     return MarketplaceMapper.facets(MarketplaceJson.data(response.data));
+  });
+
+  @override
+  Future<Result<JewelryPremiumPage, Failure>> getPremium({
+    required int page,
+    int pageSize = JewelryPageSize.defaultSize,
+    String? category,
+    JewelrySortOption? sort,
+    CancelToken? cancelToken,
+  }) => _guard(() async {
+    final Response<Object?> response;
+    try {
+      response = await _dio.get<Object?>(
+        ApiEndpoints.marketplacePremium,
+        queryParameters: JewelryListQueryMapper.toQuery(
+          filters: JewelryFilterState(category: category),
+          page: page,
+          pageSize: pageSize,
+          sort: sort,
+        ),
+        cancelToken: cancelToken,
+      );
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        return const JewelryPremiumPage.unavailable();
+      }
+      rethrow;
+    }
+    final data = MarketplaceJson.obj(MarketplaceJson.data(response.data));
+    final parsed = MarketplaceMapper.page(data, page: page);
+    return JewelryPremiumPage(
+      items: parsed.items.map(JewelryMapper.fromListing).toList(),
+      total: parsed.total,
+      page: parsed.page,
+      hasMore: parsed.hasMore,
+      thresholdInr: MarketplaceJson.money(data['thresholdInr']),
+      categories: [
+        for (final c in MarketplaceJson.listOf(data['categories'], (c) => c))
+          if (MarketplaceJson.text(c['slug']) case final slug?)
+            (
+              slug: slug,
+              name: MarketplaceJson.text(c['name']) ?? slug,
+              count: MarketplaceJson.asInt(c['count']),
+            ),
+      ],
+    );
   });
 
   @override

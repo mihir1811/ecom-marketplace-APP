@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/luxe_scope.dart';
 import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/widgets/app_network_image.dart';
@@ -428,7 +430,7 @@ class _ItemCard extends ConsumerWidget {
       context,
       title: context.tr(JewelryMarketL10n.cancelPiece),
       subtitle: context.tr(JewelryMarketL10n.cancelRefundNote, {
-        'amount': rupees(item.lineTotal),
+        'amount': rupees(item.paidTotal),
       }),
       builder: (_) => const _CancelForm(),
     );
@@ -688,6 +690,7 @@ class _Totals extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           row(context.tr(JewelryMarketL10n.subtotal), rupees(order.subtotal)),
+          for (final t in order.taxes) row(t.label, rupees(t.amount)),
           row(
             context.tr(JewelryMarketL10n.shipping),
             order.shippingTotal <= 0
@@ -706,6 +709,21 @@ class _Totals extends StatelessWidget {
               '−${rupees(order.refundedTotal)}',
               tone: p.positive,
             ),
+          if (order.canShowInvoice) ...[
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: () =>
+                  context.push(AppRouteNames.jewelryOrderInvoicePath(order.id)),
+              icon: const Icon(Icons.receipt_long_outlined, size: 18),
+              label: Text(
+                order.invoice == null
+                    ? context.tr(JewelryMarketL10n.invoice)
+                    : context.tr(JewelryMarketL10n.invoiceNumbered, {
+                        'number': order.invoice!.number,
+                      }),
+              ),
+            ),
+          ],
           if (a != null) ...[
             const SizedBox(height: 14),
             Text(

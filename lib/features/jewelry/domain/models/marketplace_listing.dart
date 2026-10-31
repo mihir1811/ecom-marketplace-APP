@@ -268,6 +268,7 @@ class MarketplaceListing {
     this.favoriteCount = 0,
     this.publishedAt,
     this.isFullRecord = false,
+    this.taxLabels = const [],
   });
 
   final String id;
@@ -299,6 +300,10 @@ class MarketplaceListing {
   /// True for `GET /marketplace/listings/{slug}` (description, all media,
   /// gemstones and inactive SKUs included).
   final bool isFullRecord;
+
+  /// Taxes GemWorld adds at checkout ("GST (3%)"); product page only,
+  /// empty before taxes go live.
+  final List<String> taxLabels;
 
   bool get soldOut => totalStock == 0 && !detail.isMadeToOrder;
 

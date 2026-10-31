@@ -347,6 +347,7 @@ class _Summary extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 row(context.tr(JewelryMarketL10n.subtotal), rupees(q.subtotal)),
+                for (final t in q.taxes) row(t.label, rupees(t.amount)),
                 row(
                   context.tr(JewelryMarketL10n.shipping),
                   q.shipping <= 0

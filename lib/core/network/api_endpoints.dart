@@ -41,6 +41,9 @@ abstract final class ApiEndpoints {
       '/marketplace/listings/${Uri.encodeComponent(slug)}';
   static String marketplaceRelated(String slug) =>
       '/marketplace/listings/${Uri.encodeComponent(slug)}/related';
+
+  /// Pieces at or above the Premium amount set in ohana-admin.
+  static const String marketplacePremium = '/marketplace/premium';
   static const String marketplaceShops = '/marketplace/shops';
   static String marketplaceShop(String slug) =>
       '/marketplace/shops/${Uri.encodeComponent(slug)}';
@@ -51,6 +54,13 @@ abstract final class ApiEndpoints {
   static String marketplaceOrderVerify(String id) =>
       '/marketplace/orders/$id/verify';
   static String marketplaceOrderPay(String id) => '/marketplace/orders/$id/pay';
+  static String marketplaceOrderInvoice(String id) =>
+      '/marketplace/orders/$id/invoice';
+
+  /// Storefront country / state / city lists (absolute: a different host
+  /// from the API). `?country=IN` states, `?country=IN&state=GJ` cities.
+  static const String jewelryStorefrontLocations =
+      'https://jewelry.gemworld.in/api/locations';
   static String marketplaceOrderItemCancel(String id, String itemId) =>
       '/marketplace/orders/$id/items/$itemId/cancel';
 

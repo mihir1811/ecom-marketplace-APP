@@ -4,6 +4,7 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../models/jewelry.dart';
 import '../models/jewelry_filter_state.dart';
+import '../models/jewelry_premium.dart';
 import '../models/marketplace_listing.dart';
 
 /// Page size for catalogue reads (API allows 1–100, default 48).
@@ -39,6 +40,17 @@ abstract class JewelryRepository {
   /// Filter-sheet counts; only category, search, shop and tag narrow them.
   Future<Result<MarketplaceFacets, Failure>> getFacets({
     required JewelryFilterState filters,
+    CancelToken? cancelToken,
+  });
+
+  /// Premium pieces (`GET /marketplace/premium`), optionally one top-level
+  /// [category]. A 404 (route not deployed) gives
+  /// [JewelryPremiumPage.unavailable].
+  Future<Result<JewelryPremiumPage, Failure>> getPremium({
+    required int page,
+    int pageSize = JewelryPageSize.defaultSize,
+    String? category,
+    JewelrySortOption? sort,
     CancelToken? cancelToken,
   });
 

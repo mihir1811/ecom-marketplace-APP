@@ -95,6 +95,10 @@ abstract final class MarketplaceMapper {
       favoriteCount: _J.asInt(j['favoriteCount']),
       publishedAt: _J.date(j['publishedAt']),
       isFullRecord: j.containsKey('description') || gemstonesJson is List,
+      taxLabels: [
+        for (final t in _J.listOf(j['taxes'], (t) => t))
+          ?(_J.text(t['label']) ?? _J.text(t['name'])),
+      ],
     );
   }
 

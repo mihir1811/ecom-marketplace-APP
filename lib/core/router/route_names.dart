@@ -34,6 +34,7 @@ class AppRouteNames {
   static const String jewelryListing = '/jewelry/listing';
   static const String jewelryFilters = '/jewelry/filters';
   static const String jewelryHouses = '/jewelry/houses';
+  static const String jewelryPremium = '/jewelry/premium';
   static const String jewelryHouse = '/jewelry/house/:slug';
   static String jewelryHousePath(String slug) =>
       '/jewelry/house/${Uri.encodeComponent(slug)}';
@@ -52,6 +53,9 @@ class AppRouteNames {
   static const String jewelryOrderDetail = '/jewelry/orders/:orderId';
   static String jewelryOrderDetailPath(String orderId) =>
       '/jewelry/orders/${Uri.encodeComponent(orderId)}';
+  static const String jewelryOrderInvoice = '/jewelry/orders/:orderId/invoice';
+  static String jewelryOrderInvoicePath(String orderId) =>
+      '/jewelry/orders/${Uri.encodeComponent(orderId)}/invoice';
 
   /// Shared product detail page used by every catalog segment.
   static const String productDetail = '/product/:segment/:productId';

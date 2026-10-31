@@ -149,9 +149,7 @@ class _JewelryHouseScreenState extends ConsumerState<JewelryHouseScreen> {
               offset: _offset,
               solidAfter: 220,
               darkBackdrop: true,
-              actions: (glass) => [
-                TopBarActions(glass: glass),
-              ],
+              actions: (glass) => [TopBarActions(glass: glass)],
             ),
           ),
         ],

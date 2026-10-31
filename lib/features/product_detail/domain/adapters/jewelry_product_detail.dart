@@ -128,6 +128,7 @@ ProductJewelryDetail _jewelryDetail(Jewelry j, MarketplaceListing? l) {
     category: l.parentCategoryName ?? l.categoryName ?? '',
     subCategory: l.parentCategoryName == null ? null : l.categoryName,
     stockNumber: l.stockNumber,
+    taxLabels: l.taxLabels,
     shop: shop == null
         ? null
         : ProductJewelryShop(

@@ -1,4 +1,8 @@
-/// Delivery address for a marketplace order (India only).
+import 'marketplace_charge.dart';
+
+/// Delivery address for a marketplace order. [country] is a 2-letter ISO
+/// code (India when left out). Outside India [state] and [postalCode] are
+/// optional and come back as `''` when they were left out.
 class MarketplaceAddress {
   const MarketplaceAddress({
     required this.fullName,
@@ -8,6 +12,7 @@ class MarketplaceAddress {
     required this.state,
     required this.postalCode,
     this.line2,
+    this.country = 'IN',
   });
 
   final String fullName;
@@ -17,11 +22,18 @@ class MarketplaceAddress {
   final String city;
   final String state;
   final String postalCode;
+  final String country;
+
+  bool get isIndia => country.toUpperCase() == 'IN';
 
   String get summaryLine => [
     line1,
     if (line2 != null && line2!.trim().isNotEmpty) line2!,
-    '$city, $state $postalCode',
+    [
+      city,
+      [state, postalCode].where((s) => s.trim().isNotEmpty).join(' '),
+    ].where((s) => s.trim().isNotEmpty).join(', '),
+    if (!isIndia) country.toUpperCase(),
   ].join(', ');
 
   Map<String, dynamic> toJson() => {
@@ -30,9 +42,19 @@ class MarketplaceAddress {
     'line1': line1.trim(),
     if (line2 != null && line2!.trim().isNotEmpty) 'line2': line2!.trim(),
     'city': city.trim(),
-    'state': state.trim(),
-    'postalCode': postalCode.trim(),
+    if (state.trim().isNotEmpty) 'state': state.trim(),
+    if (postalCode.trim().isNotEmpty) 'postalCode': postalCode.trim(),
+    'country': country.trim().toUpperCase(),
   };
+}
+
+/// GemWorld's tax invoice number for a paid order.
+class MarketplaceInvoiceRef {
+  const MarketplaceInvoiceRef({required this.number, this.issuedAt});
+
+  /// `JW/26-27/00042` (a new series each April).
+  final String number;
+  final DateTime? issuedAt;
 }
 
 /// Razorpay session for a marketplace order. [amountPaise] is in paise.
@@ -123,6 +145,10 @@ class MarketplaceOrder {
     this.paymentMethod,
     this.paidAt,
     this.createdAt,
+    this.taxes = const [],
+    this.taxTotal = 0,
+    this.invoice,
+    this.hasInvoiceField = false,
   });
 
   final String id;
@@ -130,6 +156,17 @@ class MarketplaceOrder {
   final String status;
   final double subtotal;
   final double shippingTotal;
+
+  /// One row per tax and rate; [total] includes [taxTotal].
+  final List<MarketplaceCharge> taxes;
+  final double taxTotal;
+
+  /// Set once the order is paid. An order paid before invoices existed is
+  /// numbered the first time its invoice is opened, so it can still be null.
+  final MarketplaceInvoiceRef? invoice;
+
+  /// The API sent an `invoice` field, so this backend issues invoices.
+  final bool hasInvoiceField;
   final double total;
   final double refundedTotal;
   final MarketplaceAddress? address;
@@ -144,6 +181,10 @@ class MarketplaceOrder {
 
   bool get isPaid => status == MarketplaceOrderStatus.paid;
   bool get isPendingPayment => status == MarketplaceOrderStatus.pendingPayment;
+
+  /// Paid orders have a tax invoice (cancelled pieces stay on it).
+  bool get canShowInvoice =>
+      invoice != null || (hasInvoiceField && paidAt != null);
 
   String? get coverImageUrl {
     for (final item in items) {
@@ -177,6 +218,8 @@ class MarketplaceOrderItem {
     this.refundAmount,
     this.refundStatus,
     this.refundedAt,
+    this.taxes = const [],
+    this.taxAmount = 0,
   });
 
   final String id;
@@ -200,6 +243,13 @@ class MarketplaceOrderItem {
   /// `PENDING`, `PROCESSED` or `FAILED`.
   final String? refundStatus;
   final DateTime? refundedAt;
+
+  /// Taxes on this piece; cancelling refunds [lineTotal] + [taxAmount].
+  final List<MarketplaceCharge> taxes;
+  final double taxAmount;
+
+  /// What the buyer paid for this piece, tax included.
+  double get paidTotal => lineTotal + taxAmount;
 }
 
 class MarketplaceShipment {

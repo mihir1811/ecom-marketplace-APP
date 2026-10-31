@@ -15,11 +15,16 @@ import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../application/jewelry_bag_provider.dart';
 import '../../application/jewelry_checkout_controller.dart';
+import '../../application/jewelry_orders_provider.dart';
 import '../../domain/models/marketplace_order.dart';
 import '../jewelry_checkout_format.dart';
+import '../widgets/jewelry_location_picker.dart';
 
-/// Delivery address (India only), an optional note and the payable total.
-/// "Pay" creates the order and opens Razorpay; only the API marks it paid.
+/// Delivery address, an optional note and the payable total (taxes shown
+/// row by row). Country, then state, then city are picked from the
+/// storefront's lists (India preselected), with typed fields when a list
+/// is missing or the city isn't listed. "Pay" creates the order and opens
+/// Razorpay; only the API marks it paid.
 class JewelryCheckoutScreen extends ConsumerStatefulWidget {
   const JewelryCheckoutScreen({super.key});
 
@@ -38,6 +43,17 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
   final _state = TextEditingController();
   final _pin = TextEditingController();
   final _note = TextEditingController();
+
+  /// 2-letter ISO code.
+  String _country = 'IN';
+
+  /// Code of the picked state (for its city list); null when typed.
+  String? _stateCode;
+
+  /// The buyer chose "My city isn't listed".
+  bool _cityTyped = false;
+
+  bool get _india => _country == 'IN';
 
   @override
   void initState() {
@@ -60,6 +76,63 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
     set(_city, saved?.city);
     set(_state, saved?.state);
     set(_pin, saved?.postalCode);
+    final country = saved?.country.trim().toUpperCase() ?? '';
+    if (country.length == 2) setState(() => _country = country);
+  }
+
+  Future<void> _pickCountry(List<JewelryLocation> countries) async {
+    final picked = await showJewelryLocationSheet(
+      context,
+      title: context.tr(JewelryMarketL10n.country),
+      items: countries,
+      selectedCode: _country,
+    );
+    if (picked == null || picked.code.isEmpty || !mounted) return;
+    if (picked.code == _country) return;
+    setState(() {
+      _country = picked.code;
+      _stateCode = null;
+      _cityTyped = false;
+      _state.clear();
+      _city.clear();
+      _pin.clear();
+    });
+  }
+
+  Future<void> _pickState(List<JewelryLocation> states, String? current) async {
+    final picked = await showJewelryLocationSheet(
+      context,
+      title: context.tr(JewelryMarketL10n.state),
+      items: states,
+      selectedCode: current,
+    );
+    if (picked == null || picked.code.isEmpty || !mounted) return;
+    if (picked.code == current) return;
+    setState(() {
+      _stateCode = picked.code;
+      _state.text = picked.name;
+      _cityTyped = false;
+      _city.clear();
+    });
+  }
+
+  Future<void> _pickCity(List<JewelryLocation> cities) async {
+    final picked = await showJewelryLocationSheet(
+      context,
+      title: context.tr(JewelryMarketL10n.city),
+      items: cities,
+      selectedCode: _city.text,
+      notListedLabel: context.tr(JewelryMarketL10n.cityNotListed),
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      if (picked == jewelryLocationNotListed) {
+        _cityTyped = true;
+        _city.clear();
+      } else {
+        _city.text = picked.name;
+      }
+    });
   }
 
   @override
@@ -95,6 +168,7 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
             city: _city.text,
             state: _state.text,
             postalCode: _pin.text,
+            country: _country,
           ),
           note: _note.text,
         );
@@ -145,6 +219,81 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
 
     InputDecoration field(String label) => InputDecoration(labelText: label);
 
+    // Location lists: empty while loading or when unavailable, which
+    // leaves the typed fields in place.
+    final countriesAsync = ref.watch(
+      jewelryLocationsProvider((country: null, state: null)),
+    );
+    final loadedCountries = countriesAsync.valueOrNull ?? const [];
+    final countries = loadedCountries.isEmpty
+        ? const <JewelryLocation>[(code: 'IN', name: 'India')]
+        : loadedCountries;
+    final countryName =
+        countries.where((c) => c.code == _country).firstOrNull?.name ??
+        _country;
+    final statesAsync = ref.watch(
+      jewelryLocationsProvider((country: _country, state: null)),
+    );
+    final states = statesAsync.valueOrNull ?? const <JewelryLocation>[];
+    final typedState = _state.text.trim().toLowerCase();
+    final stateCode =
+        _stateCode ??
+        states
+            .where((s) => s.name.toLowerCase() == typedState)
+            .firstOrNull
+            ?.code;
+    final citiesAsync = stateCode == null
+        ? null
+        : ref.watch(
+            jewelryLocationsProvider((country: _country, state: stateCode)),
+          );
+    final cities = citiesAsync?.valueOrNull ?? const <JewelryLocation>[];
+    final pickCity = cities.isNotEmpty && !_cityTyped;
+
+    String? stateCheck(String? v) {
+      final t = v?.trim() ?? '';
+      if (t.isEmpty) {
+        return _india ? context.tr(JewelryMarketL10n.stateRequired) : null;
+      }
+      return required(v, 2, 80);
+    }
+
+    String? postalCheck(String? v) {
+      final t = v?.trim() ?? '';
+      if (_india) {
+        return RegExp(r'^\d{6}$').hasMatch(t)
+            ? null
+            : context.tr(JewelryMarketL10n.pinInvalid);
+      }
+      if (t.isEmpty) return null;
+      return RegExp(r'^[A-Za-z0-9 -]{2,10}$').hasMatch(t)
+          ? null
+          : context.tr(JewelryMarketL10n.postalInvalid);
+    }
+
+    Widget summaryRow(String label, String value, {bool strong = false}) =>
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 3),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: strong
+                      ? LuxeType.label(p.ink, size: 15)
+                      : LuxeType.body(p.inkMuted, size: 14),
+                ),
+              ),
+              Text(
+                value,
+                style: LuxeType.figure(p.ink, size: strong ? 17 : 14).copyWith(
+                  fontWeight: strong ? FontWeight.w600 : FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+        );
+
     return AppScaffold(
       backgroundColor: p.canvas,
       appBar: LuxeTopBar(title: context.tr(JewelryMarketL10n.checkout)),
@@ -156,11 +305,6 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
             Text(
               context.tr(JewelryMarketL10n.deliverTo),
               style: LuxeType.display(26, p.ink),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              context.tr(JewelryMarketL10n.indiaOnly),
-              style: LuxeType.body(p.inkMuted, size: 13),
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -203,43 +347,73 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
                   : null,
             ),
             const SizedBox(height: 12),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _city,
-                    textCapitalization: TextCapitalization.words,
-                    autofillHints: const [AutofillHints.addressCity],
-                    decoration: field(context.tr(JewelryMarketL10n.city)),
-                    validator: (v) => required(v, 2, 80),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextFormField(
-                    controller: _state,
-                    textCapitalization: TextCapitalization.words,
-                    autofillHints: const [AutofillHints.addressState],
-                    decoration: field(context.tr(JewelryMarketL10n.state)),
-                    validator: (v) => required(v, 2, 80),
-                  ),
-                ),
-              ],
+            JewelryPickerField(
+              label: context.tr(JewelryMarketL10n.country),
+              value: countryName,
+              loading: countriesAsync.isLoading,
+              onTap: () => _pickCountry(countries),
+              validator: (_) => _country.length == 2
+                  ? null
+                  : context.tr(JewelryMarketL10n.chooseCountry),
             ),
             const SizedBox(height: 12),
+            if (states.isNotEmpty)
+              JewelryPickerField(
+                label: context.tr(JewelryMarketL10n.state),
+                value: _state.text,
+                onTap: () => _pickState(states, stateCode),
+                validator: (_) => stateCheck(_state.text),
+              )
+            else
+              TextFormField(
+                controller: _state,
+                textCapitalization: TextCapitalization.words,
+                autofillHints: const [AutofillHints.addressState],
+                decoration: field(context.tr(JewelryMarketL10n.state)),
+                validator: stateCheck,
+              ),
+            const SizedBox(height: 12),
+            if (pickCity)
+              JewelryPickerField(
+                label: context.tr(JewelryMarketL10n.city),
+                value: _city.text,
+                onTap: () => _pickCity(cities),
+                validator: (_) => required(_city.text, 2, 80),
+              )
+            else
+              TextFormField(
+                controller: _city,
+                textCapitalization: TextCapitalization.words,
+                autofillHints: const [AutofillHints.addressCity],
+                decoration: field(context.tr(JewelryMarketL10n.city)),
+                validator: (v) => required(v, 2, 80),
+              ),
+            const SizedBox(height: 12),
             TextFormField(
+              key: ValueKey('postal-$_india'),
               controller: _pin,
-              keyboardType: TextInputType.number,
+              keyboardType: _india ? TextInputType.number : TextInputType.text,
+              textCapitalization: TextCapitalization.characters,
               autofillHints: const [AutofillHints.postalCode],
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(6),
-              ],
-              decoration: field(context.tr(JewelryMarketL10n.pinCode)),
-              validator: (v) => RegExp(r'^\d{6}$').hasMatch(v?.trim() ?? '')
-                  ? null
-                  : context.tr(JewelryMarketL10n.pinInvalid),
+              inputFormatters: _india
+                  ? [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(6),
+                    ]
+                  : [
+                      FilteringTextInputFormatter.allow(
+                        RegExp(r'[A-Za-z0-9 -]'),
+                      ),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
+              decoration: field(
+                context.tr(
+                  _india
+                      ? JewelryMarketL10n.pinCode
+                      : JewelryMarketL10n.postalCode,
+                ),
+              ),
+              validator: postalCheck,
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -260,28 +434,30 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          context.tr(JewelryMarketL10n.piecesCount, {
-                            'count': pieces,
-                          }),
-                          style: LuxeType.body(p.inkMuted, size: 14),
-                        ),
-                      ),
-                      if (quote == null)
-                        const LuxeSkeleton(width: 80, height: 16)
-                      else
-                        Text(
-                          rupees(quote.total),
-                          style: LuxeType.figure(
-                            p.ink,
-                            size: 17,
-                          ).copyWith(fontWeight: FontWeight.w600),
-                        ),
-                    ],
-                  ),
+                  if (quote == null)
+                    const LuxeSkeleton(height: 18)
+                  else ...[
+                    summaryRow(
+                      context.tr(JewelryMarketL10n.piecesCount, {
+                        'count': pieces,
+                      }),
+                      rupees(quote.subtotal),
+                    ),
+                    for (final t in quote.taxes)
+                      summaryRow(t.label, rupees(t.amount)),
+                    summaryRow(
+                      context.tr(JewelryMarketL10n.shipping),
+                      quote.shipping <= 0
+                          ? context.tr(JewelryMarketL10n.free)
+                          : rupees(quote.shipping),
+                    ),
+                    Divider(color: p.hairline, height: 16),
+                    summaryRow(
+                      context.tr(JewelryMarketL10n.total),
+                      rupees(quote.total),
+                      strong: true,
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   Text(
                     context.tr(

@@ -8,6 +8,7 @@ import '../../../../core/network/api_error.dart';
 import '../../../../core/network/dio_provider.dart';
 import '../../../jewelry/data/mappers/marketplace_json.dart';
 import '../../domain/models/bag_line.dart';
+import '../../domain/models/marketplace_invoice.dart';
 import '../../domain/models/marketplace_order.dart';
 import '../../domain/models/marketplace_quote.dart';
 import '../../domain/repositories/jewelry_checkout_repository.dart';
@@ -109,6 +110,45 @@ class JewelryCheckoutRepositoryImpl implements JewelryCheckoutRepository {
           MarketplaceJson.data(response.data),
         );
       });
+
+  @override
+  Future<Result<MarketplaceInvoice, Failure>> invoice(String orderId) => _guard(
+    () async {
+      final response = await _dio.get<Object?>(
+        ApiEndpoints.marketplaceOrderInvoice(orderId),
+      );
+      return JewelryCheckoutMapper.invoice(MarketplaceJson.data(response.data));
+    },
+  );
+
+  /// The storefront lists live on another host: a bare client, so the
+  /// sign-in token never leaves the API.
+  static final Dio _storefront = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 15),
+    ),
+  );
+
+  @override
+  Future<Result<List<({String code, String name})>, Failure>> locations({
+    String? country,
+    String? state,
+  }) => _guard(() async {
+    final response = await _storefront.get<Object?>(
+      ApiEndpoints.jewelryStorefrontLocations,
+      queryParameters: {'country': ?country, 'state': ?state},
+    );
+    final items = MarketplaceJson.obj(response.data)['items'];
+    if (items is! List) return const [];
+    return [
+      for (final e in items)
+        if (e is Map)
+          (code: '${e['code'] ?? ''}'.trim(), name: '${e['name'] ?? ''}'.trim())
+        else if (e != null && '$e'.trim().isNotEmpty)
+          (code: '$e'.trim(), name: '$e'.trim()),
+    ].where((l) => l.code.isNotEmpty && l.name.isNotEmpty).toList();
+  });
 
   @override
   Future<Result<MarketplaceOrder, Failure>> cancelItem({

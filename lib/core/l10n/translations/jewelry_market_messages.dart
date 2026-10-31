@@ -76,7 +76,6 @@ abstract final class JewelryMarketL10n {
 
   // Checkout
   static const deliverTo = 'jewelryMarket.deliverTo';
-  static const indiaOnly = 'jewelryMarket.indiaOnly';
   static const fullName = 'jewelryMarket.fullName';
   static const phone = 'jewelryMarket.phone';
   static const phoneInvalid = 'jewelryMarket.phoneInvalid';
@@ -138,6 +137,40 @@ abstract final class JewelryMarketL10n {
   static const stepOutForDelivery = 'jewelryMarket.stepOutForDelivery';
   static const stepDelivered = 'jewelryMarket.stepDelivered';
   static const stepCancelled = 'jewelryMarket.stepCancelled';
+
+  // Taxes, invoice, address and Premium
+  static const taxAtCheckout = 'jewelryMarket.taxAtCheckout';
+  static const country = 'jewelryMarket.country';
+  static const chooseCountry = 'jewelryMarket.chooseCountry';
+  static const stateRequired = 'jewelryMarket.stateRequired';
+  static const postalCode = 'jewelryMarket.postalCode';
+  static const postalInvalid = 'jewelryMarket.postalInvalid';
+  static const cityNotListed = 'jewelryMarket.cityNotListed';
+  static const invoice = 'jewelryMarket.invoice';
+  static const invoiceNumbered = 'jewelryMarket.invoiceNumbered';
+  static const taxInvoice = 'jewelryMarket.taxInvoice';
+  static const invoiceUnavailable = 'jewelryMarket.invoiceUnavailable';
+  static const invoiceShareFailed = 'jewelryMarket.invoiceShareFailed';
+  static const sharePdf = 'jewelryMarket.sharePdf';
+  static const supplyIntraState = 'jewelryMarket.supplyIntraState';
+  static const supplyInterState = 'jewelryMarket.supplyInterState';
+  static const supplyExport = 'jewelryMarket.supplyExport';
+  static const invoiceMeta = 'jewelryMarket.invoiceMeta';
+  static const invoiceSoldBy = 'jewelryMarket.invoiceSoldBy';
+  static const invoiceBillTo = 'jewelryMarket.invoiceBillTo';
+  static const invoiceShipTo = 'jewelryMarket.invoiceShipTo';
+  static const invoicePlaceOfSupply = 'jewelryMarket.invoicePlaceOfSupply';
+  static const invoiceTaxSummary = 'jewelryMarket.invoiceTaxSummary';
+  static const invoiceTaxOn = 'jewelryMarket.invoiceTaxOn';
+  static const invoiceTaxable = 'jewelryMarket.invoiceTaxable';
+  static const invoiceTax = 'jewelryMarket.invoiceTax';
+  static const premium = 'jewelryMarket.premium';
+  static const premiumUnavailable = 'jewelryMarket.premiumUnavailable';
+  static const premiumFrom = 'jewelryMarket.premiumFrom';
+  static const premiumCount = 'jewelryMarket.premiumCount';
+  static const premiumEmpty = 'jewelryMarket.premiumEmpty';
+  static const allPieces = 'jewelryMarket.allPieces';
+  static const viewAll = 'jewelryMarket.viewAll';
 }
 
 const jewelryMarketMessages = <String, LocalizedMessage>{
@@ -471,11 +504,6 @@ const jewelryMarketMessages = <String, LocalizedMessage>{
     hindi: 'यहाँ डिलीवर करें',
     gujarati: 'અહીં ડિલિવર કરો',
   ),
-  JewelryMarketL10n.indiaOnly: LocalizedMessage(
-    english: 'Delivery is within India only.',
-    hindi: 'डिलीवरी केवल भारत में होती है।',
-    gujarati: 'ડિલિવરી ફક્ત ભારતમાં થાય છે.',
-  ),
   JewelryMarketL10n.fullName: LocalizedMessage(
     english: 'Full name',
     hindi: 'पूरा नाम',
@@ -542,9 +570,12 @@ const jewelryMarketMessages = <String, LocalizedMessage>{
     gujarati: '{count} પીસ',
   ),
   JewelryMarketL10n.payNote: LocalizedMessage(
-    english: 'You pay securely with Razorpay. The order is confirmed once the payment is verified.',
-    hindi: 'आप Razorpay से सुरक्षित भुगतान करते हैं। भुगतान सत्यापित होने पर ऑर्डर पक्का होता है।',
-    gujarati: 'તમે Razorpay થી સુરક્ષિત ચુકવણી કરો છો. ચુકવણી ચકાસાયા પછી ઓર્ડર પાકો થાય છે.',
+    english:
+        'You pay securely with Razorpay. The order is confirmed once the payment is verified.',
+    hindi:
+        'आप Razorpay से सुरक्षित भुगतान करते हैं। भुगतान सत्यापित होने पर ऑर्डर पक्का होता है।',
+    gujarati:
+        'તમે Razorpay થી સુરક્ષિત ચુકવણી કરો છો. ચુકવણી ચકાસાયા પછી ઓર્ડર પાકો થાય છે.',
   ),
   JewelryMarketL10n.pay: LocalizedMessage(
     english: 'Pay',
@@ -770,5 +801,165 @@ const jewelryMarketMessages = <String, LocalizedMessage>{
     english: 'Cancelled',
     hindi: 'रद्द',
     gujarati: 'રદ',
+  ),
+  JewelryMarketL10n.taxAtCheckout: LocalizedMessage(
+    english: '+ {taxes} at checkout',
+    hindi: '+ {taxes} चेकआउट पर',
+    gujarati: '+ {taxes} ચેકઆઉટ પર',
+  ),
+  JewelryMarketL10n.country: LocalizedMessage(
+    english: 'Country',
+    hindi: 'देश',
+    gujarati: 'દેશ',
+  ),
+  JewelryMarketL10n.chooseCountry: LocalizedMessage(
+    english: 'Choose the country.',
+    hindi: 'देश चुनें।',
+    gujarati: 'દેશ પસંદ કરો.',
+  ),
+  JewelryMarketL10n.stateRequired: LocalizedMessage(
+    english: 'Enter the state.',
+    hindi: 'राज्य दर्ज करें।',
+    gujarati: 'રાજ્ય દાખલ કરો.',
+  ),
+  JewelryMarketL10n.postalCode: LocalizedMessage(
+    english: 'Postal code',
+    hindi: 'पोस्टल कोड',
+    gujarati: 'પોસ્ટલ કોડ',
+  ),
+  JewelryMarketL10n.postalInvalid: LocalizedMessage(
+    english: 'Enter a valid postal code.',
+    hindi: 'सही पोस्टल कोड दर्ज करें।',
+    gujarati: 'સાચો પોસ્ટલ કોડ દાખલ કરો.',
+  ),
+  JewelryMarketL10n.cityNotListed: LocalizedMessage(
+    english: 'My city isn\'t listed',
+    hindi: 'मेरा शहर सूची में नहीं है',
+    gujarati: 'મારું શહેર યાદીમાં નથી',
+  ),
+  JewelryMarketL10n.invoice: LocalizedMessage(
+    english: 'Invoice',
+    hindi: 'इनवॉइस',
+    gujarati: 'ઇન્વૉઇસ',
+  ),
+  JewelryMarketL10n.invoiceNumbered: LocalizedMessage(
+    english: 'Invoice {number}',
+    hindi: 'इनवॉइस {number}',
+    gujarati: 'ઇન્વૉઇસ {number}',
+  ),
+  JewelryMarketL10n.taxInvoice: LocalizedMessage(
+    english: 'Tax invoice',
+    hindi: 'टैक्स इनवॉइस',
+    gujarati: 'ટેક્સ ઇન્વૉઇસ',
+  ),
+  JewelryMarketL10n.invoiceUnavailable: LocalizedMessage(
+    english: 'Invoice not available',
+    hindi: 'इनवॉइस उपलब्ध नहीं है',
+    gujarati: 'ઇન્વૉઇસ ઉપલબ્ધ નથી',
+  ),
+  JewelryMarketL10n.invoiceShareFailed: LocalizedMessage(
+    english: 'Couldn\'t share the invoice. Please try again.',
+    hindi: 'इनवॉइस शेयर नहीं हो सका। फिर से कोशिश करें।',
+    gujarati: 'ઇન્વૉઇસ શેર ન થયું. ફરી પ્રયાસ કરો.',
+  ),
+  JewelryMarketL10n.sharePdf: LocalizedMessage(
+    english: 'Share as PDF',
+    hindi: 'PDF के रूप में शेयर करें',
+    gujarati: 'PDF તરીકે શેર કરો',
+  ),
+  JewelryMarketL10n.supplyIntraState: LocalizedMessage(
+    english: 'Intra-state supply',
+    hindi: 'राज्य के भीतर आपूर्ति',
+    gujarati: 'રાજ્યની અંદર પુરવઠો',
+  ),
+  JewelryMarketL10n.supplyInterState: LocalizedMessage(
+    english: 'Inter-state supply',
+    hindi: 'अंतर-राज्य आपूर्ति',
+    gujarati: 'આંતર-રાજ્ય પુરવઠો',
+  ),
+  JewelryMarketL10n.supplyExport: LocalizedMessage(
+    english: 'Export',
+    hindi: 'निर्यात',
+    gujarati: 'નિકાસ',
+  ),
+  JewelryMarketL10n.invoiceMeta: LocalizedMessage(
+    english: 'Issued {date} · Order {order}',
+    hindi: 'जारी {date} · ऑर्डर {order}',
+    gujarati: 'જારી {date} · ઓર્ડર {order}',
+  ),
+  JewelryMarketL10n.invoiceSoldBy: LocalizedMessage(
+    english: 'Sold by',
+    hindi: 'विक्रेता',
+    gujarati: 'વેચનાર',
+  ),
+  JewelryMarketL10n.invoiceBillTo: LocalizedMessage(
+    english: 'Bill to',
+    hindi: 'बिल प्राप्तकर्ता',
+    gujarati: 'બિલ મેળવનાર',
+  ),
+  JewelryMarketL10n.invoiceShipTo: LocalizedMessage(
+    english: 'Ship to',
+    hindi: 'डिलीवरी पता',
+    gujarati: 'ડિલિવરી સરનામું',
+  ),
+  JewelryMarketL10n.invoicePlaceOfSupply: LocalizedMessage(
+    english: 'Place of supply',
+    hindi: 'आपूर्ति का स्थान',
+    gujarati: 'પુરવઠાનું સ્થળ',
+  ),
+  JewelryMarketL10n.invoiceTaxSummary: LocalizedMessage(
+    english: 'Tax summary',
+    hindi: 'टैक्स सारांश',
+    gujarati: 'ટેક્સ સારાંશ',
+  ),
+  JewelryMarketL10n.invoiceTaxOn: LocalizedMessage(
+    english: '{tax} on {base}: {amount}',
+    hindi: '{base} पर {tax}: {amount}',
+    gujarati: '{base} પર {tax}: {amount}',
+  ),
+  JewelryMarketL10n.invoiceTaxable: LocalizedMessage(
+    english: 'Taxable value',
+    hindi: 'कर योग्य मूल्य',
+    gujarati: 'કરપાત્ર કિંમત',
+  ),
+  JewelryMarketL10n.invoiceTax: LocalizedMessage(
+    english: 'Tax',
+    hindi: 'टैक्स',
+    gujarati: 'ટેક્સ',
+  ),
+  JewelryMarketL10n.premium: LocalizedMessage(
+    english: 'Premium',
+    hindi: 'प्रीमियम',
+    gujarati: 'પ્રીમિયમ',
+  ),
+  JewelryMarketL10n.premiumUnavailable: LocalizedMessage(
+    english: 'Premium pieces are coming soon.',
+    hindi: 'प्रीमियम पीस जल्द आ रहे हैं।',
+    gujarati: 'પ્રીમિયમ પીસ જલ્દી આવી રહ્યા છે.',
+  ),
+  JewelryMarketL10n.premiumFrom: LocalizedMessage(
+    english: 'Jewellery from {amount}',
+    hindi: '{amount} से शुरू ज्वेलरी',
+    gujarati: '{amount} થી શરૂ જ્વેલરી',
+  ),
+  JewelryMarketL10n.premiumCount: LocalizedMessage(
+    english: '{count} pieces',
+    hindi: '{count} पीस',
+    gujarati: '{count} પીસ',
+  ),
+  JewelryMarketL10n.premiumEmpty: LocalizedMessage(
+    english: 'No piece from {amount} yet. Check back soon.',
+    hindi: '{amount} से कोई पीस अभी नहीं है। जल्द फिर देखें।',
+    gujarati: '{amount} થી કોઈ પીસ હજી નથી. જલ્દી ફરી જુઓ.',
+  ),
+  JewelryMarketL10n.allPieces: LocalizedMessage(
+    english: 'All',
+    hindi: 'सभी',
+    gujarati: 'બધા',
+  ),
+  JewelryMarketL10n.viewAll: LocalizedMessage(
+    english: 'View all',
+    hindi: 'सभी देखें',
+    gujarati: 'બધું જુઓ',
   ),
 };

@@ -20,6 +20,10 @@ import '../../../product_detail/presentation/widgets/luxe/luxe_detail_parts.dart
 import '../../application/jewellery_categories_provider.dart';
 import '../../application/jewelry_catalogue_providers.dart';
 import '../../application/jewelry_filter_provider.dart';
+import '../../application/jewelry_premium_providers.dart';
+import '../../../jewelry_checkout/presentation/jewelry_checkout_format.dart';
+import '../../../product_detail/product_detail_navigation.dart';
+import '../widgets/jewelry_luxe_cards.dart';
 import '../../domain/models/marketplace_enums.dart';
 import '../../domain/models/marketplace_listing.dart';
 import '../jewellery_category_images.dart';
@@ -102,7 +106,8 @@ class _JewelryCategoriesScreenState
             onRefresh: () async {
               ref
                 ..invalidate(jewelleryCategoriesProvider)
-                ..invalidate(jewelryShopsProvider);
+                ..invalidate(jewelryShopsProvider)
+                ..invalidate(jewelryPremiumStripProvider);
               await Future.wait([
                 ref
                     .read(jewelleryCategoriesProvider.future)
@@ -165,6 +170,7 @@ class _JewelryCategoriesScreenState
                 ),
                 const SliverToBoxAdapter(child: SizedBox(height: 8)),
                 ..._collections(context),
+                const SliverToBoxAdapter(child: _PremiumStrip()),
                 SliverToBoxAdapter(child: _Styles(onOpen: _open)),
                 SliverToBoxAdapter(
                   child: _Metals(onOpen: (m) => _open(metal: m)),
@@ -603,6 +609,58 @@ class _MetalTile extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Premium band: the newest pieces at or above GemWorld's Premium amount
+/// (read live), with "View all". Hidden when the route isn't deployed, on
+/// an error, or when no piece reaches the amount.
+class _PremiumStrip extends ConsumerWidget {
+  const _PremiumStrip();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final page = ref.watch(jewelryPremiumStripProvider).valueOrNull;
+    if (page == null || !page.isVisible) return const SizedBox.shrink();
+    final items = page.items;
+    final width = LuxeListingMetrics.gridCell(context);
+    final height = LuxeListingMetrics.gridExtent(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          LuxeRowHeading(
+            title: context.tr(JewelryMarketL10n.premium),
+            subtitle: context.tr(JewelryMarketL10n.premiumFrom, {
+              'amount': rupees(page.thresholdInr),
+            }),
+            actionLabel: context.tr(JewelryMarketL10n.viewAll),
+            onAction: () => context.push(AppRouteNames.jewelryPremium),
+          ),
+          SizedBox(
+            height: height,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(
+                horizontal: LuxeListingMetrics.pad,
+              ),
+              itemCount: items.length,
+              separatorBuilder: (_, _) =>
+                  const SizedBox(width: LuxeListingMetrics.gap),
+              itemBuilder: (context, i) => SizedBox(
+                width: width,
+                child: JewelryLuxeGridCard(
+                  jewelry: items[i],
+                  onTap: () =>
+                      openJewelryDetail(context, items[i], among: items),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

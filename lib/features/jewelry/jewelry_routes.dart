@@ -8,6 +8,7 @@ import 'presentation/screens/jewelry_house_collection_screen.dart';
 import 'presentation/screens/jewelry_house_screen.dart';
 import 'presentation/screens/jewelry_houses_screen.dart';
 import 'presentation/screens/jewelry_listing_screen.dart';
+import 'presentation/screens/jewelry_premium_screen.dart';
 
 final List<RouteBase> jewelryRoutes = [
   GoRoute(
@@ -32,6 +33,10 @@ final List<RouteBase> jewelryRoutes = [
           ? state.extra! as JewelryFilterScope
           : null,
     ),
+  ),
+  GoRoute(
+    path: AppRouteNames.jewelryPremium,
+    builder: (context, state) => const JewelryPremiumScreen(),
   ),
   GoRoute(
     path: AppRouteNames.jewelryHouses,

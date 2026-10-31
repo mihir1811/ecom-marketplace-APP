@@ -42,7 +42,11 @@ class ProductJewelryDetail {
     this.skus = const [],
     this.coverImageUrl,
     this.isFullRecord = false,
+    this.taxLabels = const [],
   });
+
+  /// Taxes added at checkout ("GST (3%)"); empty when none.
+  final List<String> taxLabels;
 
   final String slug;
   final String listingId;

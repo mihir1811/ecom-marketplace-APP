@@ -1,4 +1,5 @@
 import 'bag_line.dart';
+import 'marketplace_charge.dart';
 
 /// Today's price and availability for one bag line.
 class QuoteLine {
@@ -17,6 +18,8 @@ class QuoteLine {
     this.options = const {},
     this.customValues = const {},
     this.problem,
+    this.taxes = const [],
+    this.taxAmount = 0,
   });
 
   final String skuId;
@@ -38,12 +41,17 @@ class QuoteLine {
   /// Why the line can't be bought (null when it can), written for buyers.
   final String? problem;
 
+  /// Taxes on this line, in rupees ([taxAmount] is their sum).
+  final List<MarketplaceCharge> taxes;
+  final double taxAmount;
+
   /// The bag line this quote line prices.
   String get key => BagLine.keyFor(skuId, customValues);
 }
 
 /// `POST /marketplace/cart/quote`. Lines with a problem are left out of
-/// [subtotal]; checkout is refused until [ready].
+/// [subtotal]; checkout is refused until [ready]. [total] is subtotal +
+/// [taxTotal] + shipping: what Razorpay charges.
 class CartQuote {
   const CartQuote({
     required this.lines,
@@ -51,10 +59,16 @@ class CartQuote {
     required this.shipping,
     required this.total,
     required this.ready,
+    this.taxes = const [],
+    this.taxTotal = 0,
   });
 
   final List<QuoteLine> lines;
   final double subtotal;
+
+  /// One row per tax and rate across the bag; empty before taxes go live.
+  final List<MarketplaceCharge> taxes;
+  final double taxTotal;
   final double shipping;
   final double total;
   final bool ready;

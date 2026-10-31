@@ -8,6 +8,7 @@ import '../../core/router/route_names.dart';
 import 'presentation/screens/jewelry_bag_screen.dart';
 import 'presentation/screens/jewelry_checkout_screen.dart';
 import 'presentation/screens/jewelry_order_detail_screen.dart';
+import 'presentation/screens/jewelry_invoice_screen.dart';
 import 'presentation/screens/jewelry_orders_screen.dart';
 
 /// Sends guests to sign in: the bag, checkout and orders are for signed-in
@@ -44,6 +45,15 @@ final List<RouteBase> jewelryCheckoutRoutes = [
     redirect: _signedInOnly,
     builder: (context, state) => VerifiedAccountGate(
       child: JewelryOrderDetailScreen(
+        orderId: state.pathParameters['orderId'] ?? '',
+      ),
+    ),
+  ),
+  GoRoute(
+    path: AppRouteNames.jewelryOrderInvoice,
+    redirect: _signedInOnly,
+    builder: (context, state) => VerifiedAccountGate(
+      child: JewelryInvoiceScreen(
         orderId: state.pathParameters['orderId'] ?? '',
       ),
     ),

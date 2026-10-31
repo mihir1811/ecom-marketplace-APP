@@ -185,7 +185,12 @@ class _LuxeJewelryPurchasePanelState
           labels: labels,
           footer: Text(
             [
-              context.tr(JewelryFlowL10n.inclTaxes),
+              if (j.taxLabels.isEmpty)
+                context.tr(JewelryFlowL10n.inclTaxes)
+              else
+                context.tr(JewelryMarketL10n.taxAtCheckout, {
+                  'taxes': j.taxLabels.join(' + '),
+                }),
               if ((j.stockNumber ?? '').trim().isNotEmpty)
                 context.tr(JewelryFlowL10n.sku, {'sku': j.stockNumber}),
             ].join('  ·  '),

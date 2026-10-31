@@ -1,6 +1,7 @@
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../models/bag_line.dart';
+import '../models/marketplace_invoice.dart';
 import '../models/marketplace_order.dart';
 import '../models/marketplace_quote.dart';
 
@@ -38,6 +39,18 @@ abstract class JewelryCheckoutRepository {
 
   /// One order. Asks Razorpay first, so it settles any doubt about a payment.
   Future<Result<MarketplaceOrder, Failure>> order(String orderId);
+
+  /// GemWorld's tax invoice for a paid order (numbered when first opened
+  /// for orders paid before invoices existed).
+  Future<Result<MarketplaceInvoice, Failure>> invoice(String orderId);
+
+  /// Countries (no args), states of [country], or cities of [state] for
+  /// the address picker: `{code, name}` for countries and states, the name
+  /// for cities (as both code and name).
+  Future<Result<List<({String code, String name})>, Failure>> locations({
+    String? country,
+    String? state,
+  });
 
   /// Cancels one piece and refunds it; returns the updated order.
   Future<Result<MarketplaceOrder, Failure>> cancelItem({
