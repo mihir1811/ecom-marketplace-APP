@@ -22,16 +22,25 @@ class RewardsBalanceCard extends StatelessWidget {
     final settings = rewards.settings;
     final club = rewards.club;
 
-    final (statusLabel, statusColor, statusIcon) = !settings.enabled
-        ? ('Paused', p.amber, Icons.pause_circle_outline_rounded)
+    // No pill while the balance is empty.
+    final _StatusPill? status = !settings.enabled
+        ? _StatusPill(
+            label: 'Paused',
+            color: p.amber,
+            icon: Icons.pause_circle_outline_rounded,
+          )
         : rewards.canSpend
-        ? ('Ready to use', p.emerald, Icons.check_circle_outline_rounded)
+        ? _StatusPill(
+            label: 'Ready to use',
+            color: p.emerald,
+            icon: Icons.check_circle_outline_rounded,
+          )
         : rewards.balance <= 0
-        ? ('Start earning', p.gold, Icons.auto_awesome_outlined)
-        : (
-            '${rewardPointsLabel(rewards.pointsToUnlock)} to unlock',
-            p.gold,
-            Icons.lock_outline_rounded,
+        ? null
+        : _StatusPill(
+            label: '${rewardPointsLabel(rewards.pointsToUnlock)} to unlock',
+            color: p.gold,
+            icon: Icons.lock_outline_rounded,
           );
 
     return Container(
@@ -91,12 +100,7 @@ class RewardsBalanceCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 10),
-              _StatusPill(
-                label: statusLabel,
-                color: statusColor,
-                icon: statusIcon,
-              ),
+              if (status != null) ...[const SizedBox(width: 10), status],
             ],
           ),
           if (club.hasClubs) ...[
@@ -121,7 +125,8 @@ class RewardsBalanceCard extends StatelessWidget {
   }
 }
 
-/// "Silver club · 12 pts lifetime" with a thin bar to the next club.
+/// "Silver club · 12 pts lifetime" over a ladder of every club, so the
+/// buyer sees all levels and how far along each one they are.
 class _ClubLine extends StatelessWidget {
   const _ClubLine({required this.status, required this.soft});
 
@@ -165,19 +170,107 @@ class _ClubLine extends StatelessWidget {
             Text(trailing, style: AtelierType.caption(soft, size: 11.5)),
           ],
         ),
-        const SizedBox(height: 8),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(AtelierRadius.pill),
-          child: LinearProgressIndicator(
-            value: status.progress.clamp(0.0, 1.0),
-            minHeight: 4,
-            backgroundColor: p.onOnyx.withValues(alpha: 0.12),
-            valueColor: AlwaysStoppedAnimation(accent),
-          ),
-        ),
+        const SizedBox(height: 10),
+        _ClubLadder(status: status, soft: soft),
       ],
     );
   }
+}
+
+/// One segment per club, lowest first: each fills from the previous club's
+/// threshold (or 0) up to its own, and is labelled with the club's name and
+/// the lifetime points it needs.
+class _ClubLadder extends StatelessWidget {
+  const _ClubLadder({required this.status, required this.soft});
+
+  final RewardClubStatus status;
+  final Color soft;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.atelier;
+    final clubs = [...status.clubs]
+      ..sort((a, b) => a.minPoints.compareTo(b.minPoints));
+    final pts = status.lifetimePoints;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < clubs.length; i++) ...[
+          if (i > 0) const SizedBox(width: 4),
+          Expanded(
+            child: Builder(
+              builder: (context) {
+                final club = clubs[i];
+                final from = i == 0 ? 0 : clubs[i - 1].minPoints;
+                final span = club.minPoints - from;
+                final fill = span <= 0
+                    ? (pts >= club.minPoints ? 1.0 : 0.0)
+                    : ((pts - from) / span).clamp(0.0, 1.0).toDouble();
+                final reached = pts >= club.minPoints;
+                final isCurrent = status.current?.id == club.id;
+                final color = Color(club.color);
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(AtelierRadius.pill),
+                      child: LinearProgressIndicator(
+                        value: fill,
+                        minHeight: 4,
+                        backgroundColor: p.onOnyx.withValues(alpha: 0.12),
+                        valueColor: AlwaysStoppedAnimation(color),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: reached ? color : Colors.transparent,
+                            border: Border.all(color: color, width: 1),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            club.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AtelierType.label(
+                              reached ? p.onOnyx : soft,
+                              size: 11,
+                            ).copyWith(
+                              fontWeight: isCurrent ? FontWeight.w700 : null,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      club.hasBonus
+                          ? '${rewardPointsLabel(club.minPoints)} · ${_multiplier(club.earnMultiplier)}'
+                          : rewardPointsLabel(club.minPoints),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AtelierType.caption(soft, size: 10),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  static String _multiplier(double m) =>
+      '${m == m.roundToDouble() ? m.toInt() : m}×';
 }
 
 class _StatusPill extends StatelessWidget {

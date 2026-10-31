@@ -131,10 +131,6 @@ class _BuyerRefundsScreenState extends ConsumerState<BuyerRefundsScreen> {
     final counts = {
       for (final f in _RefundFilter.values) f: items.where(f.matches).length,
     };
-    final returned = items
-        .where((r) => r.status == RefundStatus.accepted)
-        .fold<double>(0, (sum, r) => sum + r.amountUsd);
-    final inReview = counts[_RefundFilter.review]!;
     final visible = _view(items);
     final gutter = AtelierSpace.gutter(MediaQuery.sizeOf(context).width);
 
@@ -160,47 +156,6 @@ class _BuyerRefundsScreenState extends ConsumerState<BuyerRefundsScreen> {
                         MaisonHeader(
                           title: context.tr(AccountCommerceL10n.refunds),
                           cut: GemCut.pear,
-                        ),
-                        const SizedBox(height: 22),
-                        Reveal(
-                          index: 3,
-                          child: MaisonStatStrip(
-                            stats: [
-                              MaisonStat(
-                                label: 'In review',
-                                value: '$inReview',
-                                caption: inReview > 0
-                                    ? 'With the seller'
-                                    : 'Nothing pending',
-                                tone: AtelierTone.amber,
-                                pulse: inReview > 0,
-                                selected: _filter == _RefundFilter.review,
-                                onTap: () => _setFilter(
-                                  _filter == _RefundFilter.review
-                                      ? _RefundFilter.all
-                                      : _RefundFilter.review,
-                                ),
-                              ),
-                              MaisonStat(
-                                label: 'Returned',
-                                value: maisonUsd(returned),
-                                caption: 'Credited to wallet',
-                                tone: returned > 0 ? AtelierTone.emerald : null,
-                                selected: _filter == _RefundFilter.approved,
-                                onTap: () => _setFilter(
-                                  _filter == _RefundFilter.approved
-                                      ? _RefundFilter.all
-                                      : _RefundFilter.approved,
-                                ),
-                              ),
-                              MaisonStat(
-                                label: 'Requests',
-                                value:
-                                    '${state.total > items.length ? state.total : items.length}',
-                                caption: 'All time',
-                              ),
-                            ],
-                          ),
                         ),
                       ],
                     ),

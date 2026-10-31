@@ -374,9 +374,6 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen>
     final p = context.atelier;
     final state = ref.watch(buyerOfferListProvider);
     final items = state.items;
-    final payable = items.where((o) => o.isPayable).length;
-    final pending = items.where((o) => o.isAwaitingSeller).length;
-    final counters = items.where((o) => o.isOpenCounter).length;
     final gutter = AtelierSpace.gutter(MediaQuery.sizeOf(context).width);
 
     return MaisonLayout(
@@ -401,56 +398,6 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen>
                         MaisonHeader(
                           title: context.tr(DiamondFlowL10n.myOffers),
                           cut: GemCut.cushion,
-                        ),
-                        const SizedBox(height: 22),
-                        Reveal(
-                          index: 3,
-                          child: MaisonStatStrip(
-                            stats: [
-                              MaisonStat(
-                                label: 'To pay',
-                                value: '$payable',
-                                caption: payable > 0
-                                    ? 'Within 24 hours'
-                                    : 'Nothing to pay',
-                                tone: payable > 0 ? AtelierTone.gold : null,
-                                pulse: payable > 0,
-                                selected: _filter == _OfferFilter.accepted,
-                                onTap: () => _setFilter(
-                                  _filter == _OfferFilter.accepted
-                                      ? _OfferFilter.all
-                                      : _OfferFilter.accepted,
-                                ),
-                              ),
-                              MaisonStat(
-                                label: 'Open',
-                                value: '${pending + counters}',
-                                caption: counters > 0
-                                    ? '$counters to answer'
-                                    : 'With the seller',
-                                tone: counters > 0
-                                    ? AtelierTone.gold
-                                    : pending > 0
-                                    ? AtelierTone.amber
-                                    : null,
-                                pulse: counters > 0,
-                                selected: _filter == _OfferFilter.pending,
-                                onTap: () => _setFilter(
-                                  _filter == _OfferFilter.pending
-                                      ? _OfferFilter.all
-                                      : _OfferFilter.pending,
-                                ),
-                              ),
-                              MaisonStat(
-                                label: 'Offers',
-                                value:
-                                    '${state.total > items.length ? state.total : items.length}',
-                                caption: _filter == _OfferFilter.all
-                                    ? 'All time'
-                                    : _filter.label,
-                              ),
-                            ],
-                          ),
                         ),
                       ],
                     ),

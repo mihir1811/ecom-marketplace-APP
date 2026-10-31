@@ -1,38 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../buyer/presentation/maison/maison_kit.dart';
 import '../../../seller/presentation/atelier/atelier_components.dart';
 import '../../../seller/presentation/atelier/atelier_feedback.dart';
 import '../../../seller/presentation/atelier/atelier_studio.dart';
 import '../../../seller/presentation/atelier/atelier_theme.dart';
 import '../../domain/models/rewards.dart';
 import '../rewards_format.dart';
-
-/// The admin's current rates: how fast points come and what they're worth.
-class RewardsRatesStrip extends StatelessWidget {
-  const RewardsRatesStrip({required this.settings, super.key});
-
-  final RewardSettings settings;
-
-  @override
-  Widget build(BuildContext context) {
-    return MaisonStatStrip(
-      stats: [
-        MaisonStat(
-          label: 'Earn 1 pt',
-          value: atelierMoney(settings.earnRupeesPerPoint, symbol: '₹'),
-          caption: 'of item value',
-        ),
-        MaisonStat(
-          label: '1 pt is worth',
-          value: maisonInr(settings.pointValueInr),
-          caption: 'at checkout',
-          tone: AtelierTone.gold,
-        ),
-      ],
-    );
-  }
-}
 
 /// Progress toward the smallest spendable balance.
 class RewardsUnlockCard extends StatelessWidget {

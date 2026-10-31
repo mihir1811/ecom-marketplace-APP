@@ -109,29 +109,6 @@ class BuyerAboutScreen extends StatelessWidget {
                     style: AtelierType.body(p.inkSoft, size: 15.5),
                   ),
                 ),
-                const SizedBox(height: 22),
-                reveal(
-                  MaisonStatStrip(
-                    stats: [
-                      MaisonStat(
-                        value: '6',
-                        label: context.tr(RemainingL10n.coreCategories),
-                      ),
-                      MaisonStat(
-                        value: 'IN',
-                        label: context.tr(RemainingL10n.marketplaceReach),
-                      ),
-                      MaisonStat(
-                        value: 'GIA',
-                        label: context.tr(RemainingL10n.certification),
-                      ),
-                      MaisonStat(
-                        value: '24/7',
-                        label: context.tr(RemainingL10n.supportTickets),
-                      ),
-                    ],
-                  ),
-                ),
                 const SizedBox(height: 28),
                 reveal(
                   MaisonGroupLabel(

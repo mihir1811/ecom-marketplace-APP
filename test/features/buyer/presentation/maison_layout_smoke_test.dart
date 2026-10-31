@@ -177,13 +177,6 @@ void main() {
         width,
         Column(
           children: [
-            const MaisonStatStrip(
-              stats: [
-                MaisonStat(label: 'In progress', value: '12', caption: 'x'),
-                MaisonStat(label: 'Attention', value: '3'),
-                MaisonStat(label: 'Active value', value: '\$1,240,500.00'),
-              ],
-            ),
             BuyerOrderCard(
               order: BuyerOrder(
                 id: 'order-1234567890',
