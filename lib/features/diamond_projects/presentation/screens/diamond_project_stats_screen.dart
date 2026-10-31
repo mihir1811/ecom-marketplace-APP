@@ -159,7 +159,6 @@ class _DiamondProjectStatsScreenState
                       child: Center(
                         child: DiamondProjectTabBar(
                           selected: _tab,
-                          stoneCount: selection.items.length,
                           onChanged: (t) => setState(() => _tab = t),
                         ),
                       ),

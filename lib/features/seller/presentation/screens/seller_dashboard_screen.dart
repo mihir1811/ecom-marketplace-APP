@@ -93,10 +93,6 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
         } else if (snapshot == null) {
           content = const _DashboardSkeleton();
         } else {
-          final sales = snapshot.metrics
-              .where((m) => m.metric == DashboardMetric.totalSales)
-              .firstOrNull;
-
           final performance = Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -138,14 +134,9 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
           content = Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DashboardHero(
-                headlineLabel: sales?.title,
-                headlineValue: sales?.value,
-                headlineCaption: sales?.subtitle,
-              ),
-              const SizedBox(height: AtelierSpace.s16),
+              // Only shown when something needs the seller; adds its own
+              // bottom gap, so nothing is left behind when hidden.
               const DashboardAttentionStrip(),
-              const SizedBox(height: AtelierSpace.s32),
               const _SectionLabel(text: 'At a glance'),
               const SizedBox(height: AtelierSpace.s12),
               if (wide)
@@ -220,8 +211,6 @@ class _DashboardSkeleton extends StatelessWidget {
     return const Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        DashboardHeroSkeleton(),
-        SizedBox(height: AtelierSpace.s32),
         Row(
           children: [
             Expanded(child: SkeletonBox(height: 104, radius: AtelierRadius.lg)),

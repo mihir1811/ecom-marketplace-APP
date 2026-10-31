@@ -157,7 +157,6 @@ class _SellerDashboardDiamondProjectsSectionState
                           Center(
                             child: DiamondProjectTabBar(
                               selected: _tab,
-                              stoneCount: inventory.items.length,
                               onChanged: (t) => setState(() => _tab = t),
                             ),
                           ),
@@ -243,11 +242,9 @@ class _ProjectSummary extends StatelessWidget {
     String money(double v) => atelierMoney(v.round(), symbol: r'$');
     Widget figure(String value, String label) => Expanded(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           FittedBox(
             fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
             child: Text(value, style: AtelierType.title(p.ink, size: 16)),
           ),
           const SizedBox(height: 2),
@@ -255,6 +252,7 @@ class _ProjectSummary extends StatelessWidget {
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
             style: AtelierType.caption(p.muted, size: 11),
           ),
         ],
@@ -283,6 +281,7 @@ class _ProjectSummary extends StatelessWidget {
           Text(
             'Avg ${stats.avgCarat.toStringAsFixed(2)} ct · '
             'Avg ${money(stats.avgPrice)}',
+            textAlign: TextAlign.center,
             style: AtelierType.caption(p.muted, size: 11.5),
           ),
         ],

@@ -15,72 +15,8 @@ import '../../atelier/atelier_components.dart';
 import '../../atelier/atelier_motion.dart';
 import '../../atelier/atelier_theme.dart';
 
-/// Headline figure (e.g. total sales) as one plain card.
-class DashboardHero extends StatelessWidget {
-  const DashboardHero({
-    required this.headlineLabel,
-    required this.headlineValue,
-    required this.headlineCaption,
-    super.key,
-  });
-
-  final String? headlineLabel;
-  final String? headlineValue;
-  final String? headlineCaption;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.atelier;
-    final value = headlineValue;
-    if (value == null) return const SizedBox.shrink();
-    return Reveal(
-      child: AtelierCard(
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              (headlineLabel ?? '').toUpperCase(),
-              style: AtelierType.overline(p.muted),
-            ),
-            const SizedBox(height: 4),
-            CountUpText(
-              value,
-              duration: const Duration(milliseconds: 1200),
-              style: AtelierType.display(
-                p.ink,
-                size: 32,
-                weight: FontWeight.w500,
-              ),
-            ),
-            if (headlineCaption != null) ...[
-              const SizedBox(height: 2),
-              Text(
-                headlineCaption!,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AtelierType.caption(p.muted, size: 12),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Skeleton for the hero while the first snapshot loads.
-class DashboardHeroSkeleton extends StatelessWidget {
-  const DashboardHeroSkeleton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const SkeletonBox(height: 96, radius: AtelierRadius.lg);
-  }
-}
-
-/// What a seller should act on today, as one card: "All caught up" when
-/// nothing is pending, otherwise just the items that need attention.
+/// What a seller should act on today, as one card listing only the items that
+/// need attention. Hidden entirely when nothing is pending.
 class DashboardAttentionStrip extends ConsumerWidget {
   const DashboardAttentionStrip({super.key});
 
@@ -140,51 +76,29 @@ class DashboardAttentionStrip extends ConsumerWidget {
       ),
     ];
 
-    final loading = items.any((d) => d.loading);
     final needs = [
       for (final d in items)
         if (d.error || (!d.loading && (d.count ?? 0) > 0)) d,
     ];
 
-    if (needs.isEmpty && loading) {
-      return const SkeletonBox(height: 56, radius: AtelierRadius.lg);
-    }
+    // Nothing pending (or still loading): show nothing rather than an
+    // "all caught up" card or a skeleton that may vanish a moment later.
+    if (needs.isEmpty) return const SizedBox.shrink();
 
-    if (needs.isEmpty) {
-      return Reveal(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AtelierSpace.s24),
+      child: Reveal(
         child: AtelierCard(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-          child: Row(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Icon(
-                Icons.check_circle_outline_rounded,
-                size: 20,
-                color: p.emerald,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'All caught up',
-                  style: AtelierType.title(p.ink, size: 15),
-                ),
-              ),
+              for (var i = 0; i < needs.length; i++) ...[
+                if (i > 0) Container(height: 1, color: p.hairline),
+                _AttentionRow(data: needs[i]),
+              ],
             ],
           ),
-        ),
-      );
-    }
-
-    return Reveal(
-      child: AtelierCard(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (var i = 0; i < needs.length; i++) ...[
-              if (i > 0) Container(height: 1, color: p.hairline),
-              _AttentionRow(data: needs[i]),
-            ],
-          ],
         ),
       ),
     );

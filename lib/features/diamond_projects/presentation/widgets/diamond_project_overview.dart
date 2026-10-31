@@ -254,13 +254,11 @@ class DiamondProjectAverages extends StatelessWidget {
 class DiamondProjectTabBar extends StatelessWidget {
   const DiamondProjectTabBar({
     required this.selected,
-    required this.stoneCount,
     required this.onChanged,
     super.key,
   });
 
   final DiamondProjectTab selected;
-  final int stoneCount;
   final ValueChanged<DiamondProjectTab> onChanged;
 
   @override
@@ -273,8 +271,7 @@ class DiamondProjectTabBar extends StatelessWidget {
         DiamondProjectTab.overview => context.tr(ExperienceL10n.tabOverview),
         DiamondProjectTab.mix => context.tr(ExperienceL10n.tabMix),
         DiamondProjectTab.spread => context.tr(ExperienceL10n.tabDistribution),
-        DiamondProjectTab.stones =>
-          '${context.tr(ExperienceL10n.tabStones)} · $stoneCount',
+        DiamondProjectTab.stones => context.tr(ExperienceL10n.tabStones),
       },
       onChanged: onChanged,
     );
