@@ -181,25 +181,12 @@ class _HelpCenterScreenState extends ConsumerState<HelpCenterScreen> {
             ],
           ),
         ),
-        const SizedBox(height: AtelierSpace.s32),
-        const Reveal(
+        const SizedBox(height: AtelierSpace.s20),
+        Reveal(
           index: 1,
-          child: AtelierSectionHeader(title: 'What do you need help with?'),
+          child: _TopicDropdown(seller: seller, onPick: _compose),
         ),
-        const SizedBox(height: AtelierSpace.s16),
-        AtelierTileGrid(
-          columns: 3,
-          minTileWidth: 160,
-          children: [
-            for (final type in HelpIssueType.values)
-              _TopicTile(
-                type: type,
-                seller: seller,
-                onTap: () => _compose(type),
-              ),
-          ],
-        ),
-        const SizedBox(height: AtelierSpace.s40),
+        const SizedBox(height: AtelierSpace.s32),
         Reveal(
           index: 2,
           child: AtelierSectionHeader(
@@ -386,50 +373,117 @@ String _issueHint(HelpIssueType type, {required bool seller}) => switch (type) {
   ),
 };
 
-class _TopicTile extends StatelessWidget {
-  const _TopicTile({
-    required this.type,
-    required this.seller,
-    required this.onTap,
-  });
+/// "What do you need help with?" as a dropdown: tap to list the topics,
+/// pick one to start a question about it.
+class _TopicDropdown extends StatefulWidget {
+  const _TopicDropdown({required this.seller, required this.onPick});
 
-  final HelpIssueType type;
   final bool seller;
-  final VoidCallback onTap;
+  final ValueChanged<HelpIssueType> onPick;
+
+  @override
+  State<_TopicDropdown> createState() => _TopicDropdownState();
+}
+
+class _TopicDropdownState extends State<_TopicDropdown> {
+  bool _open = false;
 
   @override
   Widget build(BuildContext context) {
     final p = context.atelier;
     return AtelierCard(
-      onTap: onTap,
-      semanticLabel: 'Ask about ${type.label}',
-      padding: const EdgeInsets.fromLTRB(16, 16, 14, 16),
-      child: Row(
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AtelierIconBadge(icon: _issueIcon(type), size: 42),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  type.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AtelierType.title(p.ink, size: 14.5),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  _issueHint(type, seller: seller),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AtelierType.caption(p.muted, size: 12),
-                ),
-              ],
+          InkWell(
+            borderRadius: BorderRadius.circular(AtelierRadius.lg),
+            onTap: () => setState(() => _open = !_open),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+              child: Row(
+                children: [
+                  Icon(Icons.support_agent_rounded, size: 20, color: p.gold),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'What do you need help with?',
+                      style: AtelierType.title(p.ink, size: 14.5),
+                    ),
+                  ),
+                  AnimatedRotation(
+                    turns: _open ? 0.5 : 0,
+                    duration: AtelierMotion.base,
+                    child: Icon(Icons.expand_more_rounded, color: p.muted),
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(width: 6),
-          Icon(Icons.arrow_forward_rounded, size: 17, color: p.gold),
+          AnimatedSize(
+            duration: AtelierMotion.base,
+            curve: AtelierMotion.emphasized,
+            alignment: Alignment.topCenter,
+            child: !_open
+                ? const SizedBox(width: double.infinity)
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Container(height: 1, color: p.hairline),
+                      for (final type in HelpIssueType.values)
+                        InkWell(
+                          onTap: () {
+                            setState(() => _open = false);
+                            widget.onPick(type);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+                            child: Row(
+                              children: [
+                                AtelierIconBadge(
+                                  icon: _issueIcon(type),
+                                  size: 32,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        type.label,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: AtelierType.label(
+                                          p.ink,
+                                          size: 13.5,
+                                        ),
+                                      ),
+                                      Text(
+                                        _issueHint(type, seller: widget.seller),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: AtelierType.caption(
+                                          p.muted,
+                                          size: 11.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.chevron_right_rounded,
+                                  size: 18,
+                                  color: p.gold,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 4),
+                    ],
+                  ),
+          ),
         ],
       ),
     );

@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-import '../../../../../core/l10n/app_localizations.dart';
 import '../../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../../core/widgets/gem3d/gem_renderer.dart';
-import '../../../../../core/widgets/gem3d/gem_view.dart';
-import 'auth_shell.dart';
 import 'auth_tokens.dart';
 
 /// Fades + lifts its child into place once, staggered by [index].
@@ -142,9 +138,8 @@ class AuthHalo extends StatelessWidget {
   }
 }
 
-/// Screen hero: a live 3D gem (drag to turn, tap to flash) above an
-/// eyebrow, a serif statement and one supporting line. The gem shrinks
-/// while the keyboard is open so the form stays in view.
+/// Screen hero: an eyebrow, a serif statement and one supporting line.
+/// [cut] and [showGem] are kept for call sites; no gem is drawn.
 class AuthHero extends StatelessWidget {
   const AuthHero({
     super.key,
@@ -152,7 +147,7 @@ class AuthHero extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.cut = GemCut.round,
-    this.showGem = true,
+    this.showGem = false,
   });
 
   final String eyebrow;
@@ -164,41 +159,10 @@ class AuthHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = AuthPalette.of(context);
-    final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
-    final gemVisible = showGem && !authIsWide(context);
-    final gemSize = keyboard ? 72.0 : 124.0;
 
     return Column(
       children: [
-        if (gemVisible)
-          AuthReveal(
-            offset: 0,
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(end: gemSize),
-              duration: AuthMotion.slow,
-              curve: AuthMotion.ease,
-              builder: (context, size, _) => SizedBox.square(
-                dimension: size + 24,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    AuthHalo(size: size * 1.9),
-                    GemView(
-                      cut: cut,
-                      look: p.isDark ? GemLook.white : GemLook.champagne,
-                      size: size,
-                      spin: 0.4,
-                      tilt: 0.52,
-                      interactive: true,
-                      semanticLabel: context.tr(AuthL10n.gemLabel),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        if (gemVisible) const SizedBox(height: AuthSpace.s12),
-        if (!gemVisible) const SizedBox(height: AuthSpace.s24),
+        const SizedBox(height: AuthSpace.s24),
         AuthReveal(
           index: 1,
           child: Text(

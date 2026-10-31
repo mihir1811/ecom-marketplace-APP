@@ -182,9 +182,7 @@ class _JewelryCategoriesScreenState
               offset: _offset,
               solidAfter: topInset + 120,
               darkBackdrop: true,
-              actions: (glass) => [
-                TopBarActions(glass: glass),
-              ],
+              actions: (glass) => [TopBarActions(glass: glass)],
             ),
           ),
         ],
@@ -535,20 +533,25 @@ class _Metals extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  for (final (i, metal)
-                      in MarketplaceEnums.quickMetals.indexed) ...[
-                    if (i > 0) const SizedBox(width: 10),
-                    Expanded(
-                      child: _MetalTile(
-                        metal: metal,
-                        palette: p,
-                        onTap: () => onOpen(metal),
+              // Equal-height tiles, content pinned to the top so swatches
+              // line up whether a label takes one line or two.
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final (i, metal)
+                        in MarketplaceEnums.quickMetals.indexed) ...[
+                      if (i > 0) const SizedBox(width: 10),
+                      Expanded(
+                        child: _MetalTile(
+                          metal: metal,
+                          palette: p,
+                          onTap: () => onOpen(metal),
+                        ),
                       ),
-                    ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ],
@@ -584,6 +587,7 @@ class _MetalTile extends StatelessWidget {
           border: Border.all(color: p.hairline),
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             LuxeMetalSwatch(
               label: MarketplaceEnums.swatchLabel(metal),

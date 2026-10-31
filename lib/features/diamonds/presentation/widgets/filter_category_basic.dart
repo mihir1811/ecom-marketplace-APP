@@ -11,6 +11,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../application/diamond_search_provider.dart';
 import '../../domain/models/diamond_filter_state.dart';
 import 'package:gemstone/core/widgets/filters/filter_chip.dart';
+import 'package:gemstone/core/widgets/filters/filter_chip_scroll_row.dart';
 import 'package:gemstone/core/widgets/filters/filter_text_segmented_control.dart';
 import 'package:gemstone/core/widgets/filters/filter_section_header.dart';
 import 'package:gemstone/core/widgets/filters/filter_section_divider.dart';
@@ -308,9 +309,7 @@ class DiamondInclusionFilters extends ConsumerWidget {
         children: [
           FilterSectionHeader(title: title),
           const SizedBox(height: AppSpacing.s8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
+          FilterChipScrollRow(
             children: [
               for (final grade in options)
                 FilterChipWidget(

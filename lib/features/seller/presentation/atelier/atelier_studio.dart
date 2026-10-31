@@ -8,7 +8,6 @@ import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../../../../core/widgets/gem3d/gem_renderer.dart';
-import '../../../../core/widgets/gem3d/gem_view.dart';
 import 'atelier_components.dart';
 import 'atelier_motion.dart';
 import 'atelier_theme.dart';
@@ -81,9 +80,10 @@ class AtelierPage extends StatelessWidget {
   }
 }
 
-/// Signature onyx band that opens every studio page: serif title, a slowly
-/// turning stone, the page's primary action and an optional row of
-/// headline figures.
+/// Page opener for studio pages, kept compact: no screen title and no 3D
+/// stone. Shows the page's primary [action] (plain row) and, when given,
+/// the headline figures in [footer] on a slim onyx band. Renders nothing
+/// when it has neither.
 class AtelierHero extends StatelessWidget {
   const AtelierHero({
     required this.title,
@@ -95,8 +95,6 @@ class AtelierHero extends StatelessWidget {
   });
 
   final String title;
-
-  /// Stone shown at the top-right; none when null.
   final GemCut? cut;
   final GemLook look;
   final Widget? action;
@@ -105,85 +103,35 @@ class AtelierHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = context.atelier;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 640;
-        final gemSize = cut == null ? 0.0 : (wide ? 132.0 : 92.0);
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(AtelierRadius.xl),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: LuxeStage.vault,
-              border: Border.all(
-                color: p.isDark ? p.hairline : Colors.transparent,
-              ),
-            ),
-            child: Stack(
-              children: [
-                if (cut != null)
-                  Positioned(
-                    right: wide ? 26 : 8,
-                    top: wide ? 18 : 10,
-                    child: Reveal(
-                      delay: const Duration(milliseconds: 180),
-                      child: GemView(
-                        cut: cut!,
-                        look: look,
-                        size: gemSize,
-                        spin: 0.32,
-                        tilt: 0.36,
-                        interactive: true,
-                        semanticLabel: 'Rotating gem. Drag to turn it.',
-                      ),
-                    ),
-                  ),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    wide ? 30 : 20,
-                    wide ? 28 : 20,
-                    wide ? 30 : 20,
-                    wide ? 26 : 20,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Reveal(
-                        child: Padding(
-                          padding: EdgeInsets.only(right: gemSize * 0.72),
-                          child: Text(
-                            title,
-                            style: AtelierType.display(
-                              p.onOnyx,
-                              size: wide ? 42 : 32,
-                              weight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (action != null) ...[
-                        SizedBox(height: wide ? 22 : 18),
-                        Reveal(index: 3, child: action!),
-                      ],
-                      if (footer != null) ...[
-                        SizedBox(height: wide ? 24 : 20),
-                        Reveal(
-                          index: 4,
-                          child: Container(
-                            height: 1,
-                            color: p.onOnyx.withValues(alpha: 0.1),
-                          ),
-                        ),
-                        SizedBox(height: wide ? 18 : 16),
-                        Reveal(index: 5, child: footer!),
-                      ],
-                    ],
+    final action = this.action;
+    final footer = this.footer;
+    if (action == null && footer == null) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (action != null) Reveal(child: action),
+        if (action != null && footer != null)
+          const SizedBox(height: AtelierSpace.s12),
+        if (footer != null)
+          Reveal(
+            index: 1,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AtelierRadius.lg),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: LuxeStage.vault,
+                  border: Border.all(
+                    color: p.isDark ? p.hairline : Colors.transparent,
                   ),
                 ),
-              ],
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                  child: footer,
+                ),
+              ),
             ),
           ),
-        );
-      },
+      ],
     );
   }
 }

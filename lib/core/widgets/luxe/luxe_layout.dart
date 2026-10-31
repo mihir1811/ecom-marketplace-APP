@@ -350,12 +350,15 @@ class LuxeTopBar extends StatelessWidget implements PreferredSizeWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: LuxeType.display(22, p.ink),
-                    ),
+                    // Catalog screens pass no title: the user already knows
+                    // where they are.
+                    if (title.isNotEmpty)
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: LuxeType.display(22, p.ink),
+                      ),
                     ?subtitle,
                   ],
                 ),

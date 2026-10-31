@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/l10n/app_localizations.dart';
-import '../../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../../core/widgets/gem3d/gem_renderer.dart';
-import '../../../../../core/widgets/gem3d/gem_view.dart';
 import '../../../../payment/domain/models/payment_models.dart';
 import '../../../../seller/presentation/atelier/atelier_motion.dart';
 import '../../../../seller/presentation/atelier/atelier_studio.dart';
@@ -34,18 +31,6 @@ class OrderDetailHero extends ConsumerWidget {
     return s == 'PAID' || s == 'PARTIALLY_REFUNDED';
   }
 
-  GemCut get _cut {
-    final type = order.items.isEmpty
-        ? ''
-        : order.items.first.productType.toLowerCase();
-    if (type.contains('gem')) return GemCut.oval;
-    if (type.contains('jewel')) return GemCut.pear;
-    if (type.contains('watch') || type.contains('bullion')) {
-      return GemCut.emerald;
-    }
-    return GemCut.round;
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final p = context.atelier;
@@ -66,7 +51,6 @@ class OrderDetailHero extends ConsumerWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= 640;
-        final gem = wide ? 128.0 : 88.0;
         return ClipRRect(
           borderRadius: BorderRadius.circular(AtelierRadius.xl),
           child: DecoratedBox(
@@ -95,22 +79,6 @@ class OrderDetailHero extends ConsumerWidget {
                     ),
                   ),
                 ),
-                Positioned(
-                  right: wide ? 24 : 10,
-                  top: wide ? 18 : 12,
-                  child: Reveal(
-                    delay: const Duration(milliseconds: 200),
-                    child: GemView(
-                      cut: _cut,
-                      look: GemLook.champagne,
-                      size: gem,
-                      spin: 0.32,
-                      tilt: 0.38,
-                      interactive: true,
-                      semanticLabel: 'Rotating gem. Drag to turn it.',
-                    ),
-                  ),
-                ),
                 Padding(
                   padding: EdgeInsets.fromLTRB(
                     wide ? 28 : 20,
@@ -126,7 +94,7 @@ class OrderDetailHero extends ConsumerWidget {
                       Reveal(
                         index: 1,
                         child: Padding(
-                          padding: EdgeInsets.only(right: gem * 0.7),
+                          padding: EdgeInsets.zero,
                           child: Row(
                             children: [
                               AtelierPulseDot(tone: tone, size: 8),
@@ -150,7 +118,7 @@ class OrderDetailHero extends ConsumerWidget {
                         Reveal(
                           index: 2,
                           child: Padding(
-                            padding: EdgeInsets.only(right: gem * 0.4),
+                            padding: EdgeInsets.zero,
                             child: Text(
                               lifecycle.message!,
                               style: AtelierType.body(soft, size: 13.5),

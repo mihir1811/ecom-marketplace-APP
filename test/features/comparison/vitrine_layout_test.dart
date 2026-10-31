@@ -58,8 +58,6 @@ void main() {
                     items: items,
                     insights: insights,
                     columns: columns,
-                    differencesOnly: false,
-                    onDifferencesOnly: (_) {},
                     onTapPiece: (_) {},
                     onRemove: (_) {},
                     onReorder: (_, _) {},

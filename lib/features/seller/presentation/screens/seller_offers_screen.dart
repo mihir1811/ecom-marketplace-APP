@@ -5,6 +5,7 @@ import '../../../../core/error/result.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/widgets/gem3d/gem_mesh.dart';
+import '../../../product_detail/open_catalog_product_detail.dart';
 import '../../../product_offer/application/product_offer_providers.dart';
 import '../../../product_offer/domain/models/product_offer.dart';
 import '../../../product_offer/presentation/widgets/offer_countdown.dart';
@@ -387,6 +388,21 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen>
     );
   }
 
+  Future<void> _viewProduct(ProductOffer offer) async {
+    final opened = await openCatalogProductDetail(
+      context,
+      ref,
+      productType: offer.productType,
+      productId: offer.productId,
+    );
+    if (opened || !mounted) return;
+    showAtelierToast(
+      context,
+      context.tr(AccountCommerceL10n.productOpenFailed),
+      tone: AtelierTone.ruby,
+    );
+  }
+
   void _openDetail(ProductOffer offer) {
     showAtelierSheet<void>(
       context: context,
@@ -394,6 +410,12 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen>
       subtitle: '${offer.productTypeLabel} · ${offer.displayStatusLabel}',
       builder: (sheetContext) => _OfferDetail(
         offer: offer,
+        onViewProduct: offer.productId.isEmpty
+            ? null
+            : () {
+                Navigator.of(sheetContext).pop();
+                _viewProduct(offer);
+              },
         onAccept: offer.status.isPending
             ? () {
                 Navigator.of(sheetContext).pop();
@@ -742,11 +764,19 @@ class _Quote extends StatelessWidget {
 }
 
 class _OfferDetail extends StatelessWidget {
-  const _OfferDetail({required this.offer, this.onAccept, this.onDecline});
+  const _OfferDetail({
+    required this.offer,
+    this.onAccept,
+    this.onDecline,
+    this.onViewProduct,
+  });
 
   final ProductOffer offer;
   final VoidCallback? onAccept;
   final VoidCallback? onDecline;
+
+  /// Opens the product's detail page; null when the offer has no product id.
+  final VoidCallback? onViewProduct;
 
   @override
   Widget build(BuildContext context) {
@@ -772,6 +802,31 @@ class _OfferDetail extends StatelessWidget {
                     Text(
                       meta.join(' · '),
                       style: AtelierType.caption(p.inkSoft, size: 12.5),
+                    ),
+                  ],
+                  if (onViewProduct != null) ...[
+                    const SizedBox(height: 8),
+                    Pressable(
+                      onTap: onViewProduct,
+                      semanticLabel: 'View product',
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'View product',
+                            style: AtelierType.label(p.gold, size: 13).copyWith(
+                              decoration: TextDecoration.underline,
+                              decorationColor: p.gold,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.open_in_new_rounded,
+                            size: 14,
+                            color: p.gold,
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ],

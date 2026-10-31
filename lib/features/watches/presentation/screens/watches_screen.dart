@@ -13,6 +13,7 @@ import '../../../../core/widgets/app_system_back_scope.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
+import '../../../../core/widgets/luxe/luxe_toggle_sort_sheet.dart';
 import '../../../../core/widgets/navigation/top_bar/top_bar_actions.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/watch_filter_provider.dart';
@@ -117,18 +118,13 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen>
     _searchController.clear();
   }
 
-  Future<void> _openSort() async {
-    final selected = await showLuxeChoiceSheet<WatchSortOption>(
-      context,
-      title: context.tr(CatalogFlowL10n.watchSort),
-      options: WatchSortOption.values,
-      current: ref.read(watchSortProvider),
-      labelOf: (o) => o.label,
-    );
-    if (selected != null && mounted) {
-      ref.read(watchSortProvider.notifier).state = selected;
-    }
-  }
+  Future<void> _openSort() => showLuxeToggleSortSheet<WatchSortOption>(
+    context,
+    title: context.tr(CatalogFlowL10n.watchSort),
+    fields: watchSortFields(),
+    current: ref.read(watchSortProvider),
+    onChanged: (o) => ref.read(watchSortProvider.notifier).state = o,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -144,7 +140,7 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen>
       safeBottom: false,
       backgroundColor: p.canvas,
       appBar: LuxeTopBar(
-        title: context.tr(CatalogL10n.luxuryWatches),
+        title: '',
         subtitle: Consumer(
           builder: (context, ref, _) => WatchCountLine(
             total: ref.watch(

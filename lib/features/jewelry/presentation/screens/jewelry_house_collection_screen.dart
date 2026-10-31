@@ -14,6 +14,7 @@ import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
+import '../../../../core/widgets/luxe/luxe_toggle_sort_sheet.dart';
 import '../../../../core/widgets/navigation/top_bar/top_bar_actions.dart';
 import '../../../product_detail/presentation/widgets/luxe/luxe_detail_parts.dart';
 import '../../../product_detail/product_detail_navigation.dart';
@@ -79,6 +80,7 @@ class _JewelryHouseCollectionScreenState
     category: widget.category,
   );
   JewelrySortOption _sort = JewelrySortOption.newest;
+  LuxeViewMode _viewMode = LuxeViewMode.grid;
 
   JewelryHouseQuery get _query => (filters: _filters, sort: _sort);
 
@@ -151,16 +153,15 @@ class _JewelryHouseCollectionScreenState
     );
   }
 
-  Future<void> _openSort() async {
-    final picked = await showLuxeChoiceSheet<JewelrySortOption>(
-      context,
-      title: context.tr(JewelryFlowL10n.sortTitle),
-      options: _sorts,
-      current: _sort,
-      labelOf: (o) => jewelrySortLabel(context, o),
-    );
-    if (picked != null && mounted) _apply(sort: picked);
-  }
+  Future<void> _openSort() => showLuxeToggleSortSheet<JewelrySortOption>(
+    context,
+    title: context.tr(JewelryFlowL10n.sortTitle),
+    fields: jewelrySortFields(context, _sorts),
+    current: _sort,
+    onChanged: (o) {
+      if (mounted) _apply(sort: o);
+    },
+  );
 
   void _clearFilters() => _apply(
     filters: JewelryFilterState(
@@ -218,13 +219,13 @@ class _JewelryHouseCollectionScreenState
     Widget bar({required bool floating}) => _CollectionBar(
       styles: styles,
       selectedStyle: _filters.subCategory,
-      total: total,
       activeFilters: JewelryFilterSummary.of(_filters).total,
-      sortLabel: jewelrySortLabel(context, _sort),
+      viewMode: _viewMode,
       floating: floating,
       onStyle: _selectStyle,
       onFilters: () => _openFilters(name),
       onSort: _openSort,
+      onViewMode: (m) => setState(() => _viewMode = m),
     );
 
     return AppScaffold(
@@ -295,9 +296,7 @@ class _JewelryHouseCollectionScreenState
               offset: _offset,
               solidAfter: heroHeight - topInset,
               darkBackdrop: true,
-              actions: (glass) => [
-                TopBarActions(glass: glass),
-              ],
+              actions: (glass) => [TopBarActions(glass: glass)],
             ),
           ),
         ],
@@ -324,12 +323,17 @@ class _JewelryHouseCollectionScreenState
       error: state.errorMessage,
       items: items,
       isLoadingMore: state.isLoadingMore,
-      viewMode: LuxeViewMode.grid,
+      viewMode: _viewMode,
       idOf: (j) => j.id,
-      cardOf: (j, _) => JewelryLuxeGridCard(
-        jewelry: j,
-        onTap: () => openJewelryDetail(context, j, among: items),
-      ),
+      cardOf: (j, mode) => mode == LuxeViewMode.grid
+          ? JewelryLuxeGridCard(
+              jewelry: j,
+              onTap: () => openJewelryDetail(context, j, among: items),
+            )
+          : JewelryLuxeListCard(
+              jewelry: j,
+              onTap: () => openJewelryDetail(context, j, among: items),
+            ),
       entered: _entered,
       loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),
       emptyView: LuxeStateView(
@@ -479,24 +483,24 @@ class _CollectionBar extends StatelessWidget {
   const _CollectionBar({
     required this.styles,
     required this.selectedStyle,
-    required this.total,
     required this.activeFilters,
-    required this.sortLabel,
+    required this.viewMode,
     required this.floating,
     required this.onStyle,
     required this.onFilters,
     required this.onSort,
+    required this.onViewMode,
   });
 
   final List<MarketplaceCategory> styles;
   final String? selectedStyle;
-  final int? total;
   final int activeFilters;
-  final String sortLabel;
+  final LuxeViewMode viewMode;
   final bool floating;
   final ValueChanged<String?> onStyle;
   final VoidCallback onFilters;
   final VoidCallback onSort;
+  final ValueChanged<LuxeViewMode> onViewMode;
 
   @override
   Widget build(BuildContext context) {
@@ -536,37 +540,20 @@ class _CollectionBar extends StatelessWidget {
                 },
               ),
             ),
-          SizedBox(
-            height: 48,
-            child: Row(
-              children: [
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Text(
-                    total == null
-                        ? ''
-                        : context.tr(JewelryFlowL10n.results, {'count': total}),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: LuxeType.label(p.inkMuted, size: 12),
-                  ),
-                ),
-                _BarAction(
-                  icon: Icons.tune_rounded,
-                  label: context.tr(DiamondFlowL10n.filters),
-                  badge: activeFilters,
-                  palette: p,
-                  onTap: onFilters,
-                ),
-                Container(width: 0.6, height: 18, color: p.hairline),
-                _BarAction(
-                  icon: Icons.swap_vert_rounded,
-                  label: sortLabel,
-                  palette: p,
-                  onTap: onSort,
-                ),
-                const SizedBox(width: 8),
-              ],
+          // Same Filters / Sort / grid-list toolbar as the listing screens.
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Center(
+              child: LuxeListingToolbar(
+                filtersLabel: context.tr(DiamondFlowL10n.filters),
+                activeFilters: activeFilters,
+                onFilters: onFilters,
+                onSort: onSort,
+                viewMode: viewMode,
+                onViewMode: onViewMode,
+                gridLabel: context.tr(DiamondFlowL10n.grid),
+                listLabel: context.tr(DiamondFlowL10n.list),
+              ),
             ),
           ),
         ],
@@ -631,59 +618,6 @@ class _StyleTab extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _BarAction extends StatelessWidget {
-  const _BarAction({
-    required this.icon,
-    required this.label,
-    required this.palette,
-    required this.onTap,
-    this.badge = 0,
-  });
-
-  final IconData icon;
-  final String label;
-  final LuxePalette palette;
-  final VoidCallback onTap;
-  final int badge;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = palette;
-    return TextButton(
-      onPressed: onTap,
-      style: TextButton.styleFrom(
-        foregroundColor: p.ink,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: p.accent),
-          const SizedBox(width: 6),
-          Text(label, style: LuxeType.label(p.ink, size: 12.5)),
-          if (badge > 0) ...[
-            const SizedBox(width: 6),
-            Container(
-              constraints: const BoxConstraints(minWidth: 18),
-              height: 18,
-              padding: const EdgeInsets.symmetric(horizontal: 5),
-              alignment: Alignment.center,
-              decoration: ShapeDecoration(
-                color: p.ink,
-                shape: const StadiumBorder(),
-              ),
-              child: Text(
-                '$badge',
-                style: LuxeType.label(p.canvas, size: 10.5),
-              ),
-            ),
-          ],
-        ],
       ),
     );
   }

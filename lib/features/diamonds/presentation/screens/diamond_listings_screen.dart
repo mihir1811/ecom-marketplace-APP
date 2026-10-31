@@ -134,9 +134,6 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
 
   Widget _buildScaffold(BuildContext context) {
     final p = LuxePalette.of(context);
-    final title = widget.title == 'Diamond Results'
-        ? context.tr(RemainingL10n.naturalDiamonds)
-        : widget.title;
     final selecting = ref.watch(
       diamondProjectListingPickProvider.select((s) => s.isNotEmpty),
     );
@@ -146,7 +143,7 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
       safeBottom: false,
       backgroundColor: p.canvas,
       appBar: LuxeTopBar(
-        title: title,
+        title: '',
         subtitle: const _CountLine(),
         scrollOffset: listingOffset,
         actions: const [TopBarActions()],

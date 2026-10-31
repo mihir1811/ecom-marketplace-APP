@@ -8,9 +8,6 @@ import '../../../../../core/l10n/app_localizations.dart';
 import '../../../../../core/router/route_names.dart';
 import '../../../../buyer/application/wishlist_provider.dart';
 import '../../../../buyer/presentation/maison/maison_kit.dart';
-import '../../../../buyer/presentation/widgets/wishlist/wishlist_piece_card.dart';
-import '../../../../comparison/application/comparison_provider.dart';
-import '../../../../comparison/presentation/widgets/compare_toggle_helper.dart';
 import '../../../../seller/presentation/atelier/atelier_motion.dart';
 import '../../../../seller/presentation/atelier/atelier_theme.dart';
 import '../../../domain/models/recently_viewed.dart';
@@ -69,7 +66,6 @@ class _RecentPieceCardState extends ConsumerState<RecentPieceCard> {
     final p = context.atelier;
     final price = entry.priceLabel;
     final detail = entry.detailLine;
-    final compare = entry.toCompareItem() != null;
     return Pressable(
       onTap: _opening ? null : _open,
       semanticLabel: _semantics,
@@ -107,18 +103,6 @@ class _RecentPieceCardState extends ConsumerState<RecentPieceCard> {
                     ),
                   ),
                   Positioned(
-                    left: 10,
-                    top: 10,
-                    right: 56,
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: _GlassTag(
-                        icon: wishlistCategoryIcon(entry.category),
-                        label: entry.typeLabel,
-                      ),
-                    ),
-                  ),
-                  Positioned(
                     right: 8,
                     top: 8,
                     child: _SaveButton(entry: entry),
@@ -127,17 +111,11 @@ class _RecentPieceCardState extends ConsumerState<RecentPieceCard> {
                     Positioned(
                       left: 10,
                       bottom: 10,
-                      right: compare ? 56 : 10,
+                      right: 10,
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: _AvailabilityTag(entry: entry),
                       ),
-                    ),
-                  if (compare)
-                    Positioned(
-                      right: 8,
-                      bottom: 8,
-                      child: _CompareButton(entry: entry),
                     ),
                   _OpeningVeil(visible: _opening),
                 ],
@@ -204,7 +182,6 @@ class _RecentPieceCardState extends ConsumerState<RecentPieceCard> {
     final detail = entry.detailLine;
     final when = entry.viewedWhen;
     final availability = entry.availabilityState;
-    final compare = entry.toCompareItem() != null;
     return Pressable(
       onTap: _opening ? null : _open,
       semanticLabel: _semantics,
@@ -243,39 +220,30 @@ class _RecentPieceCardState extends ConsumerState<RecentPieceCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Flexible(
+                      Expanded(
                         child: Text(
-                          entry.typeLabel.toUpperCase(),
-                          maxLines: 1,
+                          entry.listTitle,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: AtelierType.overline(p.gold),
+                          style: AtelierType.title(p.ink, size: 14.5),
                         ),
                       ),
                       if (availability != RecentAvailability.unknown) ...[
                         const SizedBox(width: 8),
-                        _Dot(color: p.tone(availability.tone)),
-                        const SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
-                            availability.label(context, entry.availability),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AtelierType.caption(
-                              p.tone(availability.tone),
-                              size: 10.5,
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Tooltip(
+                            message: availability.label(
+                              context,
+                              entry.availability,
                             ),
+                            child: _Dot(color: p.tone(availability.tone)),
                           ),
                         ),
                       ],
                     ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    entry.listTitle,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AtelierType.title(p.ink, size: 14.5),
                   ),
                   if (detail != null) ...[
                     const SizedBox(height: 2),
@@ -314,16 +282,7 @@ class _RecentPieceCardState extends ConsumerState<RecentPieceCard> {
               ),
             ),
             const SizedBox(width: 6),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _SaveButton(entry: entry, onSurface: true),
-                if (compare) ...[
-                  const SizedBox(height: 8),
-                  _CompareButton(entry: entry, onSurface: true),
-                ],
-              ],
-            ),
+            _SaveButton(entry: entry, onSurface: true),
           ],
         ),
       ),
@@ -401,14 +360,12 @@ class _SaveButtonState extends ConsumerState<_SaveButton> {
       color: saved ? p.ruby : (widget.onSurface ? p.inkSoft : p.ink),
     );
     if (saved && !context.reduceMotion) {
-      icon = icon
-          .animate()
-          .scaleXY(
-            begin: 0.5,
-            end: 1,
-            duration: 420.ms,
-            curve: AtelierMotion.settle,
-          );
+      icon = icon.animate().scaleXY(
+        begin: 0.5,
+        end: 1,
+        duration: 420.ms,
+        curve: AtelierMotion.settle,
+      );
     }
     return Tooltip(
       message: label,
@@ -438,76 +395,24 @@ class _SaveButtonState extends ConsumerState<_SaveButton> {
   }
 }
 
-/// Adds the piece to (or removes it from) the comparison tray.
-class _CompareButton extends ConsumerWidget {
-  const _CompareButton({required this.entry, this.onSurface = false});
-
-  final RecentlyViewedEntry entry;
-  final bool onSurface;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final p = context.atelier;
-    final item = entry.toCompareItem();
-    if (item == null) return const SizedBox.shrink();
-    final selected = ref.watch(isInComparisonProvider(entry.productId));
-    final label = selected ? 'Remove from compare' : 'Add to compare';
-    return Tooltip(
-      message: label,
-      child: Pressable(
-        onTap: () => handleCompareToggle(context, ref, item),
-        scale: 0.82,
-        haptic: false,
-        semanticLabel: label,
-        borderRadius: BorderRadius.circular(40),
-        child: _RoundControl(
-          onSurface: onSurface,
-          active: selected,
-          activeColor: p.gold,
-          filledWhenActive: true,
-          child: AnimatedSwitcher(
-            duration: AtelierMotion.base,
-            transitionBuilder: (c, a) => ScaleTransition(
-              scale: CurvedAnimation(parent: a, curve: AtelierMotion.settle),
-              child: c,
-            ),
-            child: Icon(
-              selected ? Icons.check_rounded : Icons.compare_arrows_rounded,
-              key: ValueKey(selected),
-              size: 18,
-              color: selected
-                  ? p.onGold
-                  : (onSurface ? p.inkSoft : p.ink),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _RoundControl extends StatelessWidget {
   const _RoundControl({
     required this.child,
     required this.onSurface,
     required this.active,
     required this.activeColor,
-    this.filledWhenActive = false,
   });
 
   final Widget child;
   final bool onSurface;
   final bool active;
   final Color activeColor;
-  final bool filledWhenActive;
 
   @override
   Widget build(BuildContext context) {
     final p = context.atelier;
     final Color fill;
-    if (active && filledWhenActive) {
-      fill = activeColor;
-    } else if (onSurface) {
+    if (onSurface) {
       fill = active
           ? activeColor.withValues(alpha: p.isDark ? 0.16 : 0.08)
           : p.sunken;
@@ -541,40 +446,6 @@ class _RoundControl extends StatelessWidget {
   }
 }
 
-class _GlassTag extends StatelessWidget {
-  const _GlassTag({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.38),
-        borderRadius: BorderRadius.circular(AtelierRadius.pill),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: Colors.white),
-          const SizedBox(width: 5),
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AtelierType.label(Colors.white, size: 10.5),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _AvailabilityTag extends StatelessWidget {
   const _AvailabilityTag({required this.entry});
 
@@ -590,27 +461,16 @@ class _AvailabilityTag extends StatelessWidget {
       RecentAvailability.gone => const Color(0xFFFF9C90),
       RecentAvailability.unknown => p.muted,
     };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.42),
-        borderRadius: BorderRadius.circular(AtelierRadius.pill),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _Dot(color: color),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              state.label(context, entry.availability),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AtelierType.label(Colors.white, size: 10.5),
-            ),
-          ),
-        ],
+    return Tooltip(
+      message: state.label(context, entry.availability),
+      child: Container(
+        padding: const EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.42),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
+        ),
+        child: _Dot(color: color),
       ),
     );
   }
@@ -628,7 +488,9 @@ class _Dot extends StatelessWidget {
     decoration: BoxDecoration(
       shape: BoxShape.circle,
       color: color,
-      boxShadow: [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 6)],
+      boxShadow: [
+        BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 6),
+      ],
     ),
   );
 }

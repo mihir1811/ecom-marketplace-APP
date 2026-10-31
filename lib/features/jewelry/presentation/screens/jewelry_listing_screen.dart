@@ -13,6 +13,7 @@ import '../../../../core/widgets/app_system_back_scope.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
+import '../../../../core/widgets/luxe/luxe_toggle_sort_sheet.dart';
 import '../../../../core/widgets/navigation/top_bar/top_bar_actions.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/jewelry_filter_provider.dart';
@@ -147,11 +148,6 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
     context.push(AppRouteNames.jewelryFilters);
   }
 
-  void _clearAll() {
-    _searchDebounce?.cancel();
-    ref.read(jewelryFilterProvider.notifier).reset();
-  }
-
   void _clearEverything() {
     _searchDebounce?.cancel();
     final n = ref.read(jewelryFilterProvider.notifier)..reset();
@@ -159,27 +155,24 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
     _searchController.clear();
   }
 
-  Future<void> _openSort() async {
+  Future<void> _openSort() {
     final searching = ref.read(jewelryFilterProvider).searchQuery.isNotEmpty;
-    final selected = await showLuxeChoiceSheet<JewelrySortOption>(
+    return showLuxeToggleSortSheet<JewelrySortOption>(
       context,
       title: context.tr(JewelryFlowL10n.sortTitle),
-      options: [
+      fields: jewelrySortFields(context, [
         if (searching) JewelrySortOption.relevance,
         JewelrySortOption.newest,
         JewelrySortOption.priceAsc,
         JewelrySortOption.priceDesc,
         JewelrySortOption.popular,
-      ],
+      ]),
       // The API default: relevance while searching, else newest.
       current:
           ref.read(jewelrySortProvider) ??
           (searching ? JewelrySortOption.relevance : JewelrySortOption.newest),
-      labelOf: (o) => jewelrySortLabel(context, o),
+      onChanged: (o) => ref.read(jewelrySortProvider.notifier).state = o,
     );
-    if (selected != null && mounted) {
-      ref.read(jewelrySortProvider.notifier).state = selected;
-    }
   }
 
   @override
@@ -235,10 +228,7 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
                 const JewelryStyleChips(),
                 const SizedBox(height: 10),
                 const JewelryMetalChips(),
-                JewelryActiveFilterPills(
-                  onEdit: _openFilters,
-                  onReset: _clearAll,
-                ),
+                const SizedBox(height: 10),
               ],
             ),
           ),

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/utils/active_filter_labels.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
+import '../../../../core/widgets/luxe/luxe_toggle_sort_sheet.dart';
 import '../../application/jewellery_categories_provider.dart';
 import '../../application/jewelry_filter_provider.dart';
 import '../../domain/models/jewelry_filter_state.dart';
@@ -61,64 +61,16 @@ String jewelryCollectionTitle(
   return found?.name ?? context.tr(CatalogL10n.jewelry);
 }
 
-/// [jewelryCollectionTitle] for the applied filters.
+/// Top-bar title for the applied filters: the picked collection's name
+/// (e.g. "Rings"), or empty for the whole jewelry catalog.
 class JewelryCollectionTitle {
   static String watch(BuildContext context, WidgetRef ref) {
     final filters = ref.watch(jewelryFilterProvider);
     final categories = ref.watch(jewelleryCategoriesProvider).valueOrNull;
-    return jewelryCollectionTitle(context, categories, filters);
-  }
-}
-
-/// Pills summarising which jewelry filter sections hold filters; tapping
-/// edits them, the trailing action clears everything.
-class JewelryActiveFilterPills extends ConsumerWidget {
-  const JewelryActiveFilterPills({
-    required this.onEdit,
-    required this.onReset,
-    super.key,
-  });
-
-  final VoidCallback onEdit;
-  final VoidCallback onReset;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final f = ref.watch(jewelryFilterProvider);
-    final summary = JewelryFilterSummary.of(f);
-    Iterable<String> words(Set<String> values) =>
-        values.map((v) => jewelryEnumLabel(context, v));
-    // Applied values first (also what Gem Agent set), then counts for the rest.
-    final pills = ActiveFilterLabels<JewelryFilterSection>()
-      ..values(JewelryFilterSection.style, f.styles)
-      ..values(JewelryFilterSection.style, f.occasions)
-      ..range(
-        JewelryFilterSection.price,
-        min: f.priceMin,
-        max: f.priceMax,
-        format: _price,
-      )
-      ..values(JewelryFilterSection.metal, words(f.metals))
-      ..values(JewelryFilterSection.stone, words(f.gemstones))
-      ..values(JewelryFilterSection.stone, words(f.origins))
-      ..values(JewelryFilterSection.stone, f.shapes);
-    if (f.availability != null) {
-      pills.add(
-        JewelryFilterSection.listing,
-        jewelryAvailabilityLabel(context, f.availability!),
-      );
-    }
-    if (f.tag != null) pills.add(JewelryFilterSection.listing, '#${f.tag}');
-    return LuxeActiveFilterPills(
-      labels: pills.build(
-        sections: JewelryFilterSection.values,
-        count: summary.count,
-        title: (s) => jewelrySectionTitle(context, s),
-      ),
-      onEdit: onEdit,
-      onReset: onReset,
-      resetLabel: context.tr(DiamondFlowL10n.reset),
-    );
+    final found = categories == null
+        ? null
+        : MarketplaceCategory.find(categories, filters.categorySlug);
+    return found?.name ?? '';
   }
 }
 
@@ -175,4 +127,38 @@ class JewelryCountLine extends StatelessWidget {
   }
 }
 
-String _price(double v) => jewelryRupees(v);
+/// [options] as toggle-sort fields: price asc / desc merge into one
+/// "Price" row; the rest stay single rows, in the given order.
+List<LuxeSortField<JewelrySortOption>> jewelrySortFields(
+  BuildContext context,
+  List<JewelrySortOption> options,
+) {
+  const price = [JewelrySortOption.priceAsc, JewelrySortOption.priceDesc];
+  final fields = <LuxeSortField<JewelrySortOption>>[];
+  var pricePlaced = false;
+  for (final o in options) {
+    if (price.contains(o)) {
+      if (pricePlaced) continue;
+      pricePlaced = true;
+      fields.add(
+        LuxeSortField(
+          label: context.tr(CatalogL10n.price),
+          options: [
+            for (final p in price)
+              if (options.contains(p)) p,
+          ],
+          directionLabelOf: (d) => context.tr(
+            d == JewelrySortOption.priceAsc
+                ? CatalogL10n.sortLowToHigh
+                : CatalogL10n.sortHighToLow,
+          ),
+        ),
+      );
+    } else {
+      fields.add(
+        LuxeSortField(label: jewelrySortLabel(context, o), options: [o]),
+      );
+    }
+  }
+  return fields;
+}

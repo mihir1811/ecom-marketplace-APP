@@ -130,7 +130,7 @@ Example: "24 karat 10 gram gold coin" → search_bullion {"metal":"gold","purity
 
     final filters = BullionsFilterState(
       metalFilter: metal,
-      selectedVariant: purity,
+      selectedVariants: purity == null ? const {} : {purity},
       searchQuery: query,
       shapes: forms.toSet(),
       weightChips: weights.toSet(),

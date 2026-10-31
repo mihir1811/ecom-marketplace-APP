@@ -332,7 +332,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen>
             child: InputChip(
               label: Text('#${d.tag}', style: LuxeType.label(p.ink, size: 13)),
               onDeleted: _n.clearTag,
-              backgroundColor: p.surface,
+              color: WidgetStatePropertyAll(p.surface),
               side: BorderSide(color: p.hairline),
               shape: const StadiumBorder(),
             ),

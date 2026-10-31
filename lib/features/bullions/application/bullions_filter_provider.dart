@@ -13,19 +13,21 @@ class BullionsFilterNotifier extends Notifier<BullionsFilterState> {
   BullionsFilterState build() => const BullionsFilterState();
 
   void setMetalFilter(BullionsMetalFilter filter) {
-    final available = BullionsFilterState.metalVariants[filter] ?? const <String>[];
-    final keepVariant =
-        state.selectedVariant != null && available.contains(state.selectedVariant);
+    final available =
+        BullionsFilterState.metalVariants[filter] ?? const <String>[];
+    // Keep only the purities the new metal offers.
     state = state.copyWith(
       metalFilter: filter,
-      clearVariant: !keepVariant,
+      selectedVariants: state.selectedVariants
+          .where(available.contains)
+          .toSet(),
     );
   }
 
-  void setSelectedVariant(String? variant) {
+  /// Purity chips are multi-select.
+  void toggleVariant(String variant) {
     state = state.copyWith(
-      selectedVariant: variant,
-      clearVariant: variant == null,
+      selectedVariants: _toggle(state.selectedVariants, variant),
     );
   }
 
@@ -44,14 +46,16 @@ class BullionsFilterNotifier extends Notifier<BullionsFilterState> {
 
 final bullionsFilterProvider =
     NotifierProvider<BullionsFilterNotifier, BullionsFilterState>(
-  BullionsFilterNotifier.new,
+      BullionsFilterNotifier.new,
+    );
+
+final bullionsViewModeProvider = StateProvider<BullionsViewMode>(
+  (ref) => BullionsViewMode.grid,
 );
 
-final bullionsViewModeProvider =
-    StateProvider<BullionsViewMode>((ref) => BullionsViewMode.grid);
-
-final bullionsSortProvider =
-    StateProvider<BullionsSortOption>((ref) => BullionsSortOption.featured);
+final bullionsSortProvider = StateProvider<BullionsSortOption>(
+  (ref) => BullionsSortOption.featured,
+);
 
 class BullionsFilterDraftNotifier extends Notifier<BullionsFilterState> {
   @override
@@ -69,8 +73,7 @@ class BullionsFilterDraftNotifier extends Notifier<BullionsFilterState> {
     state = state.copyWith(selectedAvailability: next);
   }
 
-  void setMakeAnOffer(bool value) =>
-      state = state.copyWith(makeAnOffer: value);
+  void setMakeAnOffer(bool value) => state = state.copyWith(makeAnOffer: value);
 
   void toggleWeightChip(String value) =>
       state = state.copyWith(weightChips: _toggle(state.weightChips, value));
@@ -78,8 +81,9 @@ class BullionsFilterDraftNotifier extends Notifier<BullionsFilterState> {
   void toggleCondition(String value) =>
       state = state.copyWith(conditions: _toggle(state.conditions, value));
 
-  void toggleCertification(String value) => state =
-      state.copyWith(certifications: _toggle(state.certifications, value));
+  void toggleCertification(String value) => state = state.copyWith(
+    certifications: _toggle(state.certifications, value),
+  );
 
   void toggleMintMark(String value) =>
       state = state.copyWith(mintMarks: _toggle(state.mintMarks, value));
@@ -132,7 +136,7 @@ class BullionsFilterDraftNotifier extends Notifier<BullionsFilterState> {
   void reset() {
     state = BullionsFilterState(
       metalFilter: state.metalFilter,
-      selectedVariant: state.selectedVariant,
+      selectedVariants: state.selectedVariants,
       searchQuery: state.searchQuery,
     );
   }
@@ -144,6 +148,5 @@ class BullionsFilterDraftNotifier extends Notifier<BullionsFilterState> {
 
 final bullionsFilterDraftProvider =
     NotifierProvider<BullionsFilterDraftNotifier, BullionsFilterState>(
-  BullionsFilterDraftNotifier.new,
-);
-
+      BullionsFilterDraftNotifier.new,
+    );

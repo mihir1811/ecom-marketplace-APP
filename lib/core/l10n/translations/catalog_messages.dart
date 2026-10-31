@@ -435,6 +435,12 @@ abstract final class CatalogL10n {
   static const selectFluorescenceColors =
       'catalog.filter.selectFluorescenceColors';
   static const selectEnhancements = 'catalog.filter.selectEnhancements';
+  static const selectGemstoneTypes = 'catalog.filter.selectGemstoneTypes';
+  static const selectBirthstones = 'catalog.filter.selectBirthstones';
+  static const selectTreatments = 'catalog.filter.selectTreatments';
+  static const selectBrands = 'catalog.filter.selectBrands';
+  static const selectModels = 'catalog.filter.selectModels';
+  static const selectAny = 'catalog.filter.selectAny';
   static const selectAll = 'catalog.filter.selectAll';
   static const clarityCardsHelp = 'catalog.filter.clarityCardsHelp';
   static const sortTitle = 'catalog.sort.title';
@@ -1689,6 +1695,24 @@ const catalogMessages = <String, LocalizedMessage>{
     'कोई भी संवर्धन',
     'કોઈપણ સુધારણા',
   ),
+  CatalogL10n.selectGemstoneTypes: _M(
+    'Any gemstone type',
+    'कोई भी रत्न प्रकार',
+    'કોઈપણ રત્ન પ્રકાર',
+  ),
+  CatalogL10n.selectBirthstones: _M(
+    'Any birth month',
+    'कोई भी जन्म माह',
+    'કોઈપણ જન્મ મહિનો',
+  ),
+  CatalogL10n.selectTreatments: _M(
+    'Any treatment',
+    'कोई भी उपचार',
+    'કોઈપણ સારવાર',
+  ),
+  CatalogL10n.selectBrands: _M('Any brand', 'कोई भी ब्रांड', 'કોઈપણ બ્રાન્ડ'),
+  CatalogL10n.selectModels: _M('Any model', 'कोई भी मॉडल', 'કોઈપણ મોડેલ'),
+  CatalogL10n.selectAny: _M('Any', 'कोई भी', 'કોઈપણ'),
   CatalogL10n.selectAll: _M('Select All', 'सभी चुनें', 'બધા પસંદ કરો'),
   CatalogL10n.clarityCardsHelp: _M(
     'Tap a card to pick its whole group, or a grade to pick just that one.',

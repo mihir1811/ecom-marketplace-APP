@@ -105,16 +105,6 @@ class _BuyerOrdersScreenState extends ConsumerState<BuyerOrdersScreen> {
       sort: _sort,
     );
     final gutter = AtelierSpace.gutter(MediaQuery.sizeOf(context).width);
-    final awaiting = orders
-        .where((o) => buyerOrderStage(o) == BuyerOrderStage.awaitingSeller)
-        .length;
-    final liveValue = orders
-        .where((o) {
-          final s = buyerOrderStage(o);
-          return s == BuyerOrderStage.awaitingSeller ||
-              s == BuyerOrderStage.confirmed;
-        })
-        .fold<double>(0, (sum, o) => sum + o.amountUsd);
     final filtered =
         _filter != BuyerOrderFilter.all || _search.text.trim().isNotEmpty;
 
@@ -130,66 +120,7 @@ class _BuyerOrdersScreenState extends ConsumerState<BuyerOrdersScreen> {
               parent: BouncingScrollPhysics(),
             ),
             slivers: [
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 18),
-                sliver: SliverToBoxAdapter(
-                  child: MaisonCentered(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        MaisonHeader(
-                          title: context.tr(AccountCommerceL10n.orders),
-                          cut: GemCut.oval,
-                        ),
-                        const SizedBox(height: 22),
-                        Reveal(
-                          index: 3,
-                          child: MaisonStatStrip(
-                            stats: [
-                              MaisonStat(
-                                label: 'In progress',
-                                value: '${counts[BuyerOrderFilter.active]}',
-                                caption: awaiting > 0
-                                    ? '$awaiting awaiting seller'
-                                    : 'On their way',
-                                tone: AtelierTone.sapphire,
-                                pulse: awaiting > 0,
-                                selected: _filter == BuyerOrderFilter.active,
-                                onTap: () => _setFilter(
-                                  _filter == BuyerOrderFilter.active
-                                      ? BuyerOrderFilter.all
-                                      : BuyerOrderFilter.active,
-                                ),
-                              ),
-                              MaisonStat(
-                                label: 'Attention',
-                                value: '${counts[BuyerOrderFilter.issues]}',
-                                caption: 'Rejected by seller',
-                                tone: counts[BuyerOrderFilter.issues]! > 0
-                                    ? AtelierTone.ruby
-                                    : null,
-                                selected: _filter == BuyerOrderFilter.issues,
-                                onTap: () => _setFilter(
-                                  _filter == BuyerOrderFilter.issues
-                                      ? BuyerOrderFilter.all
-                                      : BuyerOrderFilter.issues,
-                                ),
-                              ),
-                              MaisonStat(
-                                label: 'Active value',
-                                value: maisonUsd(liveValue),
-                                caption: state.hasMore
-                                    ? 'Loaded orders'
-                                    : 'Paid & in progress',
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 8)),
               MaisonPinnedBar(
                 height: 124,
                 gutter: gutter,

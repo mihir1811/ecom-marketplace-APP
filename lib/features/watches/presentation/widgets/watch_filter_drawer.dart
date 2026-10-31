@@ -9,10 +9,13 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../../core/widgets/catalog_search_filter_shell.dart';
 import '../../../../core/widgets/filters/catalog_availability_filter.dart';
 import '../../../../core/widgets/filters/filter_boolean_checkbox.dart';
+import '../../../../core/widgets/filters/filter_chip.dart';
+import '../../../../core/widgets/filters/filter_chip_scroll_row.dart';
 import '../../../../core/widgets/filters/filter_section_header.dart';
 import '../../../../core/widgets/luxe/luxe_chip_group.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_finder.dart';
+import '../../../../core/widgets/luxe/luxe_multi_select_field.dart';
 import '../../../../core/widgets/luxe/luxe_range_fields.dart';
 import '../../application/brand_watch_filter_provider.dart';
 import '../../application/brand_watch_list_provider.dart';
@@ -146,9 +149,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer>
     final draft = ref.watch(_draftProvider);
     final summary = WatchFilterSummary.of(draft);
     return LuxeFinderScaffold<WatchFilterSection>(
-      title: _isBrandLocked
-          ? _lockedBrandName
-          : context.tr(CatalogL10n.luxuryWatches),
+      title: _isBrandLocked ? _lockedBrandName : '',
       onBack: () => context.goBack(),
       sections: WatchFilterSection.values,
       active: finderActive,
@@ -185,15 +186,13 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer>
       WatchFilterSection.style => (
         Icons.style_outlined,
         _stack([
-          _chips(
-            context,
+          _scrollChips(
             null,
             WatchFilterState.styleOptions,
             d.categories,
             _n.toggleStyle,
           ),
-          _chips(
-            context,
+          _scrollChips(
             context.tr(CatalogL10n.gender),
             WatchFilterState.genderOptions,
             d.genders,
@@ -216,35 +215,35 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer>
       WatchFilterSection.movement => (
         Icons.settings_outlined,
         _stack([
-          _chips(
+          _dropdown(
             context,
             context.tr(CatalogL10n.movement),
             WatchFilterState.movementOptions,
             d.movements,
             _n.toggleMovement,
           ),
-          _chips(
+          _dropdown(
             context,
             'Features',
             WatchFilterState.configurationOptions,
             d.configurations,
             _n.toggleConfiguration,
           ),
-          _chips(
+          _dropdown(
             context,
             'Special Features',
             WatchFilterState.materialOptions,
             d.materials,
             _n.toggleMaterial,
           ),
-          _chips(
+          _dropdown(
             context,
             'Power Reserve',
             WatchFilterState.powerReserveOptions,
             d.powerReserves,
             _n.togglePowerReserve,
           ),
-          _chips(
+          _dropdown(
             context,
             'Water Resistance',
             WatchFilterState.waterResistanceOptions,
@@ -256,16 +255,13 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer>
       WatchFilterSection.caseBezel => (
         Icons.crop_square_rounded,
         _stack([
-          _chips(
-            context,
+          _scrollChips(
             'Case Shape',
             WatchFilterState.caseShapeOptions,
             d.caseShapes,
             _n.toggleCaseShape,
-            initialVisible: 8,
           ),
-          _chips(
-            context,
+          _scrollChips(
             'Case Size',
             WatchFilterState.caseSizeRangeOptions,
             d.caseSizeRanges,
@@ -277,20 +273,17 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer>
             d.caseMaterials,
             _n.toggleCaseMaterial,
           ),
-          _chips(
-            context,
+          _scrollChips(
             'Lug Width',
             WatchFilterState.lugWidthOptions,
             d.lugWidths,
             _n.toggleLugWidth,
           ),
-          _chips(
-            context,
+          _scrollChips(
             'Bezel Type',
             WatchFilterState.bezelTypeOptions,
             d.bezelTypes,
             _n.toggleBezelType,
-            initialVisible: 7,
           ),
           _swatches(
             'Bezel Material',
@@ -488,25 +481,87 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer>
           ],
         )
       else
-        _chips(
+        _dropdown(
           context,
           'Brand',
           _brandOptions,
           d.brands,
           _n.toggleBrand,
-          initialVisible: WatchFilterState.popularBrandOptions.length,
+          hint: context.tr(CatalogL10n.selectBrands),
           searchHint: context.tr(CatalogL10n.searchBrands),
-          emptyLabel: 'No brands found',
         ),
-      _chips(
+      _dropdown(
         context,
         'Model',
         _modelOptions(d),
         d.models,
         _n.toggleModel,
-        initialVisible: 8,
+        hint: context.tr(CatalogL10n.selectModels),
       ),
     ]);
+  }
+
+  /// Multi-select dropdown (searchable once the list is long).
+  Widget _dropdown(
+    BuildContext context,
+    String title,
+    List<String> options,
+    Set<String> selected,
+    void Function(String) onToggle, {
+    String? hint,
+    String? searchHint,
+  }) {
+    final picked = [
+      for (final o in options)
+        if (selected.contains(o)) o,
+      // Picks no longer in the list (e.g. models of a brand that was
+      // unselected) stay visible and removable.
+      for (final o in selected)
+        if (!options.contains(o)) o,
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FilterSectionHeader(title: title),
+        const SizedBox(height: 8),
+        LuxeMultiSelectField(
+          options: options,
+          selected: picked,
+          onChanged: (next) => applyMultiSelectToggles(picked, next, onToggle),
+          hint: hint ?? context.tr(CatalogL10n.selectAny),
+          sheetTitle: title,
+          searchHint: searchHint,
+        ),
+      ],
+    );
+  }
+
+  /// One sideways-scrolling line of chips.
+  Widget _scrollChips(
+    String? title,
+    List<String> options,
+    Set<String> selected,
+    void Function(String) onToggle,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (title != null) ...[
+          FilterSectionHeader(title: title),
+          const SizedBox(height: 8),
+        ],
+        FilterChipScrollRow(
+          children: [
+            for (final o in options)
+              FilterChipWidget(
+                label: o,
+                isSelected: selected.contains(o),
+                onTap: () => onToggle(o),
+              ),
+          ],
+        ),
+      ],
+    );
   }
 
   Widget _stack(List<Widget> children) => Column(

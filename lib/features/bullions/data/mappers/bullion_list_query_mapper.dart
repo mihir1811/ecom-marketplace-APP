@@ -88,10 +88,18 @@ abstract final class BullionListQueryMapper {
       filters['isMakeAnOfferAllowed'] = {'equals': true};
     }
 
-    final fineness = _mapVariantToFineness(f.selectedVariant);
-    if (fineness != null) {
+    final fineness = f.selectedVariants
+        .map(_mapVariantToFineness)
+        .whereType<String>()
+        .toSet()
+        .toList();
+    if (fineness.length == 1) {
       filters['metalFineness'] = {
-        'value': {'equals': fineness},
+        'value': {'equals': fineness.first},
+      };
+    } else if (fineness.length > 1) {
+      filters['metalFineness'] = {
+        'value': {'in': fineness},
       };
     }
 
@@ -107,8 +115,10 @@ abstract final class BullionListQueryMapper {
         .toList();
     _putEqualsOrIn(filters, 'certification', certifications);
 
-    final mintMarks =
-        f.mintMarks.map((m) => m.trim()).where((m) => m.isNotEmpty).toList();
+    final mintMarks = f.mintMarks
+        .map((m) => m.trim())
+        .where((m) => m.isNotEmpty)
+        .toList();
     _putEqualsOrIn(filters, 'mintMark', mintMarks);
 
     _putRange(filters, 'price', f.priceMin, f.priceMax);

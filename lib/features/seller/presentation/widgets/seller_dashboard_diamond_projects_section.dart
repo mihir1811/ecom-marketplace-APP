@@ -4,12 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/luxe_scope.dart';
 import '../../../diamond_projects/presentation/widgets/diamond_project_overview.dart';
+import '../../../diamond_projects/domain/models/diamond_project_stats.dart';
 import '../../../diamonds/domain/models/diamond_filter_state.dart';
 import '../../../diamonds/presentation/widgets/diamond_svg_data.dart';
 import '../../application/seller_diamond_project_provider.dart';
 import '../atelier/atelier_components.dart';
 import '../atelier/atelier_feedback.dart';
 import '../atelier/atelier_motion.dart';
+import '../atelier/atelier_studio.dart';
 import '../atelier/atelier_theme.dart';
 
 const _dashboardCutGrades = ['Excellent', 'Very Good', 'Good', 'Fair', 'Poor'];
@@ -85,7 +87,7 @@ class _SellerDashboardDiamondProjectsSectionState
     return AtelierCard(
       // Tighter than the default card: the hero inside is already a framed
       // surface, so a wide gutter only wastes width on phones.
-      padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -143,24 +145,16 @@ class _SellerDashboardDiamondProjectsSectionState
                           .clearFilters(),
                     )
                   else
-                    // Same hero, averages and Overview · Mix · Spread · Stones
-                    // tabs as the diamond project screen.
+                    // One compact summary, then the Overview · Mix · Spread ·
+                    // Stones tabs shared with the diamond project screen.
                     LuxeScope(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          DiamondProjectHero(
-                            name: context.tr(CatalogL10n.matchingStonesCount, {
-                              'count': '${inventory.totalCount}',
-                            }),
-                            status: context.tr(CatalogL10n.liveInventory),
-                            statusIcon: Icons.inventory_2_outlined,
-                            highlighted: true,
-                            compact: true,
+                          _ProjectSummary(
                             stats: stats,
+                            matching: inventory.totalCount,
                           ),
-                          const SizedBox(height: AtelierSpace.s16),
-                          DiamondProjectAverages(stats: stats),
                           const SizedBox(height: AtelierSpace.s12),
                           Center(
                             child: DiamondProjectTabBar(
@@ -203,74 +197,95 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = context.atelier;
-    Widget actions({required bool roomy}) => Row(
-      mainAxisSize: MainAxisSize.min,
+    return Row(
       children: [
-        // Labelled when there is room; an icon button on phones so the
-        // title and overline stay on one line.
-        if (roomy)
-          AtelierButton(
-            label: context.tr(CatalogL10n.filters),
-            icon: Icons.tune_rounded,
-            compact: true,
-            variant: AtelierButtonVariant.secondary,
-            onPressed: onFilter,
-          )
-        else
-          AtelierIconButton(
-            icon: Icons.tune_rounded,
-            tooltip: context.tr(CatalogL10n.filters),
-            filled: true,
-            onPressed: onFilter,
+        Expanded(
+          child: Text(
+            context.tr(CatalogL10n.sellerDiamondProjectsTitle),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AtelierType.title(p.ink, size: 17),
           ),
+        ),
+        AtelierIconButton(
+          icon: Icons.tune_rounded,
+          tooltip: context.tr(CatalogL10n.filters),
+          filled: true,
+          size: 38,
+          onPressed: onFilter,
+        ),
         const SizedBox(width: AtelierSpace.s8),
         AtelierIconButton(
           icon: Icons.refresh_rounded,
           tooltip: context.tr(RemainingL10n.refresh),
           filled: true,
+          size: 38,
           onPressed: onRefresh,
         ),
       ],
     );
-    // Actions ride on the title row so they don't cost a row of their own.
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Inventory intelligence'.toUpperCase(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AtelierType.overline(p.gold),
-                  ),
-                  const SizedBox(height: AtelierSpace.s4),
-                  Text(
-                    context.tr(CatalogL10n.sellerDiamondProjectsTitle),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AtelierType.display(p.ink, size: 22),
-                  ),
-                ],
+  }
+}
+
+/// Key figures of the live selection in one light strip: stones, carats,
+/// value and price per carat, with averages underneath.
+class _ProjectSummary extends StatelessWidget {
+  const _ProjectSummary({required this.stats, required this.matching});
+
+  final DiamondProjectStats stats;
+  final int matching;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.atelier;
+    String money(double v) => atelierMoney(v.round(), symbol: r'$');
+    Widget figure(String value, String label) => Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(value, style: AtelierType.title(p.ink, size: 16)),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AtelierType.caption(p.muted, size: 11),
+          ),
+        ],
+      ),
+    );
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      decoration: BoxDecoration(
+        color: p.sunken,
+        borderRadius: BorderRadius.circular(AtelierRadius.md),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              figure('$matching', context.tr(CatalogL10n.projectStonesKpi)),
+              figure(
+                '${stats.totalCarat.toStringAsFixed(2)} ct',
+                context.tr(CatalogL10n.projectTotalCaratKpi),
               ),
-            ),
-            const SizedBox(width: AtelierSpace.s8),
-            actions(roomy: MediaQuery.sizeOf(context).width >= 480),
-          ],
-        ),
-        const SizedBox(height: AtelierSpace.s6),
-        Text(
-          context.tr(CatalogL10n.sellerDiamondProjectsSubtitle),
-          maxLines: 3,
-          overflow: TextOverflow.ellipsis,
-          style: AtelierType.caption(p.muted, size: 12.5),
-        ),
-      ],
+              figure(money(stats.totalPrice), 'Value'),
+              figure(money(stats.avgPpc), r'Avg $/ct'),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Avg ${stats.avgCarat.toStringAsFixed(2)} ct · '
+            'Avg ${money(stats.avgPrice)}',
+            style: AtelierType.caption(p.muted, size: 11.5),
+          ),
+        ],
+      ),
     );
   }
 }

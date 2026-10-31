@@ -110,36 +110,6 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen> {
 
   void _export() => showAtelierToast(context, 'Export isn’t available yet.');
 
-  Future<void> _openToolsMenu({
-    required bool canExport,
-    required bool busy,
-  }) async {
-    final action = await showAtelierOptions<String>(
-      context: context,
-      title: context.tr(RemainingL10n.actions),
-      options: [
-        if (canExport)
-          AtelierOption(
-            value: 'export',
-            label: context.tr(RemainingL10n.export),
-            icon: Icons.file_download_outlined,
-          ),
-        AtelierOption(
-          value: 'refresh',
-          label: context.tr(RemainingL10n.refresh),
-          icon: Icons.refresh_rounded,
-        ),
-      ],
-    );
-    if (!mounted) return;
-    switch (action) {
-      case 'export':
-        _export();
-      case 'refresh' when !busy:
-        await ref.read(sellerProductsCatalogProvider.notifier).refresh();
-    }
-  }
-
   void _clearSelection(Set<String> ids) {
     final ctrl = ref.read(sellerProductsControllerProvider.notifier);
     for (final id in ids.toList()) {
@@ -168,7 +138,6 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen> {
     final gutter = AtelierSpace.gutter(width);
     final isTable = state.viewMode == SellerProductsViewMode.grid;
     final showSummary = width >= 600;
-    final narrow = width < 480;
 
     Widget content;
     if (catalogState.isLoading && catalog.isEmpty) {
@@ -181,6 +150,7 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen> {
           : _GallerySkeleton(gutter: gutter);
     } else if (catalogState.errorMessage != null && catalog.isEmpty) {
       content = SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         child: AtelierErrorState(
           title: 'Inventory unavailable',
           message: catalogState.errorMessage!,
@@ -336,32 +306,12 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen> {
                             )
                           : const SizedBox.shrink(),
                     ),
-                    if (narrow)
-                      AtelierIconButton(
-                        icon: Icons.more_horiz_rounded,
-                        tooltip: context.tr(RemainingL10n.actions),
-                        onPressed: () => _openToolsMenu(
-                          canExport: isTable,
-                          busy: catalogState.isLoading,
-                        ),
-                      )
-                    else ...[
-                      if (isTable)
-                        AtelierIconButton(
-                          icon: Icons.file_download_outlined,
-                          tooltip: context.tr(RemainingL10n.export),
-                          onPressed: _export,
-                        ),
-                      AtelierIconButton(
-                        icon: Icons.refresh_rounded,
-                        tooltip: context.tr(RemainingL10n.refresh),
-                        onPressed: catalogState.isLoading
-                            ? null
-                            : () => ref
-                                  .read(sellerProductsCatalogProvider.notifier)
-                                  .refresh(),
-                      ),
-                    ],
+                    // Export only; refresh is pull-to-refresh on the list.
+                    AtelierIconButton(
+                      icon: Icons.file_download_outlined,
+                      tooltip: context.tr(RemainingL10n.export),
+                      onPressed: _export,
+                    ),
                   ],
                 ),
               ),

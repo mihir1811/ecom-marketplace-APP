@@ -465,7 +465,8 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
                                     child: Overlay(
                                       initialEntries: [
                                         OverlayEntry(
-                                          builder: (_) => SectionTopBar(location: _path),
+                                          builder: (_) =>
+                                              SectionTopBar(location: _path),
                                         ),
                                       ],
                                     ),
@@ -591,8 +592,9 @@ class _LiveBar extends ConsumerWidget {
   }
 }
 
-/// While a dialog / sheet / menu is open the bar takes on its barrier (only
-/// over the bar's own pixels) and a tap on it behaves like a barrier tap.
+/// Steps the bar out of the way while a sheet, dialog or menu is open, so
+/// the popup sits above it. The bar stays mounted (state, fold and counts
+/// untouched) and comes back as soon as the popup closes.
 class _BarWithPopupScrim extends StatelessWidget {
   const _BarWithPopupScrim({required this.popup, required this.child});
 
@@ -601,47 +603,26 @@ class _BarWithPopupScrim extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final route = popup;
-    if (route == null) return child;
-
-    final barrier = route.barrierColor;
-    final Color? tint = barrier != null && barrier.a > 0
-        ? barrier
-        // Full-screen overlays without a barrier (spotlight search) veil
-        // the bar like their own frosted backdrop.
-        : route is RawDialogRoute
-        ? LuxePalette.of(context).canvas.withValues(alpha: 0.9)
-        : null;
-    final animation = route.animation;
-
-    Widget tinted = child;
-    if (tint != null && animation != null) {
-      tinted = AnimatedBuilder(
-        animation: animation,
-        child: child,
-        builder: (context, child) => ColorFiltered(
-          colorFilter: ColorFilter.mode(
-            tint.withValues(alpha: tint.a * animation.value),
-            BlendMode.srcATop,
+    final animation = popup?.animation ?? kAlwaysDismissedAnimation;
+    final hidden = popup != null;
+    return AnimatedBuilder(
+      animation: animation,
+      child: child,
+      builder: (context, child) {
+        // No route animation (or already settled): fully hidden.
+        final t = !hidden
+            ? 0.0
+            : popup!.animation == null
+            ? 1.0
+            : animation.value.clamp(0.0, 1.0);
+        return IgnorePointer(
+          ignoring: hidden,
+          child: Opacity(
+            opacity: 1 - t,
+            child: Transform.translate(offset: Offset(0, 24 * t), child: child),
           ),
-          child: child,
-        ),
-      );
-    }
-
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        tinted,
-        Positioned.fill(
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: route.barrierDismissible
-                ? () => route.navigator?.maybePop()
-                : null,
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 }

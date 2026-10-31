@@ -5,14 +5,11 @@ import 'package:share_plus/share_plus.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../core/widgets/gem3d/gem_renderer.dart';
 import '../../../buyer/presentation/maison/maison_kit.dart';
 import '../../../buyer/presentation/maison/maison_layout.dart';
 import '../../../seller/presentation/atelier/atelier_components.dart';
 import '../../../seller/presentation/atelier/atelier_feedback.dart';
 import '../../../seller/presentation/atelier/atelier_motion.dart';
-import '../../../seller/presentation/atelier/atelier_studio.dart';
 import '../../../seller/presentation/atelier/atelier_theme.dart';
 import '../../application/reference_providers.dart';
 import '../../domain/models/reference_models.dart';
@@ -159,12 +156,6 @@ class _BuyerReferencesScreenState extends ConsumerState<BuyerReferencesScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        MaisonHeader(
-                          title: context.tr(RemainingL10n.references),
-                          cut: GemCut.heart,
-                          look: GemLook.champagne,
-                        ),
-                        const SizedBox(height: 22),
                         if (!ready && state.isLoading)
                           const _HeadSkeleton()
                         else if (!ready && state.errorMessage != null)
@@ -428,37 +419,6 @@ class _Head extends StatelessWidget {
         onOpen: () => showCircleSponsorSheet(context),
       ),
     );
-    final stats = Reveal(
-      index: 4,
-      child: MaisonStatStrip(
-        stats: [
-          MaisonStat(
-            label: 'Circle',
-            value: '$acceptedCount',
-            caption: 'Accepted',
-            selected: lens == _Lens.circle,
-            onTap: () => onLens(_Lens.circle),
-          ),
-          MaisonStat(
-            label: 'Awaiting',
-            value: '$pendingCount',
-            caption: 'Need your answer',
-            tone: pendingCount > 0 ? AtelierTone.amber : null,
-            pulse: pendingCount > 0,
-            selected: lens == _Lens.requests,
-            onTap: () => onLens(_Lens.requests),
-          ),
-          MaisonStat(
-            label: context.tr(RemainingL10n.commission),
-            value: atelierMoney(earned, symbol: '₹'),
-            caption: 'Earned',
-            tone: AtelierTone.emerald,
-            selected: lens == _Lens.earnings,
-            onTap: () => onLens(_Lens.earnings),
-          ),
-        ],
-      ),
-    );
     final notices = [
       if (error != null) ...[
         AtelierNotice(
@@ -495,7 +455,6 @@ class _Head extends StatelessWidget {
               sponsor,
               const SizedBox(height: 14),
               ...notices,
-              stats,
             ],
           );
         }
@@ -511,12 +470,7 @@ class _Head extends StatelessWidget {
                   flex: 9,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      sponsor,
-                      const SizedBox(height: 16),
-                      ...notices,
-                      stats,
-                    ],
+                    children: [sponsor, const SizedBox(height: 16), ...notices],
                   ),
                 ),
               ],
@@ -536,7 +490,7 @@ class _HeadSkeleton extends StatelessWidget {
     return const Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SkeletonBox(height: 320, radius: AtelierRadius.xl),
+        SkeletonBox(height: 160, radius: AtelierRadius.lg),
         SizedBox(height: 14),
         SkeletonBox(height: 76, radius: AtelierRadius.lg),
         SizedBox(height: 14),

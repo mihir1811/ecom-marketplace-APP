@@ -11,10 +11,10 @@ import '../../domain/models/sorting_criteria.dart';
 
 /// Multi-criteria sort sheet for diamond results.
 ///
-/// Top to bottom: a live "Sorted by … then …" summary, one-tap quick picks,
-/// the user's sort order (drag the handle to change priority, flip each
-/// direction, remove), and the fields still available to add. Nothing
-/// applies until "Show results".
+/// Top to bottom: one-tap quick picks (a sideways strip), the user's sort
+/// order when set (drag to change priority, flip each direction, remove),
+/// and the fields still available to add. Nothing applies until "Show
+/// results".
 class DiamondSortingBottomSheet extends ConsumerStatefulWidget {
   const DiamondSortingBottomSheet({super.key});
 
@@ -230,35 +230,13 @@ class _DiamondSortingBottomSheetState
                   controller: scroll,
                   padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
                   children: [
-                    _SortSummary(order: _order),
-                    const SizedBox(height: 22),
                     _sectionLabel(p, context.tr(CatalogL10n.sortQuickPicks)),
                     const SizedBox(height: 10),
                     _quickPickRow(p),
-                    const SizedBox(height: 26),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _sectionLabel(
-                            p,
-                            context.tr(CatalogL10n.sortYourOrder),
-                          ),
-                        ),
-                        if (_order.isNotEmpty)
-                          Text(
-                            '${_order.length}/${DiamondSortingFields.all.length}',
-                            style: LuxeType.figure(p.inkFaint, size: 12),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    if (_order.length > 1)
-                      Text(
-                        context.tr(CatalogL10n.sortDragHint),
-                        style: LuxeType.body(p.inkMuted, size: 12.5),
-                      ),
-                    const SizedBox(height: 10),
-                    if (_order.isEmpty) _empty(p) else _orderList(p),
+                    if (_order.isNotEmpty) ...[
+                      const SizedBox(height: 22),
+                      _orderList(p),
+                    ],
                     if (_available.isNotEmpty) ...[
                       const SizedBox(height: 26),
                       _sectionLabel(p, context.tr(CatalogL10n.sortAddCriteria)),
@@ -315,11 +293,6 @@ class _DiamondSortingBottomSheetState
                   context.tr(CatalogL10n.sortTitle),
                   style: LuxeType.display(28, p.ink),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  context.tr(CatalogL10n.sortSubtitle),
-                  style: LuxeType.body(p.inkMuted, size: 13.5),
-                ),
               ],
             ),
           ),
@@ -341,57 +314,22 @@ class _DiamondSortingBottomSheetState
       Text(text.toUpperCase(), style: LuxeType.eyebrow(p.inkMuted));
 
   Widget _quickPickRow(LuxePalette p) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        for (final q in _quickPicks)
-          _QuickPickChip(
-            label: context.tr(q.labelKey),
-            icon: q.icon,
-            active: _isQuickPickActive(q),
-            onTap: () => _applyQuickPick(q),
-          ),
-      ],
-    );
-  }
-
-  Widget _empty(LuxePalette p) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
-      decoration: BoxDecoration(
-        color: p.surface,
-        borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
-        border: Border.all(color: p.hairline),
-      ),
+    // Bleeds to the sheet edges so chips scroll under the side padding.
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      clipBehavior: Clip.none,
       child: Row(
         children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: p.accentSoft,
-              shape: BoxShape.circle,
+          for (final q in _quickPicks)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: _QuickPickChip(
+                label: context.tr(q.labelKey),
+                icon: q.icon,
+                active: _isQuickPickActive(q),
+                onTap: () => _applyQuickPick(q),
+              ),
             ),
-            child: Icon(Icons.auto_awesome_rounded, color: p.accent, size: 20),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  context.tr(CatalogL10n.sortEmptyTitle),
-                  style: LuxeType.label(p.ink, size: 14),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  context.tr(CatalogL10n.sortEmptyBody),
-                  style: LuxeType.body(p.inkMuted, size: 12.5),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
@@ -518,71 +456,7 @@ class _DiamondSortingBottomSheetState
   }
 }
 
-/// "Sorted by Total Price (Low → High), then Carat (Large → Small)".
-class _SortSummary extends StatelessWidget {
-  const _SortSummary({required this.order});
-
-  final List<SortingCriteria> order;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = LuxePalette.of(context);
-    final spans = <InlineSpan>[];
-    if (order.isEmpty) {
-      spans.add(TextSpan(text: context.tr(CatalogL10n.sortEmptyTitle)));
-    } else {
-      spans.add(TextSpan(text: '${context.tr(CatalogL10n.sortSortedBy)} '));
-      for (var i = 0; i < order.length; i++) {
-        final c = order[i];
-        if (i > 0) {
-          spans.add(TextSpan(text: ', ${context.tr(CatalogL10n.sortThen)} '));
-        }
-        spans
-          ..add(
-            TextSpan(
-              text: c.displayName,
-              style: LuxeType.label(p.ink, size: 13.5),
-            ),
-          )
-          ..add(
-            TextSpan(
-              text: ' (${_directionLabel(context, c.fieldKey, c.direction)})',
-              style: LuxeType.body(p.accent, size: 13),
-            ),
-          );
-      }
-    }
-    return AnimatedSize(
-      duration: LuxeMotion.fast,
-      curve: LuxeMotion.settle,
-      alignment: Alignment.topCenter,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: p.accentSoft,
-          borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(Icons.swap_vert_rounded, size: 18, color: p.accent),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text.rich(
-                TextSpan(
-                  style: LuxeType.body(p.inkMuted, size: 13),
-                  children: spans,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
+/// One quick-pick pill (icon + label), filled when its recipe is active.
 class _QuickPickChip extends StatelessWidget {
   const _QuickPickChip({
     required this.label,

@@ -10,22 +10,22 @@ enum BullionsMetalFilter {
   copper;
 
   String get label => switch (this) {
-        all => 'All',
-        gold => 'Gold',
-        silver => 'Silver',
-        platinum => 'Platinum',
-        palladium => 'Palladium',
-        copper => 'Copper',
-      };
+    all => 'All',
+    gold => 'Gold',
+    silver => 'Silver',
+    platinum => 'Platinum',
+    palladium => 'Palladium',
+    copper => 'Copper',
+  };
 
   BullionMetal? get metal => switch (this) {
-        all => null,
-        gold => BullionMetal.gold,
-        silver => BullionMetal.silver,
-        platinum => BullionMetal.platinum,
-        palladium => BullionMetal.palladium,
-        copper => BullionMetal.copper,
-      };
+    all => null,
+    gold => BullionMetal.gold,
+    silver => BullionMetal.silver,
+    platinum => BullionMetal.platinum,
+    palladium => BullionMetal.palladium,
+    copper => BullionMetal.copper,
+  };
 }
 
 enum BullionsViewMode { grid, list }
@@ -43,22 +43,21 @@ enum BullionsSortOption {
 
 extension BullionsSortOptionLabel on BullionsSortOption {
   String get label => switch (this) {
-        BullionsSortOption.featured => 'Default Sorting',
-        BullionsSortOption.priceLowToHigh => 'Price: Low to High',
-        BullionsSortOption.priceHighToLow => 'Price: High to Low',
-        BullionsSortOption.newest => 'Newest Arrivals',
-        BullionsSortOption.oldest => 'Oldest Arrivals',
-        BullionsSortOption.weightLowToHigh => 'Weight: Low to High',
-        BullionsSortOption.weightHighToLow => 'Weight: High to Low',
-      };
+    BullionsSortOption.featured => 'Default Sorting',
+    BullionsSortOption.priceLowToHigh => 'Price: Low to High',
+    BullionsSortOption.priceHighToLow => 'Price: High to Low',
+    BullionsSortOption.newest => 'Newest Arrivals',
+    BullionsSortOption.oldest => 'Oldest Arrivals',
+    BullionsSortOption.weightLowToHigh => 'Weight: Low to High',
+    BullionsSortOption.weightHighToLow => 'Weight: High to Low',
+  };
 }
-
 
 /// Immutable filter state for Bullions listings.
 class BullionsFilterState {
   const BullionsFilterState({
     this.metalFilter = BullionsMetalFilter.all,
-    this.selectedVariant,
+    this.selectedVariants = const {},
     this.searchQuery = '',
     this.shapes = const {},
     this.selectedAvailability = 'All',
@@ -82,7 +81,9 @@ class BullionsFilterState {
   });
 
   final BullionsMetalFilter metalFilter;
-  final String? selectedVariant;
+
+  /// Picked purities of the chosen metal (e.g. 24K, 22K); empty = any.
+  final Set<String> selectedVariants;
   final String searchQuery;
   final Set<String> shapes;
   final String selectedAvailability;
@@ -113,23 +114,14 @@ class BullionsFilterState {
     'Sold',
   ];
   static const weightChipOptions = ['1g', '5g', '10g', '1oz'];
-  static const conditionOptions = [
-    'New',
-    'BU',
-    'Circulated',
-  ];
+  static const conditionOptions = ['New', 'BU', 'Circulated'];
   static const certificationOptions = [
     'LBMA Good Delivery',
     'Assay card',
     'Royal Canadian Mint',
     'PAMP Certificate',
   ];
-  static const mintMarkOptions = [
-    'LBMA',
-    'PAMP',
-    'RCM',
-    'US Mint',
-  ];
+  static const mintMarkOptions = ['LBMA', 'PAMP', 'RCM', 'US Mint'];
 
   /// Hint text for empty range inputs in the filter drawer.
   static const rangePlaceholders = <String, String>{
@@ -181,7 +173,7 @@ class BullionsFilterState {
 
   BullionsFilterState copyWith({
     BullionsMetalFilter? metalFilter,
-    String? selectedVariant,
+    Set<String>? selectedVariants,
     bool clearVariant = false,
     String? searchQuery,
     Set<String>? shapes,
@@ -206,9 +198,9 @@ class BullionsFilterState {
   }) {
     return BullionsFilterState(
       metalFilter: metalFilter ?? this.metalFilter,
-      selectedVariant: clearVariant
-          ? null
-          : (selectedVariant ?? this.selectedVariant),
+      selectedVariants: clearVariant
+          ? const {}
+          : (selectedVariants ?? this.selectedVariants),
       searchQuery: searchQuery ?? this.searchQuery,
       shapes: shapes ?? this.shapes,
       selectedAvailability: selectedAvailability ?? this.selectedAvailability,
@@ -232,4 +224,3 @@ class BullionsFilterState {
     );
   }
 }
-

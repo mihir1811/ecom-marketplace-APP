@@ -16,6 +16,7 @@ import '../../../../core/widgets/app_system_back_scope.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
+import '../../../../core/widgets/luxe/luxe_toggle_sort_sheet.dart';
 import '../../../../core/widgets/navigation/top_bar/top_bar_actions.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/bullions_filter_provider.dart';
@@ -124,17 +125,49 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen>
     _searchController.clear();
   }
 
-  Future<void> _openSort() async {
-    final selected = await showLuxeChoiceSheet<BullionsSortOption>(
+  Future<void> _openSort() {
+    String dir(BullionsSortOption o) => switch (o) {
+      BullionsSortOption.priceLowToHigh ||
+      BullionsSortOption.weightLowToHigh => 'Low to High',
+      BullionsSortOption.priceHighToLow ||
+      BullionsSortOption.weightHighToLow => 'High to Low',
+      BullionsSortOption.newest => 'Newest',
+      BullionsSortOption.oldest => 'Oldest',
+      BullionsSortOption.featured => '',
+    };
+    return showLuxeToggleSortSheet<BullionsSortOption>(
       context,
       title: context.tr(CatalogFlowL10n.bullionSort),
-      options: BullionsSortOption.values,
+      fields: [
+        const LuxeSortField(
+          label: 'Default sorting',
+          options: [BullionsSortOption.featured],
+        ),
+        LuxeSortField(
+          label: 'Price',
+          options: const [
+            BullionsSortOption.priceLowToHigh,
+            BullionsSortOption.priceHighToLow,
+          ],
+          directionLabelOf: dir,
+        ),
+        LuxeSortField(
+          label: 'Arrivals',
+          options: const [BullionsSortOption.newest, BullionsSortOption.oldest],
+          directionLabelOf: dir,
+        ),
+        LuxeSortField(
+          label: 'Weight',
+          options: const [
+            BullionsSortOption.weightLowToHigh,
+            BullionsSortOption.weightHighToLow,
+          ],
+          directionLabelOf: dir,
+        ),
+      ],
       current: ref.read(bullionsSortProvider),
-      labelOf: (o) => o.label,
+      onChanged: (o) => ref.read(bullionsSortProvider.notifier).state = o,
     );
-    if (selected != null && mounted) {
-      ref.read(bullionsSortProvider.notifier).state = selected;
-    }
   }
 
   @override
@@ -151,7 +184,7 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen>
       safeBottom: false,
       backgroundColor: p.canvas,
       appBar: LuxeTopBar(
-        title: context.tr(CatalogL10n.bullions),
+        title: '',
         subtitle: const _CountLine(),
         scrollOffset: listingOffset,
         actions: const [TopBarActions()],
@@ -249,7 +282,8 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen>
   }
 }
 
-/// Metal presets with tone dots, plus purity variants for the chosen metal.
+/// Metal presets with tone dots, plus multi-select purity variants for the
+/// chosen metal.
 class _MetalPresets extends ConsumerWidget {
   const _MetalPresets();
 
@@ -258,8 +292,8 @@ class _MetalPresets extends ConsumerWidget {
     final metal = ref.watch(
       bullionsFilterProvider.select((s) => s.metalFilter),
     );
-    final variant = ref.watch(
-      bullionsFilterProvider.select((s) => s.selectedVariant),
+    final picked = ref.watch(
+      bullionsFilterProvider.select((s) => s.selectedVariants),
     );
     final variants = ref.watch(
       bullionsFilterProvider.select((s) => s.availableVariants),
@@ -295,9 +329,8 @@ class _MetalPresets extends ConsumerWidget {
                       for (final v in variants)
                         LuxeQuickChip(value: v, label: v),
                     ],
-                    isSelected: (v) => v == variant,
-                    onTap: (v) =>
-                        notifier.setSelectedVariant(variant == v ? null : v),
+                    isSelected: picked.contains,
+                    onTap: notifier.toggleVariant,
                   ),
                 ),
         ),

@@ -336,30 +336,38 @@ class LuxeDetailEyebrow extends StatelessWidget {
           ),
         ),
         Text('  ·  ', style: LuxeType.eyebrow(p.inkFaint)),
-        Tooltip(
-          message: detail.referenceLabel,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(6),
-            onTap: () {
-              Clipboard.setData(ClipboardData(text: detail.referenceValue));
-              showLuxeToast(
-                context,
-                context.tr(DiamondFlowL10n.stockIdCopied),
-                tone: LuxeTone.success,
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '#${detail.referenceValue}',
-                    style: LuxeType.figure(p.inkMuted, size: 12),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(Icons.copy_rounded, size: 12, color: p.inkFaint),
-                ],
+        // Long references (UUIDs) ellipsize instead of overflowing.
+        Flexible(
+          flex: 2,
+          child: Tooltip(
+            message: detail.referenceLabel,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(6),
+              onTap: () {
+                Clipboard.setData(ClipboardData(text: detail.referenceValue));
+                showLuxeToast(
+                  context,
+                  context.tr(DiamondFlowL10n.stockIdCopied),
+                  tone: LuxeTone.success,
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        '#${detail.referenceValue}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: LuxeType.figure(p.inkMuted, size: 12),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(Icons.copy_rounded, size: 12, color: p.inkFaint),
+                  ],
+                ),
               ),
             ),
           ),

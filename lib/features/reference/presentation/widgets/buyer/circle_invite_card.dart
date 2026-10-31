@@ -9,10 +9,9 @@ import '../../../../seller/presentation/atelier/atelier_motion.dart';
 import '../../../../seller/presentation/atelier/atelier_studio.dart';
 import '../../../../seller/presentation/atelier/atelier_theme.dart';
 import '../../../domain/models/reference_models.dart';
-import '../../../../../core/theme/luxe_tokens.dart';
 
-/// The buyer's invitation as an onyx members' pass: the referral code set
-/// large, one gold "Share invite" action and tap-to-copy email and link.
+/// The buyer's invitation, kept minimal: referral code with copy and a
+/// share button, then tap-to-copy email and link rows.
 class CircleInviteCard extends StatelessWidget {
   const CircleInviteCard({
     required this.profile,
@@ -30,139 +29,80 @@ class CircleInviteCard extends StatelessWidget {
     final p = context.atelier;
     final code = profile.referralCode.trim();
     final canShare = code.isNotEmpty || profile.shareRegisterUrl.isNotEmpty;
-    final soft = p.onOnyx.withValues(alpha: 0.62);
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AtelierRadius.xl),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color.lerp(p.onyx, LuxeStage.vaultTop, 0.35)!,
-              p.onyx,
-              LuxeStage.vaultBottom,
-            ],
-            stops: const [0, 0.55, 1],
-          ),
-          borderRadius: BorderRadius.circular(AtelierRadius.xl),
-          border: Border.all(color: p.gold.withValues(alpha: 0.28)),
-          boxShadow: p.floatShadow,
-        ),
-        child: Stack(
-          children: [
-            const Positioned.fill(child: IgnorePointer(child: _Sheen())),
-            // Passport-style inner rule.
-            Positioned.fill(
-              child: IgnorePointer(
-                child: Container(
-                  margin: const EdgeInsets.all(7),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(AtelierRadius.xl - 6),
-                    border: Border.all(
-                      color: p.gold.withValues(alpha: 0.12),
+    return AtelierCard(
+      padding: const EdgeInsets.fromLTRB(16, 14, 12, 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      context.tr(RemainingL10n.yourCode).toUpperCase(),
+                      style: AtelierType.overline(p.muted),
                     ),
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.diamond_outlined, size: 14, color: p.gold),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'YOUR INVITATION',
-                          style: AtelierType.overline(p.gold),
-                        ),
-                      ),
-                      Text(
-                        'GEMWORLD',
-                        style: AtelierType.overline(
-                          p.onOnyx.withValues(alpha: 0.32),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 22),
-                  Text(
-                    context.tr(RemainingL10n.yourCode).toUpperCase(),
-                    style: AtelierType.overline(soft),
-                  ),
-                  const SizedBox(height: 6),
-                  CircleCopyTarget(
-                    value: code,
-                    label: 'Referral code',
-                    builder: (copied) => Row(
-                      children: [
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerLeft,
+                    const SizedBox(height: 2),
+                    CircleCopyTarget(
+                      value: code,
+                      label: 'Referral code',
+                      builder: (copied) => Row(
+                        children: [
+                          Flexible(
                             child: Text(
                               code.isEmpty ? '—' : code,
                               maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: AtelierType.display(
-                                p.onOnyx,
-                                size: 42,
+                                p.ink,
+                                size: 24,
                                 weight: FontWeight.w500,
-                              ).copyWith(letterSpacing: 6),
+                              ).copyWith(letterSpacing: 2),
                             ),
                           ),
-                        ),
-                        if (code.isNotEmpty) ...[
-                          const SizedBox(width: 12),
-                          CopyGlyph(copied: copied, color: p.gold),
+                          if (code.isNotEmpty) ...[
+                            const SizedBox(width: 8),
+                            CopyGlyph(copied: copied, color: p.gold, size: 16),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Friends who join with your code enter your circle — '
-                    'you earn on their diamond and melee orders.',
-                    style: AtelierType.body(soft, size: 13),
-                  ),
-                  const SizedBox(height: 20),
-                  Builder(
-                    builder: (anchor) => AtelierButton(
-                      label: 'Share invite',
-                      icon: Icons.ios_share_rounded,
-                      variant: AtelierButtonVariant.gold,
-                      expand: true,
-                      onPressed: canShare ? () => onShare(anchor) : null,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Container(
-                    height: 1,
-                    color: p.onOnyx.withValues(alpha: 0.1),
-                  ),
-                  _PassRow(
-                    icon: Icons.alternate_email_rounded,
-                    label: context.tr(RemainingL10n.yourEmail),
-                    value: profile.email,
-                  ),
-                  Container(
-                    height: 1,
-                    color: p.onOnyx.withValues(alpha: 0.06),
-                  ),
-                  _PassRow(
-                    icon: Icons.link_rounded,
-                    label: context.tr(RemainingL10n.shareLink),
-                    value: profile.shareRegisterUrl,
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+              Builder(
+                builder: (anchor) => AtelierButton(
+                  label: 'Share',
+                  icon: Icons.ios_share_rounded,
+                  variant: AtelierButtonVariant.gold,
+                  onPressed: canShare ? () => onShare(anchor) : null,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Friends who join with your code enter your circle — you earn '
+            'on their diamond and melee orders.',
+            style: AtelierType.caption(p.muted, size: 12),
+          ),
+          const SizedBox(height: 6),
+          Container(height: 1, color: p.hairline),
+          _PassRow(
+            icon: Icons.alternate_email_rounded,
+            label: context.tr(RemainingL10n.yourEmail),
+            value: profile.email,
+          ),
+          Container(height: 1, color: p.hairline),
+          _PassRow(
+            icon: Icons.link_rounded,
+            label: context.tr(RemainingL10n.shareLink),
+            value: profile.shareRegisterUrl,
+          ),
+        ],
       ),
     );
   }
@@ -187,29 +127,17 @@ class _PassRow extends StatelessWidget {
       value: value.trim(),
       label: label,
       builder: (copied) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         child: Row(
           children: [
-            Icon(icon, size: 16, color: p.onOnyx.withValues(alpha: 0.5)),
-            const SizedBox(width: 12),
+            Icon(icon, size: 16, color: p.muted),
+            const SizedBox(width: 10),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label.toUpperCase(),
-                    style: AtelierType.overline(
-                      p.onOnyx.withValues(alpha: 0.45),
-                    ).copyWith(fontSize: 9.5),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    empty ? '—' : value,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AtelierType.label(p.onOnyx, size: 13),
-                  ),
-                ],
+              child: Text(
+                empty ? '—' : value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AtelierType.label(p.inkSoft, size: 12.5),
               ),
             ),
             if (!empty) ...[
@@ -305,65 +233,6 @@ class CopyGlyph extends StatelessWidget {
         size: size,
         color: color,
       ),
-    );
-  }
-}
-
-/// A slow band of gold light that crosses the pass every few seconds.
-class _Sheen extends StatefulWidget {
-  const _Sheen();
-
-  @override
-  State<_Sheen> createState() => _SheenState();
-}
-
-class _SheenState extends State<_Sheen> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 7000),
-  );
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (context.reduceMotion) {
-      _c.stop();
-    } else if (!_c.isAnimating) {
-      _c.repeat();
-    }
-  }
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final gold = context.atelier.gold;
-    return AnimatedBuilder(
-      animation: _c,
-      builder: (context, _) {
-        // Sweep during the first third, rest in between.
-        final t = (_c.value / 0.34).clamp(0.0, 1.0);
-        if (t <= 0 || t >= 1) return const SizedBox.expand();
-        final x = -1.6 + t * 3.2;
-        return DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment(x - 0.6, -1),
-              end: Alignment(x + 0.6, 1),
-              colors: [
-                gold.withValues(alpha: 0),
-                gold.withValues(alpha: 0.13),
-                gold.withValues(alpha: 0),
-              ],
-            ),
-          ),
-          child: const SizedBox.expand(),
-        );
-      },
     );
   }
 }

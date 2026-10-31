@@ -12,6 +12,9 @@ import 'filter_section_header.dart';
 
 /// Shared vendor preference filters for diamond and gemstone search.
 ///
+/// Order: vendor location → company name → origin country (→ rough source,
+/// seller rating).
+///
 /// Pass [originDropdown] from the feature layer (e.g. [FilterOriginDropdown]).
 /// Optional rough-source and seller-rating sections are diamond-only.
 /// Origin / rough source are omitted for lab-grown catalogs.
@@ -51,6 +54,8 @@ class CatalogPreferencesFilters extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           locationField,
+          const FilterSectionDivider(),
+          companyField,
           if (originDropdown != null) ...[
             const FilterSectionDivider(),
             originDropdown!,
@@ -71,8 +76,6 @@ class CatalogPreferencesFilters extends StatelessWidget {
               labelOf: context.trCatalogValue,
             ),
           ],
-          const FilterSectionDivider(),
-          companyField,
           if (showRating) ...[
             const FilterSectionDivider(),
             FilterSectionHeader(

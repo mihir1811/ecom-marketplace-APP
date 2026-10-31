@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/error/failure.dart';
-import '../../../../core/l10n/app_localizations.dart';
 import '../../../buyer/presentation/maison/maison_kit.dart';
 import '../../../seller/presentation/atelier/atelier_feedback.dart';
 import '../../../seller/presentation/atelier/atelier_motion.dart';
 import '../../../seller/presentation/atelier/atelier_theme.dart';
 import '../../application/rewards_provider.dart';
 import '../widgets/rewards_balance_card.dart';
-import '../widgets/rewards_club_card.dart';
 import '../widgets/rewards_ledger.dart';
 import '../widgets/rewards_overview.dart';
 
@@ -48,33 +46,21 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
     final width = MediaQuery.sizeOf(context).width;
     final gutter = AtelierSpace.gutter(width);
     final wide = width >= 1000;
-    final header = MaisonHeader(title: context.tr(CoreL10n.rewards));
 
     final Widget content = rewardsAsync.when(
       skipLoadingOnRefresh: true,
       skipLoadingOnReload: true,
-      loading: () => Column(
+      loading: () => const Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          header,
-          const SizedBox(height: 22),
-          const AspectRatio(
-            aspectRatio: 1.7,
-            child: SkeletonBox(
-              height: double.infinity,
-              radius: AtelierRadius.xl,
-            ),
-          ),
-          const SizedBox(height: 20),
-          const SkeletonBox(height: 92, radius: AtelierRadius.lg),
-          const SizedBox(height: 20),
-          const AtelierSkeletonList(count: 4, height: 72),
+          SkeletonBox(height: 150, radius: AtelierRadius.lg),
+          SizedBox(height: 20),
+          AtelierSkeletonList(count: 4, height: 72),
         ],
       ),
       error: (error, _) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          header,
           AtelierErrorState(
             title: 'Rewards unavailable',
             message: error is Failure
@@ -90,39 +76,18 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
         final summary = Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Balance, club progress and rates in one compact card.
             Reveal(
               index: index++,
               child: RewardsBalanceCard(rewards: rewards),
             ),
-            const SizedBox(height: AtelierSpace.s20),
             if (!settings.enabled) ...[
+              const SizedBox(height: AtelierSpace.s12),
               Reveal(
                 index: index++,
                 child: RewardsPausedNotice(balance: rewards.balance),
               ),
-              const SizedBox(height: AtelierSpace.s20),
-            ] else if (rewards.pointsToUnlock > 0) ...[
-              Reveal(
-                index: index++,
-                child: RewardsUnlockCard(rewards: rewards),
-              ),
-              const SizedBox(height: AtelierSpace.s20),
             ],
-            if (rewards.club.hasClubs) ...[
-              Reveal(
-                index: index++,
-                child: RewardsClubCard(
-                  status: rewards.club,
-                  showBonus: settings.enabled,
-                ),
-              ),
-              const SizedBox(height: AtelierSpace.s20),
-            ],
-            if (settings.enabled)
-              Reveal(
-                index: index++,
-                child: RewardsRatesStrip(settings: settings),
-              ),
           ],
         );
         final ledger = RewardsLedger(
@@ -137,8 +102,6 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            header,
-            const SizedBox(height: 22),
             if (wide)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,

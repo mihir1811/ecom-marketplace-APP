@@ -46,7 +46,7 @@ abstract final class HomeNetworkImages {
       'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1600&q=80';
 
   static const naturalDiamonds =
-      'https://images.unsplash.com/photo-1640405172860-076f1ef62ea5?auto=format&fit=crop&w=1000&q=80';
+      'https://images.unsplash.com/photo-1599707367072-cd6ada2bc375?auto=format&fit=crop&w=1000&q=80';
 
   static const labGrown =
       'https://images.unsplash.com/photo-1736855719599-c0298b8faf95?auto=format&fit=crop&w=1000&q=80';

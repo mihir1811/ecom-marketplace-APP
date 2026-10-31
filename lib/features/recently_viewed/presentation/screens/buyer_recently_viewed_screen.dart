@@ -9,7 +9,6 @@ import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../core/widgets/gem3d/gem_renderer.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../../buyer/presentation/maison/maison_kit.dart';
 import '../../../buyer/presentation/maison/maison_layout.dart';
@@ -24,7 +23,6 @@ import '../../data/repositories/recently_viewed_repository_impl.dart';
 import '../../domain/models/recently_viewed.dart';
 import '../widgets/recent/recent_piece.dart';
 import '../widgets/recent/recent_piece_card.dart';
-import '../widgets/recent/recent_resume_card.dart';
 
 enum _RecentSort {
   recent('Most recent'),
@@ -201,15 +199,6 @@ class _BuyerRecentlyViewedScreenState
     return out;
   }
 
-  static RecentlyViewedEntry _latest(List<RecentlyViewedEntry> items) {
-    var latest = items.first;
-    for (final e in items) {
-      final t = e.viewedAt, lt = latest.viewedAt;
-      if (t != null && (lt == null || t.isAfter(lt))) latest = e;
-    }
-    return latest;
-  }
-
   @override
   Widget build(BuildContext context) {
     final p = context.atelier;
@@ -245,29 +234,14 @@ class _BuyerRecentlyViewedScreenState
             ),
             slivers: [
               SliverPadding(
-                padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 18),
+                padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 10),
                 sliver: SliverToBoxAdapter(
                   child: MaisonCentered(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        MaisonHeader(
-                          title: context.tr(AccountCommerceL10n.recentlyViewed),
-                          cut: GemCut.pear,
-                          look: GemLook.ice,
-                        ),
-                        if (items.isNotEmpty) ...[
-                          const SizedBox(height: 22),
-                          Reveal(
-                            index: 3,
-                            child: _TrailBar(onClear: _clearHistory),
-                          ),
-                          const SizedBox(height: 12),
-                          Reveal(
-                            index: 4,
-                            child: RecentResumeCard(entry: _latest(items)),
-                          ),
-                        ],
+                        if (items.isNotEmpty)
+                          Reveal(child: _TrailBar(onClear: _clearHistory)),
                       ],
                     ),
                   ),
@@ -578,18 +552,10 @@ class _TrailBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = context.atelier;
+    // Just the clear action, right-aligned.
     return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        Container(width: 18, height: 1, color: p.gold),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            'PICK UP WHERE YOU LEFT OFF',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AtelierType.overline(p.inkSoft),
-          ),
-        ),
         Tooltip(
           message: context.tr(AccountCommerceL10n.clearRecentTitle),
           child: Pressable(

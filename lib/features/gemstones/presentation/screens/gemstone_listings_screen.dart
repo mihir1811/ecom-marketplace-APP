@@ -13,6 +13,7 @@ import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
+import '../../../../core/widgets/luxe/luxe_toggle_sort_sheet.dart';
 import '../../../../core/widgets/navigation/top_bar/top_bar_actions.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/gemstone_list_provider.dart';
@@ -88,17 +89,54 @@ class _GemstoneListingsScreenState extends ConsumerState<GemstoneListingsScreen>
     await ref.read(gemstoneListProvider.notifier).applyFiltersAndReload();
   }
 
-  Future<void> _openSort(BuildContext context) async {
-    final selected = await showLuxeChoiceSheet<GemstoneSortOption>(
+  Future<void> _openSort(BuildContext context) {
+    String dir(GemstoneSortOption o) => switch (o) {
+      GemstoneSortOption.newest => 'Newest',
+      GemstoneSortOption.oldest => 'Oldest',
+      GemstoneSortOption.priceAsc ||
+      GemstoneSortOption.caratAsc => 'Low to High',
+      GemstoneSortOption.priceDesc ||
+      GemstoneSortOption.caratDesc => 'High to Low',
+      GemstoneSortOption.typeAsc => 'A–Z',
+      GemstoneSortOption.typeDesc => 'Z–A',
+    };
+    return showLuxeToggleSortSheet<GemstoneSortOption>(
       context,
       title: context.tr(GemstoneFlowL10n.sortTitle),
-      options: GemstoneSortOption.values,
+      fields: [
+        LuxeSortField(
+          label: 'Arrivals',
+          options: const [GemstoneSortOption.newest, GemstoneSortOption.oldest],
+          directionLabelOf: dir,
+        ),
+        LuxeSortField(
+          label: 'Price',
+          options: const [
+            GemstoneSortOption.priceAsc,
+            GemstoneSortOption.priceDesc,
+          ],
+          directionLabelOf: dir,
+        ),
+        LuxeSortField(
+          label: 'Carat',
+          options: const [
+            GemstoneSortOption.caratAsc,
+            GemstoneSortOption.caratDesc,
+          ],
+          directionLabelOf: dir,
+        ),
+        LuxeSortField(
+          label: 'Type',
+          options: const [
+            GemstoneSortOption.typeAsc,
+            GemstoneSortOption.typeDesc,
+          ],
+          directionLabelOf: dir,
+        ),
+      ],
       current: ref.read(gemstoneSortProvider),
-      labelOf: (o) => o.label,
+      onChanged: (o) => ref.read(gemstoneSortProvider.notifier).state = o,
     );
-    if (selected != null && mounted) {
-      ref.read(gemstoneSortProvider.notifier).state = selected;
-    }
   }
 
   @override
@@ -113,7 +151,7 @@ class _GemstoneListingsScreenState extends ConsumerState<GemstoneListingsScreen>
       safeBottom: false,
       backgroundColor: p.canvas,
       appBar: LuxeTopBar(
-        title: context.tr(RemainingL10n.gemstones),
+        title: '',
         subtitle: const _CountLine(),
         scrollOffset: listingOffset,
         actions: const [TopBarActions()],

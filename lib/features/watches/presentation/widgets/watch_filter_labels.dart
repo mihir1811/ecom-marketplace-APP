@@ -6,6 +6,7 @@ import '../../../../core/utils/active_filter_labels.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
+import '../../../../core/widgets/luxe/luxe_toggle_sort_sheet.dart';
 import '../../application/watch_filter_provider.dart';
 import '../../domain/models/watch_filter_state.dart';
 import '../../domain/models/watch_filter_summary.dart';
@@ -133,3 +134,44 @@ class WatchCountLine extends StatelessWidget {
 }
 
 String _price(double v) => AppCurrency.format(formatCatalogPriceWholeK(v));
+
+/// Sort fields for [showLuxeToggleSortSheet]; [only] limits the options
+/// (e.g. the brand page's shorter list).
+List<LuxeSortField<WatchSortOption>> watchSortFields({
+  Iterable<WatchSortOption>? only,
+}) {
+  final allowed = only?.toSet();
+  LuxeSortField<WatchSortOption>? field(
+    String label,
+    List<WatchSortOption> options,
+  ) {
+    final kept = [
+      for (final o in options)
+        if (allowed == null || allowed.contains(o)) o,
+    ];
+    if (kept.isEmpty) return null;
+    return LuxeSortField(
+      label: label,
+      options: kept,
+      directionLabelOf: (o) => switch (o) {
+        WatchSortOption.priceLowToHigh => 'Low to High',
+        WatchSortOption.priceHighToLow => 'High to Low',
+        WatchSortOption.newest => 'Newest',
+        WatchSortOption.oldest => 'Oldest',
+        WatchSortOption.brandAz => 'A–Z',
+        WatchSortOption.brandZa => 'Z–A',
+        WatchSortOption.featured => '',
+      },
+    );
+  }
+
+  return [
+    ?field('Default sorting', [WatchSortOption.featured]),
+    ?field('Price', [
+      WatchSortOption.priceLowToHigh,
+      WatchSortOption.priceHighToLow,
+    ]),
+    ?field('Arrivals', [WatchSortOption.newest, WatchSortOption.oldest]),
+    ?field('Brand name', [WatchSortOption.brandAz, WatchSortOption.brandZa]),
+  ];
+}

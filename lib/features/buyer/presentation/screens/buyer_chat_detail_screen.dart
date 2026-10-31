@@ -14,6 +14,7 @@ import '../../../chat/application/chat_providers.dart';
 import '../../../chat/domain/models/chat_message.dart';
 import '../../../chat/domain/models/chat_thread.dart';
 import '../../../chat/domain/models/product_chat_context.dart';
+import '../../../chat/presentation/open_chat_product_detail.dart';
 import '../../../seller/presentation/atelier/atelier_components.dart';
 import '../../../seller/presentation/atelier/atelier_feedback.dart';
 import '../../../seller/presentation/atelier/atelier_motion.dart';
@@ -479,13 +480,6 @@ class _ThreadHeader extends StatelessWidget {
                   ],
                 ),
               ),
-              if (ctx != null)
-                AtelierIconButton(
-                  icon: Icons.info_outline_rounded,
-                  tooltip: 'Piece details',
-                  filled: true,
-                  onPressed: () => _showPieceDetails(context, ctx),
-                ),
             ],
           ),
           AnimatedSize(
@@ -505,19 +499,19 @@ class _ThreadHeader extends StatelessWidget {
   }
 }
 
-/// The listing under discussion; opens its full details.
-class _PieceStrip extends StatelessWidget {
+/// The listing under discussion; opens its product detail page.
+class _PieceStrip extends ConsumerWidget {
   const _PieceStrip({required this.contextData});
 
   final ProductChatContext contextData;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final p = context.atelier;
     final price = contextData.productPrice;
     final stock = contextData.stockNumber;
     return Pressable(
-      onTap: () => _showPieceDetails(context, contextData),
+      onTap: () => openChatProductDetail(context, ref, contextData),
       semanticLabel: 'Piece details, ${contextData.productName}',
       borderRadius: BorderRadius.circular(AtelierRadius.md),
       child: Container(
@@ -578,149 +572,6 @@ class _PieceStrip extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-Future<void> _showPieceDetails(BuildContext context, ProductChatContext ctx) {
-  final stock = ctx.stockNumber;
-  return showAtelierSheet<void>(
-    context: context,
-    title: ctx.productName,
-    subtitle: [
-      ctx.productType.label,
-      if (stock != null && stock.isNotEmpty) stock,
-    ].join(' · '),
-    builder: (context) => _PieceDetails(contextData: ctx),
-  );
-}
-
-class _PieceDetails extends StatefulWidget {
-  const _PieceDetails({required this.contextData});
-
-  final ProductChatContext contextData;
-
-  @override
-  State<_PieceDetails> createState() => _PieceDetailsState();
-}
-
-class _PieceDetailsState extends State<_PieceDetails> {
-  int _page = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.atelier;
-    final ctx = widget.contextData;
-    final images = ctx.productImages.where((e) => e.trim().isNotEmpty).toList();
-    final price = ctx.productPrice;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (images.isNotEmpty) ...[
-          Reveal(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(AtelierRadius.lg),
-              child: SizedBox(
-                height: 260,
-                child: Stack(
-                  children: [
-                    PageView.builder(
-                      itemCount: images.length,
-                      onPageChanged: (i) => setState(() => _page = i),
-                      itemBuilder: (context, i) => GestureDetector(
-                        onTap: () => showChatImageViewer(context, images[i]),
-                        child: ColoredBox(
-                          color: p.sunken,
-                          child: AppNetworkImage(
-                            url: images[i],
-                            fit: BoxFit.cover,
-                            memCacheWidth: 1080,
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (images.length > 1)
-                      Positioned(
-                        bottom: 12,
-                        left: 0,
-                        right: 0,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            for (var i = 0; i < images.length; i++)
-                              AnimatedContainer(
-                                duration: AtelierMotion.base,
-                                curve: AtelierMotion.emphasized,
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 3,
-                                ),
-                                width: i == _page ? 18 : 6,
-                                height: 6,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(
-                                    alpha: i == _page ? 0.95 : 0.5,
-                                  ),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: AtelierSpace.s20),
-        ],
-        if (price != null)
-          Reveal(
-            index: 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('LISTED PRICE', style: AtelierType.overline(p.muted)),
-                const SizedBox(height: 6),
-                CountUpText(
-                  AppCurrency.format(price),
-                  style: AtelierType.display(p.ink, size: 34),
-                ),
-              ],
-            ),
-          ),
-        if (ctx.productSpecs.isNotEmpty) ...[
-          const SizedBox(height: AtelierSpace.s20),
-          const AtelierHairline(),
-          const SizedBox(height: AtelierSpace.s20),
-          Reveal(
-            index: 2,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final cols = constraints.maxWidth >= 460 ? 3 : 2;
-                final w =
-                    (constraints.maxWidth - (cols - 1) * AtelierSpace.s16) /
-                    cols;
-                return Wrap(
-                  spacing: AtelierSpace.s16,
-                  runSpacing: AtelierSpace.s16,
-                  children: [
-                    for (final spec in ctx.productSpecs)
-                      SizedBox(
-                        width: w,
-                        child: AtelierKeyValue(
-                          label: spec.label,
-                          value: spec.value,
-                        ),
-                      ),
-                  ],
-                );
-              },
-            ),
-          ),
-        ],
-      ],
     );
   }
 }

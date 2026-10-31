@@ -79,10 +79,10 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
   List<GemstoneFinderSection> _visibleSections(bool melee) => [
     GemstoneFinderSection.gemType,
     GemstoneFinderSection.shape,
+    GemstoneFinderSection.listing,
     GemstoneFinderSection.sizePrice,
     GemstoneFinderSection.colorQuality,
     if (!melee) GemstoneFinderSection.grading,
-    GemstoneFinderSection.listing,
     GemstoneFinderSection.seller,
     GemstoneFinderSection.measurements,
   ];
@@ -157,7 +157,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
     final sections = _visibleSections(melee);
 
     return LuxeFinderScaffold<GemstoneFinderSection>(
-      title: context.tr(RemainingL10n.gemstones),
+      title: '',
       onBack: () => context.resetTo(AppRouteNames.home),
       actions: const [TopBarActions()],
       controls: const GemstoneCatalogModeControls(),

@@ -81,8 +81,9 @@ String maisonShortId(String id) {
 
 // ── Editorial header ────────────────────────────────────────────────────
 
-/// Opening of every buyer account page: large serif title and a turning
-/// stone set in a dark loupe.
+/// Former opening of buyer account pages. The big serif title and turning
+/// stone took space without purpose, so only [trailing] (a primary action)
+/// still shows; otherwise it renders nothing.
 class MaisonHeader extends StatelessWidget {
   const MaisonHeader({
     required this.title,
@@ -96,50 +97,14 @@ class MaisonHeader extends StatelessWidget {
   final GemCut? cut;
   final GemLook look;
 
-  /// Replaces the stone (e.g. a primary action).
+  /// Primary action, kept right-aligned.
   final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
-    final p = context.atelier;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 640;
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Reveal(
-                child: Text(
-                  title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AtelierType.display(
-                    p.ink,
-                    size: wide ? 50 : 40,
-                    weight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
-            if (trailing != null) ...[
-              const SizedBox(width: 16),
-              Reveal(index: 2, child: trailing!),
-            ] else if (cut != null) ...[
-              const SizedBox(width: 12),
-              Reveal(
-                delay: const Duration(milliseconds: 160),
-                child: MaisonLoupe(
-                  cut: cut!,
-                  look: look,
-                  size: wide ? 124 : 92,
-                ),
-              ),
-            ],
-          ],
-        );
-      },
-    );
+    final action = trailing;
+    if (action == null) return const SizedBox.shrink();
+    return Align(alignment: Alignment.centerRight, child: action);
   }
 }
 

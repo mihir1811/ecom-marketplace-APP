@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../../core/auth/auth_providers.dart';
 import '../../../../../core/error/failure.dart';
 import '../../../../../core/l10n/app_localizations.dart';
 import '../../../../../core/router/app_navigation.dart';
 import '../../../../../core/router/route_names.dart';
-import '../../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../../core/widgets/gem3d/gem_renderer.dart';
-import '../../../../../core/widgets/gem3d/gem_view.dart';
 import '../../../../auction/application/auction_providers.dart';
 import '../../../../auction/domain/models/auction_models.dart';
 import '../../../../notifications/application/notifications_provider.dart';
@@ -18,10 +14,9 @@ import '../../../application/seller_orders_provider.dart';
 import '../../atelier/atelier_components.dart';
 import '../../atelier/atelier_motion.dart';
 import '../../atelier/atelier_theme.dart';
-import '../../../../../core/theme/luxe_tokens.dart';
 
-/// Onyx hero: greeting, headline value and a live 3D stone.
-class DashboardHero extends ConsumerWidget {
+/// Headline figure (e.g. total sales) as one plain card.
+class DashboardHero extends StatelessWidget {
   const DashboardHero({
     required this.headlineLabel,
     required this.headlineValue,
@@ -34,122 +29,42 @@ class DashboardHero extends ConsumerWidget {
   final String? headlineCaption;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final p = context.atelier;
-    final name = ref.watch(
-      authProvider.select((s) => s.user?.fullName.trim() ?? ''),
-    );
-    final first = name.isEmpty ? '' : name.split(RegExp(r'\s+')).first;
-    final now = DateTime.now();
-    final greeting = now.hour < 12
-        ? 'Good morning'
-        : now.hour < 17
-        ? 'Good afternoon'
-        : 'Good evening';
-    final onOnyxSoft = p.onOnyx.withValues(alpha: 0.62);
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 640;
-        final gemSize = wide ? 170.0 : 112.0;
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(AtelierRadius.xl),
-          child: Container(
-            decoration: BoxDecoration(
-              color: LuxeStage.vault,
-              border: Border.all(
-                color: p.isDark ? p.hairline : Colors.transparent,
+    final value = headlineValue;
+    if (value == null) return const SizedBox.shrink();
+    return Reveal(
+      child: AtelierCard(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              (headlineLabel ?? '').toUpperCase(),
+              style: AtelierType.overline(p.muted),
+            ),
+            const SizedBox(height: 4),
+            CountUpText(
+              value,
+              duration: const Duration(milliseconds: 1200),
+              style: AtelierType.display(
+                p.ink,
+                size: 32,
+                weight: FontWeight.w500,
               ),
             ),
-            child: Stack(
-              children: [
-                Positioned(
-                  right: wide ? 28 : 6,
-                  top: wide ? 22 : 10,
-                  child: Reveal(
-                    delay: const Duration(milliseconds: 200),
-                    child: GemView(
-                      cut: GemCut.round,
-                      look: GemLook.white,
-                      size: gemSize,
-                      spin: 0.35,
-                      tilt: 0.32,
-                      interactive: true,
-                      semanticLabel: 'Rotating diamond. Drag to turn it.',
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    wide ? 32 : 22,
-                    wide ? 30 : 22,
-                    wide ? 32 : 22,
-                    wide ? 30 : 22,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Reveal(
-                        child: Padding(
-                          padding: EdgeInsets.only(right: gemSize * 0.75),
-                          child: Text(
-                            first.isEmpty ? greeting : '$greeting,\n$first',
-                            style: AtelierType.display(
-                              p.onOnyx,
-                              size: wide ? 44 : 32,
-                              weight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (headlineValue != null) ...[
-                        SizedBox(height: wide ? 28 : 22),
-                        Reveal(
-                          index: 3,
-                          child: Container(
-                            height: 1,
-                            color: p.onOnyx.withValues(alpha: 0.1),
-                          ),
-                        ),
-                        SizedBox(height: wide ? 20 : 16),
-                        Reveal(
-                          index: 4,
-                          child: Text(
-                            (headlineLabel ?? '').toUpperCase(),
-                            style: AtelierType.overline(onOnyxSoft),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Reveal(
-                          index: 5,
-                          child: CountUpText(
-                            headlineValue!,
-                            duration: const Duration(milliseconds: 1600),
-                            style: AtelierType.display(
-                              p.onOnyx,
-                              size: wide ? 54 : 42,
-                              weight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                        if (headlineCaption != null) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            headlineCaption!,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: AtelierType.caption(onOnyxSoft),
-                          ),
-                        ],
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+            if (headlineCaption != null) ...[
+              const SizedBox(height: 2),
+              Text(
+                headlineCaption!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AtelierType.caption(p.muted, size: 12),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
@@ -160,39 +75,18 @@ class DashboardHeroSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final p = context.atelier;
-    return Container(
-      height: 260,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: p.surface,
-        borderRadius: BorderRadius.circular(AtelierRadius.xl),
-        border: Border.all(color: p.hairline),
-      ),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SkeletonBox(width: 120, height: 10),
-          SizedBox(height: 16),
-          SkeletonBox(width: 220, height: 30),
-          SizedBox(height: 12),
-          SkeletonBox(width: 260, height: 12),
-          Spacer(),
-          SkeletonBox(width: 90, height: 10),
-          SizedBox(height: 10),
-          SkeletonBox(width: 200, height: 40),
-        ],
-      ),
-    );
+    return const SkeletonBox(height: 96, radius: AtelierRadius.lg);
   }
 }
 
-/// "Needs your attention": the counts a seller should act on today.
+/// What a seller should act on today, as one card: "All caught up" when
+/// nothing is pending, otherwise just the items that need attention.
 class DashboardAttentionStrip extends ConsumerWidget {
   const DashboardAttentionStrip({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final p = context.atelier;
     final pendingOrders = ref.watch(sellerPendingOrdersProvider);
     final refunds = ref.watch(sellerRefundListProvider);
     final standing = ref.watch(sellerAuctionStandingProvider);
@@ -246,46 +140,53 @@ class DashboardAttentionStrip extends ConsumerWidget {
       ),
     ];
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth >= 560) {
-          final columns = constraints.maxWidth >= 900 ? 4 : 2;
-          const gap = AtelierSpace.s12;
-          final w = (constraints.maxWidth - gap * (columns - 1)) / columns;
-          return Wrap(
-            spacing: gap,
-            runSpacing: gap,
+    final loading = items.any((d) => d.loading);
+    final needs = [
+      for (final d in items)
+        if (d.error || (!d.loading && (d.count ?? 0) > 0)) d,
+    ];
+
+    if (needs.isEmpty && loading) {
+      return const SkeletonBox(height: 56, radius: AtelierRadius.lg);
+    }
+
+    if (needs.isEmpty) {
+      return Reveal(
+        child: AtelierCard(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          child: Row(
             children: [
-              for (var i = 0; i < items.length; i++)
-                SizedBox(
-                  width: w,
-                  child: Reveal(
-                    index: i,
-                    child: _AttentionTile(data: items[i]),
-                  ),
-                ),
-            ],
-          );
-        }
-        return SizedBox(
-          height: 132,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            clipBehavior: Clip.none,
-            physics: const BouncingScrollPhysics(),
-            itemCount: items.length,
-            separatorBuilder: (_, _) => const SizedBox(width: AtelierSpace.s12),
-            itemBuilder: (context, i) => SizedBox(
-              width: 172,
-              child: Reveal(
-                index: i,
-                horizontal: true,
-                child: _AttentionTile(data: items[i]),
+              Icon(
+                Icons.check_circle_outline_rounded,
+                size: 20,
+                color: p.emerald,
               ),
-            ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'All caught up',
+                  style: AtelierType.title(p.ink, size: 15),
+                ),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      );
+    }
+
+    return Reveal(
+      child: AtelierCard(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < needs.length; i++) ...[
+              if (i > 0) Container(height: 1, color: p.hairline),
+              _AttentionRow(data: needs[i]),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
@@ -312,75 +213,52 @@ class _AttentionData {
   final VoidCallback? onRetry;
 }
 
-class _AttentionTile extends StatelessWidget {
-  const _AttentionTile({required this.data});
+/// One item that needs the seller: icon, label, count, open arrow.
+class _AttentionRow extends StatelessWidget {
+  const _AttentionRow({required this.data});
 
   final _AttentionData data;
 
   @override
   Widget build(BuildContext context) {
     final p = context.atelier;
-    final count = data.count ?? 0;
-    final clear = !data.loading && !data.error && count == 0;
-    final tone = clear ? AtelierTone.emerald : data.tone;
-    final accent = p.tone(tone);
-
-    return AtelierCard(
-      onTap: data.error ? data.onRetry : data.onTap,
-      semanticLabel: data.error
+    final accent = data.error ? p.ruby : p.tone(data.tone);
+    return Semantics(
+      button: true,
+      label: data.error
           ? '${data.label}: could not load. Tap to retry.'
-          : '${data.label}: $count',
-      padding: const EdgeInsets.all(AtelierSpace.s16),
-      borderColor: !clear && count > 0 ? accent.withValues(alpha: 0.35) : null,
-      child: SizedBox(
-        height: 98,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  clear ? Icons.check_circle_outline_rounded : data.icon,
-                  size: 18,
-                  color: accent,
+          : '${data.label}: ${data.count ?? 0}',
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: data.error ? data.onRetry : data.onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+          child: Row(
+            children: [
+              Icon(data.icon, size: 18, color: accent),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  data.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AtelierType.label(p.ink, size: 13.5),
                 ),
-                const Spacer(),
-                Icon(
-                  data.error
-                      ? Icons.refresh_rounded
-                      : Icons.arrow_outward_rounded,
-                  size: 16,
-                  color: p.muted,
-                ),
-              ],
-            ),
-            const Spacer(),
-            AnimatedSwitcher(
-              duration: AtelierMotion.base,
-              child: data.loading
-                  ? const SkeletonBox(width: 40, height: 28)
-                  : data.error
-                  ? Text('Retry', style: AtelierType.display(p.ruby, size: 26))
-                  : clear
-                  ? Text(
-                      'All clear',
-                      key: const ValueKey('clear'),
-                      style: AtelierType.display(p.emerald, size: 26),
-                    )
-                  : CountUpText(
-                      '$count',
-                      key: ValueKey(count),
-                      style: AtelierType.display(p.ink, size: 32),
-                    ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              data.label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AtelierType.caption(p.muted, size: 11.5),
-            ),
-          ],
+              ),
+              Text(
+                data.error ? 'Retry' : '${data.count ?? 0}',
+                style: AtelierType.title(accent, size: 15),
+              ),
+              const SizedBox(width: 6),
+              Icon(
+                data.error
+                    ? Icons.refresh_rounded
+                    : Icons.chevron_right_rounded,
+                size: 18,
+                color: p.muted,
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -179,7 +179,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
     final sections = _visibleSections(melee);
 
     return LuxeFinderScaffold<DiamondFinderSection>(
-      title: widget.catalog.label,
+      title: '',
       onBack: () => context.resetTo(AppRouteNames.home),
       actions: const [TopBarActions()],
       controls: DiamondCatalogModeControls(

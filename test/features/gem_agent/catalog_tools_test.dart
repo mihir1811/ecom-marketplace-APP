@@ -165,13 +165,13 @@ void main() {
       }),
     );
     expect(gold.filters.metalFilter, BullionsMetalFilter.gold);
-    expect(gold.filters.selectedVariant, '24K');
+    expect(gold.filters.selectedVariants, {'24K'});
     expect(gold.filters.weightChips, {'10g'});
 
     final silver = const BullionSearchTool().buildQuery(
       CatalogArgs({'metal': 'silver', 'purity': '24K'}),
     );
-    expect(silver.filters.selectedVariant, isNull);
+    expect(silver.filters.selectedVariants, isEmpty);
   });
 
   test('prefetched page is served once, only for identical filters', () {

@@ -8,7 +8,6 @@ import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../core/widgets/gem3d/gem_renderer.dart';
 import '../../../seller/presentation/atelier/atelier_components.dart';
 import '../../../seller/presentation/atelier/atelier_feedback.dart';
 import '../../../seller/presentation/atelier/atelier_motion.dart';
@@ -158,18 +157,7 @@ class _BuyerWishlistScreenState extends ConsumerState<BuyerWishlistScreen> {
             parent: BouncingScrollPhysics(),
           ),
           slivers: [
-            SliverPadding(
-              padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 18),
-              sliver: const SliverToBoxAdapter(
-                child: MaisonCentered(
-                  child: MaisonHeader(
-                    title: 'Wishlist',
-                    cut: GemCut.heart,
-                    look: GemLook.champagne,
-                  ),
-                ),
-              ),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 8)),
             if (items.isNotEmpty)
               MaisonPinnedBar(
                 height: 124,

@@ -179,7 +179,6 @@ class DiamondFilterState {
   ];
 
   static const List<String> fluorescenceColors = [
-    'None',
     'Blue',
     'Yellow',
     'White',
@@ -204,7 +203,6 @@ class DiamondFilterState {
     'Severely',
   ];
   static const List<String> enhancements = [
-    'None (Treatment)',
     'HPHT (Treatment)',
     'Irradiation',
     'Fracture Filling',

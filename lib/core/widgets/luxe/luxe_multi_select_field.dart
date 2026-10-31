@@ -156,7 +156,9 @@ class LuxeMultiSelectField extends StatelessWidget {
                     color: onFill,
                     fontWeight: FontWeight.w600,
                   ),
-                  backgroundColor: fill,
+                  // `color` beats the theme's chip `color`; backgroundColor alone
+                  // is ignored and leaves light text on a light chip.
+                  color: WidgetStatePropertyAll(fill),
                   side: BorderSide(color: fill),
                   deleteIconColor: onFill,
                   deleteIcon: const Icon(Icons.close, size: 15),
@@ -359,5 +361,23 @@ class _MultiSelectSheetState extends State<_MultiSelectSheet> {
         ),
       ),
     );
+  }
+}
+
+/// Feeds a [LuxeMultiSelectField] result into a per-option toggle API:
+/// toggles every option whose membership changed between [before] and
+/// [after].
+void applyMultiSelectToggles(
+  List<String> before,
+  List<String> after,
+  void Function(String option) toggle,
+) {
+  final was = before.toSet();
+  final now = after.toSet();
+  for (final o in was.difference(now)) {
+    toggle(o);
+  }
+  for (final o in after) {
+    if (!was.contains(o)) toggle(o);
   }
 }

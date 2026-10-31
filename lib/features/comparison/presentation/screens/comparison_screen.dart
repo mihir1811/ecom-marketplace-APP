@@ -25,8 +25,7 @@ import '../widgets/vitrine/vitrine_style.dart';
 /// A pinned rail of piece medallions folds into thumbnails as grouped spec
 /// rows scroll beneath it; every value sits under its piece. The strongest
 /// value per row is marked in gold, each piece tallies its leads, shared
-/// values collapse into one quiet line, and "Differences" hides them
-/// altogether. Tap a piece for details, moving or removing it (with undo);
+/// values are hidden so only the differences show. Tap a piece for details, moving or removing it (with undo);
 /// long-press to drag it into another place.
 class ComparisonScreen extends ConsumerStatefulWidget {
   const ComparisonScreen({super.key});
@@ -36,8 +35,6 @@ class ComparisonScreen extends ConsumerStatefulWidget {
 }
 
 class _ComparisonScreenState extends ConsumerState<ComparisonScreen> {
-  bool _differencesOnly = false;
-
   void _browse() => context.goBack();
 
   Future<void> _clear() async {
@@ -162,9 +159,6 @@ class _ComparisonScreenState extends ConsumerState<ComparisonScreen> {
                             category,
                             specsForCategory(category),
                           ),
-                          differencesOnly: _differencesOnly,
-                          onDifferencesOnly: (on) =>
-                              setState(() => _differencesOnly = on),
                           onTapPiece: (i, insights) =>
                               _openPiece(items, insights, i),
                           onRemove: (i) => _remove(items, i),
@@ -297,8 +291,6 @@ class _Board extends StatelessWidget {
     required this.items,
     required this.specs,
     required this.groups,
-    required this.differencesOnly,
-    required this.onDifferencesOnly,
     required this.onTapPiece,
     required this.onRemove,
     required this.onReorder,
@@ -309,8 +301,6 @@ class _Board extends StatelessWidget {
   final List<CompareItem> items;
   final List<CompareSpecDef> specs;
   final List<CompareSpecGroup> groups;
-  final bool differencesOnly;
-  final ValueChanged<bool> onDifferencesOnly;
   final void Function(int index, CompareInsights insights) onTapPiece;
   final ValueChanged<int> onRemove;
   final void Function(int from, int to) onReorder;
@@ -320,6 +310,8 @@ class _Board extends StatelessWidget {
   Widget build(BuildContext context) {
     final v = Vitrine.of(context);
     final insights = CompareInsights.of(items, specs);
+    // Only rows that differ are shown once two or more pieces are compared.
+    final differencesOnly = items.length > 1;
     final allSame =
         items.length > 1 &&
         specs
@@ -356,8 +348,6 @@ class _Board extends StatelessWidget {
                 items: items,
                 insights: insights,
                 columns: columns,
-                differencesOnly: differencesOnly,
-                onDifferencesOnly: onDifferencesOnly,
                 onTapPiece: (i) => onTapPiece(i, insights),
                 onRemove: onRemove,
                 onReorder: onReorder,

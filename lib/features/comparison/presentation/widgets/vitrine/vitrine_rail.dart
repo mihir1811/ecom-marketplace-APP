@@ -32,14 +32,12 @@ class VitrineColumns {
 
 /// Pinned header: one medallion per piece, folding from photo cards into a
 /// slim strip of thumbnails and prices as the specs scroll under it, with
-/// the All specs / Differences switch beneath.
+/// an add-piece chip beneath.
 class VitrineRailDelegate extends SliverPersistentHeaderDelegate {
   VitrineRailDelegate({
     required this.items,
     required this.insights,
     required this.columns,
-    required this.differencesOnly,
-    required this.onDifferencesOnly,
     required this.onTapPiece,
     required this.onRemove,
     required this.onReorder,
@@ -49,14 +47,14 @@ class VitrineRailDelegate extends SliverPersistentHeaderDelegate {
   final List<CompareItem> items;
   final CompareInsights insights;
   final VitrineColumns columns;
-  final bool differencesOnly;
-  final ValueChanged<bool> onDifferencesOnly;
   final ValueChanged<int> onTapPiece;
   final ValueChanged<int> onRemove;
   final void Function(int from, int to) onReorder;
   final VoidCallback onAdd;
 
-  static const _band = 56.0;
+  /// Band under the rail holding the add chip; gone when it has nothing.
+  bool get _showAdd => items.length >= 2 && items.length < 4;
+  double get _band => _showAdd ? 56.0 : 0.0;
   static const _open = 108.0;
   static const _folded = 64.0;
 
@@ -137,26 +135,17 @@ class VitrineRailDelegate extends SliverPersistentHeaderDelegate {
                     ),
                   ),
                 ),
-                SizedBox(
-                  height: _band,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 6, 16, 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Flexible(
-                          child: _Switch(
-                            differencesOnly: differencesOnly,
-                            onChanged: onDifferencesOnly,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        if (items.length >= 2 && items.length < 4)
-                          _AddChip(onTap: onAdd),
-                      ],
+                if (_showAdd)
+                  SizedBox(
+                    height: _band,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 6, 16, 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [_AddChip(onTap: onAdd)],
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ),
@@ -552,100 +541,6 @@ class _Draggable extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-/// All specs / Differences, a sliding ink thumb under two labels.
-class _Switch extends StatelessWidget {
-  const _Switch({required this.differencesOnly, required this.onChanged});
-
-  final bool differencesOnly;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final v = Vitrine.of(context);
-    final labels = [
-      context.tr(AccountCommerceL10n.compareAllSpecs),
-      context.tr(AccountCommerceL10n.compareDifferences),
-    ];
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final total = math.min(216.0, constraints.maxWidth);
-        return _build(context, v, labels, (total - 8) / 2);
-      },
-    );
-  }
-
-  Widget _build(
-    BuildContext context,
-    Vitrine v,
-    List<String> labels,
-    double segment,
-  ) {
-    return Container(
-      height: 40,
-      width: segment * 2 + 8,
-      padding: const EdgeInsets.all(4),
-      decoration: ShapeDecoration(
-        color: v.raised,
-        shape: const StadiumBorder(),
-      ),
-      child: Stack(
-        children: [
-          AnimatedAlign(
-            duration: VitrineMotion.settle,
-            curve: VitrineMotion.ease,
-            alignment: differencesOnly
-                ? Alignment.centerRight
-                : Alignment.centerLeft,
-            child: Container(
-              width: segment,
-              decoration: ShapeDecoration(
-                color: v.ink,
-                shape: const StadiumBorder(),
-              ),
-            ),
-          ),
-          Row(
-            children: [
-              for (var i = 0; i < 2; i++)
-                Semantics(
-                  button: true,
-                  selected: differencesOnly == (i == 1),
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      if (differencesOnly == (i == 1)) return;
-                      AppHaptics.selection();
-                      onChanged(i == 1);
-                    },
-                    child: SizedBox(
-                      width: segment,
-                      child: Center(
-                        child: AnimatedDefaultTextStyle(
-                          duration: VitrineMotion.quick,
-                          style: v.text(
-                            12.5,
-                            weight: FontWeight.w700,
-                            color: differencesOnly == (i == 1)
-                                ? v.paper
-                                : v.muted,
-                          ),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(labels[i], maxLines: 1),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }

@@ -10,9 +10,6 @@ import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/router/workspace_mode.dart';
 import '../../../../core/widgets/app_network_image.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../core/widgets/gem3d/gem_renderer.dart';
-import '../../../../core/widgets/gem3d/gem_view.dart';
 import '../../../../core/widgets/profile_avatar.dart';
 import '../../application/user_profile_providers.dart';
 import '../../domain/models/user_profile.dart';
@@ -168,10 +165,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
           ),
         ],
-        const SizedBox(height: AtelierSpace.s24),
+        const SizedBox(height: AtelierSpace.s16),
         if (business) ...[
-          _GlanceRow(facts: facts, selected: _section, onSelect: _select),
-          const SizedBox(height: AtelierSpace.s24),
+          _SectionSwitcher(facts: facts, selected: _section, onSelect: _select),
+          const SizedBox(height: AtelierSpace.s16),
         ],
         AnimatedSize(
           duration: AtelierMotion.slow,
@@ -201,7 +198,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
           ),
         ),
-        const SizedBox(height: AtelierSpace.s24),
+        const SizedBox(height: AtelierSpace.s16),
         Reveal(
           index: 6,
           child: AtelierNotice(
@@ -215,7 +212,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
           ),
         ),
-        const SizedBox(height: AtelierSpace.s40),
+        const SizedBox(height: AtelierSpace.s24),
         Reveal(index: 7, child: _DangerZone(onDelete: _deleteAccount)),
       ],
     );
@@ -237,9 +234,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             AtelierPanel(
               overline: 'Account',
               title: tr(RemainingL10n.personalDetails),
-              subtitle: p.isSeller
-                  ? 'How you sign in and how buyers see you.'
-                  : 'How you sign in and how sellers see you.',
               child: grid([
                 _Field(
                   tr(RemainingL10n.fullName),
@@ -268,14 +262,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ? AtelierTone.emerald
                       : AtelierTone.amber,
                 ),
-                _Field(
-                  tr(AccountCommerceL10n.accountType),
-                  p.isSeller
-                      ? tr(AccountCommerceL10n.sellerBusiness)
-                      : tr(AccountCommerceL10n.individualBuyer),
-                  Icons.person_outline_rounded,
-                ),
-                _Field('Role', p.role, Icons.security_outlined),
               ]),
             ),
             if (facts.missing.isNotEmpty) ...[
@@ -651,6 +637,8 @@ class _ProfileFacts {
 // Identity hero
 // ---------------------------------------------------------------------------
 
+/// Compact identity row: avatar ringed by profile completeness, name,
+/// handle / email and verification. Details live in the sections below.
 class _IdentityHero extends StatelessWidget {
   const _IdentityHero({
     required this.profile,
@@ -665,7 +653,6 @@ class _IdentityHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = context.atelier;
-    final soft = p.onOnyx.withValues(alpha: 0.62);
     final business = profile.isSeller;
     final name =
         _clean(profile.fullName) ??
@@ -676,239 +663,81 @@ class _IdentityHero extends StatelessWidget {
     final handle = _clean(profile.username);
     final email = _clean(profile.email);
     final pct = (facts.completeness * 100).round();
+    final company = _clean(profile.companyName);
 
-    return LayoutBuilder(
-      builder: (context, c) {
-        final wide = c.maxWidth >= 640;
-        final avatar = wide ? 42.0 : 34.0;
-        final ring = avatar * 2 + 14;
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(AtelierRadius.xl),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: LuxeStage.vault,
-              border: Border.all(
-                color: p.isDark ? p.hairline : Colors.transparent,
-              ),
+    return Reveal(
+      child: Row(
+        children: [
+          Semantics(
+            label: 'Profile $pct% complete',
+            child: _RingedAvatar(
+              name: name,
+              url: picture,
+              radius: 26,
+              ring: 62,
+              value: facts.completeness,
             ),
-            child: Stack(
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    height: 1.2,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          p.gold.withValues(alpha: 0),
-                          p.gold.withValues(alpha: 0.8),
-                          p.gold.withValues(alpha: 0),
-                        ],
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AtelierType.title(p.ink, size: 18),
                       ),
                     ),
-                  ),
-                ),
-                if (wide)
-                  const Positioned(
-                    right: 26,
-                    top: 18,
-                    child: Reveal(
-                      delay: Duration(milliseconds: 220),
-                      child: GemView(
-                        cut: GemCut.cushion,
-                        look: GemLook.champagne,
-                        size: 128,
-                        spin: 0.28,
-                        tilt: 0.36,
-                        interactive: true,
-                        semanticLabel: 'Rotating gem. Drag to turn it.',
+                    const SizedBox(width: 6),
+                    Tooltip(
+                      message: profile.isVerified
+                          ? context.tr(RemainingL10n.verified)
+                          : context.tr(AccountCommerceL10n.verificationPending),
+                      child: Icon(
+                        profile.isVerified
+                            ? Icons.verified_rounded
+                            : Icons.schedule_rounded,
+                        size: 17,
+                        color: profile.isVerified ? p.emerald : p.amber,
                       ),
                     ),
-                  ),
-                Padding(
-                  padding: EdgeInsets.all(wide ? 30 : 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Reveal(
-                            index: 1,
-                            child: Semantics(
-                              label: 'Profile $pct% complete',
-                              child: _RingedAvatar(
-                                name: name,
-                                url: picture,
-                                radius: avatar,
-                                ring: ring,
-                                value: facts.completeness,
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: wide ? 20 : 14),
-                          Expanded(
-                            child: Padding(
-                              padding: EdgeInsets.only(right: wide ? 120 : 0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Reveal(
-                                    index: 2,
-                                    child: Text(
-                                      name,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: AtelierType.display(
-                                        p.onOnyx,
-                                        size: wide ? 40 : 28,
-                                        weight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Reveal(
-                                    index: 3,
-                                    child: Text(
-                                      [
-                                        if (handle != null) '@$handle',
-                                        ?email,
-                                      ].join('  ·  '),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: AtelierType.body(soft, size: 13),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: wide ? 20 : 16),
-                      Reveal(
-                        index: 4,
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            AtelierPill(
-                              label: profile.isVerified
-                                  ? (business
-                                        ? context.tr(
-                                            RemainingL10n.verifiedSellerAccount,
-                                          )
-                                        : context.tr(RemainingL10n.verified))
-                                  : context.tr(
-                                      AccountCommerceL10n.verificationPending,
-                                    ),
-                              tone: profile.isVerified
-                                  ? AtelierTone.emerald
-                                  : AtelierTone.amber,
-                              icon: profile.isVerified
-                                  ? Icons.verified_rounded
-                                  : Icons.schedule_rounded,
-                            ),
-                            if (_clean(profile.companyName) != null)
-                              AtelierPill(
-                                label: profile.companyName!.trim(),
-                                tone: AtelierTone.gold,
-                                icon: Icons.storefront_outlined,
-                              ),
-                            if (_clean(profile.sellerType) != null)
-                              AtelierPill(label: profile.sellerType!.trim()),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: wide ? 24 : 20),
-                      Reveal(
-                        index: 5,
-                        child: Container(
-                          height: 1,
-                          color: p.onOnyx.withValues(alpha: 0.1),
-                        ),
-                      ),
-                      SizedBox(height: wide ? 18 : 16),
-                      Reveal(
-                        index: 6,
-                        child: AtelierHeroStats(
-                          stats: !business
-                              ? [
-                                  AtelierHeroStat(
-                                    label: 'Profile',
-                                    value: '$pct%',
-                                    caption: facts.missing.isEmpty
-                                        ? 'Complete'
-                                        : '${facts.missing.length} details missing',
-                                    tone: facts.missing.isEmpty
-                                        ? AtelierTone.emerald
-                                        : AtelierTone.amber,
-                                  ),
-                                  AtelierHeroStat(
-                                    label: 'Account',
-                                    value: 'Individual',
-                                    caption: context.tr(
-                                      AccountCommerceL10n.individualBuyer,
-                                    ),
-                                  ),
-                                  AtelierHeroStat(
-                                    label: 'Status',
-                                    value: profile.isVerified
-                                        ? 'Verified'
-                                        : 'Pending',
-                                    caption: profile.isVerified
-                                        ? 'Ready to buy'
-                                        : 'Verification in review',
-                                    tone: profile.isVerified
-                                        ? AtelierTone.emerald
-                                        : AtelierTone.amber,
-                                  ),
-                                ]
-                              : [
-                                  AtelierHeroStat(
-                                    label: 'Profile',
-                                    value: '$pct%',
-                                    caption: facts.missing.isEmpty
-                                        ? 'Complete'
-                                        : '${facts.missing.length} details missing',
-                                    tone: facts.missing.isEmpty
-                                        ? AtelierTone.emerald
-                                        : AtelierTone.amber,
-                                  ),
-                                  AtelierHeroStat(
-                                    label: 'Tax & KYC',
-                                    value:
-                                        '${facts.kycOnFile}/${_ProfileFacts.kycTotal}',
-                                    caption: 'Documents on file',
-                                  ),
-                                  AtelierHeroStat(
-                                    label: 'Payouts',
-                                    value: facts.bank.loading
-                                        ? '—'
-                                        : facts.bank.linked
-                                        ? 'Linked'
-                                        : 'Not linked',
-                                    caption: facts.bank.number == null
-                                        ? (facts.bank.upi ?? 'Bank account')
-                                        : _mask(facts.bank.number!),
-                                    tone: facts.bank.loading
-                                        ? null
-                                        : facts.bank.linked
-                                        ? AtelierTone.emerald
-                                        : AtelierTone.ruby,
-                                  ),
-                                ],
-                        ),
-                      ),
-                    ],
-                  ),
+                  ],
                 ),
+                const SizedBox(height: 2),
+                Text(
+                  [if (handle != null) '@$handle', ?email].join('  ·  '),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AtelierType.caption(p.muted, size: 12.5),
+                ),
+                if (business && company != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    [company, ?_clean(profile.sellerType)].join('  ·  '),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AtelierType.caption(p.gold, size: 12),
+                  ),
+                ],
+                if (facts.missing.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    '$pct% complete · ${facts.missing.length} details missing',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AtelierType.caption(p.amber, size: 11.5),
+                  ),
+                ],
               ],
             ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }
@@ -949,11 +778,12 @@ class _RingedAvatar extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// At-a-glance tiles (also the section switcher)
+// Section switcher
 // ---------------------------------------------------------------------------
 
-class _GlanceRow extends StatelessWidget {
-  const _GlanceRow({
+/// Account / Business / Tax & KYC / Payouts; counts mark missing details.
+class _SectionSwitcher extends StatelessWidget {
+  const _SectionSwitcher({
     required this.facts,
     required this.selected,
     required this.onSelect,
@@ -963,178 +793,45 @@ class _GlanceRow extends StatelessWidget {
   final _Section selected;
   final ValueChanged<_Section> onSelect;
 
-  int _missingIn(_Section s) =>
-      facts.missing.where((r) => r.section == s).length;
-
-  @override
-  Widget build(BuildContext context) {
-    final profile = facts.profile;
-    final bank = facts.bank;
-    final verified = profile.isVerified;
-    final kyc = facts.kycOnFile;
-
-    String gaps(_Section s, String fallback) {
-      final n = _missingIn(s);
-      return n == 0 ? fallback : '$n to complete';
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const Reveal(
-          index: 1,
-          child: AtelierSectionHeader(title: 'Your account'),
-        ),
-        const SizedBox(height: AtelierSpace.s16),
-        AtelierTileGrid(
-          columns: 4,
-          minTileWidth: 150,
-          children: [
-            _GlanceTile(
-              icon: Icons.verified_user_outlined,
-              label: 'Account',
-              value: verified ? 'Verified' : 'Pending',
-              caption: gaps(_Section.account, 'Identity & sign-in'),
-              tone: verified ? AtelierTone.emerald : AtelierTone.amber,
-              attention: !verified,
-              selected: selected == _Section.account,
-              onTap: () => onSelect(_Section.account),
-            ),
-            _GlanceTile(
-              icon: Icons.storefront_outlined,
-              label: 'Business',
-              value: _clean(profile.companyName) ?? 'Not set',
-              caption: gaps(
-                _Section.business,
-                _clean(profile.sellerType) ?? 'Company & address',
-              ),
-              selected: selected == _Section.business,
-              onTap: () => onSelect(_Section.business),
-            ),
-            _GlanceTile(
-              icon: Icons.shield_outlined,
-              label: 'Tax & KYC',
-              value: '$kyc of ${_ProfileFacts.kycTotal}',
-              caption: kyc == _ProfileFacts.kycTotal
-                  ? 'All documents on file'
-                  : 'Documents on file',
-              tone: kyc == _ProfileFacts.kycTotal
-                  ? AtelierTone.emerald
-                  : AtelierTone.gold,
-              selected: selected == _Section.compliance,
-              onTap: () => onSelect(_Section.compliance),
-            ),
-            _GlanceTile(
-              icon: Icons.account_balance_outlined,
-              label: 'Payouts',
-              value: bank.loading
-                  ? 'Loading…'
-                  : bank.name ?? (bank.linked ? 'Linked' : 'Not linked'),
-              caption: bank.number != null
-                  ? _mask(bank.number!)
-                  : (bank.upi ?? 'Add a bank account'),
-              tone: bank.loading || bank.linked
-                  ? AtelierTone.gold
-                  : AtelierTone.ruby,
-              attention: !bank.loading && !bank.linked,
-              selected: selected == _Section.payouts,
-              onTap: () => onSelect(_Section.payouts),
-            ),
-          ],
-        ),
-      ],
-    );
+  int? _missingIn(_Section s) {
+    final n = facts.missing.where((r) => r.section == s).length;
+    return n == 0 ? null : n;
   }
-}
-
-class _GlanceTile extends StatelessWidget {
-  const _GlanceTile({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.caption,
-    required this.selected,
-    required this.onTap,
-    this.tone = AtelierTone.gold,
-    this.attention = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-  final String caption;
-  final AtelierTone tone;
-  final bool attention;
-  final bool selected;
-  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final p = context.atelier;
-    return Semantics(
-      selected: selected,
-      child: Pressable(
-        onTap: onTap,
-        semanticLabel: '$label, $value',
-        borderRadius: BorderRadius.circular(AtelierRadius.lg),
-        child: AnimatedContainer(
-          duration: AtelierMotion.base,
-          curve: AtelierMotion.emphasized,
-          padding: const EdgeInsets.fromLTRB(16, 16, 14, 14),
-          decoration: BoxDecoration(
-            color: selected ? p.goldSoft : p.surface,
-            borderRadius: BorderRadius.circular(AtelierRadius.lg),
-            border: Border.all(
-              color: selected ? p.gold : p.hairline,
-              width: selected ? 1.3 : 1,
-            ),
-            boxShadow: selected ? null : p.softShadow,
+    return Reveal(
+      index: 1,
+      child: AtelierSegmented<_Section>(
+        dense: true,
+        selected: selected,
+        onChanged: onSelect,
+        segments: [
+          AtelierSegment(
+            value: _Section.account,
+            label: 'Account',
+            icon: Icons.verified_user_outlined,
+            count: _missingIn(_Section.account),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  AtelierIconBadge(icon: icon, tone: tone, size: 34),
-                  const Spacer(),
-                  if (attention) AtelierPulseDot(tone: tone),
-                  AnimatedRotation(
-                    turns: selected ? 0.25 : 0,
-                    duration: AtelierMotion.base,
-                    curve: AtelierMotion.emphasized,
-                    child: Icon(
-                      Icons.chevron_right_rounded,
-                      size: 18,
-                      color: selected ? p.gold : p.muted,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Text(
-                label.toUpperCase(),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AtelierType.overline(selected ? p.ink : p.muted),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AtelierType.display(p.ink, size: 22),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                caption,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AtelierType.caption(p.muted, size: 11.5),
-              ),
-            ],
+          AtelierSegment(
+            value: _Section.business,
+            label: 'Business',
+            icon: Icons.storefront_outlined,
+            count: _missingIn(_Section.business),
           ),
-        ),
+          AtelierSegment(
+            value: _Section.compliance,
+            label: 'Tax & KYC',
+            icon: Icons.shield_outlined,
+            count: _missingIn(_Section.compliance),
+          ),
+          AtelierSegment(
+            value: _Section.payouts,
+            label: 'Payouts',
+            icon: Icons.account_balance_outlined,
+            count: _missingIn(_Section.payouts),
+          ),
+        ],
       ),
     );
   }
@@ -1932,46 +1629,15 @@ class _ProfileSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final p = context.atelier;
     return AtelierPage(
       onRefresh: () async {},
       maxWidth: 1080,
-      children: [
-        Container(
-          height: 260,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: LuxeStage.vault,
-            borderRadius: BorderRadius.circular(AtelierRadius.xl),
-            border: Border.all(
-              color: p.isDark ? p.hairline : Colors.transparent,
-            ),
-          ),
-          child: Stack(
-            children: [
-              Center(
-                child: SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: LuxeStage.gold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: AtelierSpace.s24),
-        AtelierTileGrid(
-          columns: 4,
-          minTileWidth: 150,
-          children: [
-            for (var i = 0; i < 4; i++) const AtelierSkeletonCard(height: 132),
-          ],
-        ),
-        const SizedBox(height: AtelierSpace.s24),
-        const AtelierSkeletonList(count: 2, height: 160),
+      children: const [
+        SkeletonBox(height: 62, radius: AtelierRadius.lg),
+        SizedBox(height: AtelierSpace.s16),
+        SkeletonBox(height: 44, radius: AtelierRadius.pill),
+        SizedBox(height: AtelierSpace.s16),
+        AtelierSkeletonList(count: 2, height: 160),
       ],
     );
   }

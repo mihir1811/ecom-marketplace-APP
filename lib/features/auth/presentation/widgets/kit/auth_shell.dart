@@ -5,9 +5,6 @@ import '../../../../../core/l10n/app_localizations.dart';
 import '../../../../../core/router/app_navigation.dart';
 import '../../../../../core/router/route_names.dart';
 import '../../../../../core/widgets/app_scaffold.dart';
-import '../../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../../core/widgets/gem3d/gem_renderer.dart';
-import '../../../../../core/widgets/gem3d/gem_view.dart';
 import '../../../../../core/widgets/language_menu_button.dart';
 import 'auth_backdrop.dart';
 import 'auth_hero.dart';
@@ -250,28 +247,7 @@ class _ShowcasePanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const AuthWordmark(),
-          Expanded(
-            child: Center(
-              child: reveal(
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    const AuthHalo(size: 420),
-                    GemView(
-                      cut: GemCut.round,
-                      look: p.isDark ? GemLook.white : GemLook.champagne,
-                      size: 300,
-                      spin: 0.32,
-                      tilt: 0.5,
-                      interactive: true,
-                      semanticLabel: context.tr(AuthL10n.gemLabel),
-                    ),
-                  ],
-                ),
-                0,
-              ),
-            ),
-          ),
+          const Spacer(),
           reveal(
             Text(
               context.tr(AuthL10n.showcaseTitle),

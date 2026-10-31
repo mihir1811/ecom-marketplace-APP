@@ -15,7 +15,6 @@ import '../../../chat/domain/models/chat_thread.dart';
 import '../../../seller/presentation/atelier/atelier_components.dart';
 import '../../../seller/presentation/atelier/atelier_feedback.dart';
 import '../../../seller/presentation/atelier/atelier_motion.dart';
-import '../../../seller/presentation/atelier/atelier_studio.dart';
 import '../../../seller/presentation/atelier/atelier_theme.dart';
 import 'buyer_chat_detail_screen.dart';
 
@@ -234,12 +233,6 @@ class _Inbox extends StatelessWidget {
         ? AtelierSpace.s20
         : AtelierSpace.gutter(MediaQuery.sizeOf(context).width);
     final unreadThreads = all.where((t) => t.unreadCount > 0).length;
-    final unreadMessages = all.fold<int>(0, (s, t) => s + t.unreadCount);
-    final now = DateTime.now();
-    final today = all.where((t) {
-      final d = t.lastMessageAt.toLocal();
-      return d.year == now.year && d.month == now.month && d.day == now.day;
-    }).length;
     final types = <ChatProductType>{for (final t in all) t.productType};
     final firstLoad = (state.isLoading || resolving) && all.isEmpty;
 
@@ -266,19 +259,6 @@ class _Inbox extends StatelessWidget {
     ];
 
     final slivers = <Widget>[
-      SliverPadding(
-        padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 0),
-        sliver: SliverToBoxAdapter(
-          child: _InboxHero(
-            compact: compactHero,
-            unreadMessages: unreadMessages,
-            unreadThreads: unreadThreads,
-            total: all.length,
-            today: today,
-            loading: firstLoad,
-          ),
-        ),
-      ),
       SliverPersistentHeader(
         pinned: true,
         delegate: _ControlsHeader(
@@ -454,60 +434,6 @@ List<_RecencyGroup> _groupByRecency(
   return groups.values.toList();
 }
 
-/// Onyx band with the inbox's headline numbers.
-class _InboxHero extends StatelessWidget {
-  const _InboxHero({
-    required this.compact,
-    required this.unreadMessages,
-    required this.unreadThreads,
-    required this.total,
-    required this.today,
-    required this.loading,
-  });
-
-  final bool compact;
-  final int unreadMessages;
-  final int unreadThreads;
-  final int total;
-  final int today;
-  final bool loading;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final roomy = constraints.maxWidth >= 560;
-        return AtelierHero(
-          title: context.tr(CoreL10n.messages),
-          cut: compact ? null : GemCut.pear,
-          footer: AtelierHeroStats(
-            stats: [
-              AtelierHeroStat(
-                label: 'Unread',
-                value: loading ? '—' : '$unreadMessages',
-                caption: unreadMessages == 1 ? 'new message' : 'new messages',
-                tone: unreadMessages > 0 ? AtelierTone.gold : null,
-              ),
-              AtelierHeroStat(
-                label: 'Conversations',
-                value: loading ? '—' : '$total',
-                caption: 'With sellers',
-              ),
-              if (roomy)
-                AtelierHeroStat(
-                  label: 'Active today',
-                  value: loading ? '—' : '$today',
-                  caption: today == 1 ? 'thread moved' : 'threads moved',
-                ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-/// Pinned search + filter bar; gains a hairline once content slides under.
 class _ControlsHeader extends SliverPersistentHeaderDelegate {
   _ControlsHeader({
     required this.child,

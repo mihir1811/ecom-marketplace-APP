@@ -11,7 +11,6 @@ import '../../../../core/widgets/filters/filter_scrollable_chips.dart';
 import '../../../../core/widgets/filters/filter_section_divider.dart';
 import '../../../../core/widgets/filters/filter_section_header.dart';
 import '../../../../core/widgets/filters/melee_range_filters.dart';
-import '../../../../core/widgets/luxe/luxe_chip_group.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_multi_select_field.dart';
 import '../../../../core/widgets/luxe/luxe_shape_dial.dart';
@@ -123,16 +122,19 @@ class GemstoneTypeFilters extends ConsumerWidget {
               GemstoneHueOrb(hue: gemstoneHue(value), size: size + 8),
         ),
         const FilterSectionDivider(),
-        LuxeChipGroup(
-          title: context.tr(CatalogL10n.gemstoneType),
+        FilterSectionHeader(title: context.tr(CatalogL10n.gemstoneType)),
+        const SizedBox(height: 8),
+        LuxeMultiSelectField(
           options: GemstoneFilterState.allGemstoneTypes,
           selected: selected,
-          onToggle: notifier.toggleGemstoneType,
-          initialVisible: 12,
+          onChanged: (next) => applyMultiSelectToggles(
+            selected,
+            next,
+            notifier.toggleGemstoneType,
+          ),
+          hint: context.tr(CatalogL10n.selectGemstoneTypes),
+          sheetTitle: context.tr(CatalogL10n.gemstoneType),
           searchHint: context.tr(CatalogL10n.searchGemstoneTypes),
-          emptyLabel: context.tr(CatalogL10n.noGemstones),
-          showAllLabel: context.tr(CatalogFlowL10n.showAll),
-          showLessLabel: context.tr(CatalogL10n.viewLess),
         ),
         const FilterSectionDivider(),
         FilterSectionHeader(
@@ -140,31 +142,23 @@ class GemstoneTypeFilters extends ConsumerWidget {
           infoText: context.tr(CatalogL10n.birthstonesHelp),
         ),
         const SizedBox(height: 8),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            const gap = 8.0;
-            final columns = constraints.maxWidth > 520 ? 6 : 4;
-            final w = ((constraints.maxWidth - gap * (columns - 1)) / columns)
-                .floorToDouble();
-            return Wrap(
-              alignment: WrapAlignment.center,
-              spacing: gap,
-              runSpacing: gap,
-              children: [
-                for (final e in GemstoneFilterState.birthstones.entries)
-                  SizedBox(
-                    width: w,
-                    height: w / 1.5,
-                    child: BirthstoneMonthCard(
-                      month: e.key,
-                      gemstone: e.value,
-                      isSelected: months.contains(e.key),
-                      onTap: () => notifier.toggleBirthstoneMonth(e.key),
-                    ),
-                  ),
-              ],
-            );
-          },
+        GridView.count(
+          crossAxisCount: 4,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.zero,
+          mainAxisSpacing: 8,
+          crossAxisSpacing: 8,
+          childAspectRatio: 1.5,
+          children: [
+            for (final entry in GemstoneFilterState.birthstones.entries)
+              BirthstoneMonthCard(
+                month: entry.key,
+                gemstone: entry.value.trim(),
+                isSelected: months.contains(entry.key),
+                onTap: () => notifier.toggleBirthstoneMonth(entry.key),
+              ),
+          ],
         ),
       ],
     );
@@ -343,15 +337,22 @@ class GemstoneGradingFilters extends ConsumerWidget {
           infoText: context.tr(CatalogL10n.gemstoneCutHelp),
         ),
         const FilterSectionDivider(),
-        LuxeChipGroup(
+        FilterSectionHeader(
           title: context.tr(CatalogL10n.treatments),
           infoText: 'Filter by enhancement processes applied to the gemstone.',
+        ),
+        const SizedBox(height: 8),
+        LuxeMultiSelectField(
           options: GemstoneFilterState.treatments,
           selected: state.selectedTreatments,
-          onToggle: notifier.toggleTreatment,
-          initialVisible: 8,
-          showAllLabel: context.tr(CatalogFlowL10n.showAll),
-          showLessLabel: context.tr(CatalogL10n.viewLess),
+          onChanged: (next) => applyMultiSelectToggles(
+            state.selectedTreatments,
+            next,
+            notifier.toggleTreatment,
+          ),
+          hint: context.tr(CatalogL10n.selectTreatments),
+          sheetTitle: context.tr(CatalogL10n.treatments),
+          labelOf: context.trCatalogValue,
         ),
       ],
     );

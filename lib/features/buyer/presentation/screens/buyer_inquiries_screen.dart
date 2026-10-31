@@ -106,8 +106,6 @@ class _BuyerInquiriesScreenState extends ConsumerState<BuyerInquiriesScreen> {
     final p = context.atelier;
     final state = ref.watch(inquiryListProvider(_category));
     final items = state.items;
-    final replied = items.where((i) => i.hasAdminReply).length;
-    final awaiting = items.length - replied;
     final counts = {
       for (final r in _Reply.values) r: items.where(r.matches).length,
     };
@@ -154,47 +152,6 @@ class _BuyerInquiriesScreenState extends ConsumerState<BuyerInquiriesScreen> {
                             icon: Icons.add_rounded,
                             variant: AtelierButtonVariant.gold,
                             onPressed: _newInquiry,
-                          ),
-                        ),
-                        const SizedBox(height: 22),
-                        Reveal(
-                          index: 3,
-                          child: MaisonStatStrip(
-                            stats: [
-                              MaisonStat(
-                                label: 'Awaiting',
-                                value: '$awaiting',
-                                caption: awaiting > 0
-                                    ? 'With our team'
-                                    : 'All answered',
-                                tone: AtelierTone.amber,
-                                pulse: awaiting > 0,
-                                selected: _reply == _Reply.awaiting,
-                                onTap: () => setState(
-                                  () => _reply = _reply == _Reply.awaiting
-                                      ? _Reply.all
-                                      : _Reply.awaiting,
-                                ),
-                              ),
-                              MaisonStat(
-                                label: 'Replied',
-                                value: '$replied',
-                                caption: 'Answer received',
-                                tone: replied > 0 ? AtelierTone.emerald : null,
-                                selected: _reply == _Reply.replied,
-                                onTap: () => setState(
-                                  () => _reply = _reply == _Reply.replied
-                                      ? _Reply.all
-                                      : _Reply.replied,
-                                ),
-                              ),
-                              MaisonStat(
-                                label: _category.label,
-                                value:
-                                    '${state.total > items.length ? state.total : items.length}',
-                                caption: 'Inquiries',
-                              ),
-                            ],
                           ),
                         ),
                       ],

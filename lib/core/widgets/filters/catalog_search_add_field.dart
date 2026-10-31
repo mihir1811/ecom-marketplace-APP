@@ -227,8 +227,7 @@ class _CatalogSearchAddFieldState extends State<CatalogSearchAddField> {
                     color: onFill,
                     fontWeight: FontWeight.w600,
                   ),
-                  backgroundColor: fill,
-                  selectedColor: fill,
+                  color: WidgetStatePropertyAll(fill),
                   deleteIconColor: onFill,
                   side: BorderSide(color: fill),
                   visualDensity: VisualDensity.compact,
@@ -270,7 +269,9 @@ class _CatalogSearchAddFieldState extends State<CatalogSearchAddField> {
                     decoration: TextDecoration.lineThrough,
                     decorationColor: AppColors.terracotta,
                   ),
-                  backgroundColor: AppColors.terracotta.withValues(alpha: 0.08),
+                  color: WidgetStatePropertyAll(
+                    AppColors.terracotta.withValues(alpha: 0.08),
+                  ),
                   deleteIconColor: AppColors.terracotta,
                   side: BorderSide(
                     color: AppColors.terracotta.withValues(alpha: 0.45),

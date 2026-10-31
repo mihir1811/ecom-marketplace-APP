@@ -7,7 +7,7 @@ import '../models/product_detail.dart';
 
 /// Page size for same-seller suggestions (≈4 viewport widths of 3 cards).
 abstract final class SuggestedSellerProductsPageSize {
-  static const int defaultSize = 12;
+  static const int defaultSize = 24;
 }
 
 /// Loads more listings from the same seller as the open product detail.
