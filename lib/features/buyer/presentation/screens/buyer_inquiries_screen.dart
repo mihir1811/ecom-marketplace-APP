@@ -135,15 +135,6 @@ class _BuyerInquiriesScreenState extends ConsumerState<BuyerInquiriesScreen> {
                           title: context.tr(AccountCommerceL10n.inquiries),
                           cut: _categoryCut(_category),
                         ),
-                        const SizedBox(height: 8),
-                        Reveal(
-                          index: 1,
-                          child: Text(
-                            'Looking for something specific? Tell our team '
-                            'and they will reply here.',
-                            style: AtelierType.body(p.inkSoft, size: 14),
-                          ),
-                        ),
                         const SizedBox(height: 18),
                         Reveal(
                           index: 2,

@@ -70,10 +70,8 @@ final List<RouteBase> buyerRoutes = [
   ),
   GoRoute(
     path: AppRouteNames.buyerInquiryNew,
-    builder: (context, state) => BuyerLayout(
-      title: context.tr(AccountCommerceL10n.newInquiry),
-      child: const SellerInquiryFormScreen(),
-    ),
+    builder: (context, state) =>
+        const MaisonLayout(detail: true, child: SellerInquiryFormScreen()),
   ),
   GoRoute(
     path: '/buyer/inquiries/:category/:inquiryId',

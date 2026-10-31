@@ -111,12 +111,12 @@ class AtelierHero extends StatelessWidget {
       children: [
         if (action != null) Reveal(child: action),
         if (action != null && footer != null)
-          const SizedBox(height: AtelierSpace.s12),
+          const SizedBox(height: AtelierSpace.s8),
         if (footer != null)
           Reveal(
             index: 1,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(AtelierRadius.lg),
+              borderRadius: BorderRadius.circular(AtelierRadius.md),
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: LuxeStage.vault,
@@ -125,7 +125,7 @@ class AtelierHero extends StatelessWidget {
                   ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
                   child: footer,
                 ),
               ),
@@ -153,7 +153,8 @@ class AtelierHeroStat {
   final AtelierTone? tone;
 }
 
-/// Evenly spaced row of [AtelierHeroStat]s, wrapping on narrow screens.
+/// Dense single row of [AtelierHeroStat]s split by hairlines. Captions
+/// show only when a cell has room; otherwise they move to a tooltip.
 class AtelierHeroStats extends StatelessWidget {
   const AtelierHeroStats({required this.stats, super.key});
 
@@ -163,62 +164,101 @@ class AtelierHeroStats extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.atelier;
     final soft = p.onOnyx.withValues(alpha: 0.58);
+    final rule = p.onOnyx.withValues(alpha: 0.12);
     return LayoutBuilder(
       builder: (context, constraints) {
-        final perRow = constraints.maxWidth >= 560 ? stats.length : 2;
-        final w =
-            (constraints.maxWidth - (perRow - 1) * AtelierSpace.s16) / perRow;
-        return Wrap(
-          spacing: AtelierSpace.s16,
-          runSpacing: AtelierSpace.s16,
-          children: [
-            for (final s in stats)
-              SizedBox(
-                width: w,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        if (s.tone != null) ...[
-                          _Breathing(color: p.tone(s.tone!)),
-                          const SizedBox(width: 6),
-                        ],
-                        Flexible(
-                          child: Text(
-                            s.label.toUpperCase(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AtelierType.overline(soft),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    CountUpText(
-                      s.value,
-                      style: AtelierType.display(
-                        p.onOnyx,
-                        size: 30,
-                        weight: FontWeight.w500,
-                      ),
-                    ),
-                    if (s.caption != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        s.caption!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AtelierType.caption(soft, size: 11.5),
-                      ),
-                    ],
-                  ],
+        final cellWidth = constraints.maxWidth / stats.length;
+        final showCaption = cellWidth >= 150;
+        return IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var i = 0; i < stats.length; i++) ...[
+                if (i > 0)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: VerticalDivider(width: 1, thickness: 1, color: rule),
+                  ),
+                Expanded(
+                  child: _HeroStatCell(
+                    stat: stats[i],
+                    soft: soft,
+                    showCaption: showCaption,
+                  ),
                 ),
-              ),
-          ],
+              ],
+            ],
+          ),
         );
       },
     );
+  }
+}
+
+class _HeroStatCell extends StatelessWidget {
+  const _HeroStatCell({
+    required this.stat,
+    required this.soft,
+    required this.showCaption,
+  });
+
+  final AtelierHeroStat stat;
+  final Color soft;
+  final bool showCaption;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.atelier;
+    final s = stat;
+    final cell = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (s.tone != null) ...[
+              _Breathing(color: p.tone(s.tone!), size: 6),
+              const SizedBox(width: 6),
+            ],
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: CountUpText(
+                  s.value,
+                  style: AtelierType.display(
+                    p.onOnyx,
+                    size: 22,
+                    weight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 3),
+        Text(
+          s.label.toUpperCase(),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AtelierType.overline(
+            soft,
+          ).copyWith(fontSize: 9.5, letterSpacing: 0.9),
+        ),
+        if (showCaption && s.caption != null) ...[
+          const SizedBox(height: 1),
+          Text(
+            s.caption!,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AtelierType.caption(soft, size: 11),
+          ),
+        ],
+      ],
+    );
+    if (showCaption || s.caption == null) return cell;
+    return Tooltip(message: s.caption!, child: cell);
   }
 }
 
@@ -469,6 +509,7 @@ class AtelierTextField extends StatefulWidget {
     this.onChanged,
     this.onSubmitted,
     this.maxLines = 1,
+    this.minLines = 1,
     this.enabled = true,
     this.autofocus = false,
     this.mono = false,
@@ -488,6 +529,9 @@ class AtelierTextField extends StatefulWidget {
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
   final int maxLines;
+
+  /// Rows shown before any typing; set above 1 for a roomy text area.
+  final int minLines;
   final bool enabled;
   final bool autofocus;
 
@@ -570,7 +614,7 @@ class _AtelierTextFieldState extends State<AtelierTextField> {
                   onChanged: widget.onChanged,
                   onSubmitted: widget.onSubmitted,
                   maxLines: widget.maxLines,
-                  minLines: 1,
+                  minLines: widget.minLines,
                   cursorColor: p.gold,
                   style: textStyle,
                   decoration: InputDecoration(
@@ -584,7 +628,7 @@ class _AtelierTextFieldState extends State<AtelierTextField> {
                       vertical: widget.maxLines > 1 ? 2 : 15,
                     ),
                     hintText: widget.hint,
-                    hintMaxLines: 1,
+                    hintMaxLines: widget.maxLines > 1 ? widget.maxLines : 1,
                     hintStyle: textStyle.copyWith(color: p.muted),
                   ),
                 ),

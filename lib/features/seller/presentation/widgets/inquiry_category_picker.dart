@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_swatches.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../domain/models/seller_inquiry.dart';
+import '../atelier/atelier_motion.dart';
+import '../atelier/atelier_theme.dart';
 
-/// Step-1 category cards that load the matching inquiry form.
+/// Step-1 category tiles that load the matching inquiry form.
 class InquiryCategoryPicker extends StatelessWidget {
   const InquiryCategoryPicker({
     required this.selected,
@@ -22,8 +20,8 @@ class InquiryCategoryPicker extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final maxW = constraints.maxWidth;
-        const columns = 3;
-        const gap = AppSpacing.s12;
+        final columns = maxW >= 620 ? 5 : 3;
+        const gap = AtelierSpace.s10;
         final tileW = (maxW - gap * (columns - 1)) / columns;
         return Wrap(
           spacing: gap,
@@ -32,7 +30,7 @@ class InquiryCategoryPicker extends StatelessWidget {
             for (final category in InquiryCategory.values)
               SizedBox(
                 width: tileW,
-                child: _CategoryCard(
+                child: _CategoryTile(
                   category: category,
                   selected: selected == category,
                   onTap: () => onSelected(category),
@@ -45,8 +43,8 @@ class InquiryCategoryPicker extends StatelessWidget {
   }
 }
 
-class _CategoryCard extends StatelessWidget {
-  const _CategoryCard({
+class _CategoryTile extends StatelessWidget {
+  const _CategoryTile({
     required this.category,
     required this.selected,
     required this.onTap,
@@ -56,60 +54,95 @@ class _CategoryCard extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  Color _accent(BuildContext context) => switch (category) {
-    InquiryCategory.diamond => AppColors.info,
-    InquiryCategory.gemstone => AppSwatches.inquiryGemstone,
-    InquiryCategory.bullion => AppSwatches.inquiryBullion,
-    InquiryCategory.watch => AppColors.textSecondary(context),
-    InquiryCategory.jewelry => AppSwatches.inquiryJewelry,
-  };
-
   IconData get _icon => switch (category) {
     InquiryCategory.diamond => Icons.diamond_outlined,
-    InquiryCategory.gemstone => Icons.auto_awesome,
-    InquiryCategory.bullion => Icons.link,
+    InquiryCategory.gemstone => Icons.auto_awesome_outlined,
+    InquiryCategory.bullion => Icons.toll_outlined,
     InquiryCategory.watch => Icons.watch_outlined,
     InquiryCategory.jewelry => Icons.workspace_premium_outlined,
   };
 
   @override
   Widget build(BuildContext context) {
-    final accent = _accent(context);
-    return Material(
-      color: selected
-          ? accent.withValues(alpha: 0.12)
-          : AppColors.card(context),
-      borderRadius: BorderRadius.circular(AppSpacing.r16),
-      child: InkWell(
+    final p = context.atelier;
+    final fg = selected ? p.gold : p.inkSoft;
+    return Semantics(
+      selected: selected,
+      child: Pressable(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSpacing.r16),
-        child: Ink(
+        haptic: false,
+        semanticLabel: category.label,
+        borderRadius: BorderRadius.circular(AtelierRadius.md),
+        child: AnimatedContainer(
+          duration: AtelierMotion.base,
+          curve: AtelierMotion.emphasized,
+          padding: const EdgeInsets.fromLTRB(10, 18, 10, 14),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppSpacing.r16),
+            color: selected ? p.goldSoft : p.surface,
+            borderRadius: BorderRadius.circular(AtelierRadius.md),
             border: Border.all(
-              color: selected ? accent : AppColors.border(context),
-              width: selected ? 2 : 1,
+              color: selected ? p.gold : p.hairline,
+              width: selected ? 1.4 : 1,
             ),
+            boxShadow: selected ? null : p.softShadow,
           ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.s12,
-              vertical: AppSpacing.s24,
-            ),
-            child: Column(
-              children: [
-                Icon(_icon, color: accent, size: 28),
-                const SizedBox(height: AppSpacing.s8),
-                Text(
-                  category.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.label.copyWith(
-                    fontWeight: FontWeight.w700,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: AnimatedContainer(
+                      duration: AtelierMotion.base,
+                      curve: AtelierMotion.emphasized,
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: selected
+                            ? p.surface
+                            : p.gold.withValues(alpha: p.isDark ? 0.12 : 0.07),
+                        border: Border.all(
+                          color: p.gold.withValues(alpha: selected ? 0.5 : 0.2),
+                        ),
+                      ),
+                      child: Icon(_icon, size: 20, color: fg),
+                    ),
+                  ),
+                  const SizedBox(height: AtelierSpace.s10),
+                  Text(
+                    category.label,
+                    maxLines: 1,
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                    style: AtelierType.label(
+                      selected ? p.ink : p.inkSoft,
+                      size: 13,
+                    ),
+                  ),
+                ],
+              ),
+              Positioned(
+                top: -10,
+                right: -4,
+                child: AnimatedScale(
+                  scale: selected ? 1 : 0,
+                  duration: AtelierMotion.base,
+                  curve: AtelierMotion.settle,
+                  child: Container(
+                    width: 18,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: p.goldGradient,
+                    ),
+                    child: Icon(Icons.check_rounded, size: 12, color: p.onGold),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

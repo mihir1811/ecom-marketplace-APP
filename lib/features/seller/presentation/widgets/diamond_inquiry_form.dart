@@ -2,8 +2,6 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
 import 'inquiry_form_fields.dart';
 import 'inquiry_reference_media.dart';
 
@@ -134,11 +132,8 @@ class DiamondInquiryForm extends StatelessWidget {
                     onChanged?.call(v);
                   },
                 ),
-                Text(
+                InquiryHelperText(
                   context.tr(RemainingL10n.selectEitherTotalCaratOrTotalPieces),
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.textMuted(context),
-                  ),
                 ),
                 const SizedBox(height: 12),
                 if (_measureCarat)
@@ -412,13 +407,7 @@ class DiamondInquiryForm extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          Text(
-            context.tr(RemainingL10n.color),
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary(context),
-            ),
-          ),
+          InquiryFieldLabel(context.tr(RemainingL10n.color)),
           const Spacer(),
           SizedBox(
             width: 156,

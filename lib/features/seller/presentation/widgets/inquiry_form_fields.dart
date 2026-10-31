@@ -4,32 +4,70 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/haptics/app_haptics.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_dialog.dart';
 import '../../../../core/l10n/app_localizations.dart';
+import '../atelier/atelier_motion.dart';
+import '../atelier/atelier_theme.dart';
+
+/// Fill for inputs that sit on an inquiry section card.
+Color _fieldFill(AtelierPalette p) => p.isDark ? p.raised : p.canvas;
 
 InputDecoration inquiryInputDecoration(BuildContext context, [String? hint]) {
+  final p = context.atelier;
+  OutlineInputBorder border(Color c, [double w = 1]) => OutlineInputBorder(
+    borderRadius: BorderRadius.circular(AtelierRadius.sm),
+    borderSide: BorderSide(color: c, width: w),
+  );
   return InputDecoration(
     hintText: hint,
+    hintStyle: AtelierType.body(p.muted, size: 14),
     isDense: true,
     filled: true,
-    fillColor: AppColors.field(context),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: BorderSide(color: AppColors.border(context)),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: BorderSide(color: AppColors.border(context)),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: AppColors.info),
-    ),
-    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+    fillColor: _fieldFill(p),
+    border: border(p.hairline),
+    enabledBorder: border(p.hairline),
+    disabledBorder: border(p.hairline),
+    focusedBorder: border(p.gold, 1.4),
+    errorBorder: border(p.ruby),
+    focusedErrorBorder: border(p.ruby, 1.4),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
   );
+}
+
+/// Text style for values typed or picked in inquiry inputs.
+TextStyle inquiryInputStyle(BuildContext context) =>
+    AtelierType.body(context.atelier.ink, size: 14.5);
+
+/// Small label shown above an inquiry input.
+class InquiryFieldLabel extends StatelessWidget {
+  const InquiryFieldLabel(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 2, bottom: AtelierSpace.s6),
+      child: Text(
+        text,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: AtelierType.label(context.atelier.inkSoft, size: 12.5),
+      ),
+    );
+  }
+}
+
+/// Muted helper line next to an inquiry input.
+class InquiryHelperText extends StatelessWidget {
+  const InquiryHelperText(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(text, style: AtelierType.caption(context.atelier.muted));
+  }
 }
 
 /// Shared preset lists for inquiry dropdowns (plus Others in the field widget).
@@ -155,24 +193,36 @@ class InquirySectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(AppSpacing.s16),
+      margin: const EdgeInsets.only(bottom: AtelierSpace.s16),
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 6),
       decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border(context)),
+        color: p.surface,
+        borderRadius: BorderRadius.circular(AtelierRadius.lg),
+        border: Border.all(color: p.hairline),
+        boxShadow: p.softShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (title != null) ...[
-            Text(
-              title!,
-              style: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
+            Row(
+              children: [
+                Container(
+                  width: 3,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    gradient: p.goldGradient,
+                    borderRadius: BorderRadius.circular(AtelierRadius.pill),
+                  ),
+                ),
+                const SizedBox(width: AtelierSpace.s10),
+                Expanded(child: Text(title!, style: AtelierType.title(p.ink))),
+              ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AtelierSpace.s16),
           ],
           child,
         ],
@@ -194,20 +244,10 @@ class InquiryLabeledField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: AtelierSpace.s12),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary(context),
-            ),
-          ),
-          const SizedBox(height: 6),
-          child,
-        ],
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [InquiryFieldLabel(label), child],
       ),
     );
   }
@@ -238,6 +278,8 @@ class InquiryTextField extends StatelessWidget {
         controller: controller,
         maxLines: maxLines,
         onChanged: onChanged,
+        style: inquiryInputStyle(context),
+        cursorColor: context.atelier.gold,
         scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
         decoration: inquiryInputDecoration(context, placeholder),
       ),
@@ -257,7 +299,7 @@ class InquiryPairFields extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(child: left),
-        const SizedBox(width: 10),
+        const SizedBox(width: AtelierSpace.s12),
         Expanded(child: right),
       ],
     );
@@ -287,9 +329,9 @@ class InquiryTripleFields extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(child: first),
-            const SizedBox(width: 10),
+            const SizedBox(width: AtelierSpace.s12),
             Expanded(child: second),
-            const SizedBox(width: 10),
+            const SizedBox(width: AtelierSpace.s12),
             Expanded(child: third),
           ],
         );
@@ -360,28 +402,26 @@ class _InquiryDropdownFieldState extends State<InquiryDropdownField> {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
     final placeholder = widget.hint ?? 'Select ${widget.label}';
     final inPreset = widget.options.contains(widget.value);
     final selected = _otherMode
         ? InquiryDropdownField.otherValue
         : (inPreset ? widget.value : widget.options.first);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: AtelierSpace.s12),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            widget.label,
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary(context),
-            ),
-          ),
-          const SizedBox(height: 6),
+          InquiryFieldLabel(widget.label),
           DropdownButtonFormField<String>(
             key: ValueKey('${widget.label}-$selected'),
             initialValue: selected,
             isExpanded: true,
+            style: inquiryInputStyle(context),
+            dropdownColor: p.surface,
+            borderRadius: BorderRadius.circular(AtelierRadius.md),
+            icon: Icon(Icons.expand_more_rounded, color: p.muted),
             hint: Text(placeholder, overflow: TextOverflow.ellipsis),
             items: [
               for (final o in widget.options)
@@ -414,10 +454,12 @@ class _InquiryDropdownFieldState extends State<InquiryDropdownField> {
             decoration: inquiryInputDecoration(context, placeholder),
           ),
           if (_otherMode) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: AtelierSpace.s8),
             TextField(
               controller: _custom,
               onChanged: widget.onChanged,
+              style: inquiryInputStyle(context),
+              cursorColor: p.gold,
               scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
               decoration: inquiryInputDecoration(
                 context,
@@ -449,43 +491,49 @@ class InquirySegmentedField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selected = selectedColor ?? AppColors.selectedFill(context);
-    final control = DecoratedBox(
+    final p = context.atelier;
+    final thumb = selectedColor ?? p.lifted;
+    final control = Container(
+      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: AppColors.field(context),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border(context)),
+        color: p.sunken,
+        borderRadius: BorderRadius.circular(AtelierRadius.pill),
+        border: Border.all(color: p.hairline),
       ),
       child: Row(
         children: [
           for (final option in options)
             Expanded(
-              child: InkWell(
-                onTap: () {
-                  if (value != option.value) AppHaptics.selection();
-                  onChanged(option.value);
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: value == option.value ? selected : null,
-                    borderRadius: BorderRadius.circular(7),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    option.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.caption.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: value == option.value
-                          ? AppColors.onSelected(context)
-                          : AppColors.textSecondary(context),
+              child: Semantics(
+                button: true,
+                selected: value == option.value,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    if (value != option.value) AppHaptics.selection();
+                    onChanged(option.value);
+                  },
+                  child: AnimatedContainer(
+                    duration: AtelierMotion.base,
+                    curve: AtelierMotion.emphasized,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: value == option.value ? thumb : null,
+                      borderRadius: BorderRadius.circular(AtelierRadius.pill),
+                      boxShadow: value == option.value ? p.softShadow : null,
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      option.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AtelierType.label(
+                        value == option.value ? p.ink : p.muted,
+                        size: 12.5,
+                      ),
                     ),
                   ),
                 ),
@@ -497,20 +545,10 @@ class InquirySegmentedField extends StatelessWidget {
 
     if (label == null) return control;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: AtelierSpace.s12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            label!,
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary(context),
-            ),
-          ),
-          const SizedBox(height: 6),
-          control,
-        ],
+        children: [InquiryFieldLabel(label!), control],
       ),
     );
   }
@@ -530,18 +568,60 @@ class InquiryCheckboxField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Checkbox(value: value, onChanged: (v) => onChanged(v ?? false)),
-          Expanded(
-            child: Text(
-              label,
-              style: AppTypography.body.copyWith(fontSize: 14),
+      padding: const EdgeInsets.only(bottom: AtelierSpace.s12),
+      child: Semantics(
+        checked: value,
+        child: Pressable(
+          onTap: () => onChanged(!value),
+          haptic: false,
+          semanticLabel: label,
+          borderRadius: BorderRadius.circular(AtelierRadius.sm),
+          child: AnimatedContainer(
+            duration: AtelierMotion.base,
+            curve: AtelierMotion.emphasized,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+            decoration: BoxDecoration(
+              color: value ? p.goldSoft : _fieldFill(p),
+              borderRadius: BorderRadius.circular(AtelierRadius.sm),
+              border: Border.all(
+                color: value ? p.gold.withValues(alpha: 0.55) : p.hairline,
+              ),
+            ),
+            child: Row(
+              children: [
+                AnimatedContainer(
+                  duration: AtelierMotion.quick,
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    gradient: value ? p.goldGradient : null,
+                    color: value ? null : p.surface,
+                    borderRadius: BorderRadius.circular(6),
+                    border: value
+                        ? null
+                        : Border.all(color: p.muted, width: 1.2),
+                  ),
+                  child: value
+                      ? Icon(Icons.check_rounded, size: 14, color: p.onGold)
+                      : null,
+                ),
+                const SizedBox(width: AtelierSpace.s12),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: AtelierType.label(
+                      value ? p.ink : p.inkSoft,
+                      size: 14,
+                      weight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -561,6 +641,7 @@ class InquiryDateField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
     String text = 'mm/dd/yyyy';
     if (value != null) {
       String two(int v) => v.toString().padLeft(2, '0');
@@ -570,12 +651,116 @@ class InquiryDateField extends StatelessWidget {
       label: label,
       child: InkWell(
         onTap: onPick,
+        borderRadius: BorderRadius.circular(AtelierRadius.sm),
         child: InputDecorator(
-          decoration: inquiryInputDecoration(
-            context,
-            'mm/dd/yyyy',
-          ).copyWith(suffixIcon: const Icon(Icons.calendar_today, size: 18)),
-          child: Text(text),
+          decoration: inquiryInputDecoration(context, 'mm/dd/yyyy').copyWith(
+            suffixIcon: Icon(
+              Icons.calendar_today_outlined,
+              size: 18,
+              color: value == null ? p.muted : p.gold,
+            ),
+          ),
+          child: Text(
+            text,
+            style: value == null
+                ? AtelierType.body(p.muted, size: 14)
+                : inquiryInputStyle(context),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Tappable upload slot: tinted icon, label and an optional counter,
+/// caption or trailing action.
+class InquiryUploadTile extends StatelessWidget {
+  const InquiryUploadTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.caption,
+    this.trailing,
+    this.action,
+    this.active = false,
+    super.key,
+  });
+
+  final IconData icon;
+  final String label;
+  final String? caption;
+  final String? trailing;
+  final Widget? action;
+  final bool active;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.atelier;
+    return AnimatedOpacity(
+      duration: AtelierMotion.quick,
+      opacity: onTap != null ? 1 : 0.5,
+      child: Pressable(
+        onTap: onTap,
+        semanticLabel: label,
+        borderRadius: BorderRadius.circular(AtelierRadius.sm),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 58),
+          padding: const EdgeInsets.fromLTRB(10, 10, 8, 10),
+          decoration: BoxDecoration(
+            color: active ? p.goldSoft : _fieldFill(p),
+            borderRadius: BorderRadius.circular(AtelierRadius.sm),
+            border: Border.all(
+              color: active ? p.gold.withValues(alpha: 0.55) : p.hairline,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: p.surface,
+                  borderRadius: BorderRadius.circular(AtelierRadius.xs),
+                  border: Border.all(color: p.gold.withValues(alpha: 0.3)),
+                ),
+                child: Icon(icon, size: 18, color: p.gold),
+              ),
+              const SizedBox(width: AtelierSpace.s12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AtelierType.label(p.ink, size: 13.5),
+                    ),
+                    if (caption != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        caption!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AtelierType.caption(p.muted, size: 11.5),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (trailing != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text(
+                    trailing!,
+                    style: AtelierType.figure(p.muted, size: 12),
+                  ),
+                ),
+              ?action,
+            ],
+          ),
         ),
       ),
     );
@@ -694,43 +879,50 @@ class InquiryImagePickerField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
     return InquiryLabeledField(
       label: label,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
+          InquiryHelperText(
             helperText ?? context.tr(RemainingL10n.uploadReferenceImageHelper),
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textMuted(context),
-            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AtelierSpace.s10),
           if (images.isNotEmpty)
             SizedBox(
-              height: 88,
+              height: 94,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.only(top: 6, right: 6),
                 itemCount: images.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                separatorBuilder: (_, _) => const SizedBox(width: 10),
                 itemBuilder: (context, index) {
                   return Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.memory(
-                          images[index],
-                          width: 88,
-                          height: 88,
-                          fit: BoxFit.cover,
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(AtelierRadius.sm),
+                          border: Border.all(color: p.hairline),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            AtelierRadius.sm - 1,
+                          ),
+                          child: Image.memory(
+                            images[index],
+                            width: 86,
+                            height: 86,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                       Positioned(
                         top: -6,
                         right: -6,
                         child: Material(
-                          color: AppColors.charcoal,
+                          color: p.onyx,
                           shape: const CircleBorder(),
                           child: InkWell(
                             customBorder: const CircleBorder(),
@@ -742,9 +934,9 @@ class InquiryImagePickerField extends StatelessWidget {
                             child: Padding(
                               padding: const EdgeInsets.all(4),
                               child: Icon(
-                                Icons.close,
+                                Icons.close_rounded,
                                 size: 14,
-                                color: AppColors.warmWhite,
+                                color: p.onOnyx,
                               ),
                             ),
                           ),
@@ -755,23 +947,14 @@ class InquiryImagePickerField extends StatelessWidget {
                 },
               ),
             ),
-          if (images.isNotEmpty) const SizedBox(height: 10),
-          OutlinedButton.icon(
-            onPressed: images.length >= maxImages ? null : () => _pick(context),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.textPrimary(context),
-              side: BorderSide(color: AppColors.border(context)),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            icon: const Icon(Icons.add_photo_alternate_outlined, size: 20),
-            label: Text(
-              images.isEmpty
-                  ? context.tr(RemainingL10n.uploadReferenceImage)
-                  : context.tr(RemainingL10n.addAnotherImage),
-            ),
+          if (images.isNotEmpty) const SizedBox(height: AtelierSpace.s10),
+          InquiryUploadTile(
+            icon: Icons.add_photo_alternate_outlined,
+            label: images.isEmpty
+                ? context.tr(RemainingL10n.uploadReferenceImage)
+                : context.tr(RemainingL10n.addAnotherImage),
+            trailing: '${images.length}/$maxImages',
+            onTap: images.length >= maxImages ? null : () => _pick(context),
           ),
         ],
       ),
@@ -841,53 +1024,37 @@ class InquiryVideoPickerField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atelier;
     final chosen = fileName.trim();
     return InquiryLabeledField(
       label: label,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
+          InquiryHelperText(
             helperText ?? context.tr(RemainingL10n.videoHelperText),
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textMuted(context),
-            ),
           ),
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: () => _pick(context),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.textPrimary(context),
-              side: BorderSide(color: AppColors.border(context)),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            icon: const Icon(Icons.video_file_outlined, size: 20),
-            label: Text(
-              chosen.isEmpty ? context.tr(RemainingL10n.chooseFile) : chosen,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+          const SizedBox(height: AtelierSpace.s10),
+          InquiryUploadTile(
+            icon: chosen.isEmpty
+                ? Icons.video_call_outlined
+                : Icons.video_file_outlined,
+            label: chosen.isEmpty
+                ? context.tr(RemainingL10n.chooseFile)
+                : chosen,
+            caption: chosen.isEmpty
+                ? context.tr(RemainingL10n.noFileChosen)
+                : null,
+            active: chosen.isNotEmpty,
+            onTap: () => _pick(context),
+            action: chosen.isEmpty
+                ? null
+                : IconButton(
+                    tooltip: context.tr(RemainingL10n.remove),
+                    onPressed: () => onPicked(''),
+                    icon: Icon(Icons.close_rounded, size: 18, color: p.muted),
+                  ),
           ),
-          const SizedBox(height: 6),
-          Text(
-            chosen.isEmpty ? context.tr(RemainingL10n.noFileChosen) : chosen,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.caption.copyWith(
-              color: AppColors.textMuted(context),
-            ),
-          ),
-          if (chosen.isNotEmpty)
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton(
-                onPressed: () => onPicked(''),
-                child: Text(context.tr(RemainingL10n.remove)),
-              ),
-            ),
         ],
       ),
     );
@@ -904,25 +1071,20 @@ class InquiryImageGallery extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (images.isEmpty) return const SizedBox.shrink();
+    final p = context.atelier;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (title != null) ...[
-          Text(
-            title!,
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.w700,
-              color: AppColors.textMuted(context),
-            ),
-          ),
-          const SizedBox(height: 8),
+          Text(title!.toUpperCase(), style: AtelierType.overline(p.muted)),
+          const SizedBox(height: AtelierSpace.s8),
         ],
         SizedBox(
           height: 96,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: images.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
               return GestureDetector(
                 onTap: () {
@@ -937,7 +1099,7 @@ class InquiryImageGallery extends StatelessWidget {
                   );
                 },
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AtelierRadius.sm),
                   child: Image.memory(
                     images[index],
                     width: 96,

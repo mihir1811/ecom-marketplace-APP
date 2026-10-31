@@ -2,8 +2,6 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
 import 'inquiry_form_fields.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
@@ -116,14 +114,7 @@ class InquiryReferenceMedia extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            title,
-            style: AppTypography.caption.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary(context),
-            ),
-          ),
-          const SizedBox(height: 6),
+          InquiryFieldLabel(title),
           InquirySegmentedField(
             value: fromUrl ? 'url' : 'device',
             options: [

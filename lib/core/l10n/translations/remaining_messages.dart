@@ -2841,11 +2841,11 @@ const remainingMessages = <String, LocalizedMessage>{
   ),
   RemainingL10n.chooseACategoryThenCompleteThe: LocalizedMessage(
     english:
-        'Choose a category, then complete the form. You need to be signed in to submit — we will use your account to attach the inquiry to you. ',
+        'Pick a category, then fill in the details. Our team replies in your inquiries.',
     hindi:
-        'एक श्रेणी चुनें, फिर फ़ॉर्म पूरा करें। सबमिट करने के लिए आपको साइन इन करना होगा - हम आपके साथ पूछताछ संलग्न करने के लिए आपके खाते का उपयोग करेंगे।',
+        'एक श्रेणी चुनें, फिर विवरण भरें। हमारी टीम आपकी पूछताछ में जवाब देगी।',
     gujarati:
-        'શ્રેણી પસંદ કરો, પછી ફોર્મ ભરો. સબમિટ કરવા માટે તમારે સાઇન ઇન કરવાની જરૂર છે — અમે તમારી સાથે પૂછપરછ જોડવા માટે તમારા એકાઉન્ટનો ઉપયોગ કરીશું.',
+        'શ્રેણી પસંદ કરો, પછી વિગતો ભરો. અમારી ટીમ તમારી પૂછપરછમાં જવાબ આપશે.',
   ),
   RemainingL10n.inquiriesYouSubmitGoDirectlyTo: LocalizedMessage(
     english:
@@ -3242,9 +3242,9 @@ const remainingMessages = <String, LocalizedMessage>{
     gujarati: 'તમારી સબમિટ કરેલી પૂછપરછ જુઓ',
   ),
   RemainingL10n.step1WhatAreYouLookingFor: LocalizedMessage(
-    english: 'STEP 1  What are you looking for?',
-    hindi: 'चरण 1 आप क्या ढूंढ रहे हैं?',
-    gujarati: 'પગલું 1 તમે શું શોધી રહ્યા છો?',
+    english: 'What are you looking for?',
+    hindi: 'आप क्या ढूंढ रहे हैं?',
+    gujarati: 'તમે શું શોધી રહ્યા છો?',
   ),
   RemainingL10n.tapACategoryToLoadTheMatching: LocalizedMessage(
     english: 'Tap a category to load the matching form.',
@@ -3252,9 +3252,9 @@ const remainingMessages = <String, LocalizedMessage>{
     gujarati: 'મેચિંગ ફોર્મ લોડ કરવા માટે કેટેગરી પર ટૅપ કરો.',
   ),
   RemainingL10n.step2Details: LocalizedMessage(
-    english: 'STEP 2  Details',
-    hindi: 'चरण 2 विवरण',
-    gujarati: 'પગલું 2 વિગતો',
+    english: 'Details',
+    hindi: 'विवरण',
+    gujarati: 'વિગતો',
   ),
   RemainingL10n.submitIsEnabledAfterYouMakeChanges: LocalizedMessage(
     english: 'Submit is enabled after you make changes.',
