@@ -74,7 +74,8 @@ class _SellerLegalDocumentScreen extends StatefulWidget {
       _SellerLegalDocumentScreenState();
 }
 
-class _SellerLegalDocumentScreenState extends State<_SellerLegalDocumentScreen> {
+class _SellerLegalDocumentScreenState
+    extends State<_SellerLegalDocumentScreen> {
   Locale? _locale;
   Future<PolicyDocument?>? _future;
   List<GlobalKey> _sectionKeys = const [];
@@ -95,17 +96,21 @@ class _SellerLegalDocumentScreenState extends State<_SellerLegalDocumentScreen> 
   }
 
   void _reload() {
-    _future = PoliciesRepository.loadById(
-      widget.policyId,
-      _locale ?? Localizations.localeOf(context),
-    ).then((doc) {
-      if (doc != null && mounted) {
-        setState(() {
-          _sectionKeys = List.generate(doc.sections.length, (_) => GlobalKey());
+    _future =
+        PoliciesRepository.loadById(
+          widget.policyId,
+          _locale ?? Localizations.localeOf(context),
+        ).then((doc) {
+          if (doc != null && mounted) {
+            setState(() {
+              _sectionKeys = List.generate(
+                doc.sections.length,
+                (_) => GlobalKey(),
+              );
+            });
+          }
+          return doc;
         });
-      }
-      return doc;
-    });
     setState(() {});
   }
 
@@ -168,21 +173,14 @@ class _SellerLegalDocumentScreenState extends State<_SellerLegalDocumentScreen> 
                 message: context.tr(RemainingL10n.unableLoadPolicies),
                 icon: Icons.menu_book_outlined,
                 actionLabel: context.tr(RemainingL10n.viewAllPolicies),
-                onAction: () =>
-                    context.openRoute(AppRouteNames.sellerPolicies),
+                onAction: () => context.openRoute(AppRouteNames.sellerPolicies),
               )
             else ...[
               if (doc!.sections.length > 3) ...[
-                PolicySectionRail(
-                  sections: doc.sections,
-                  onSelect: _jumpTo,
-                ),
+                PolicySectionRail(sections: doc.sections, onSelect: _jumpTo),
                 const SizedBox(height: 18),
               ],
-              PolicyDocumentBody(
-                document: doc,
-                sectionKeys: _sectionKeys,
-              ),
+              PolicyDocumentBody(document: doc, sectionKeys: _sectionKeys),
               const SizedBox(height: 8),
               AtelierCard(
                 child: Column(
@@ -207,9 +205,8 @@ class _SellerLegalDocumentScreenState extends State<_SellerLegalDocumentScreen> 
                         AtelierButton(
                           label: context.tr(RemainingL10n.helpCenter2),
                           icon: Icons.support_agent_outlined,
-                          onPressed: () => context.openRoute(
-                            AppRouteNames.sellerHelpCenter,
-                          ),
+                          onPressed: () =>
+                              context.openRoute(AppRouteNames.sellerHelpCenter),
                         ),
                         AtelierButton(
                           label: context.tr(RemainingL10n.aboutGemWorld),

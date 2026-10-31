@@ -52,7 +52,8 @@ String dashboardDate(DateTime d) {
   return '${two(d.month)}/${two(d.day)}/${d.year}';
 }
 
-/// KPI tiles; the selected one drives the chart below.
+/// KPI tiles in one horizontally scrolling row; the selected one drives the
+/// chart below. When all tiles fit at their natural width they share the row.
 class DashboardMetricGrid extends StatelessWidget {
   const DashboardMetricGrid({
     required this.metrics,
@@ -69,27 +70,42 @@ class DashboardMetricGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columns = constraints.maxWidth >= 760 ? 4 : 2;
-        const gap = AtelierSpace.s12;
-        final tileWidth =
-            (constraints.maxWidth - gap * (columns - 1)) / columns;
-        return Wrap(
-          spacing: gap,
-          runSpacing: gap,
-          children: [
-            for (var i = 0; i < metrics.length; i++)
-              SizedBox(
-                width: tileWidth,
-                child: Reveal(
-                  index: i,
-                  child: _MetricTile(
-                    card: metrics[i],
-                    selected: metrics[i].metric == selected,
-                    onTap: () => onSelected(metrics[i].metric),
+        const gap = AtelierSpace.s10;
+        const minTile = 158.0;
+        final n = metrics.length;
+        final fitWidth = n == 0
+            ? minTile
+            : (constraints.maxWidth - gap * (n - 1)) / n;
+        // Phones: ~2.3 tiles visible so the cut-off one hints at scrolling.
+        final tileWidth = fitWidth >= minTile
+            ? fitWidth
+            : ((constraints.maxWidth - gap * 2) / 2.3).clamp(minTile, 190.0);
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          // Room for the selected tile's glow, which a scroll view would clip.
+          clipBehavior: Clip.none,
+          padding: const EdgeInsets.only(bottom: 4),
+          physics: fitWidth >= minTile
+              ? const NeverScrollableScrollPhysics()
+              : const BouncingScrollPhysics(),
+          child: Row(
+            children: [
+              for (var i = 0; i < n; i++) ...[
+                if (i > 0) const SizedBox(width: gap),
+                SizedBox(
+                  width: tileWidth,
+                  child: Reveal(
+                    index: i,
+                    child: _MetricTile(
+                      card: metrics[i],
+                      selected: metrics[i].metric == selected,
+                      onTap: () => onSelected(metrics[i].metric),
+                    ),
                   ),
                 ),
-              ),
-          ],
+              ],
+            ],
+          ),
         );
       },
     );
@@ -120,8 +136,8 @@ class _MetricTile extends StatelessWidget {
         child: AnimatedContainer(
           duration: AtelierMotion.slow,
           curve: AtelierMotion.emphasized,
-          height: 148,
-          padding: const EdgeInsets.all(AtelierSpace.s16),
+          height: 104,
+          padding: const EdgeInsets.fromLTRB(12, 11, 12, 11),
           decoration: BoxDecoration(
             color: selected ? p.raised : p.surface,
             borderRadius: BorderRadius.circular(AtelierRadius.lg),
@@ -143,43 +159,49 @@ class _MetricTile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Icon and title share one line to save a row.
               Row(
                 children: [
                   AtelierIconBadge(
                     icon: style.icon,
                     tone: style.tone,
-                    size: 32,
+                    size: 26,
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      card.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AtelierType.caption(p.muted, size: 11.5),
+                    ),
+                  ),
                   AnimatedOpacity(
                     duration: AtelierMotion.base,
                     opacity: selected ? 1 : 0,
                     child: Icon(
                       Icons.bar_chart_rounded,
-                      size: 16,
+                      size: 14,
                       color: accent,
                     ),
                   ),
                 ],
               ),
               const Spacer(),
-              Text(
-                card.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AtelierType.caption(p.muted, size: 12),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: CountUpText(
+                  card.value,
+                  style: AtelierType.display(p.ink, size: 23),
+                ),
               ),
-              const SizedBox(height: 4),
-              CountUpText(
-                card.value,
-                style: AtelierType.display(p.ink, size: 27),
-              ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(
                 card.subtitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AtelierType.caption(p.muted, size: 11),
+                style: AtelierType.caption(p.muted, size: 10.5),
               ),
             ],
           ),

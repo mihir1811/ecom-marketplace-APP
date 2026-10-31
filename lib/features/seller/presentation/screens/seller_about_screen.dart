@@ -25,7 +25,9 @@ class SellerAboutScreen extends StatelessWidget {
       (
         Icons.storefront_outlined,
         context.tr(RemainingL10n.aboutSellerCatalog),
-        context.tr(RemainingL10n.verifiedSellersProtectedPaymentsAndDedicatedSupport),
+        context.tr(
+          RemainingL10n.verifiedSellersProtectedPaymentsAndDedicatedSupport,
+        ),
       ),
       (
         Icons.insights_outlined,
@@ -104,11 +106,7 @@ class SellerAboutScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
-        reveal(
-          AtelierSectionHeader(
-            title: context.tr(RemainingL10n.ourStory),
-          ),
-        ),
+        reveal(AtelierSectionHeader(title: context.tr(RemainingL10n.ourStory))),
         const SizedBox(height: 8),
         reveal(
           Text(
@@ -125,9 +123,7 @@ class SellerAboutScreen extends StatelessWidget {
         ),
         const SizedBox(height: 22),
         reveal(
-          AtelierSectionHeader(
-            title: context.tr(RemainingL10n.ourPromise),
-          ),
+          AtelierSectionHeader(title: context.tr(RemainingL10n.ourPromise)),
         ),
         const SizedBox(height: 12),
         for (final item in promises) ...[
@@ -158,11 +154,7 @@ class SellerAboutScreen extends StatelessWidget {
           const SizedBox(height: 10),
         ],
         const SizedBox(height: 12),
-        reveal(
-          AtelierSectionHeader(
-            title: context.tr(RemainingL10n.whatWeDo),
-          ),
-        ),
+        reveal(AtelierSectionHeader(title: context.tr(RemainingL10n.whatWeDo))),
         const SizedBox(height: 8),
         reveal(
           Text(

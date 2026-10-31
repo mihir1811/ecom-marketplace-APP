@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/luxe_scope.dart';
 import '../../../diamond_projects/presentation/widgets/diamond_project_overview.dart';
+import '../../../diamond_projects/presentation/widgets/diamond_project_panel.dart';
 import '../../../diamond_projects/domain/models/diamond_project_stats.dart';
 import '../../../diamonds/domain/models/diamond_filter_state.dart';
 import '../../../diamonds/presentation/widgets/diamond_svg_data.dart';
@@ -151,10 +152,7 @@ class _SellerDashboardDiamondProjectsSectionState
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _ProjectSummary(
-                            stats: stats,
-                            matching: inventory.totalCount,
-                          ),
+                          _ProjectSummary(stats: stats),
                           const SizedBox(height: AtelierSpace.s12),
                           Center(
                             child: DiamondProjectTabBar(
@@ -164,16 +162,20 @@ class _SellerDashboardDiamondProjectsSectionState
                             ),
                           ),
                           const SizedBox(height: AtelierSpace.s10),
-                          DiamondProjectTabView(
-                            tab: _tab,
-                            stats: stats,
-                            items: inventory.items,
-                            onRemove: (id) => ref
-                                .read(
-                                  sellerDiamondProjectInventoryProvider
-                                      .notifier,
-                                )
-                                .removeItem(id),
+                          // Already inside this card: draw the analytics
+                          // panels without their own frame and inset.
+                          DiamondProjectPanelFlush(
+                            child: DiamondProjectTabView(
+                              tab: _tab,
+                              stats: stats,
+                              items: inventory.items,
+                              onRemove: (id) => ref
+                                  .read(
+                                    sellerDiamondProjectInventoryProvider
+                                        .notifier,
+                                  )
+                                  .removeItem(id),
+                            ),
                           ),
                         ],
                       ),
@@ -227,13 +229,13 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-/// Key figures of the live selection in one light strip: stones, carats,
-/// value and price per carat, with averages underneath.
+/// Key figures of the live selection in one light strip: carats, value and
+/// price per carat, with averages underneath. The stone count lives on the
+/// Stones tab, so it is not repeated here.
 class _ProjectSummary extends StatelessWidget {
-  const _ProjectSummary({required this.stats, required this.matching});
+  const _ProjectSummary({required this.stats});
 
   final DiamondProjectStats stats;
-  final int matching;
 
   @override
   Widget build(BuildContext context) {
@@ -269,7 +271,6 @@ class _ProjectSummary extends StatelessWidget {
         children: [
           Row(
             children: [
-              figure('$matching', context.tr(CatalogL10n.projectStonesKpi)),
               figure(
                 '${stats.totalCarat.toStringAsFixed(2)} ct',
                 context.tr(CatalogL10n.projectTotalCaratKpi),

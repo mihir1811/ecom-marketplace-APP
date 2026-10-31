@@ -10,6 +10,7 @@ import '../../domain/models/diamond_project_stats.dart';
 import 'diamond_project_histogram_card.dart';
 import 'diamond_project_kpi_grid.dart';
 import 'diamond_project_mix_card.dart';
+import 'diamond_project_panel.dart';
 import 'diamond_project_price_stats_card.dart';
 import 'diamond_project_scatter_card.dart';
 import 'diamond_project_selected_table.dart';
@@ -341,12 +342,14 @@ class DiamondProjectTabView extends StatelessWidget {
         ],
       ),
     );
+    // Frameless panels need more air between them to read as separate.
+    final gap = DiamondProjectPanelFlush.of(context) ? 24.0 : 12.0;
     Widget grid(List<Widget> cards) {
       if (!wide) {
         return Column(
           children: [
             for (var i = 0; i < cards.length; i++) ...[
-              if (i > 0) const SizedBox(height: 12),
+              if (i > 0) SizedBox(height: gap),
               cards[i],
             ],
           ],
@@ -355,12 +358,12 @@ class DiamondProjectTabView extends StatelessWidget {
       return Column(
         children: [
           for (var i = 0; i < cards.length; i += 2) ...[
-            if (i > 0) const SizedBox(height: 12),
+            if (i > 0) SizedBox(height: gap),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(child: cards[i]),
-                const SizedBox(width: 12),
+                SizedBox(width: gap),
                 Expanded(
                   child: i + 1 < cards.length
                       ? cards[i + 1]

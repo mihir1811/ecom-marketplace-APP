@@ -216,46 +216,22 @@ class _DashboardSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final columns = constraints.maxWidth >= 760 ? 4 : 2;
-        const gap = AtelierSpace.s12;
-        final w = (constraints.maxWidth - gap * (columns - 1)) / columns;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    // Mirrors the compact, horizontally scrolling KPI row.
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        DashboardHeroSkeleton(),
+        SizedBox(height: AtelierSpace.s32),
+        Row(
           children: [
-            const DashboardHeroSkeleton(),
-            const SizedBox(height: AtelierSpace.s32),
-            Wrap(
-              spacing: gap,
-              runSpacing: gap,
-              children: [
-                for (var i = 0; i < 4; i++)
-                  SizedBox(
-                    width: w,
-                    child: const AtelierCard(
-                      child: SizedBox(
-                        height: 106,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SkeletonBox(width: 32, height: 32, radius: 16),
-                            Spacer(),
-                            SkeletonBox(width: 80, height: 10),
-                            SizedBox(height: 8),
-                            SkeletonBox(width: 110, height: 24),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: AtelierSpace.s16),
-            const AtelierCard(child: SkeletonBox(height: 260)),
+            Expanded(child: SkeletonBox(height: 104, radius: AtelierRadius.lg)),
+            SizedBox(width: AtelierSpace.s10),
+            Expanded(child: SkeletonBox(height: 104, radius: AtelierRadius.lg)),
           ],
-        );
-      },
+        ),
+        SizedBox(height: AtelierSpace.s16),
+        AtelierCard(child: SkeletonBox(height: 260)),
+      ],
     );
   }
 }

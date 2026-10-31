@@ -379,29 +379,34 @@ class DashboardAuctionOutcomes extends ConsumerWidget {
     final p = context.atelier;
     final standing = ref.watch(sellerAuctionStandingProvider);
     return AtelierCard(
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AtelierSectionHeader(
-            title: 'Auction outcomes',
-            trailing: AtelierButton(
-              label: context.tr(RemainingL10n.myAuctions),
-              compact: true,
-              variant: AtelierButtonVariant.secondary,
-              onPressed: () =>
-                  context.switchToRoute(AppRouteNames.sellerAuctions),
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Auction outcomes',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AtelierType.title(p.ink, size: 16),
+                ),
+              ),
+              AtelierButton(
+                label: context.tr(RemainingL10n.myAuctions),
+                compact: true,
+                variant: AtelierButtonVariant.ghost,
+                onPressed: () =>
+                    context.switchToRoute(AppRouteNames.sellerAuctions),
+              ),
+            ],
           ),
-          const SizedBox(height: AtelierSpace.s20),
+          const SizedBox(height: AtelierSpace.s8),
           standing.when(
-            loading: () => const Row(
-              children: [
-                Expanded(child: SkeletonBox(height: 52)),
-                SizedBox(width: 10),
-                Expanded(child: SkeletonBox(height: 52)),
-                SizedBox(width: 10),
-                Expanded(child: SkeletonBox(height: 52)),
-              ],
+            loading: () => const Padding(
+              padding: EdgeInsets.only(right: 8),
+              child: SkeletonBox(height: 40),
             ),
             error: (error, _) => Row(
               children: [
@@ -431,6 +436,9 @@ class DashboardAuctionOutcomes extends ConsumerWidget {
   }
 }
 
+/// One row of the four figures a seller checks: what is running, what is
+/// queued, what sold and how much bidding there is. "Needs decision" already
+/// sits in the attention strip; ended/total add little at a glance.
 class _OutcomeGrid extends StatelessWidget {
   const _OutcomeGrid({required this.value});
 
@@ -441,39 +449,28 @@ class _OutcomeGrid extends StatelessWidget {
     final stats = <(String, int, AtelierTone)>[
       ('Live', value.active, AtelierTone.emerald),
       ('Upcoming', value.upcoming, AtelierTone.sapphire),
-      ('Needs decision', value.needsDecision, AtelierTone.ruby),
-      ('Ended', value.ended, AtelierTone.neutral),
       ('Sold', value.sold, AtelierTone.gold),
       ('Bids', value.bids, AtelierTone.amber),
-      ('Total', value.total, AtelierTone.neutral),
     ];
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final columns = constraints.maxWidth >= 620 ? 4 : 3;
-        final w = constraints.maxWidth / columns;
-        return Wrap(
-          runSpacing: AtelierSpace.s16,
-          children: [
-            for (var i = 0; i < stats.length; i++)
-              SizedBox(
-                width: w,
-                child: Reveal(
-                  index: i,
-                  child: Pressable(
-                    onTap: () =>
-                        context.switchToRoute(AppRouteNames.sellerAuctions),
-                    semanticLabel: '${stats[i].$1}: ${stats[i].$2}',
-                    child: _Outcome(
-                      label: stats[i].$1,
-                      count: stats[i].$2,
-                      tone: stats[i].$3,
-                    ),
-                  ),
+    return Row(
+      children: [
+        for (var i = 0; i < stats.length; i++)
+          Expanded(
+            child: Reveal(
+              index: i,
+              child: Pressable(
+                onTap: () =>
+                    context.switchToRoute(AppRouteNames.sellerAuctions),
+                semanticLabel: '${stats[i].$1}: ${stats[i].$2}',
+                child: _Outcome(
+                  label: stats[i].$1,
+                  count: stats[i].$2,
+                  tone: stats[i].$3,
                 ),
               ),
-          ],
-        );
-      },
+            ),
+          ),
+      ],
     );
   }
 }
@@ -511,13 +508,13 @@ class _Outcome extends StatelessWidget {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AtelierType.caption(p.muted, size: 11.5),
+                style: AtelierType.caption(p.muted, size: 11),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 4),
-        CountUpText('$count', style: AtelierType.display(p.ink, size: 28)),
+        const SizedBox(height: 2),
+        CountUpText('$count', style: AtelierType.display(p.ink, size: 21)),
       ],
     );
   }
