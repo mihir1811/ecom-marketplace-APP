@@ -116,6 +116,7 @@ class AppScaffold extends ConsumerWidget {
         // The floating bottom dock sits above every page: step it aside so
         // the end drawer opens over it.
         onEndDrawerChanged: AppBottomNavHost.reportDrawer,
+        onDrawerChanged: AppBottomNavHost.reportDrawer,
         bottomNavigationBar: bottomNavigationBar == null
             ? null
             : SafeArea(

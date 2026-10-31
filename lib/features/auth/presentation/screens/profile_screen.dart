@@ -228,48 +228,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final tr = context.tr;
     switch (_section) {
       case _Section.account:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            AtelierPanel(
-              overline: 'Account',
-              title: tr(RemainingL10n.personalDetails),
-              child: grid([
-                _Field(
-                  tr(RemainingL10n.fullName),
-                  p.fullName,
-                  Icons.badge_outlined,
-                ),
-                _Field(
-                  tr(RemainingL10n.username),
-                  p.username,
-                  Icons.alternate_email_rounded,
-                  copyable: true,
-                ),
-                _Field(
-                  tr(RemainingL10n.email),
-                  p.email,
-                  Icons.mail_outline_rounded,
-                  copyable: true,
-                ),
-                _Field(
-                  tr(RemainingL10n.verification),
-                  p.isVerified
-                      ? tr(RemainingL10n.verified)
-                      : tr(AccountCommerceL10n.verificationPending),
-                  Icons.verified_outlined,
-                  pillTone: p.isVerified
-                      ? AtelierTone.emerald
-                      : AtelierTone.amber,
-                ),
-              ]),
-            ),
-            if (facts.missing.isNotEmpty) ...[
-              const SizedBox(height: AtelierSpace.s16),
-              _MissingPanel(facts: facts, onSelect: _select),
-            ],
-          ],
-        );
+        // Name, handle, email and verification already show in the hero.
+        return facts.missing.isEmpty
+            ? const SizedBox.shrink()
+            : _MissingPanel(facts: facts, onSelect: _select);
       case _Section.business:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -848,14 +810,12 @@ class _Field {
     this.icon, {
     this.copyable = false,
     this.sensitive = false,
-    this.pillTone,
   }) : document = false;
 
   /// A file the seller uploaded: shown as "On file" / "Not provided".
   const _Field.document(this.label, this.value, this.icon)
     : copyable = false,
       sensitive = false,
-      pillTone = null,
       document = true;
 
   final String label;
@@ -864,7 +824,6 @@ class _Field {
   final bool copyable;
   final bool sensitive;
   final bool document;
-  final AtelierTone? pillTone;
 }
 
 class _FieldGrid extends StatelessWidget {
@@ -886,6 +845,7 @@ class _FieldGrid extends StatelessWidget {
       builder: (context, c) {
         const gap = AtelierSpace.s10;
         final cols = c.maxWidth >= 720 ? 3 : (c.maxWidth >= 420 ? 2 : 1);
+        if (cols == 1) return _compactList(context);
         final w = (c.maxWidth - gap * (cols - 1)) / cols;
         return Wrap(
           spacing: gap,
@@ -910,6 +870,43 @@ class _FieldGrid extends StatelessWidget {
       },
     );
   }
+
+  /// Phone width: one card of dense label / value rows instead of a tall
+  /// tile per field.
+  Widget _compactList(BuildContext context) {
+    final p = context.atelier;
+    return Container(
+      decoration: BoxDecoration(
+        color: p.sunken.withValues(alpha: p.isDark ? 0.7 : 0.55),
+        borderRadius: BorderRadius.circular(AtelierRadius.md),
+      ),
+      child: Column(
+        children: [
+          for (var i = 0; i < fields.length; i++) ...[
+            if (i > 0)
+              Divider(
+                height: 1,
+                thickness: 1,
+                indent: 14,
+                endIndent: 14,
+                color: p.ink.withValues(alpha: 0.06),
+              ),
+            Reveal(
+              index: i,
+              offset: 6,
+              child: _FieldCell(
+                field: fields[i],
+                compact: true,
+                revealed: revealed.contains(fields[i].label),
+                onReveal: () => onReveal(fields[i].label),
+                onCopy: onCopy,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 }
 
 class _FieldCell extends StatelessWidget {
@@ -918,12 +915,16 @@ class _FieldCell extends StatelessWidget {
     required this.revealed,
     required this.onReveal,
     required this.onCopy,
+    this.compact = false,
   });
 
   final _Field field;
   final bool revealed;
   final VoidCallback onReveal;
   final void Function(String label, String value) onCopy;
+
+  /// Single-line row (label left, value right) without its own card.
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -941,12 +942,6 @@ class _FieldCell extends StatelessWidget {
         tone: empty ? AtelierTone.neutral : AtelierTone.emerald,
         icon: empty ? Icons.remove_rounded : Icons.check_rounded,
       );
-    } else if (field.pillTone != null && !empty) {
-      valueWidget = AtelierPill(
-        dense: true,
-        label: value,
-        tone: field.pillTone!,
-      );
     } else {
       valueWidget = AnimatedSwitcher(
         duration: AtelierMotion.base,
@@ -955,22 +950,85 @@ class _FieldCell extends StatelessWidget {
         child: Text(
           empty ? notProvided : (hidden ? _mask(value) : value),
           key: ValueKey('${field.label}-$hidden'),
-          maxLines: 2,
+          maxLines: compact ? 1 : 2,
           overflow: TextOverflow.ellipsis,
+          textAlign: compact ? TextAlign.end : TextAlign.start,
           style: empty
               ? AtelierType.body(
                   p.muted,
-                  size: 13.5,
+                  size: compact ? 12.5 : 13.5,
                 ).copyWith(fontStyle: FontStyle.italic)
               : AtelierType.label(
                   p.ink,
-                  size: 14,
+                  size: compact ? 13 : 14,
                 ).copyWith(letterSpacing: hidden ? 1.4 : null),
         ),
       );
     }
 
     final canCopy = field.copyable && !empty;
+    final actions = [
+      if (field.sensitive && !empty)
+        _MiniAction(
+          icon: revealed
+              ? Icons.visibility_off_outlined
+              : Icons.visibility_outlined,
+          tooltip: revealed ? 'Hide ${field.label}' : 'Show ${field.label}',
+          onTap: onReveal,
+          size: compact ? 30 : 36,
+        ),
+      if (canCopy)
+        _MiniAction(
+          icon: Icons.copy_rounded,
+          tooltip: 'Copy ${field.label}',
+          onTap: () => onCopy(field.label, value),
+          size: compact ? 30 : 36,
+        ),
+    ];
+
+    if (compact) {
+      return ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 44),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(14, 6, actions.isEmpty ? 14 : 6, 6),
+          // Label hugs the left, value + actions hug the right; free space
+          // sits between them so every value lines up on the right edge.
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(field.icon, size: 13, color: p.gold),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        field.label.toUpperCase(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AtelierType.overline(p.muted),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(child: valueWidget),
+                    if (actions.isNotEmpty) const SizedBox(width: 4),
+                    ...actions,
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     final cell = Container(
       constraints: const BoxConstraints(minHeight: 74),
       padding: const EdgeInsets.fromLTRB(14, 12, 6, 12),
@@ -1004,20 +1062,7 @@ class _FieldCell extends StatelessWidget {
               ],
             ),
           ),
-          if (field.sensitive && !empty)
-            _MiniAction(
-              icon: revealed
-                  ? Icons.visibility_off_outlined
-                  : Icons.visibility_outlined,
-              tooltip: revealed ? 'Hide ${field.label}' : 'Show ${field.label}',
-              onTap: onReveal,
-            ),
-          if (canCopy)
-            _MiniAction(
-              icon: Icons.copy_rounded,
-              tooltip: 'Copy ${field.label}',
-              onTap: () => onCopy(field.label, value),
-            ),
+          ...actions,
         ],
       ),
     );
@@ -1030,11 +1075,13 @@ class _MiniAction extends StatelessWidget {
     required this.icon,
     required this.tooltip,
     required this.onTap,
+    this.size = 36,
   });
 
   final IconData icon;
   final String tooltip;
   final VoidCallback onTap;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -1047,8 +1094,8 @@ class _MiniAction extends StatelessWidget {
         scale: 0.86,
         borderRadius: BorderRadius.circular(AtelierRadius.pill),
         child: SizedBox(
-          width: 36,
-          height: 36,
+          width: size,
+          height: size,
           child: Icon(icon, size: 16, color: p.inkSoft),
         ),
       ),

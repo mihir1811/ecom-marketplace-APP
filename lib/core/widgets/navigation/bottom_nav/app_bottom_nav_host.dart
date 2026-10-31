@@ -419,8 +419,13 @@ class _AppBottomNavHostState extends ConsumerState<AppBottomNavHost>
       animation: Listenable.merge([_slot, _veil, AppDrawerStage.progress]),
       builder: (context, bar) {
         final shown = _slot.value;
-        final veil = Curves.easeOutCubic.transform(_veil.value);
         final staged = AppDrawerStage.progress.value;
+        // Any open drawer (end drawer or the side menu stage, buyer or
+        // seller) hides the dock; the side menu clears it within the first
+        // quarter of its slide so it never shows over the menu.
+        final veil = Curves.easeOutCubic.transform(
+          math.max(_veil.value, (staged * 4).clamp(0.0, 1.0)),
+        );
         // The dock rides on the page as it recedes for the side drawer.
         final dockTop = media.size.height - extent;
         final ride = Matrix4.translationValues(0, -dockTop, 0)
