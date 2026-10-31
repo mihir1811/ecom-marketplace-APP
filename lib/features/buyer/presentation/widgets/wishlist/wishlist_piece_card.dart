@@ -112,14 +112,6 @@ class _WishlistPieceCardState extends ConsumerState<WishlistPieceCard> {
                     ),
                   ),
                   Positioned(
-                    left: 10,
-                    top: 10,
-                    child: _GlassTag(
-                      icon: wishlistCategoryIcon(item.category),
-                      label: FavoriteProductType.label(item.productType),
-                    ),
-                  ),
-                  Positioned(
                     right: 8,
                     top: 8,
                     child: _HeartButton(onTap: widget.onRemove),
@@ -287,33 +279,6 @@ class _Image extends StatelessWidget {
       fit: BoxFit.cover,
       memCacheWidth: 600,
       error: fallback,
-    );
-  }
-}
-
-class _GlassTag extends StatelessWidget {
-  const _GlassTag({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.38),
-        borderRadius: BorderRadius.circular(AtelierRadius.pill),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: Colors.white),
-          const SizedBox(width: 5),
-          Text(label, style: AtelierType.label(Colors.white, size: 10.5)),
-        ],
-      ),
     );
   }
 }
