@@ -157,8 +157,8 @@ abstract class _OfferListNotifier extends Notifier<OfferListState> {
   }
 }
 
-/// Offers received (`GET /product-offer/seller`). The product snapshot has
-/// no price, so each stone is fetched once by type and id for it.
+/// Offers received (`GET /product-offer/seller`). Stones whose snapshot
+/// lacks a title or `listedPrice` are fetched once by type and id.
 class SellerOfferListNotifier extends _OfferListNotifier {
   final Map<String, ProductDetail?> _products = {};
 
@@ -177,8 +177,6 @@ class SellerOfferListNotifier extends _OfferListNotifier {
   Future<void> hydrate(List<ProductOffer> items) async {
     final missing = {
       for (final o in items)
-        // The list snapshot has title, stock and image but no price; the
-        // stone is loaded once for the list price and certificate.
         if ((o.productLabel == null || o.listPrice == null) &&
             !_products.containsKey(o.productId))
           o.productId: o.productType,
@@ -226,16 +224,26 @@ class SellerOfferListNotifier extends _OfferListNotifier {
   /// Product page for an offer, when it could be loaded.
   ProductDetail? productFor(ProductOffer offer) => _products[offer.productId];
 
+  /// Accept, reject or counter a buyer's offer. A counter needs [amount]
+  /// (decimal string) and returns the new counter-offer.
   Future<Result<ProductOffer, Failure>> respond({
     required String id,
     required ProductOfferStatus status,
+    String? amount,
+    String? message,
   }) async {
-    final result = await _repo.respond(id: id, status: status);
+    final result = await _repo.respond(
+      id: id,
+      status: status,
+      amount: amount,
+      message: message,
+    );
     switch (result) {
       case Success(value: final updated):
         replace(_withProduct(updated));
-        // Accepting closes every other open offer on the stone.
-        if (status == ProductOfferStatus.accepted) {
+        // Accepting closes every other open offer on the stone; a counter
+        // turns the row into a new move with its own id.
+        if (status != ProductOfferStatus.rejected) {
           await refresh(statusFilter: state.statusFilter);
         }
       case ResultFailure():
@@ -333,6 +341,33 @@ class ProductOfferMutationNotifier extends Notifier<AsyncValue<void>> {
     final result = await _repo.create(
       productId: productId,
       productType: productType,
+      amount: amount,
+      message: message,
+    );
+    state = switch (result) {
+      Success() => const AsyncValue.data(null),
+      ResultFailure(failure: final failure) => AsyncValue.error(
+        failure,
+        StackTrace.current,
+      ),
+    };
+    _invalidate();
+    return result;
+  }
+
+  /// Buyer answers the seller's counter-offer: accept, decline, or counter
+  /// back with [amount] (decimal string, below the seller's price). For a
+  /// counter the result is the buyer's new pending offer.
+  Future<Result<ProductOffer, Failure>> answerCounter({
+    required String counterOfferId,
+    required ProductOfferStatus answer,
+    String? amount,
+    String? message,
+  }) async {
+    state = const AsyncValue.loading();
+    final result = await _repo.respond(
+      id: counterOfferId,
+      status: answer,
       amount: amount,
       message: message,
     );

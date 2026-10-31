@@ -9,7 +9,7 @@ import 'package:gemstone/features/payment/application/payment_checkout_provider.
 import 'package:gemstone/features/product_offer/data/mappers/product_offer_mapper.dart';
 import 'package:gemstone/features/product_offer/domain/models/product_offer.dart';
 
-/// Make an Offer API guide, Oct 28 2026.
+/// Make an Offer API guide, Oct 30 2026.
 void main() {
   ProductOffer offer(Map<String, dynamic> fields) =>
       ProductOfferMapper.fromJson({
@@ -76,6 +76,107 @@ void main() {
       );
       expect(rules.limitReached, isTrue);
       expect(rules.canSubmit, isFalse);
+    });
+  });
+
+  group('counter-offers', () {
+    test('seller counter-offer waits for the buyer', () {
+      final o = offer({
+        'status': 'PENDING',
+        'fromSeller': true,
+        'amount': 950,
+        'counterToId': 'of-0',
+        'history': [
+          {
+            'id': 'of-0',
+            'amount': 800,
+            'fromSeller': false,
+            'message': null,
+            'status': 'COUNTERED',
+            'createdAt': '2026-10-28T09:00:00.000Z',
+          },
+        ],
+        'attemptsUsed': 2,
+        'maxAttempts': 5,
+        'product': {'id': 'p-1', 'title': '1.02ct Round', 'listedPrice': 1200},
+      });
+      expect(o.isOpenCounter, isTrue);
+      expect(o.isAwaitingSeller, isFalse);
+      expect(o.displayStatusLabel, 'Counter-offer');
+      expect(o.counterToId, 'of-0');
+      expect(o.history.single.amount, 800);
+      expect(o.history.single.status, ProductOfferStatus.countered);
+      expect(o.attemptsExhausted, isFalse);
+      expect(o.listPrice, 1200);
+      expect(
+        o.answerExpiresAt,
+        DateTime.parse('2026-10-29T10:00:00.000Z').toLocal(),
+      );
+    });
+
+    test('open counter blocks a new offer but is not "pending"', () {
+      final rules = ProductOfferEligibility(
+        offers: [
+          offer({'status': 'PENDING', 'fromSeller': true}),
+          offer({'status': 'COUNTERED'}),
+        ],
+        maxAttempts: 5,
+      );
+      expect(rules.openCounter, isNotNull);
+      expect(rules.hasPending, isFalse);
+      expect(rules.canSubmit, isFalse);
+      expect(rules.attemptsLeft, 3);
+    });
+
+    test('attempts exhausted when used reaches max', () {
+      final o = offer({
+        'status': 'PENDING',
+        'attemptsUsed': 5,
+        'maxAttempts': 5,
+      });
+      expect(o.attemptsExhausted, isTrue);
+    });
+
+    test('OFFER_COUNTERED opens the counter-offer', () {
+      final n = AppNotification(
+        id: 'n-2',
+        type: 'OFFER_COUNTERED',
+        title: '',
+        body: '',
+        link: '/user/offers?counter=of-9',
+        data: const {},
+        isRead: false,
+        createdAt: DateTime(2026, 10, 30),
+      );
+      final target = notificationOpenTarget(n, isSeller: false);
+      expect(
+        target is NotificationInApp ? target.route : null,
+        AppRouteNames.buyerOfferCounterPath('of-9'),
+      );
+    });
+
+    test('seller counter pushes land on Offers received', () {
+      for (final type in [
+        'OFFER_COUNTERED_BY_BUYER',
+        'OFFER_COUNTER_ACCEPTED',
+        'OFFER_COUNTER_DECLINED',
+      ]) {
+        final n = AppNotification(
+          id: 'n-3',
+          type: type,
+          title: '',
+          body: '',
+          link: '',
+          data: const {},
+          isRead: false,
+          createdAt: DateTime(2026, 10, 30),
+        );
+        final target = notificationOpenTarget(n, isSeller: true);
+        expect(
+          target is NotificationInApp ? target.route : null,
+          AppRouteNames.sellerOffers,
+        );
+      }
     });
   });
 

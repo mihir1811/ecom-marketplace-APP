@@ -35,10 +35,15 @@ PurchaseCopy luxePurchaseCopy(BuildContext context) => PurchaseCopy(
 String luxeOfferLabel(
   BuildContext context,
   OfferButtonKind kind,
-  Duration left,
-) => switch (kind) {
+  Duration left, {
+  double? counterAmount,
+}) => switch (kind) {
   OfferButtonKind.makeOffer => context.tr(CatalogL10n.makeOffer),
   OfferButtonKind.pending => context.tr(DiamondFlowL10n.offerPending),
+  OfferButtonKind.answerCounter => context.tr(
+    DiamondFlowL10n.offerAnswerCounter,
+    {'price': AppCurrency.usd(counterAmount ?? 0, decimals: 0)},
+  ),
   OfferButtonKind.limitReached => context.tr(DiamondFlowL10n.offerLimitReached),
   OfferButtonKind.payNow => context.tr(DiamondFlowL10n.offerPayNowLeft, {
     'time': formatOfferTimeLeft(left),
@@ -163,8 +168,15 @@ class LuxePurchaseBar extends ConsumerWidget {
                 ),
                 builder: (context, left) => LuxeButton(
                   expand: true,
-                  label: luxeOfferLabel(context, state.offerKind, left),
-                  variant: state.offerKind == OfferButtonKind.payNow
+                  label: luxeOfferLabel(
+                    context,
+                    state.offerKind,
+                    left,
+                    counterAmount: state.offerEligibility.openCounter?.amount,
+                  ),
+                  variant:
+                      state.offerKind == OfferButtonKind.payNow ||
+                          state.offerKind == OfferButtonKind.answerCounter
                       ? LuxeButtonVariant.accent
                       : LuxeButtonVariant.secondary,
                   loading: state.offerBusy,

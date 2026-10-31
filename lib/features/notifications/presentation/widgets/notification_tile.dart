@@ -172,6 +172,10 @@ IconData notificationTypeIcon(String type) {
     'OFFER_RECEIVED' ||
     'OFFER_ACCEPTED' ||
     'OFFER_REJECTED' => Icons.local_offer_outlined,
+    'OFFER_COUNTERED' ||
+    'OFFER_COUNTERED_BY_BUYER' ||
+    'OFFER_COUNTER_ACCEPTED' ||
+    'OFFER_COUNTER_DECLINED' => Icons.swap_horiz_rounded,
     'HELP_CENTER_ANSWERED' => Icons.help_outline,
     'ADMIN_BROADCAST' => Icons.campaign_outlined,
     'REWARD_CLUB_REACHED' => Icons.workspace_premium_outlined,

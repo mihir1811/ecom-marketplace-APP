@@ -9,6 +9,7 @@ import '../../../product_detail/open_catalog_product_detail.dart';
 import '../../../product_offer/application/product_offer_providers.dart';
 import '../../../product_offer/domain/models/product_offer.dart';
 import '../../../product_offer/presentation/widgets/offer_countdown.dart';
+import '../../../product_offer/presentation/widgets/offer_counter_form.dart';
 import '../atelier/atelier_components.dart';
 import '../atelier/atelier_feedback.dart';
 import '../atelier/atelier_motion.dart';
@@ -16,7 +17,7 @@ import '../atelier/atelier_studio.dart';
 import '../atelier/atelier_theme.dart';
 
 /// Negotiation desk: every buyer price offer, with the ones awaiting a
-/// decision surfaced first and accept / decline one tap away.
+/// decision surfaced first and accept / counter / decline one tap away.
 class SellerOffersScreen extends ConsumerStatefulWidget {
   const SellerOffersScreen({super.key, this.initialStatus});
 
@@ -89,6 +90,48 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen>
       .read(sellerOfferListProvider.notifier)
       .refresh(statusFilter: _filter?.apiValue);
 
+  /// Counter a buyer's offer: more than their offer, at most the list price.
+  Future<void> _counter(ProductOffer offer) async {
+    final attempts = offerAttemptsCaption(offer);
+    final input = await showOfferCounterSheet(
+      context,
+      title: 'Counter-offer',
+      subtitle:
+          '${offer.buyerName ?? 'The buyer'} offered '
+          '${atelierMoney(offer.amount, decimals: 2)} for ${offer.displayTitle}',
+      above: offer.amount,
+      atMost: offer.listPrice,
+      note: [
+        'The buyer has 24 hours to accept, decline or counter back.',
+        ?attempts,
+      ].join(' '),
+    );
+    if (input == null || !mounted) return;
+    setState(() => _busy.add(offer.id));
+    final result = await ref
+        .read(sellerOfferListProvider.notifier)
+        .respond(
+          id: offer.id,
+          status: ProductOfferStatus.countered,
+          amount: input.amount,
+          message: input.message,
+        );
+    if (!mounted) return;
+    setState(() => _busy.remove(offer.id));
+    switch (result) {
+      case Success():
+        AppHaptics.success();
+        showAtelierToast(
+          context,
+          'Counter-offer sent. The buyer has 24 hours to answer.',
+          tone: AtelierTone.emerald,
+        );
+      case ResultFailure(:final failure):
+        AppHaptics.error();
+        showAtelierToast(context, failure.message, tone: AtelierTone.ruby);
+    }
+  }
+
   Future<void> _respond(ProductOffer offer, ProductOfferStatus status) async {
     final accepting = status == ProductOfferStatus.accepted;
     final ok = await showAtelierConfirm(
@@ -159,16 +202,18 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen>
     ]);
   }
 
+  /// Offers waiting for the seller first; their own counter-offers wait
+  /// for the buyer and stay in place.
   static List<ProductOffer> _pendingFirst(List<ProductOffer> items) {
     final pending = [
       for (final o in items)
-        if (o.status.isPending) o,
+        if (o.isAwaitingSeller) o,
     ];
     if (pending.isEmpty || pending.length == items.length) return items;
     return [
       ...pending,
       for (final o in items)
-        if (!o.status.isPending) o,
+        if (!o.isAwaitingSeller) o,
     ];
   }
 
@@ -186,8 +231,8 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen>
     }
     final counts = _counts;
     final items = _visible(state.items);
-    final pending = state.items.where((o) => o.status.isPending).toList();
-    final pendingCount = counts?[ProductOfferStatus.pending] ?? pending.length;
+    final pending = state.items.where((o) => o.isAwaitingSeller).toList();
+    final pendingCount = pending.length;
     final pendingValue = pending.fold<double>(0, (s, o) => s + o.amount);
     final ratios = [
       for (final o in state.items)
@@ -360,6 +405,7 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen>
                         _respond(items[i], ProductOfferStatus.accepted),
                     onDecline: () =>
                         _respond(items[i], ProductOfferStatus.rejected),
+                    onCounter: () => _counter(items[i]),
                     onExpired: _refresh,
                   ),
                 ),
@@ -416,16 +462,22 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen>
                 Navigator.of(sheetContext).pop();
                 _viewProduct(offer);
               },
-        onAccept: offer.status.isPending
+        onAccept: offer.isAwaitingSeller
             ? () {
                 Navigator.of(sheetContext).pop();
                 _respond(offer, ProductOfferStatus.accepted);
               }
             : null,
-        onDecline: offer.status.isPending
+        onDecline: offer.isAwaitingSeller
             ? () {
                 Navigator.of(sheetContext).pop();
                 _respond(offer, ProductOfferStatus.rejected);
+              }
+            : null,
+        onCounter: offer.isAwaitingSeller && !offer.attemptsExhausted
+            ? () {
+                Navigator.of(sheetContext).pop();
+                _counter(offer);
               }
             : null,
       ),
@@ -434,14 +486,40 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen>
 }
 
 AtelierTone _toneFor(ProductOffer offer) => switch (offer.status) {
-  ProductOfferStatus.pending => AtelierTone.amber,
+  ProductOfferStatus.pending =>
+    offer.fromSeller ? AtelierTone.gold : AtelierTone.amber,
   ProductOfferStatus.accepted =>
     offer.isPayable || offer.isWithGemworld
         ? AtelierTone.gold
         : AtelierTone.emerald,
   ProductOfferStatus.rejected => AtelierTone.ruby,
   ProductOfferStatus.expired => AtelierTone.neutral,
+  ProductOfferStatus.countered => AtelierTone.neutral,
 };
+
+/// The seller's own counter-offer, waiting for the buyer: time left and no
+/// buttons.
+class _CounterWaiting extends StatelessWidget {
+  const _CounterWaiting({required this.offer, this.onExpired});
+
+  final ProductOffer offer;
+  final VoidCallback? onExpired;
+
+  @override
+  Widget build(BuildContext context) {
+    return OfferCountdown(
+      expiresAt: offer.answerExpiresAt,
+      onExpired: onExpired,
+      builder: (context, left) => AtelierNotice(
+        text:
+            'Your counter-offer · waiting for the buyer · '
+            '${formatOfferTimeLeft(left)} left.',
+        tone: AtelierTone.gold,
+        icon: Icons.swap_horiz_rounded,
+      ),
+    );
+  }
+}
 
 /// Accepted and unpaid: how long the buyer has left to pay.
 class _PaymentWindow extends StatelessWidget {
@@ -483,6 +561,7 @@ class _OfferCard extends StatelessWidget {
     required this.onOpen,
     required this.onAccept,
     required this.onDecline,
+    required this.onCounter,
     this.onExpired,
   });
 
@@ -491,12 +570,16 @@ class _OfferCard extends StatelessWidget {
   final VoidCallback onOpen;
   final VoidCallback onAccept;
   final VoidCallback onDecline;
+  final VoidCallback onCounter;
   final VoidCallback? onExpired;
 
   @override
   Widget build(BuildContext context) {
     final p = context.atelier;
-    final pending = offer.status.isPending;
+    // Only offers waiting for the seller take an answer here; their own
+    // counter-offers are the buyer's to answer.
+    final pending = offer.isAwaitingSeller;
+    final canCounter = !offer.attemptsExhausted;
     final meta = _metaParts(context, offer);
     final buyer = offer.buyerName ?? offer.buyerEmail;
 
@@ -582,9 +665,17 @@ class _OfferCard extends StatelessWidget {
               ),
             ],
           ),
+          if (offer.history.isNotEmpty) ...[
+            const SizedBox(height: AtelierSpace.s12),
+            OfferExchangeLine(offer: offer, asSeller: true),
+          ],
           if (offer.message != null) ...[
             const SizedBox(height: AtelierSpace.s12),
             _Quote(text: offer.message!, maxLines: 2),
+          ],
+          if (offer.isOpenCounter) ...[
+            const SizedBox(height: AtelierSpace.s12),
+            _CounterWaiting(offer: offer, onExpired: onExpired),
           ],
           if (offer.isPayable) ...[
             const SizedBox(height: AtelierSpace.s12),
@@ -607,7 +698,7 @@ class _OfferCard extends StatelessWidget {
             AtelierNotice(
               text: pending
                   ? 'Below your minimum offer price: declined automatically '
-                        'within 10 minutes unless you accept it.'
+                        'within 10 minutes unless you accept or counter it.'
                   : 'Declined automatically: below your minimum offer price.',
               tone: pending ? AtelierTone.amber : AtelierTone.neutral,
               icon: Icons.south_rounded,
@@ -629,7 +720,17 @@ class _OfferCard extends StatelessWidget {
                             onPressed: busy ? null : onDecline,
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: AtelierButton(
+                            label: 'Counter',
+                            compact: true,
+                            variant: AtelierButtonVariant.secondary,
+                            // No attempts left: accept and reject still work.
+                            onPressed: busy || !canCounter ? null : onCounter,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         Expanded(
                           flex: 2,
                           child: AtelierButton(
@@ -682,7 +783,9 @@ class _PriceComparison extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      context.tr(RemainingL10n.buyerOffer).toUpperCase(),
+                      offer.fromSeller
+                          ? 'YOUR COUNTER-OFFER'
+                          : context.tr(RemainingL10n.buyerOffer).toUpperCase(),
                       style: AtelierType.overline(p.gold),
                     ),
                     const SizedBox(height: 4),
@@ -768,12 +871,16 @@ class _OfferDetail extends StatelessWidget {
     required this.offer,
     this.onAccept,
     this.onDecline,
+    this.onCounter,
     this.onViewProduct,
   });
 
   final ProductOffer offer;
   final VoidCallback? onAccept;
   final VoidCallback? onDecline;
+
+  /// Null once the buyer has no attempts left.
+  final VoidCallback? onCounter;
 
   /// Opens the product's detail page; null when the offer has no product id.
   final VoidCallback? onViewProduct;
@@ -836,9 +943,24 @@ class _OfferDetail extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         _PriceComparison(offer: offer),
+        if (offer.history.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          OfferExchangeLine(offer: offer, asSeller: true),
+        ],
+        if (offer.isOpenCounter) ...[
+          const SizedBox(height: 14),
+          _CounterWaiting(offer: offer),
+        ],
         if (offer.isPayable) ...[
           const SizedBox(height: 14),
           _PaymentWindow(offer: offer),
+        ],
+        if (offer.isAwaitingSeller && offerAttemptsCaption(offer) != null) ...[
+          const SizedBox(height: 10),
+          Text(
+            offerAttemptsCaption(offer)!,
+            style: AtelierType.caption(p.muted, size: 11.5),
+          ),
         ],
         if (offer.message != null) ...[
           const SizedBox(height: 18),
@@ -900,6 +1022,14 @@ class _OfferDetail extends StatelessWidget {
                   label: context.tr(RemainingL10n.reject),
                   variant: AtelierButtonVariant.danger,
                   onPressed: onDecline,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: AtelierButton(
+                  label: 'Counter',
+                  variant: AtelierButtonVariant.secondary,
+                  onPressed: onCounter,
                 ),
               ),
               const SizedBox(width: 10),

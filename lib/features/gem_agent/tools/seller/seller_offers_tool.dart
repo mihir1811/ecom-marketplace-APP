@@ -20,6 +20,7 @@ class SellerOffersTool extends AccountTool {
     'accepted': ProductOfferStatus.accepted,
     'rejected': ProductOfferStatus.rejected,
     'expired': ProductOfferStatus.expired,
+    'countered': ProductOfferStatus.countered,
   };
 
   @override

@@ -153,12 +153,22 @@ class ProductOfferRepositoryImpl implements ProductOfferRepository {
   Future<Result<ProductOffer, Failure>> respond({
     required String id,
     required ProductOfferStatus status,
+    String? amount,
+    String? message,
     CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.patch<Map<String, dynamic>>(
         ApiEndpoints.productOfferRespond(id),
-        data: {'status': status.apiValue},
+        data: {
+          'status': status.apiValue,
+          if (status == ProductOfferStatus.countered && amount != null)
+            'amount': amount,
+          if (status == ProductOfferStatus.countered &&
+              message != null &&
+              message.trim().isNotEmpty)
+            'message': message.trim(),
+        },
         cancelToken: cancelToken,
       );
       final data = ResponseParser.entity(response.data);

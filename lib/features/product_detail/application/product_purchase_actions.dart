@@ -73,6 +73,10 @@ enum OfferButtonKind {
   /// A pending offer is waiting for the seller.
   pending,
 
+  /// The seller's counter-offer waits for this buyer: accept, decline or
+  /// counter. Stays available when no attempts are left.
+  answerCounter,
+
   /// Every attempt on the stone is used, any status.
   limitReached,
 
@@ -106,10 +110,12 @@ class PurchaseState {
   final OfferButtonKind offerKind;
   final ProductOfferEligibility offerEligibility;
 
-  /// Offer control is tappable (make an offer or pay now).
+  /// Offer control is tappable (make an offer, pay now or answer a
+  /// counter-offer).
   bool get offerEnabled =>
       offerKind == OfferButtonKind.makeOffer ||
-      offerKind == OfferButtonKind.payNow;
+      offerKind == OfferButtonKind.payNow ||
+      offerKind == OfferButtonKind.answerCounter;
 }
 
 /// Add-to-cart and make-offer rules shared by every detail action bar:
@@ -157,6 +163,8 @@ abstract final class ProductPurchaseActions {
       offerBusy: offerBusy,
       offerKind: offers.payable != null
           ? OfferButtonKind.payNow
+          : offers.openCounter != null
+          ? OfferButtonKind.answerCounter
           : offers.withGemworld != null
           ? OfferButtonKind.withGemworld
           : offers.paid != null
@@ -184,7 +192,8 @@ abstract final class ProductPurchaseActions {
     maxAttempts: detail.maxOfferAttemptsPerUser,
   );
 
-  /// Offer control tap: pay for an accepted offer, or make a new one.
+  /// Offer control tap: pay for an accepted offer, answer the seller's
+  /// counter-offer on My offers, or make a new one.
   static Future<void> offerAction(
     BuildContext context,
     WidgetRef ref,
@@ -197,6 +206,12 @@ abstract final class ProductPurchaseActions {
     final payable = state.offerEligibility.payable;
     if (state.offerKind == OfferButtonKind.payNow && payable != null) {
       await payAcceptedOffer(context, ref, payable, copy: copy, notify: notify);
+      return;
+    }
+    final counter = state.offerEligibility.openCounter;
+    if (state.offerKind == OfferButtonKind.answerCounter && counter != null) {
+      if (!AccountAccess.guard(context, ref)) return;
+      context.push(AppRouteNames.buyerOfferCounterPath(counter.id));
       return;
     }
     if (state.offerKind != OfferButtonKind.makeOffer) return;

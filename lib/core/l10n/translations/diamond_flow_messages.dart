@@ -64,6 +64,7 @@ abstract final class DiamondFlowL10n {
   static const offerInvalid = 'diamondFlow.offerInvalid';
   static const offerSent = 'diamondFlow.offerSent';
   static const offerPending = 'diamondFlow.offerPending';
+  static const offerAnswerCounter = 'diamondFlow.offerAnswerCounter';
   static const offerLimitReached = 'diamondFlow.offerLimitReached';
   static const offerPayNow = 'diamondFlow.offerPayNow';
   static const offerPayNowLeft = 'diamondFlow.offerPayNowLeft';
@@ -362,6 +363,11 @@ const diamondFlowMessages = <String, LocalizedMessage>{
     english: 'Offer sent',
     hindi: 'प्रस्ताव भेजा गया',
     gujarati: 'ઓફર મોકલાઈ',
+  ),
+  DiamondFlowL10n.offerAnswerCounter: LocalizedMessage(
+    english: 'Answer counter-offer · {price}',
+    hindi: 'काउंटर-ऑफ़र का जवाब दें · {price}',
+    gujarati: 'કાઉન્ટર-ઓફરનો જવાબ આપો · {price}',
   ),
   DiamondFlowL10n.offerLimitReached: LocalizedMessage(
     english: 'No offers left',

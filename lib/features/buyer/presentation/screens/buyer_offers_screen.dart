@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/account_access.dart';
+import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
@@ -13,6 +14,7 @@ import '../../../product_detail/product_detail_navigation.dart';
 import '../../../product_offer/application/product_offer_providers.dart';
 import '../../../product_offer/domain/models/product_offer.dart';
 import '../../../product_offer/presentation/widgets/offer_countdown.dart';
+import '../../../product_offer/presentation/widgets/offer_counter_form.dart';
 import '../../../seller/presentation/atelier/atelier_components.dart';
 import '../../../seller/presentation/atelier/atelier_feedback.dart';
 import '../../../seller/presentation/atelier/atelier_motion.dart';
@@ -36,34 +38,44 @@ enum _OfferFilter {
 AtelierTone buyerOfferTone(ProductOffer offer) {
   if (offer.isPaid) return AtelierTone.emerald;
   return switch (offer.status) {
-    ProductOfferStatus.pending => AtelierTone.amber,
+    ProductOfferStatus.pending =>
+      offer.fromSeller ? AtelierTone.gold : AtelierTone.amber,
     ProductOfferStatus.accepted =>
       offer.isPayable || offer.isWithGemworld
           ? AtelierTone.gold
           : AtelierTone.neutral,
     ProductOfferStatus.rejected => AtelierTone.ruby,
     ProductOfferStatus.expired => AtelierTone.neutral,
+    ProductOfferStatus.countered => AtelierTone.neutral,
   };
 }
 
 IconData buyerOfferIcon(ProductOffer offer) {
   if (offer.isPaid) return Icons.check_circle_rounded;
   return switch (offer.status) {
-    ProductOfferStatus.pending => Icons.hourglass_top_rounded,
+    ProductOfferStatus.pending =>
+      offer.fromSeller ? Icons.swap_horiz_rounded : Icons.hourglass_top_rounded,
     ProductOfferStatus.accepted => Icons.handshake_outlined,
     ProductOfferStatus.rejected => Icons.cancel_outlined,
     ProductOfferStatus.expired => Icons.history_toggle_off_rounded,
+    ProductOfferStatus.countered => Icons.swap_horiz_rounded,
   };
 }
 
-/// Buyer offers (GET /product-offer/mine): what is waiting on a seller, what
-/// was accepted and must be paid within 24 hours, and what closed.
+/// Buyer offers (GET /product-offer/mine): what is waiting on a seller, the
+/// seller's counter-offers to answer, what was accepted and must be paid
+/// within 24 hours, and what closed. A negotiation shows once, as its
+/// latest move.
 class BuyerOffersScreen extends ConsumerStatefulWidget {
-  const BuyerOffersScreen({this.payOfferId, super.key});
+  const BuyerOffersScreen({this.payOfferId, this.counterOfferId, super.key});
 
   /// Accepted offer to put in the bag and check out on open (from the
   /// `OFFER_ACCEPTED` push), as the website does for `?pay=<offerId>`.
   final String? payOfferId;
+
+  /// Seller's counter-offer to answer on open (the `OFFER_COUNTERED` push,
+  /// `?counter=<offerId>`).
+  final String? counterOfferId;
 
   @override
   ConsumerState<BuyerOffersScreen> createState() => _BuyerOffersScreenState();
@@ -82,7 +94,167 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen>
     if (payId != null && payId.isNotEmpty) {
       _filter = _OfferFilter.accepted;
       Future.microtask(() => _payFromLink(payId));
+      return;
     }
+    final counterId = widget.counterOfferId?.trim();
+    if (counterId != null && counterId.isNotEmpty) {
+      _filter = _OfferFilter.pending;
+      Future.microtask(() => _answerFromLink(counterId));
+    }
+  }
+
+  /// Opens the seller's counter-offer from a push link to answer it.
+  Future<void> _answerFromLink(String offerId) async {
+    await _refresh();
+    if (!mounted) return;
+    final offer = ref
+        .read(buyerOfferListProvider)
+        .items
+        .where((o) => o.id == offerId)
+        .firstOrNull;
+    if (offer == null || !offer.isOpenCounter) {
+      showAtelierToast(
+        context,
+        'This counter-offer is no longer open. It may have expired after '
+        '24 hours.',
+        tone: AtelierTone.neutral,
+      );
+      return;
+    }
+    await _answer(offer);
+  }
+
+  /// Accept & pay, counter back or decline the seller's counter-offer.
+  Future<void> _answer(ProductOffer offer) async {
+    final choice = await showAtelierOptions<ProductOfferStatus>(
+      context: context,
+      title: 'Counter-offer · ${maisonUsd(offer.amount)}',
+      subtitle: offer.displayTitle,
+      options: [
+        const AtelierOption(
+          value: ProductOfferStatus.accepted,
+          label: 'Accept & pay',
+          icon: Icons.lock_outline_rounded,
+          hint: 'You have 24 hours to pay at this price',
+        ),
+        if (!offer.attemptsExhausted)
+          AtelierOption(
+            value: ProductOfferStatus.countered,
+            label: 'Counter',
+            icon: Icons.swap_horiz_rounded,
+            hint: offerAttemptsCaption(offer),
+          ),
+        const AtelierOption(
+          value: ProductOfferStatus.rejected,
+          label: 'Decline',
+          icon: Icons.close_rounded,
+          destructive: true,
+        ),
+      ],
+    );
+    if (choice == null || !mounted) return;
+    switch (choice) {
+      case ProductOfferStatus.accepted:
+        await _acceptCounter(offer);
+      case ProductOfferStatus.countered:
+        await _counterBack(offer);
+      case ProductOfferStatus.rejected:
+        await _declineCounter(offer);
+      default:
+        return;
+    }
+  }
+
+  Future<Result<ProductOffer, Failure>?> _sendAnswer(
+    ProductOffer offer,
+    ProductOfferStatus answer, {
+    String? amount,
+    String? message,
+  }) async {
+    if (!AccountAccess.guard(context, ref)) return null;
+    setState(() => _busy.add(offer.id));
+    final result = await ref
+        .read(productOfferMutationProvider.notifier)
+        .answerCounter(
+          counterOfferId: offer.id,
+          answer: answer,
+          amount: amount,
+          message: message,
+        );
+    if (!mounted) return null;
+    setState(() => _busy.remove(offer.id));
+    if (result case ResultFailure(:final failure)) {
+      AppHaptics.error();
+      showAtelierToast(context, failure.message, tone: AtelierTone.ruby);
+      return null;
+    }
+    return result;
+  }
+
+  /// Accepting reserves the stone for 24 hours; like the website, go
+  /// straight to the bag at the counter price.
+  Future<void> _acceptCounter(ProductOffer offer) async {
+    final ok = await showAtelierConfirm(
+      context: context,
+      title: 'Accept ${maisonUsd(offer.amount)}?',
+      message:
+          'The stone is held for you and you have 24 hours to pay at this '
+          'price.',
+      confirmLabel: 'Accept & pay',
+      icon: Icons.handshake_outlined,
+    );
+    if (!ok || !mounted) return;
+    final result = await _sendAnswer(offer, ProductOfferStatus.accepted);
+    if (result case Success(value: final accepted)) {
+      if (!mounted) return;
+      await _pay(accepted);
+    }
+  }
+
+  Future<void> _declineCounter(ProductOffer offer) async {
+    final ok = await showAtelierConfirm(
+      context: context,
+      title: 'Decline this counter-offer?',
+      message:
+          'The seller will be told you passed on ${maisonUsd(offer.amount)}. '
+          'You can make a new offer while you have attempts left.',
+      confirmLabel: 'Decline',
+      destructive: true,
+      icon: Icons.do_not_disturb_rounded,
+    );
+    if (!ok || !mounted) return;
+    final result = await _sendAnswer(offer, ProductOfferStatus.rejected);
+    if (result == null || !mounted) return;
+    AppHaptics.warning();
+    showAtelierToast(context, 'Counter-offer declined.');
+  }
+
+  /// Counter back below the seller's price; uses one attempt.
+  Future<void> _counterBack(ProductOffer offer) async {
+    final input = await showOfferCounterSheet(
+      context,
+      title: 'Counter the seller',
+      subtitle: 'Seller’s price ${maisonUsd(offer.amount)}',
+      below: offer.amount,
+      note: [
+        'The seller has 24 hours to answer.',
+        ?offerAttemptsCaption(offer),
+      ].join(' '),
+    );
+    if (input == null || !mounted) return;
+    final result = await _sendAnswer(
+      offer,
+      ProductOfferStatus.countered,
+      amount: input.amount,
+      message: input.message,
+    );
+    if (result == null || !mounted) return;
+    AppHaptics.success();
+    showAtelierToast(
+      context,
+      'Counter-offer sent. The seller has 24 hours to answer.',
+      tone: AtelierTone.emerald,
+    );
   }
 
   /// Finds the accepted offer in a fresh list, then pays it like Pay now.
@@ -203,7 +375,8 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen>
     final state = ref.watch(buyerOfferListProvider);
     final items = state.items;
     final payable = items.where((o) => o.isPayable).length;
-    final pending = items.where((o) => o.status.isPending).length;
+    final pending = items.where((o) => o.isAwaitingSeller).length;
+    final counters = items.where((o) => o.isOpenCounter).length;
     final gutter = AtelierSpace.gutter(MediaQuery.sizeOf(context).width);
 
     return MaisonLayout(
@@ -250,10 +423,17 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen>
                                 ),
                               ),
                               MaisonStat(
-                                label: 'Waiting',
-                                value: '$pending',
-                                caption: 'With the seller',
-                                tone: pending > 0 ? AtelierTone.amber : null,
+                                label: 'Open',
+                                value: '${pending + counters}',
+                                caption: counters > 0
+                                    ? '$counters to answer'
+                                    : 'With the seller',
+                                tone: counters > 0
+                                    ? AtelierTone.gold
+                                    : pending > 0
+                                    ? AtelierTone.amber
+                                    : null,
+                                pulse: counters > 0,
                                 selected: _filter == _OfferFilter.pending,
                                 onTap: () => _setFilter(
                                   _filter == _OfferFilter.pending
@@ -364,6 +544,7 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen>
               busy: _busy.contains(offer.id),
               onOpen: () => _open(offer),
               onPay: () => _pay(offer),
+              onAnswer: () => _answer(offer),
               onExpired: _refresh,
             ),
           ),
@@ -395,6 +576,7 @@ class BuyerOfferCard extends StatelessWidget {
     required this.busy,
     required this.onOpen,
     required this.onPay,
+    this.onAnswer,
     this.onExpired,
     super.key,
   });
@@ -403,6 +585,9 @@ class BuyerOfferCard extends StatelessWidget {
   final bool busy;
   final VoidCallback onOpen;
   final VoidCallback onPay;
+
+  /// Opens accept / counter / decline for the seller's counter-offer.
+  final VoidCallback? onAnswer;
   final VoidCallback? onExpired;
 
   @override
@@ -410,6 +595,7 @@ class BuyerOfferCard extends StatelessWidget {
     final p = context.atelier;
     final tone = buyerOfferTone(offer);
     final payable = offer.isPayable;
+    final counter = offer.isOpenCounter;
     final meta = [
       offer.productTypeLabel,
       if (offer.stockNumber != null)
@@ -421,7 +607,7 @@ class BuyerOfferCard extends StatelessWidget {
     return AtelierCard(
       onTap: onOpen,
       semanticLabel: 'Offer on ${offer.displayTitle}',
-      borderColor: payable ? p.gold.withValues(alpha: 0.5) : null,
+      borderColor: payable || counter ? p.gold.withValues(alpha: 0.5) : null,
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -463,7 +649,7 @@ class BuyerOfferCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    'YOUR OFFER',
+                    offer.fromSeller ? 'SELLER’S PRICE' : 'YOUR OFFER',
                     style: AtelierType.overline(p.muted),
                   ),
                   const SizedBox(height: 4),
@@ -478,6 +664,10 @@ class BuyerOfferCard extends StatelessWidget {
               ),
             ],
           ),
+          if (offer.history.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            OfferExchangeLine(offer: offer, asSeller: false),
+          ],
           if (offer.message != null) ...[
             const SizedBox(height: 14),
             Container(
@@ -519,7 +709,7 @@ class BuyerOfferCard extends StatelessWidget {
                 ),
             ],
           ),
-          if (offer.status.isPending) ...[
+          if (offer.isAwaitingSeller) ...[
             const SizedBox(height: 14),
             Text(
               'The seller has 24 hours to answer. Offers they don’t answer '
@@ -527,6 +717,38 @@ class BuyerOfferCard extends StatelessWidget {
               style: AtelierType.caption(p.muted, size: 11.5),
             ),
           ],
+          if (counter)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: OfferCountdown(
+                expiresAt: offer.answerExpiresAt,
+                onExpired: onExpired,
+                builder: (context, left) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AtelierButton(
+                      label:
+                          'Answer counter-offer · ${maisonUsd(offer.amount)}',
+                      icon: Icons.swap_horiz_rounded,
+                      variant: AtelierButtonVariant.gold,
+                      loading: busy,
+                      expand: true,
+                      onPressed: onAnswer,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      [
+                        '${formatOfferTimeLeft(left)} left to accept, '
+                            'decline or counter.',
+                        ?offerAttemptsCaption(offer),
+                      ].join(' '),
+                      textAlign: TextAlign.center,
+                      style: AtelierType.caption(p.muted, size: 11.5),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           if (offer.isWithGemworld) ...[
             const SizedBox(height: 14),
             const AtelierNotice(

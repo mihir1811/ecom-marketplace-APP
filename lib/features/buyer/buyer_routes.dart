@@ -54,7 +54,10 @@ final List<RouteBase> buyerRoutes = [
   GoRoute(
     path: AppRouteNames.buyerOffers,
     builder: (context, state) => VerifiedAccountGate(
-      child: BuyerOffersScreen(payOfferId: state.uri.queryParameters['pay']),
+      child: BuyerOffersScreen(
+        payOfferId: state.uri.queryParameters['pay'],
+        counterOfferId: state.uri.queryParameters['counter'],
+      ),
     ),
   ),
   GoRoute(

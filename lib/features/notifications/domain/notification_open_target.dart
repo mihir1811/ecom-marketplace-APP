@@ -98,7 +98,19 @@ NotificationOpenTarget notificationOpenTarget(
       }
       return _fromLink(notification.link, isSeller: false);
     case 'OFFER_RECEIVED':
+    case 'OFFER_COUNTERED_BY_BUYER':
+    case 'OFFER_COUNTER_ACCEPTED':
+    case 'OFFER_COUNTER_DECLINED':
       return const NotificationInApp(AppRouteNames.sellerOffers);
+    case 'OFFER_COUNTERED':
+      // `/user/offers?counter=<offerId>`: open that counter-offer to answer.
+      final counterId =
+          _offerQueryId(notification.link, 'counter') ?? data['offerId'] ?? '';
+      return NotificationInApp(
+        counterId.isEmpty
+            ? AppRouteNames.buyerOffers
+            : AppRouteNames.buyerOfferCounterPath(counterId),
+      );
     case 'HELP_CENTER_ANSWERED':
       return NotificationInApp(
         isSeller
@@ -145,10 +157,13 @@ NotificationOpenTarget _fromLink(String link, {required bool isSeller}) {
   final offersPath = Uri.tryParse(path)?.path ?? path;
   if (offersPath == '/user/offers' || offersPath.startsWith('/user/offers/')) {
     final payId = _offerPayId(path);
+    final counterId = _offerQueryId(path, 'counter');
     return NotificationInApp(
-      payId == null
-          ? AppRouteNames.buyerOffers
-          : AppRouteNames.buyerOfferPayPath(payId),
+      payId != null
+          ? AppRouteNames.buyerOfferPayPath(payId)
+          : counterId != null
+          ? AppRouteNames.buyerOfferCounterPath(counterId)
+          : AppRouteNames.buyerOffers,
     );
   }
   final order = RegExp(r'^/user/orders/([^/]+)$').firstMatch(path);
@@ -174,8 +189,11 @@ NotificationOpenTarget _fromLink(String link, {required bool isSeller}) {
 }
 
 /// `<offerId>` from `/user/offers?pay=<offerId>`.
-String? _offerPayId(String link) {
+String? _offerPayId(String link) => _offerQueryId(link, 'pay');
+
+/// `<offerId>` from `/user/offers?<key>=<offerId>`.
+String? _offerQueryId(String link, String key) {
   final uri = Uri.tryParse(link.trim());
-  final id = uri?.queryParameters['pay']?.trim();
+  final id = uri?.queryParameters[key]?.trim();
   return id == null || id.isEmpty ? null : id;
 }

@@ -19,7 +19,8 @@ class MyOffersTool extends AccountTool {
   @override
   String get description =>
       'Price offers the user made as a buyer and their status (pending, '
-      'accepted, rejected, expired).';
+      'accepted, rejected, expired, countered), including seller '
+      'counter-offers waiting for the user\'s answer.';
 
   @override
   Map<String, Object?> get parameters => const {
@@ -27,7 +28,14 @@ class MyOffersTool extends AccountTool {
     'properties': {
       'status': {
         'type': 'string',
-        'enum': ['pending', 'accepted', 'rejected', 'expired', 'any'],
+        'enum': [
+          'pending',
+          'accepted',
+          'rejected',
+          'expired',
+          'countered',
+          'any',
+        ],
       },
     },
     'additionalProperties': false,
@@ -64,6 +72,7 @@ class MyOffersTool extends AccountTool {
     bool payable(ProductOffer o) =>
         o.status == ProductOfferStatus.accepted && o.paidAt == null;
     final toPay = offers.where(payable).toList();
+    final toAnswer = offers.where((o) => o.isOpenCounter).toList();
     final word = status == null ? '' : '${status.label.toLowerCase()} ';
     final total = page.total > 0 ? page.total : offers.length;
 
@@ -71,7 +80,8 @@ class MyOffersTool extends AccountTool {
       summary: total == 0
           ? 'You have no ${word}offers.'
           : '${AccountTool.plural(total, '${word}offer')}.'
-                '${toPay.isEmpty ? '' : ' ${toPay.length} accepted and waiting for your payment.'}',
+                '${toPay.isEmpty ? '' : ' ${toPay.length} accepted and waiting for your payment.'}'
+                '${toAnswer.isEmpty ? '' : ' ${toAnswer.length} seller counter-offer${toAnswer.length == 1 ? '' : 's'} to answer.'}',
       completesTurn: true,
       cards: [
         if (offers.isNotEmpty)
@@ -80,11 +90,17 @@ class MyOffersTool extends AccountTool {
               for (final o in offers.take(AccountTool.maxRows))
                 AgentListRow(
                   title: o.productLabel ?? o.stockNumber ?? 'Stone',
-                  subtitle: payable(o) ? 'Accepted · pay now' : o.status.label,
+                  subtitle: payable(o)
+                      ? 'Accepted · pay now'
+                      : o.isOpenCounter
+                      ? 'Seller countered · answer'
+                      : o.status.label,
                   trailing: AppCurrency.usd(o.amount, decimals: 0),
                   imageUrl: o.imageUrl,
                   route: payable(o)
                       ? AppRouteNames.buyerOfferPayPath(o.id)
+                      : o.isOpenCounter
+                      ? AppRouteNames.buyerOfferCounterPath(o.id)
                       : AppRouteNames.buyerOffers,
                 ),
             ],
@@ -100,12 +116,14 @@ class MyOffersTool extends AccountTool {
       data: {
         'total': total,
         'awaiting_payment': toPay.length,
+        'counter_offers_to_answer': toAnswer.length,
         'offers': [
           for (final o in offers.take(AccountTool.maxModelRows))
             {
               'product': o.productLabel ?? o.stockNumber,
               'offer_usd': o.amount.round(),
               'status': o.status.apiValue,
+              'from_seller': o.fromSeller,
             },
         ],
       },

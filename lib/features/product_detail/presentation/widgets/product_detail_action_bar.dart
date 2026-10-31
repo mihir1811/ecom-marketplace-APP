@@ -156,6 +156,9 @@ class ProductDetailActionBar extends ConsumerWidget {
                               CatalogL10n.makeOffer,
                             ),
                             OfferButtonKind.pending => 'Offer sent',
+                            OfferButtonKind.answerCounter =>
+                              'Answer counter-offer · '
+                                  '${AppCurrency.usd(state.offerEligibility.openCounter?.amount ?? 0, decimals: 0)}',
                             OfferButtonKind.limitReached => 'No offers left',
                             OfferButtonKind.payNow =>
                               'Pay now · ${formatOfferTimeLeft(left)}',

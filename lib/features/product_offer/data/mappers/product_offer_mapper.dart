@@ -34,7 +34,8 @@ abstract final class ProductOfferMapper {
       productLabel: _productLabel(productMap, json),
       stockNumber: _nullableString(productMap?['stockNumber']) ??
           _nullableString(json['stockNumber']),
-      listPrice: _asDouble(productMap?['totalPrice']) ??
+      listPrice: _asDouble(productMap?['listedPrice']) ??
+          _asDouble(productMap?['totalPrice']) ??
           _asDouble(productMap?['price']) ??
           _asDouble(json['listPrice']),
       buyerName: _nullableString(buyerMap?['name']) ??
@@ -44,7 +45,28 @@ abstract final class ProductOfferMapper {
       productSpecs: _productSpecs(productMap),
       certificateLabel: _certificateLabel(productMap),
       productIsSold: productMap?['isSold'] == true,
+      fromSeller: json['fromSeller'] == true,
+      counterToId: _nullableString(json['counterToId']),
+      history: _history(json['history']),
+      attemptsUsed: _asInt(json['attemptsUsed']),
+      maxAttempts: _asInt(json['maxAttempts']),
     );
+  }
+
+  static List<OfferMove> _history(Object? raw) {
+    if (raw is! List) return const [];
+    return [
+      for (final m in raw)
+        if (m is Map<String, dynamic>)
+          OfferMove(
+            id: m['id']?.toString() ?? '',
+            amount: _asDouble(m['amount']) ?? 0,
+            fromSeller: m['fromSeller'] == true,
+            status: ProductOfferStatus.fromApi(m['status']?.toString()),
+            message: _nullableString(m['message']),
+            createdAt: _parseDate(m['createdAt']),
+          ),
+    ];
   }
 
   static ProductOfferListPage listPageFromJson(

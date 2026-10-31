@@ -2,7 +2,11 @@ enum ProductOfferStatus {
   pending('PENDING', 'Pending'),
   accepted('ACCEPTED', 'Accepted'),
   rejected('REJECTED', 'Rejected'),
-  expired('EXPIRED', 'Expired');
+  expired('EXPIRED', 'Expired'),
+
+  /// Answered with a counter-offer, which is the next move of the
+  /// negotiation.
+  countered('COUNTERED', 'Countered');
 
   const ProductOfferStatus(this.apiValue, this.label);
   final String apiValue;
@@ -30,8 +34,32 @@ abstract final class OfferProductType {
   static bool supports(String productType) => values.contains(productType);
 }
 
-/// Default cap on offers one buyer may make on a stone, any status.
+/// Default cap on offers and counter-offers per buyer per stone, any status.
 const int defaultMaxOfferAttemptsPerUser = 5;
+
+/// One earlier move of a negotiation (`history` on list rows), oldest first.
+class OfferMove {
+  const OfferMove({
+    required this.id,
+    required this.amount,
+    required this.fromSeller,
+    required this.status,
+    this.message,
+    this.createdAt,
+  });
+
+  final String id;
+  final double amount;
+
+  /// True on the seller's counter-offer.
+  final bool fromSeller;
+  final ProductOfferStatus status;
+  final String? message;
+  final DateTime? createdAt;
+}
+
+/// Pending offers and counter-offers expire 24 hours after they were made.
+const Duration offerAnswerWindow = Duration(hours: 24);
 
 class ProductOffer {
   const ProductOffer({
@@ -60,6 +88,11 @@ class ProductOffer {
     this.productSpecs,
     this.certificateLabel,
     this.productIsSold = false,
+    this.fromSeller = false,
+    this.counterToId,
+    this.history = const [],
+    this.attemptsUsed,
+    this.maxAttempts,
   });
 
   final String id;
@@ -104,6 +137,40 @@ class ProductOffer {
 
   /// `product.isSold` from the buyer list snapshot.
   final bool productIsSold;
+
+  /// True on the seller's counter-offer, which the buyer answers; false on
+  /// the buyer's offers and counter-offers.
+  final bool fromSeller;
+
+  /// The offer this one answers (now `COUNTERED`); null on a first offer.
+  final String? counterToId;
+
+  /// Lists only: the negotiation's earlier moves, oldest first.
+  final List<OfferMove> history;
+
+  /// Lists only: offers and counter-offers so far in this buyer's
+  /// negotiations on the stone, and the stone's cap. No counter or new offer
+  /// once they are equal.
+  final int? attemptsUsed;
+  final int? maxAttempts;
+
+  /// No attempts left for another offer or counter-offer. Accept and
+  /// decline still work.
+  bool get attemptsExhausted =>
+      attemptsUsed != null &&
+      maxAttempts != null &&
+      attemptsUsed! >= maxAttempts!;
+
+  /// The seller's counter-offer, waiting for the buyer's answer.
+  bool get isOpenCounter => status.isPending && fromSeller;
+
+  /// The buyer's offer or counter-offer, waiting for the seller.
+  bool get isAwaitingSeller => status.isPending && !fromSeller;
+
+  /// When an unanswered pending move expires (`createdAt + 24 h`).
+  DateTime? get answerExpiresAt => status.isPending && createdAt != null
+      ? createdAt!.add(offerAnswerWindow)
+      : null;
 
   /// Best available product title for list cards.
   String get displayTitle {
@@ -153,6 +220,7 @@ class ProductOffer {
     if (status == ProductOfferStatus.accepted) {
       return isPayable ? 'Awaiting payment' : 'Accepted';
     }
+    if (isOpenCounter) return 'Counter-offer';
     return status.label;
   }
 
@@ -190,6 +258,11 @@ class ProductOffer {
       productSpecs: this.productSpecs ?? productSpecs,
       certificateLabel: this.certificateLabel ?? certificateLabel,
       productIsSold: productIsSold,
+      fromSeller: fromSeller,
+      counterToId: counterToId,
+      history: history,
+      attemptsUsed: attemptsUsed,
+      maxAttempts: maxAttempts,
     );
   }
 }
@@ -232,9 +305,19 @@ class ProductOfferEligibility {
     return null;
   }
 
-  bool get hasPending => offers.any((o) => o.status.isPending);
+  /// The seller's counter-offer waiting for this buyer.
+  ProductOffer? get openCounter {
+    for (final o in offers) {
+      if (o.isOpenCounter) return o;
+    }
+    return null;
+  }
 
-  /// Expired and rejected offers count towards the cap.
+  /// The buyer's own offer or counter-offer waiting for the seller.
+  bool get hasPending => offers.any((o) => o.isAwaitingSeller);
+
+  /// Every move counts towards the cap, any status, the seller's
+  /// counter-offers included: with 5, an offer leaves 4 and a counter 3.
   bool get limitReached => offers.length >= maxAttempts;
 
   int get attemptsLeft =>
@@ -244,6 +327,7 @@ class ProductOfferEligibility {
       payable == null &&
       paid == null &&
       withGemworld == null &&
+      openCounter == null &&
       !hasPending &&
       !limitReached;
 }

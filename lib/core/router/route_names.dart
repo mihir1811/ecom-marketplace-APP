@@ -93,6 +93,11 @@ class AppRouteNames {
   /// `OFFER_ACCEPTED` push link `/user/offers?pay=<offerId>`).
   static String buyerOfferPayPath(String offerId) =>
       '/buyer/offers?pay=${Uri.encodeQueryComponent(offerId)}';
+
+  /// My offers, then straight to answering this counter-offer (the
+  /// `OFFER_COUNTERED` push link `/user/offers?counter=<offerId>`).
+  static String buyerOfferCounterPath(String offerId) =>
+      '/buyer/offers?counter=${Uri.encodeQueryComponent(offerId)}';
   static const String buyerReferences = '/buyer/references';
   static const String buyerInquiries = '/buyer/inquiries';
   static const String buyerInquiryNew = '/buyer/inquiries/new';
