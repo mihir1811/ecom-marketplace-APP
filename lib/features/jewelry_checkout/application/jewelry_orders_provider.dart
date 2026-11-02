@@ -4,6 +4,7 @@ import '../../../core/error/result.dart';
 import '../data/repositories/jewelry_checkout_repository_impl.dart';
 import '../domain/models/marketplace_invoice.dart';
 import '../domain/models/marketplace_order.dart';
+import '../domain/models/shop_order.dart';
 
 /// The buyer's jewellery orders, newest first (up to 50).
 final jewelryOrdersProvider =
@@ -26,6 +27,18 @@ final jewelryOrderProvider = FutureProvider.autoDispose
         ResultFailure(failure: final failure) => throw failure,
       };
     });
+
+/// The signed-in jewellery shop's paid orders. There is no single-order
+/// seller endpoint, so an order is found in this list by id.
+final jewelryShopOrdersProvider = FutureProvider.autoDispose<List<ShopOrder>>((
+  ref,
+) async {
+  final result = await ref.read(jewelryCheckoutRepositoryProvider).shopOrders();
+  return switch (result) {
+    Success(value: final orders) => orders,
+    ResultFailure(failure: final failure) => throw failure,
+  };
+});
 
 /// GemWorld's tax invoice for a paid order. It never changes once issued.
 final jewelryInvoiceProvider = FutureProvider.autoDispose

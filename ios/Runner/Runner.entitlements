@@ -5,5 +5,13 @@
 	<!-- Push Notifications capability. Xcode switches this to "production" for App Store / TestFlight archives. -->
 	<key>aps-environment</key>
 	<string>development</string>
+	<!-- WhatsApp order links (universal links): jewelry.gemworld.in/orders/* and
+	     /seller/orders?o=*, claimed by the site's apple-app-site-association.
+	     For debug builds that should skip Apple's CDN, temporarily use
+	     applinks:jewelry.gemworld.in?mode=developer (never in a store build). -->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:jewelry.gemworld.in</string>
+	</array>
 </dict>
 </plist>

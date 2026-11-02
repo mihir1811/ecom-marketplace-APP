@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app.dart';
+import 'core/deep_links/order_links.dart';
 import 'core/l10n/app_localizations.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/theme_preference_provider.dart';
@@ -14,6 +15,8 @@ void main() {
       WidgetsFlutterBinding.ensureInitialized();
       // Lets product detail grow out of whichever card was tapped.
       ProductTapTracker.attach();
+      // WhatsApp order links tapped while the app runs (before the router).
+      OrderLinks.attach();
       await PushMessagingService.initializeFirebase();
       // Restore the palette before the first frame so it never flashes.
       final palette = await PalettePreference.load();

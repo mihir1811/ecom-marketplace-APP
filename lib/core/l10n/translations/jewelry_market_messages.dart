@@ -166,11 +166,27 @@ abstract final class JewelryMarketL10n {
   static const invoiceTax = 'jewelryMarket.invoiceTax';
   static const premium = 'jewelryMarket.premium';
   static const premiumUnavailable = 'jewelryMarket.premiumUnavailable';
-  static const premiumFrom = 'jewelryMarket.premiumFrom';
+  static const premiumSegment = 'jewelryMarket.premiumSegment';
+  static const premiumTagline = 'jewelryMarket.premiumTagline';
   static const premiumCount = 'jewelryMarket.premiumCount';
   static const premiumEmpty = 'jewelryMarket.premiumEmpty';
   static const allPieces = 'jewelryMarket.allPieces';
   static const viewAll = 'jewelryMarket.viewAll';
+
+  // WhatsApp order links
+  static const orderOtherAccount = 'jewelryMarket.orderOtherAccount';
+  static const orderOtherAccountBody = 'jewelryMarket.orderOtherAccountBody';
+  static const shopOrdersTitle = 'jewelryMarket.shopOrdersTitle';
+  static const shopOrdersEmpty = 'jewelryMarket.shopOrdersEmpty';
+  static const shopOrdersEmptyBody = 'jewelryMarket.shopOrdersEmptyBody';
+  static const shopOrderOtherShop = 'jewelryMarket.shopOrderOtherShop';
+  static const shopOrderOtherShopBody = 'jewelryMarket.shopOrderOtherShopBody';
+  static const shopOrdersUnavailable = 'jewelryMarket.shopOrdersUnavailable';
+  static const shopOrderOpened = 'jewelryMarket.shopOrderOpened';
+  static const shopOrdersAll = 'jewelryMarket.shopOrdersAll';
+  static const shopBuyer = 'jewelryMarket.shopBuyer';
+  static const shopTotal = 'jewelryMarket.shopTotal';
+  static const shopQuantity = 'jewelryMarket.shopQuantity';
 }
 
 const jewelryMarketMessages = <String, LocalizedMessage>{
@@ -937,10 +953,15 @@ const jewelryMarketMessages = <String, LocalizedMessage>{
     hindi: 'प्रीमियम पीस जल्द आ रहे हैं।',
     gujarati: 'પ્રીમિયમ પીસ જલ્દી આવી રહ્યા છે.',
   ),
-  JewelryMarketL10n.premiumFrom: LocalizedMessage(
-    english: 'Jewellery from {amount}',
-    hindi: '{amount} से शुरू ज्वेलरी',
-    gujarati: '{amount} થી શરૂ જ્વેલરી',
+  JewelryMarketL10n.premiumSegment: LocalizedMessage(
+    english: 'Premium segment',
+    hindi: 'प्रीमियम सेगमेंट',
+    gujarati: 'પ્રીમિયમ સેગમેન્ટ',
+  ),
+  JewelryMarketL10n.premiumTagline: LocalizedMessage(
+    english: 'Our finest pieces',
+    hindi: 'हमारे बेहतरीन पीस',
+    gujarati: 'અમારા શ્રેષ્ઠ પીસ',
   ),
   JewelryMarketL10n.premiumCount: LocalizedMessage(
     english: '{count} pieces',
@@ -961,5 +982,73 @@ const jewelryMarketMessages = <String, LocalizedMessage>{
     english: 'View all',
     hindi: 'सभी देखें',
     gujarati: 'બધું જુઓ',
+  ),
+  JewelryMarketL10n.orderOtherAccount: LocalizedMessage(
+    english: 'This order is on another account',
+    hindi: 'यह ऑर्डर किसी दूसरे अकाउंट का है',
+    gujarati: 'આ ઓર્ડર બીજા એકાઉન્ટનો છે',
+  ),
+  JewelryMarketL10n.orderOtherAccountBody: LocalizedMessage(
+    english:
+        'It was placed from a different GemWorld account. Sign out, then sign in with that account to see it.',
+    hindi:
+        'यह किसी दूसरे GemWorld अकाउंट से दिया गया था। साइन आउट करें, फिर उस अकाउंट से साइन इन करके देखें।',
+    gujarati:
+        'આ બીજા GemWorld એકાઉન્ટથી આપવામાં આવ્યો હતો. સાઇન આઉટ કરો, પછી તે એકાઉન્ટથી સાઇન ઇન કરીને જુઓ.',
+  ),
+  JewelryMarketL10n.shopOrdersTitle: LocalizedMessage(
+    english: 'Shop orders',
+    hindi: 'दुकान के ऑर्डर',
+    gujarati: 'દુકાનના ઓર્ડર',
+  ),
+  JewelryMarketL10n.shopOrdersEmpty: LocalizedMessage(
+    english: 'No orders yet',
+    hindi: 'अभी कोई ऑर्डर नहीं',
+    gujarati: 'હજી કોઈ ઓર્ડર નથી',
+  ),
+  JewelryMarketL10n.shopOrdersEmptyBody: LocalizedMessage(
+    english: 'Paid orders for your pieces show here.',
+    hindi: 'आपके पीस के भुगतान हुए ऑर्डर यहाँ दिखते हैं।',
+    gujarati: 'તમારા પીસના ચૂકવાયેલા ઓર્ડર અહીં દેખાય છે.',
+  ),
+  JewelryMarketL10n.shopOrderOtherShop: LocalizedMessage(
+    english: 'This order belongs to another shop',
+    hindi: 'यह ऑर्डर किसी दूसरी दुकान का है',
+    gujarati: 'આ ઓર્ડર બીજી દુકાનનો છે',
+  ),
+  JewelryMarketL10n.shopOrderOtherShopBody: LocalizedMessage(
+    english: "Sign in with the shop's GemWorld account to open it.",
+    hindi: 'इसे खोलने के लिए दुकान के GemWorld अकाउंट से साइन इन करें।',
+    gujarati: 'તેને ખોલવા માટે દુકાનના GemWorld એકાઉન્ટથી સાઇન ઇન કરો.',
+  ),
+  JewelryMarketL10n.shopOrdersUnavailable: LocalizedMessage(
+    english: "Can't open shop orders",
+    hindi: 'दुकान के ऑर्डर नहीं खुल सके',
+    gujarati: 'દુકાનના ઓર્ડર ખોલી શકાયા નથી',
+  ),
+  JewelryMarketL10n.shopOrderOpened: LocalizedMessage(
+    english: 'Order from WhatsApp',
+    hindi: 'WhatsApp से ऑर्डर',
+    gujarati: 'WhatsApp પરથી ઓર્ડર',
+  ),
+  JewelryMarketL10n.shopOrdersAll: LocalizedMessage(
+    english: 'All orders',
+    hindi: 'सभी ऑर्डर',
+    gujarati: 'બધા ઓર્ડર',
+  ),
+  JewelryMarketL10n.shopBuyer: LocalizedMessage(
+    english: 'Buyer: {name}',
+    hindi: 'खरीदार: {name}',
+    gujarati: 'ખરીદનાર: {name}',
+  ),
+  JewelryMarketL10n.shopTotal: LocalizedMessage(
+    english: 'Shop total',
+    hindi: 'दुकान का कुल',
+    gujarati: 'દુકાનનો કુલ',
+  ),
+  JewelryMarketL10n.shopQuantity: LocalizedMessage(
+    english: 'Qty {count}',
+    hindi: 'मात्रा {count}',
+    gujarati: 'જથ્થો {count}',
   ),
 };

@@ -21,7 +21,6 @@ import '../../application/jewellery_categories_provider.dart';
 import '../../application/jewelry_catalogue_providers.dart';
 import '../../application/jewelry_filter_provider.dart';
 import '../../application/jewelry_premium_providers.dart';
-import '../../../jewelry_checkout/presentation/jewelry_checkout_format.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../widgets/jewelry_luxe_cards.dart';
 import '../../domain/models/marketplace_enums.dart';
@@ -169,8 +168,8 @@ class _JewelryCategoriesScreenState
                   ),
                 ),
                 const SliverToBoxAdapter(child: SizedBox(height: 8)),
-                ..._collections(context),
                 const SliverToBoxAdapter(child: _PremiumStrip()),
+                ..._collections(context),
                 SliverToBoxAdapter(child: _Styles(onOpen: _open)),
                 SliverToBoxAdapter(
                   child: _Metals(onOpen: (m) => _open(metal: m)),
@@ -633,10 +632,8 @@ class _PremiumStrip extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           LuxeRowHeading(
-            title: context.tr(JewelryMarketL10n.premium),
-            subtitle: context.tr(JewelryMarketL10n.premiumFrom, {
-              'amount': rupees(page.thresholdInr),
-            }),
+            title: context.tr(JewelryMarketL10n.premiumSegment),
+            subtitle: context.tr(JewelryMarketL10n.premiumTagline),
             actionLabel: context.tr(JewelryMarketL10n.viewAll),
             onAction: () => context.push(AppRouteNames.jewelryPremium),
           ),

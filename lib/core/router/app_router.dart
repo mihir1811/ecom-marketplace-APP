@@ -1,4 +1,6 @@
 import 'package:go_router/go_router.dart';
+import '../deep_links/order_link.dart';
+import '../deep_links/order_links.dart';
 import 'navigator_keys.dart';
 import '../widgets/navigation/bottom_nav/app_bottom_nav_host.dart';
 import 'route_names.dart';
@@ -35,6 +37,15 @@ final GoRouter appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: AppRouteNames.home,
   observers: [appPopupRouteObserver],
+  // WhatsApp order links that launch the app arrive as the first location
+  // (`/orders/{id}`, `/seller/orders?o={id}`). Start on home and let
+  // OrderLinkHost open the order on top once the session is known.
+  redirect: (context, state) {
+    final link = parseOrderLink(state.uri);
+    if (link == null) return null;
+    OrderLinks.instance.receive(link);
+    return AppRouteNames.home;
+  },
   routes: [
     ...homeRoutes,
     ...infoRoutes,

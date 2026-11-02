@@ -64,6 +64,9 @@ abstract final class ApiEndpoints {
   static String marketplaceOrderItemCancel(String id, String itemId) =>
       '/marketplace/orders/$id/items/$itemId/cancel';
 
+  /// Paid orders holding the signed-in jewellery shop's pieces.
+  static const String marketplaceSellerOrders = '/marketplace/seller/orders';
+
   static const String watchAll = '/watch/all';
   static String watchById(String id) => '/watch/$id';
 

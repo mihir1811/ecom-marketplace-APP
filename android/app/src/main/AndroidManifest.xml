@@ -38,6 +38,21 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- WhatsApp order buttons: /orders/{id} (buyer) and
+                 /seller/orders?o={id} (shop). Verified against
+                 https://jewelry.gemworld.in/.well-known/assetlinks.json.
+                 Claim only these two paths; every other jewelry.gemworld.in
+                 link keeps opening the website. Flutter's own deep linking
+                 stays on: go_router receives the link (see OrderLinks). -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="jewelry.gemworld.in" />
+                <data android:pathPrefix="/orders/" />
+                <data android:path="/seller/orders" />
+            </intent-filter>
         </activity>
         <!-- FCM: the backend sends every push on this channel (created in MainActivity). -->
         <meta-data

@@ -31,6 +31,9 @@ class NetworkFailure extends Failure {
       DioExceptionType.connectionError => const NetworkFailure(
         'You appear to be offline. Check your connection and try again.',
       ),
+      _ when e.response?.statusCode == 404 => NotFoundFailure(
+        _messageForStatus(404),
+      ),
       _ => NetworkFailure(_messageForStatus(e.response?.statusCode)),
     };
   }
@@ -51,6 +54,12 @@ class NetworkFailure extends Failure {
     }
     return 'An unexpected error occurred. Please try again.';
   }
+}
+
+/// The API answered 404. For a record read by id this usually means it
+/// belongs to another account (e.g. `Order not found.`).
+class NotFoundFailure extends NetworkFailure {
+  const NotFoundFailure(super.message);
 }
 
 class ValidationFailure extends Failure {

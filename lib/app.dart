@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/auth/auth_providers.dart';
+import 'core/deep_links/order_link_host.dart';
 import 'core/l10n/app_localizations.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_palette.dart';
@@ -54,6 +55,7 @@ class GemWorldApp extends ConsumerWidget {
               const _AccountProfileSync(),
               const _PreferenceHydrator(child: SizedBox.shrink()),
               const InAppNotificationHost(),
+              OrderLinkHost(router: appRouter),
             ],
           ),
         );

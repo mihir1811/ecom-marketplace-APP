@@ -3,6 +3,7 @@ import '../../domain/models/marketplace_charge.dart';
 import '../../domain/models/marketplace_invoice.dart';
 import '../../domain/models/marketplace_order.dart';
 import '../../domain/models/marketplace_quote.dart';
+import '../../domain/models/shop_order.dart';
 
 typedef _J = MarketplaceJson;
 
@@ -74,8 +75,47 @@ abstract final class JewelryCheckoutMapper {
 
   static List<MarketplaceOrder> orders(Object? data) => _J.listOf(data, order);
 
+  /// `GET /marketplace/seller/orders`: a list, or a page `{ items: [...] }`.
+  static List<ShopOrder> shopOrders(Object? data) {
+    final raw = data is Map
+        ? (_J.obj(data)['items'] ?? _J.obj(data)['orders'])
+        : data;
+    return _J.listOf(raw, shopOrder);
+  }
+
+  static ShopOrder shopOrder(Map<String, dynamic> j) {
+    final shipment = _J.obj(j['shipment']);
+    final buyer = _J.obj(j['buyer']);
+    return ShopOrder(
+      id: _J.text(j['id']) ?? '',
+      orderNumber: _J.text(j['orderNumber']) ?? '',
+      buyerName: _J.text(j['buyerName']) ?? _J.text(buyer['name']) ?? '',
+      address: _address(j['shippingAddress']),
+      buyerNote: _J.text(j['buyerNote']),
+      items: _J.listOf(j['items'], _item),
+      shipment: shipment.isEmpty ? null : _shipment(shipment),
+      shopTotal: _J.money(j['shopTotal']),
+      paidAt: _J.date(j['paidAt']),
+      createdAt: _J.date(j['createdAt']),
+    );
+  }
+
+  static MarketplaceAddress? _address(Object? raw) {
+    final address = _J.obj(raw);
+    if (address.isEmpty) return null;
+    return MarketplaceAddress(
+      fullName: _J.text(address['fullName']) ?? '',
+      phone: _J.text(address['phone']) ?? '',
+      line1: _J.text(address['line1']) ?? '',
+      line2: _J.text(address['line2']),
+      city: _J.text(address['city']) ?? '',
+      state: _J.text(address['state']) ?? '',
+      postalCode: _J.text(address['postalCode']) ?? '',
+      country: _J.text(address['country']) ?? 'IN',
+    );
+  }
+
   static MarketplaceOrder order(Map<String, dynamic> j) {
-    final address = _J.obj(j['shippingAddress']);
     return MarketplaceOrder(
       id: _J.text(j['id']) ?? '',
       orderNumber: _J.text(j['orderNumber']) ?? '',
@@ -84,18 +124,7 @@ abstract final class JewelryCheckoutMapper {
       shippingTotal: _J.money(j['shippingTotal']),
       total: _J.money(j['total']),
       refundedTotal: _J.money(j['refundedTotal']),
-      address: address.isEmpty
-          ? null
-          : MarketplaceAddress(
-              fullName: _J.text(address['fullName']) ?? '',
-              phone: _J.text(address['phone']) ?? '',
-              line1: _J.text(address['line1']) ?? '',
-              line2: _J.text(address['line2']),
-              city: _J.text(address['city']) ?? '',
-              state: _J.text(address['state']) ?? '',
-              postalCode: _J.text(address['postalCode']) ?? '',
-              country: _J.text(address['country']) ?? 'IN',
-            ),
+      address: _address(j['shippingAddress']),
       buyerNote: _J.text(j['buyerNote']),
       paymentMethod: _J.text(j['paymentMethod']),
       paidAt: _J.date(j['paidAt']),

@@ -57,6 +57,14 @@ class AppRouteNames {
   static String jewelryOrderInvoicePath(String orderId) =>
       '/jewelry/orders/${Uri.encodeComponent(orderId)}/invoice';
 
+  /// A jewellery shop's paid orders (seller studio); [openOrderId] opens
+  /// one of them (WhatsApp "Open order" button).
+  static const String jewelryShopOrders = '/jewelry/shop/orders';
+  static String jewelryShopOrdersPath({String? openOrderId}) =>
+      openOrderId == null || openOrderId.isEmpty
+      ? jewelryShopOrders
+      : '$jewelryShopOrders?o=${Uri.encodeQueryComponent(openOrderId)}';
+
   /// Shared product detail page used by every catalog segment.
   static const String productDetail = '/product/:segment/:productId';
   static String productDetailPath(String segment, String productId) =>

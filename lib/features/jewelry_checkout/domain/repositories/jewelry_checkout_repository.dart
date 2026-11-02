@@ -4,6 +4,7 @@ import '../models/bag_line.dart';
 import '../models/marketplace_invoice.dart';
 import '../models/marketplace_order.dart';
 import '../models/marketplace_quote.dart';
+import '../models/shop_order.dart';
 
 /// Jewellery marketplace pricing, orders and payment (`/marketplace`).
 abstract class JewelryCheckoutRepository {
@@ -51,6 +52,10 @@ abstract class JewelryCheckoutRepository {
     String? country,
     String? state,
   });
+
+  /// Paid orders holding the signed-in jewellery shop's pieces. Fails with
+  /// the API's message when the account is not a verified jewellery shop.
+  Future<Result<List<ShopOrder>, Failure>> shopOrders();
 
   /// Cancels one piece and refunds it; returns the updated order.
   Future<Result<MarketplaceOrder, Failure>> cancelItem({

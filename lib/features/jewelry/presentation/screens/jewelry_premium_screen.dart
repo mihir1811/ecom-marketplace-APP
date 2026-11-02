@@ -138,15 +138,10 @@ class _JewelryPremiumScreenState extends ConsumerState<JewelryPremiumScreen> {
                       style: LuxeType.eyebrow(p.accent),
                     ),
                     const SizedBox(height: 6),
-                    if (threshold == null)
-                      const LuxeSkeleton(width: 220, height: 30)
-                    else
-                      Text(
-                        context.tr(JewelryMarketL10n.premiumFrom, {
-                          'amount': rupees(threshold),
-                        }),
-                        style: LuxeType.display(30, p.ink),
-                      ),
+                    Text(
+                      context.tr(JewelryMarketL10n.premiumSegment),
+                      style: LuxeType.display(30, p.ink),
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       pieces.isInitialLoading

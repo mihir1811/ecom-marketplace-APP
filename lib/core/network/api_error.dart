@@ -37,7 +37,7 @@ abstract final class ApiError {
         return AuthFailure(friendly);
       }
       if (status == 404) {
-        return NetworkFailure(friendly);
+        return NotFoundFailure(friendly);
       }
       return ValidationFailure(friendly);
     }

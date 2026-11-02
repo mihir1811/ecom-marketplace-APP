@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/auth/confirm_sign_out.dart';
+import '../../../../core/deep_links/order_link.dart';
+import '../../../../core/deep_links/order_links.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/l10n/app_localizations.dart';
@@ -37,6 +41,17 @@ class JewelryOrderDetailScreen extends ConsumerWidget {
     );
   }
 
+  /// Signs out and keeps this order waiting, so it opens right after the
+  /// person signs in with the account that placed it.
+  Future<void> _signOutForOrder(BuildContext context, WidgetRef ref) async {
+    final router = GoRouter.of(context);
+    final auth = ref.read(authProvider.notifier);
+    if (!await confirmSignOut(context)) return;
+    await auth.logout();
+    router.go(AppRouteNames.login);
+    OrderLinks.instance.receive(BuyerOrderLink(orderId), signInRequested: true);
+  }
+
   Widget _build(BuildContext context, WidgetRef ref) {
     final p = LuxePalette.of(context);
     final orderAsync = ref.watch(jewelryOrderProvider(orderId));
@@ -56,14 +71,28 @@ class JewelryOrderDetailScreen extends ConsumerWidget {
             LuxeSkeleton(height: 220, radius: LuxeSpace.radius),
           ],
         ),
-        error: (e, _) => LuxeStateView(
-          icon: Icons.search_off_rounded,
-          tone: LuxeTone.error,
-          title: context.tr(JewelryMarketL10n.orderNotFound),
-          message: e is Failure ? e.message : '$e',
-          actionLabel: context.tr(CatalogL10n.retry),
-          onAction: () => ref.invalidate(jewelryOrderProvider(orderId)),
-        ),
+        // 404: the order belongs to another buyer (often a WhatsApp link
+        // opened on a phone signed in to a different account).
+        error: (e, _) => e is NotFoundFailure
+            ? LuxeStateView(
+                icon: Icons.manage_accounts_outlined,
+                tone: LuxeTone.error,
+                title: context.tr(JewelryMarketL10n.orderOtherAccount),
+                message: context.tr(JewelryMarketL10n.orderOtherAccountBody),
+                actionLabel: context.tr(AccountCommerceL10n.signOut),
+                onAction: () => _signOutForOrder(context, ref),
+                secondaryLabel: context.tr(CatalogL10n.retry),
+                onSecondary: () =>
+                    ref.invalidate(jewelryOrderProvider(orderId)),
+              )
+            : LuxeStateView(
+                icon: Icons.search_off_rounded,
+                tone: LuxeTone.error,
+                title: context.tr(JewelryMarketL10n.orderNotFound),
+                message: e is Failure ? e.message : '$e',
+                actionLabel: context.tr(CatalogL10n.retry),
+                onAction: () => ref.invalidate(jewelryOrderProvider(orderId)),
+              ),
         data: (order) => RefreshIndicator(
           color: p.accent,
           onRefresh: () => ref.refresh(jewelryOrderProvider(orderId).future),

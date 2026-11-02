@@ -11,6 +11,7 @@ import '../../domain/models/bag_line.dart';
 import '../../domain/models/marketplace_invoice.dart';
 import '../../domain/models/marketplace_order.dart';
 import '../../domain/models/marketplace_quote.dart';
+import '../../domain/models/shop_order.dart';
 import '../../domain/repositories/jewelry_checkout_repository.dart';
 import '../mappers/jewelry_checkout_mapper.dart';
 
@@ -110,6 +111,16 @@ class JewelryCheckoutRepositoryImpl implements JewelryCheckoutRepository {
           MarketplaceJson.data(response.data),
         );
       });
+
+  @override
+  Future<Result<List<ShopOrder>, Failure>> shopOrders() => _guard(() async {
+    final response = await _dio.get<Object?>(
+      ApiEndpoints.marketplaceSellerOrders,
+    );
+    return JewelryCheckoutMapper.shopOrders(
+      MarketplaceJson.data(response.data),
+    );
+  });
 
   @override
   Future<Result<MarketplaceInvoice, Failure>> invoice(String orderId) => _guard(
