@@ -1140,6 +1140,9 @@ class LuxeRowHeading extends StatelessWidget {
     this.subtitle,
     this.actionLabel,
     this.onAction,
+    this.titleColor,
+    this.subtitleColor,
+    this.actionColor,
   });
 
   final String title;
@@ -1147,9 +1150,17 @@ class LuxeRowHeading extends StatelessWidget {
   final String? actionLabel;
   final VoidCallback? onAction;
 
+  /// Overrides for headings placed on a tinted band.
+  final Color? titleColor;
+  final Color? subtitleColor;
+  final Color? actionColor;
+
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
+    final titleTone = titleColor ?? p.accent;
+    final subtitleTone = subtitleColor ?? p.inkMuted;
+    final actionTone = actionColor ?? p.accent;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 8, 10),
       child: Row(
@@ -1159,14 +1170,14 @@ class LuxeRowHeading extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title.toUpperCase(), style: LuxeType.eyebrow(p.accent)),
+                Text(title.toUpperCase(), style: LuxeType.eyebrow(titleTone)),
                 if (subtitle != null) ...[
                   const SizedBox(height: 4),
                   Text(
                     subtitle!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: LuxeType.label(p.inkMuted, size: 12.5),
+                    style: LuxeType.label(subtitleTone, size: 12.5),
                   ),
                 ],
               ],
@@ -1175,10 +1186,10 @@ class LuxeRowHeading extends StatelessWidget {
           if (actionLabel != null)
             TextButton(
               onPressed: onAction,
-              style: TextButton.styleFrom(foregroundColor: p.accent),
+              style: TextButton.styleFrom(foregroundColor: actionTone),
               child: Text(
                 actionLabel!,
-                style: LuxeType.label(p.accent, size: 12.5),
+                style: LuxeType.label(actionTone, size: 12.5),
               ),
             ),
         ],

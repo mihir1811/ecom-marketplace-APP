@@ -626,8 +626,24 @@ class _PremiumStrip extends ConsumerWidget {
     final items = page.items;
     final width = LuxeListingMetrics.gridCell(context);
     final height = LuxeListingMetrics.gridExtent(context);
-    return Padding(
-      padding: const EdgeInsets.only(top: 18),
+    final isDark = LuxePalette.of(context).isDark;
+    // Deep midnight-slate band (no gold) so Premium reads as its own
+    // section against the warm canvas.
+    return Container(
+      margin: const EdgeInsets.only(top: 18),
+      padding: const EdgeInsets.fromLTRB(0, 20, 0, 22),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? const [Color(0xFF1C2230), Color(0xFF11141C)]
+              : const [Color(0xFF232A38), Color(0xFF0F131A)],
+        ),
+        border: const Border.symmetric(
+          horizontal: BorderSide(color: Color(0x14FFFFFF)),
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -636,6 +652,9 @@ class _PremiumStrip extends ConsumerWidget {
             subtitle: context.tr(JewelryMarketL10n.premiumTagline),
             actionLabel: context.tr(JewelryMarketL10n.viewAll),
             onAction: () => context.push(AppRouteNames.jewelryPremium),
+            titleColor: const Color(0xFFE6E9EF),
+            subtitleColor: const Color(0xFF9AA3B2),
+            actionColor: const Color(0xFFE6E9EF),
           ),
           SizedBox(
             height: height,
