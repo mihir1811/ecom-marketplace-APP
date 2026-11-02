@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/widgets/navigation/top_bar/top_bar_create_action.dart';
 import '../../../../core/auth/account_access.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
@@ -141,101 +142,102 @@ class _SellerPromotionsScreenState
         state.discounts.isNotEmpty ||
         state.promoCodes.isNotEmpty;
 
-    return AtelierPage(
-      onRefresh: _refresh,
-      children: [
-        AtelierHero(
-          title: context.tr(RemainingL10n.promotions),
-          cut: GemCut.pear,
-          action: AtelierButton(
-            label: 'New promotion',
-            icon: Icons.add_rounded,
-            variant: AtelierButtonVariant.gold,
-            onPressed: state.isMutating ? null : _create,
+    return TopBarCreateAction(
+      create: TopBarCreate(
+        label: 'Promo',
+        tooltip: 'New promotion',
+        onPressed: state.isMutating ? null : _create,
+      ),
+      child: AtelierPage(
+        onRefresh: _refresh,
+        children: [
+          AtelierHero(
+            title: context.tr(RemainingL10n.promotions),
+            cut: GemCut.pear,
+            footer: AtelierHeroStats(
+              stats: [
+                AtelierHeroStat(
+                  label: 'Live discounts',
+                  value: loaded ? '$liveDiscounts' : '—',
+                  caption: '${state.discounts.length} in total',
+                  tone: liveDiscounts > 0 ? AtelierTone.emerald : null,
+                ),
+                AtelierHeroStat(
+                  label: 'Live codes',
+                  value: loaded ? '$liveCodes' : '—',
+                  caption: '${state.promoCodes.length} in total',
+                  tone: liveCodes > 0 ? AtelierTone.emerald : null,
+                ),
+                AtelierHeroStat(
+                  label: 'Redemptions',
+                  value: loaded ? '$redemptions' : '—',
+                  caption: 'Across all codes',
+                ),
+              ],
+            ),
           ),
-          footer: AtelierHeroStats(
-            stats: [
-              AtelierHeroStat(
-                label: 'Live discounts',
-                value: loaded ? '$liveDiscounts' : '—',
-                caption: '${state.discounts.length} in total',
-                tone: liveDiscounts > 0 ? AtelierTone.emerald : null,
-              ),
-              AtelierHeroStat(
-                label: 'Live codes',
-                value: loaded ? '$liveCodes' : '—',
-                caption: '${state.promoCodes.length} in total',
-                tone: liveCodes > 0 ? AtelierTone.emerald : null,
-              ),
-              AtelierHeroStat(
-                label: 'Redemptions',
-                value: loaded ? '$redemptions' : '—',
-                caption: 'Across all codes',
-              ),
-            ],
+          const SizedBox(height: AtelierSpace.s24),
+          Reveal(
+            index: 2,
+            child: AtelierSegmented<_PromoTab>(
+              expand: true,
+              segments: [
+                AtelierSegment(
+                  value: _PromoTab.discounts,
+                  label: context.tr(RemainingL10n.discounts),
+                  icon: Icons.percent_rounded,
+                  count: state.discounts.length,
+                ),
+                AtelierSegment(
+                  value: _PromoTab.promoCodes,
+                  label: context.tr(RemainingL10n.promoCodes),
+                  icon: Icons.confirmation_number_outlined,
+                  count: state.promoCodes.length,
+                ),
+              ],
+              selected: _tab,
+              onChanged: (t) => setState(() => _tab = t),
+            ),
           ),
-        ),
-        const SizedBox(height: AtelierSpace.s24),
-        Reveal(
-          index: 2,
-          child: AtelierSegmented<_PromoTab>(
-            expand: true,
-            segments: [
-              AtelierSegment(
-                value: _PromoTab.discounts,
-                label: context.tr(RemainingL10n.discounts),
-                icon: Icons.percent_rounded,
-                count: state.discounts.length,
-              ),
-              AtelierSegment(
-                value: _PromoTab.promoCodes,
-                label: context.tr(RemainingL10n.promoCodes),
-                icon: Icons.confirmation_number_outlined,
-                count: state.promoCodes.length,
-              ),
-            ],
-            selected: _tab,
-            onChanged: (t) => setState(() => _tab = t),
-          ),
-        ),
-        AnimatedSwitcher(
-          duration: AtelierMotion.base,
-          child: state.isMutating || (state.isLoading && loaded)
-              ? Padding(
-                  key: const ValueKey('busy'),
-                  padding: const EdgeInsets.only(top: 10),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(2),
-                    child: LinearProgressIndicator(
-                      minHeight: 2,
-                      color: p.gold,
-                      backgroundColor: p.sunken,
+          AnimatedSwitcher(
+            duration: AtelierMotion.base,
+            child: state.isMutating || (state.isLoading && loaded)
+                ? Padding(
+                    key: const ValueKey('busy'),
+                    padding: const EdgeInsets.only(top: 10),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(2),
+                      child: LinearProgressIndicator(
+                        minHeight: 2,
+                        color: p.gold,
+                        backgroundColor: p.sunken,
+                      ),
                     ),
-                  ),
-                )
-              : const SizedBox(key: ValueKey('idle'), height: 12),
-        ),
-        if (state.errorMessage != null &&
-            (state.discounts.isNotEmpty || state.promoCodes.isNotEmpty)) ...[
-          const SizedBox(height: AtelierSpace.s8),
-          AtelierNotice(
-            text: state.errorMessage!,
-            tone: AtelierTone.ruby,
-            icon: Icons.error_outline_rounded,
-            actionLabel: context.tr(RemainingL10n.retry),
-            onAction: _refresh,
+                  )
+                : const SizedBox(key: ValueKey('idle'), height: 12),
+          ),
+          if (state.errorMessage != null &&
+              (state.discounts.isNotEmpty || state.promoCodes.isNotEmpty)) ...[
+            const SizedBox(height: AtelierSpace.s8),
+            AtelierNotice(
+              text: state.errorMessage!,
+              tone: AtelierTone.ruby,
+              icon: Icons.error_outline_rounded,
+              actionLabel: context.tr(RemainingL10n.retry),
+              onAction: _refresh,
+            ),
+          ],
+          const SizedBox(height: AtelierSpace.s12),
+          AnimatedSwitcher(
+            duration: AtelierMotion.base,
+            switchInCurve: AtelierMotion.emphasized,
+            child: KeyedSubtree(
+              key: ValueKey('$_tab-${state.isLoading && !loaded}'),
+              child: _body(context, state, isDiscounts),
+            ),
           ),
         ],
-        const SizedBox(height: AtelierSpace.s12),
-        AnimatedSwitcher(
-          duration: AtelierMotion.base,
-          switchInCurve: AtelierMotion.emphasized,
-          child: KeyedSubtree(
-            key: ValueKey('$_tab-${state.isLoading && !loaded}'),
-            child: _body(context, state, isDiscounts),
-          ),
-        ),
-      ],
+      ),
     );
   }
 

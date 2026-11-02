@@ -6,6 +6,7 @@ import '../../../../core/utils/app_currency.dart';
 import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../../application/seller_insights_provider.dart';
 import '../../domain/models/seller_insights.dart';
+import '../widgets/dashboard/dashboard_performance.dart';
 import '../atelier/atelier_components.dart';
 import '../atelier/atelier_feedback.dart';
 import '../atelier/atelier_motion.dart';
@@ -23,29 +24,67 @@ class SellerAnalyticsScreen extends ConsumerStatefulWidget {
 }
 
 class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
-  AnalyticsRange _range = AnalyticsRange.last30;
+  AnalyticsWindow _window = const AnalyticsWindow(AnalyticsRange.last30);
 
-  String _rangeLabel(AnalyticsRange r) => switch (r) {
+  bool get _custom => _window.range == AnalyticsRange.custom;
+
+  String _rangeLabel(AnalyticsWindow w) => switch (w.range) {
     AnalyticsRange.last7 => context.tr(RemainingL10n.last7Days),
     AnalyticsRange.last30 => context.tr(RemainingL10n.last30Days),
     AnalyticsRange.last90 => context.tr(RemainingL10n.last90Days),
     AnalyticsRange.year => context.tr(RemainingL10n.thisYear),
+    AnalyticsRange.custom => '${_date(w.from!)} – ${_date(w.to!)}',
   };
 
-  static String _rangeShort(AnalyticsRange r) => switch (r) {
+  String _rangeShort(AnalyticsRange r) => switch (r) {
     AnalyticsRange.last7 => '7D',
     AnalyticsRange.last30 => '30D',
     AnalyticsRange.last90 => '90D',
     AnalyticsRange.year => 'YTD',
+    AnalyticsRange.custom => context.tr(RemainingL10n.custom),
   };
 
+  static const _months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', //
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+
+  static String _date(DateTime d) {
+    final sameYear = d.year == DateTime.now().year;
+    return '${d.day} ${_months[d.month - 1]}${sameYear ? '' : ' ${d.year}'}';
+  }
+
   Future<void> _refresh() =>
-      ref.read(sellerAnalyticsProvider(_range).notifier).refresh();
+      ref.read(sellerAnalyticsProvider(_window).notifier).refresh();
+
+  Future<void> _onRange(AnalyticsRange range) async {
+    if (range == AnalyticsRange.custom) return _pickCustom();
+    setState(() => _window = AnalyticsWindow(range));
+  }
+
+  /// Picks the custom days; cancelling keeps the current window.
+  Future<void> _pickCustom() async {
+    final picked = await pickDashboardCustomRange(
+      context,
+      initialStart: _window.from,
+      initialEnd: _window.to,
+    );
+    if (picked == null || !mounted) return;
+    var (from, to) = picked;
+    if (to.isBefore(from)) (from, to) = (to, from);
+    setState(
+      () => _window = AnalyticsWindow(
+        AnalyticsRange.custom,
+        from: DateTime(from.year, from.month, from.day),
+        to: DateTime(to.year, to.month, to.day),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final p = context.atelier;
-    final state = ref.watch(sellerAnalyticsProvider(_range));
+    final state = ref.watch(sellerAnalyticsProvider(_window));
     final snapshot = state.snapshot;
     final headline = snapshot?.kpis.firstOrNull;
 
@@ -58,7 +97,7 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
           footer: _HeroHeadline(
             label:
                 '${headline?.title ?? context.tr(RemainingL10n.revenue)}'
-                ' · ${_rangeLabel(_range)}',
+                ' · ${_rangeLabel(_window)}',
             kpi: headline,
             loading: snapshot == null && state.errorMessage == null,
           ),
@@ -66,54 +105,75 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
         const SizedBox(height: AtelierSpace.s16),
         Reveal(
           index: 2,
-          child: Row(
-            children: [
-              Expanded(
-                child: AtelierSegmented<AnalyticsRange>(
-                  expand: true,
-                  segments: [
-                    for (final r in AnalyticsRange.values)
-                      AtelierSegment(value: r, label: _rangeShort(r)),
-                  ],
-                  selected: _range,
-                  onChanged: (r) => setState(() => _range = r),
+          child: AtelierSegmented<AnalyticsRange>(
+            expand: true,
+            segments: [
+              for (final r in AnalyticsRange.values)
+                AtelierSegment(
+                  value: r,
+                  label: _rangeShort(r),
+                  icon: r == AnalyticsRange.custom
+                      ? Icons.date_range_rounded
+                      : null,
                 ),
-              ),
-              const SizedBox(width: 8),
-              AnimatedSwitcher(
-                duration: AtelierMotion.base,
-                child: state.isLoading && snapshot != null
-                    ? SizedBox(
-                        key: const ValueKey('busy'),
-                        width: 40,
-                        height: 40,
-                        child: Center(
-                          child: SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 1.8,
-                              color: p.gold,
-                            ),
-                          ),
-                        ),
-                      )
-                    : AtelierIconButton(
-                        key: const ValueKey('idle'),
-                        icon: Icons.refresh_rounded,
-                        tooltip: context.tr(RemainingL10n.refresh),
-                        filled: true,
-                        onPressed: _refresh,
-                      ),
-              ),
             ],
+            selected: _window.range,
+            onChanged: _onRange,
           ),
         ),
         if (snapshot != null) ...[
           const SizedBox(height: 8),
-          Text(
-            '${_rangeLabel(_range)} · updated ${_time(snapshot.fetchedAt)}',
-            style: AtelierType.caption(p.muted, size: 11.5),
+          Row(
+            children: [
+              Flexible(
+                child: Text(
+                  '${_rangeLabel(_window)} · updated '
+                  '${_time(snapshot.fetchedAt)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AtelierType.caption(p.muted, size: 11.5),
+                ),
+              ),
+              if (state.isLoading) ...[
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 11,
+                  height: 11,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 1.4,
+                    color: p.gold,
+                  ),
+                ),
+              ],
+              if (_custom) ...[
+                const SizedBox(width: 6),
+                InkWell(
+                  onTap: _pickCustom,
+                  borderRadius: BorderRadius.circular(6),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 2,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.edit_calendar_rounded,
+                          size: 13,
+                          color: p.gold,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Change dates',
+                          style: AtelierType.caption(p.gold, size: 11.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
         ],
         if (state.errorMessage != null && snapshot != null) ...[
@@ -131,7 +191,7 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
           duration: AtelierMotion.slow,
           switchInCurve: AtelierMotion.emphasized,
           child: KeyedSubtree(
-            key: ValueKey('$_range-${snapshot == null}'),
+            key: ValueKey('${_window.hashCode}-${snapshot == null}'),
             child: _body(context, state, snapshot),
           ),
         ),

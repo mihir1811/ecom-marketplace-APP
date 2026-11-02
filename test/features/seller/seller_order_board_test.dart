@@ -58,20 +58,13 @@ List<String> _ids(List<SellerOrderBoardEntry> entries) => [
 void main() {
   group('categories', () {
     test('seller decision and payment status pick the order tab', () {
+      expect(sellerOrderCategoryOf(_order('1')), SellerOrderCategory.pending);
       expect(
-        sellerOrderCategoryOf(_order('1')),
-        SellerOrderCategory.pending,
-      );
-      expect(
-        sellerOrderCategoryOf(
-          _order('2', status: SellerOrderStatus.accepted),
-        ),
+        sellerOrderCategoryOf(_order('2', status: SellerOrderStatus.accepted)),
         SellerOrderCategory.confirmed,
       );
       expect(
-        sellerOrderCategoryOf(
-          _order('3', status: SellerOrderStatus.rejected),
-        ),
+        sellerOrderCategoryOf(_order('3', status: SellerOrderStatus.rejected)),
         SellerOrderCategory.cancelled,
       );
       // Post-acceptance fulfilment statuses stay under Confirmed.
@@ -210,18 +203,22 @@ void main() {
 
     test('sorts by date, value and customer name', () {
       expect(run(const SellerOrderFilters()), ['c', 'b', 'a', 'd']);
-      expect(
-        run(const SellerOrderFilters(sort: SellerOrderSort.oldest)),
-        ['a', 'b', 'c', 'd'],
-      );
+      expect(run(const SellerOrderFilters(sort: SellerOrderSort.oldest)), [
+        'a',
+        'b',
+        'c',
+        'd',
+      ]);
       expect(
         run(const SellerOrderFilters(sort: SellerOrderSort.highestValue)),
         ['b', 'd', 'a', 'c'],
       );
-      expect(
-        run(const SellerOrderFilters(sort: SellerOrderSort.lowestValue)),
-        ['c', 'a', 'd', 'b'],
-      );
+      expect(run(const SellerOrderFilters(sort: SellerOrderSort.lowestValue)), [
+        'c',
+        'a',
+        'd',
+        'b',
+      ]);
       expect(
         run(const SellerOrderFilters(sort: SellerOrderSort.customerName)),
         ['b', 'd', 'c', 'a'],

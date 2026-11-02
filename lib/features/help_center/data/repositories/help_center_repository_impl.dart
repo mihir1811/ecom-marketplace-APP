@@ -86,7 +86,9 @@ class HelpCenterRepositoryImpl implements HelpCenterRepository {
       );
       final data = response.data?['data'];
       if (data is! Map<String, dynamic>) {
-        return Result.failure(const UnknownFailure('Unexpected create response.'));
+        return Result.failure(
+          const UnknownFailure('Unexpected create response.'),
+        );
       }
       return Result.success(HelpQuestionMapper.fromJson(data));
     } on DioException catch (e) {
@@ -108,7 +110,9 @@ class HelpCenterRepositoryImpl implements HelpCenterRepository {
       );
       final data = response.data?['data'];
       if (data is! Map<String, dynamic>) {
-        return Result.failure(const UnknownFailure('Unexpected close response.'));
+        return Result.failure(
+          const UnknownFailure('Unexpected close response.'),
+        );
       }
       return Result.success(HelpQuestionMapper.fromJson(data));
     } on DioException catch (e) {
@@ -124,12 +128,14 @@ class HelpCenterRepositoryImpl implements HelpCenterRepository {
     int limit,
   ) {
     final dataNode = root?['data'];
-    final payload =
-        dataNode is Map<String, dynamic> ? dataNode : const <String, dynamic>{};
+    final payload = dataNode is Map<String, dynamic>
+        ? dataNode
+        : const <String, dynamic>{};
     final itemsJson = payload['data'];
     final metaJson = payload['meta'];
-    final meta =
-        metaJson is Map<String, dynamic> ? metaJson : const <String, dynamic>{};
+    final meta = metaJson is Map<String, dynamic>
+        ? metaJson
+        : const <String, dynamic>{};
 
     final list = itemsJson is List ? itemsJson : const [];
     final items = <HelpQuestion>[];

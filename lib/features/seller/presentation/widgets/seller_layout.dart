@@ -39,6 +39,7 @@ class SellerLayout extends ConsumerWidget {
     AppRouteNames.sellerReferences,
     AppRouteNames.sellerInquiries,
     AppRouteNames.sellerNotifications,
+    AppRouteNames.sellerSettings,
     AppRouteNames.sellerAbout,
     AppRouteNames.sellerPrivacy,
     AppRouteNames.sellerTerms,

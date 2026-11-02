@@ -103,9 +103,15 @@ class SellerInsightsRepositoryImpl implements SellerInsightsRepository {
   @override
   Future<Result<SellerAnalyticsSnapshot, Failure>> getAnalytics({
     required AnalyticsRange range,
+    DateTime? from,
+    DateTime? to,
     CancelToken? cancelToken,
   }) async {
-    final queries = SellerInsightsAggregator.analyticsQueries(range);
+    final queries = SellerInsightsAggregator.analyticsQueries(
+      range,
+      from: from,
+      to: to,
+    );
     final results = await Future.wait([
       _loadStats(queries.current, cancelToken: cancelToken),
       _loadStats(queries.previous, cancelToken: cancelToken),

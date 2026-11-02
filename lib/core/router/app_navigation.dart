@@ -131,6 +131,13 @@ abstract final class AppNavigation {
         path.startsWith('${AppRouteNames.buyerPolicies}/')) {
       return AppRouteNames.buyerSettings;
     }
+    if (path == AppRouteNames.sellerAbout ||
+        path == AppRouteNames.sellerPrivacy ||
+        path == AppRouteNames.sellerTerms ||
+        path == AppRouteNames.sellerPolicies ||
+        path.startsWith('${AppRouteNames.sellerPolicies}/')) {
+      return AppRouteNames.sellerSettings;
+    }
     if (path.startsWith('/seller/') && path != AppRouteNames.sellerDashboard) {
       return AppRouteNames.sellerDashboard;
     }

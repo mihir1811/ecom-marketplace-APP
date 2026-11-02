@@ -5,7 +5,29 @@ enum SalesRange { daily, weekly, monthly, quarterly, yearly, custom }
 enum DashboardMetric { totalSales, productsSold, orders, inventoryValue }
 
 /// Time window for the analytics screen.
-enum AnalyticsRange { last7, last30, last90, year }
+enum AnalyticsRange { last7, last30, last90, year, custom }
+
+/// An [AnalyticsRange] plus its picked days when it is
+/// [AnalyticsRange.custom]. Value-equal, so it can key a provider family.
+class AnalyticsWindow {
+  const AnalyticsWindow(this.range, {this.from, this.to});
+
+  final AnalyticsRange range;
+
+  /// Inclusive first / last day; used only for [AnalyticsRange.custom].
+  final DateTime? from;
+  final DateTime? to;
+
+  @override
+  bool operator ==(Object other) =>
+      other is AnalyticsWindow &&
+      other.range == range &&
+      other.from == from &&
+      other.to == to;
+
+  @override
+  int get hashCode => Object.hash(range, from, to);
+}
 
 /// One KPI card on the seller dashboard.
 class DashboardMetricCard {

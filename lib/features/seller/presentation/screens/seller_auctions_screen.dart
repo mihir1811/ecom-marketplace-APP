@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/widgets/navigation/top_bar/top_bar_create_action.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../core/widgets/gem3d/gem_renderer.dart';
 import '../../../auction/application/auction_providers.dart';
 import '../../../auction/data/repositories/auction_repository_impl.dart';
 import '../../../auction/domain/models/auction_models.dart';
@@ -27,7 +26,8 @@ import '../widgets/seller_auction_create_sheet.dart';
 class SellerAuctionsScreen extends ConsumerStatefulWidget {
   const SellerAuctionsScreen({this.initialTab, super.key});
 
-  /// `?tab=` on the route: `active`, `upcoming`, `ended` or `decision`.
+  /// `?tab=` on the route: `active`, `upcoming`, `ended`, `sold` or
+  /// `decision`.
   final String? initialTab;
 
   @override
@@ -47,7 +47,13 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
   /// the seller. The backend has no status filter for them.
   static const _decisionTab = 'decision';
 
+  /// Client-side tab: sold lots from the standing scan.
+  static const _soldTab = 'sold';
+
   bool get _deciding => _status == _decisionTab;
+
+  /// Tabs listed from the standing scan instead of the paged feed.
+  bool get _fromStanding => _deciding || _status == _soldTab;
 
   @override
   void initState() {
@@ -69,13 +75,13 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
   }
 
   static String? _tabFrom(String? tab) => switch (tab) {
-    'active' || 'upcoming' || 'ended' || _decisionTab => tab,
+    'active' || 'upcoming' || 'ended' || _soldTab || _decisionTab => tab,
     _ => null,
   };
 
   AuctionFeedQuery get _query => AuctionFeedQuery(
     kind: AuctionFeedKind.seller,
-    status: _deciding ? null : _status,
+    status: _fromStanding ? null : _status,
   );
 
   Future<void> _refresh() async {
@@ -122,134 +128,114 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
     ref.listen(sellerAuctionStandingProvider, (_, next) {
       if (_deciding && next.hasValue && !next.isLoading) _openDecisionBids();
     });
-    String count(int? v) => v == null ? '—' : '$v';
-
-    return AtelierPage(
-      onRefresh: _refresh,
-      onNearEnd: () {
-        if (feed.hasMore && !feed.isLoadingMore && !feed.isLoading) {
-          ref.read(auctionFeedProvider(_query).notifier).loadMore();
-        }
-      },
-      children: [
-        AtelierHero(
-          title: context.tr(RemainingL10n.auctions),
-          cut: GemCut.emerald,
-          look: GemLook.ice,
-          action: AtelierButton(
-            label: 'Create auction',
-            icon: Icons.add_rounded,
-            variant: AtelierButtonVariant.gold,
-            onPressed: _create,
-          ),
-          footer: AtelierHeroStats(
-            stats: [
-              AtelierHeroStat(
-                label: 'Live now',
-                value: count(standing?.active),
-                tone: (standing?.active ?? 0) > 0 ? AtelierTone.emerald : null,
+    return TopBarCreateAction(
+      create: TopBarCreate(
+        label: 'Auction',
+        tooltip: 'Create auction',
+        onPressed: _create,
+      ),
+      child: AtelierPage(
+        onRefresh: _refresh,
+        onNearEnd: () {
+          if (feed.hasMore && !feed.isLoadingMore && !feed.isLoading) {
+            ref.read(auctionFeedProvider(_query).notifier).loadMore();
+          }
+        },
+        children: [
+          if (standingAsync.hasError) ...[
+            AtelierNotice(
+              text: standingAsync.error is Failure
+                  ? (standingAsync.error! as Failure).message
+                  : 'Could not load auction outcomes.',
+              tone: AtelierTone.ruby,
+              icon: Icons.error_outline_rounded,
+              actionLabel: context.tr(RemainingL10n.retry),
+              onAction: () => ref.invalidate(sellerAuctionStandingProvider),
+            ),
+            const SizedBox(height: AtelierSpace.s16),
+          ] else if ((standing?.needsDecision ?? 0) > 0 && !_deciding) ...[
+            Reveal(
+              index: 1,
+              child: AtelierNotice(
+                text: standing!.needsDecision == 1
+                    ? 'One finished auction is waiting for your decision.'
+                    : '${standing.needsDecision} finished auctions are waiting '
+                          'for your decision.',
+                tone: AtelierTone.amber,
+                icon: Icons.gavel_rounded,
+                actionLabel: 'Review',
+                onAction: () => _setStatus(_decisionTab),
               ),
-              AtelierHeroStat(
-                label: 'Needs decision',
-                value: count(standing?.needsDecision),
-                tone: (standing?.needsDecision ?? 0) > 0
-                    ? AtelierTone.amber
-                    : null,
-              ),
-              AtelierHeroStat(label: 'Sold', value: count(standing?.sold)),
-              AtelierHeroStat(
-                label: 'Bids received',
-                value: count(standing?.bids),
-              ),
-            ],
-          ),
-        ),
-        if (standingAsync.hasError) ...[
-          const SizedBox(height: AtelierSpace.s12),
-          AtelierNotice(
-            text: standingAsync.error is Failure
-                ? (standingAsync.error! as Failure).message
-                : 'Could not load auction outcomes.',
-            tone: AtelierTone.ruby,
-            icon: Icons.error_outline_rounded,
-            actionLabel: context.tr(RemainingL10n.retry),
-            onAction: () => ref.invalidate(sellerAuctionStandingProvider),
-          ),
-        ] else if ((standing?.needsDecision ?? 0) > 0 && !_deciding) ...[
-          const SizedBox(height: AtelierSpace.s12),
+            ),
+            const SizedBox(height: AtelierSpace.s16),
+          ],
           Reveal(
-            index: 1,
-            child: AtelierNotice(
-              text: standing!.needsDecision == 1
-                  ? 'One finished auction is waiting for your decision.'
-                  : '${standing.needsDecision} finished auctions are waiting '
-                        'for your decision.',
-              tone: AtelierTone.amber,
-              icon: Icons.gavel_rounded,
-              actionLabel: 'Review',
-              onAction: () => _setStatus(_decisionTab),
+            index: 2,
+            child: AtelierSegmented<String?>(
+              segments: [
+                AtelierSegment(
+                  value: null,
+                  label: context.tr(RemainingL10n.all),
+                  count: standing?.total,
+                ),
+                AtelierSegment(
+                  value: 'active',
+                  label: 'Live',
+                  icon: Icons.sensors_rounded,
+                  count: standing?.active,
+                ),
+                AtelierSegment(
+                  value: 'upcoming',
+                  label: 'Upcoming',
+                  icon: Icons.schedule_rounded,
+                  count: standing?.upcoming,
+                ),
+                AtelierSegment(
+                  value: 'ended',
+                  label: 'Ended',
+                  icon: Icons.flag_outlined,
+                  count: standing?.ended,
+                ),
+                AtelierSegment(
+                  value: _soldTab,
+                  label: 'Sold',
+                  icon: Icons.sell_outlined,
+                  count: standing?.sold,
+                ),
+                if ((standing?.needsDecision ?? 0) > 0 || _deciding)
+                  AtelierSegment(
+                    value: _decisionTab,
+                    label: 'Needs decision',
+                    icon: Icons.gavel_rounded,
+                    count: standing?.needsDecision,
+                  ),
+              ],
+              selected: _status,
+              onChanged: _setStatus,
             ),
           ),
-        ],
-        const SizedBox(height: AtelierSpace.s16),
-        Reveal(
-          index: 2,
-          child: AtelierSegmented<String?>(
-            segments: [
-              AtelierSegment(
-                value: null,
-                label: context.tr(RemainingL10n.all),
-                count: standing?.total,
-              ),
-              AtelierSegment(
-                value: 'active',
-                label: 'Live',
-                icon: Icons.sensors_rounded,
-                count: standing?.active,
-              ),
-              AtelierSegment(
-                value: 'upcoming',
-                label: 'Upcoming',
-                icon: Icons.schedule_rounded,
-                count: standing?.upcoming,
-              ),
-              AtelierSegment(
-                value: 'ended',
-                label: 'Ended',
-                icon: Icons.flag_outlined,
-                count: standing?.ended,
-              ),
-              if ((standing?.needsDecision ?? 0) > 0 || _deciding)
-                AtelierSegment(
-                  value: _decisionTab,
-                  label: 'Needs decision',
-                  icon: Icons.gavel_rounded,
-                  count: standing?.needsDecision,
-                ),
-            ],
-            selected: _status,
-            onChanged: _setStatus,
+          const SizedBox(height: AtelierSpace.s12),
+          AnimatedSwitcher(
+            duration: AtelierMotion.base,
+            switchInCurve: AtelierMotion.emphasized,
+            child: _fromStanding
+                ? KeyedSubtree(
+                    key: ValueKey(
+                      '$_status-${standingAsync.valueOrNull == null}',
+                    ),
+                    child: _deciding
+                        ? _decisionBody(standingAsync)
+                        : _soldBody(standingAsync),
+                  )
+                : KeyedSubtree(
+                    key: ValueKey(
+                      '$_status-${feed.isLoading && feed.items.isEmpty}',
+                    ),
+                    child: _body(context, feed),
+                  ),
           ),
-        ),
-        const SizedBox(height: AtelierSpace.s12),
-        AnimatedSwitcher(
-          duration: AtelierMotion.base,
-          switchInCurve: AtelierMotion.emphasized,
-          child: _deciding
-              ? KeyedSubtree(
-                  key: ValueKey(
-                    '$_status-${standingAsync.valueOrNull == null}',
-                  ),
-                  child: _decisionBody(standingAsync),
-                )
-              : KeyedSubtree(
-                  key: ValueKey(
-                    '$_status-${feed.isLoading && feed.items.isEmpty}',
-                  ),
-                  child: _body(context, feed),
-                ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -310,20 +296,41 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
     );
   }
 
-  Widget _decisionBody(AsyncValue<SellerAuctionStanding> standing) {
-    final items = standing.valueOrNull?.awaitingDecision;
-    if (items == null) {
-      if (standing.hasError) {
-        return AtelierErrorState(
-          title: 'Auctions unavailable',
-          message: standing.error is Failure
-              ? (standing.error! as Failure).message
-              : 'Could not load auction outcomes.',
-          onRetry: _refresh,
-        );
-      }
-      return const AtelierSkeletonList(count: 2, height: 120);
+  /// Loading / error stand-in while the standing scan has no data yet.
+  Widget? _standingPending(AsyncValue<SellerAuctionStanding> standing) {
+    if (standing.valueOrNull != null) return null;
+    if (standing.hasError) {
+      return AtelierErrorState(
+        title: 'Auctions unavailable',
+        message: standing.error is Failure
+            ? (standing.error! as Failure).message
+            : 'Could not load auction outcomes.',
+        onRetry: _refresh,
+      );
     }
+    return const AtelierSkeletonList(count: 2, height: 120);
+  }
+
+  Widget _soldBody(AsyncValue<SellerAuctionStanding> standing) {
+    final pending = _standingPending(standing);
+    if (pending != null) return pending;
+    final items = standing.requireValue.soldAuctions;
+    if (items.isEmpty) {
+      return AtelierEmptyState(
+        icon: Icons.sell_outlined,
+        title: 'Nothing sold yet',
+        message: 'Auctions that end in a sale show up here.',
+        actionLabel: 'See all auctions',
+        onAction: () => _setStatus(null),
+      );
+    }
+    return _grid(items);
+  }
+
+  Widget _decisionBody(AsyncValue<SellerAuctionStanding> standing) {
+    final pending = _standingPending(standing);
+    if (pending != null) return pending;
+    final items = standing.requireValue.awaitingDecision;
     if (items.isEmpty) {
       return AtelierEmptyState(
         icon: Icons.task_alt_rounded,

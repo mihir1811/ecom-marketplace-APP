@@ -6,7 +6,7 @@ import '../../../../core/error/result.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/workspace_mode.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
+import '../../../../core/widgets/navigation/top_bar/top_bar_create_action.dart';
 import '../../application/help_center_provider.dart';
 import '../../domain/models/help_question.dart';
 import '../../../seller/presentation/atelier/atelier_components.dart';
@@ -119,10 +119,6 @@ class _HelpCenterScreenState extends ConsumerState<HelpCenterScreen> {
     final openCount = count(HelpQuestionStatus.open);
     final answeredCount = count(HelpQuestionStatus.answered);
     final closedCount = count(HelpQuestionStatus.closed);
-    final total = listState.total > items.length
-        ? listState.total
-        : items.length;
-    final firstLoad = listState.isLoading && items.isEmpty;
     final visible = _filter == null
         ? items
         : items.where((q) => q.status == _filter).toList();
@@ -139,50 +135,6 @@ class _HelpCenterScreenState extends ConsumerState<HelpCenterScreen> {
           ? () => ref.read(helpQuestionListProvider.notifier).loadMore()
           : null,
       children: [
-        AtelierHero(
-          title: context.tr(RemainingL10n.helpCenter),
-          cut: GemCut.oval,
-          action: Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              AtelierButton(
-                label: hasDraft
-                    ? 'Continue your draft'
-                    : context.tr(RemainingL10n.newQuestion),
-                icon: hasDraft
-                    ? Icons.edit_note_rounded
-                    : Icons.add_comment_outlined,
-                variant: AtelierButtonVariant.gold,
-                compact: true,
-                onPressed: _compose,
-              ),
-            ],
-          ),
-          footer: AtelierHeroStats(
-            stats: [
-              AtelierHeroStat(
-                label: 'Awaiting reply',
-                value: firstLoad ? '—' : '$openCount',
-                caption: 'With our team',
-                tone: openCount > 0 ? AtelierTone.amber : null,
-              ),
-              AtelierHeroStat(
-                label: 'Answered',
-                value: firstLoad ? '—' : '$answeredCount',
-                caption: 'Replies to read',
-                tone: answeredCount > 0 ? AtelierTone.emerald : null,
-              ),
-              AtelierHeroStat(
-                label: 'All questions',
-                value: firstLoad ? '—' : '$total',
-                caption: 'Asked so far',
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: AtelierSpace.s20),
         Reveal(
           index: 1,
           child: _TopicDropdown(seller: seller, onPick: _compose),
@@ -235,7 +187,17 @@ class _HelpCenterScreenState extends ConsumerState<HelpCenterScreen> {
       ],
     );
 
-    return ColoredBox(color: p.canvas, child: page);
+    return TopBarCreateAction(
+      create: TopBarCreate(
+        label: hasDraft ? 'Draft' : 'Ask',
+        tooltip: hasDraft
+            ? 'Continue your draft'
+            : context.tr(RemainingL10n.newQuestion),
+        icon: hasDraft ? Icons.edit_note_rounded : Icons.add_rounded,
+        onPressed: _compose,
+      ),
+      child: ColoredBox(color: p.canvas, child: page),
+    );
   }
 
   List<Widget> _tickets(HelpQuestionListState s, List<HelpQuestion> visible) {

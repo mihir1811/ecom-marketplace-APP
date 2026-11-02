@@ -133,7 +133,7 @@ class AuctionRepositoryImpl implements AuctionRepository {
     }
 
     final awaiting = <AuctionListing>[];
-    var sold = 0;
+    final sold = <AuctionListing>[];
     var bidCount = 0;
     var total = 0;
     var page = 1;
@@ -148,7 +148,7 @@ class AuctionRepositoryImpl implements AuctionRepository {
           last = value.lastPage;
           for (final auction in value.items) {
             if (auction.awaitingSellerDecision) awaiting.add(auction);
-            if (auction.isSold) sold += 1;
+            if (auction.isSold) sold.add(auction);
             bidCount += auction.bids.isEmpty && auction.highestBidAmount != null
                 ? 1
                 : auction.bids.length;
@@ -163,9 +163,10 @@ class AuctionRepositoryImpl implements AuctionRepository {
         active: active,
         upcoming: upcoming,
         ended: ended,
-        sold: sold,
+        sold: sold.length,
         bids: bidCount,
         awaitingDecision: awaiting,
+        soldAuctions: sold,
       ),
     );
   }

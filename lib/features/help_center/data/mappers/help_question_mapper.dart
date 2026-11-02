@@ -12,7 +12,8 @@ abstract final class HelpQuestionMapper {
       id: json['id']?.toString() ?? '',
       subject: json['subject']?.toString() ?? '',
       body: json['body']?.toString() ?? '',
-      issueType: HelpIssueType.fromApi(json['issueType']?.toString()) ??
+      issueType:
+          HelpIssueType.fromApi(json['issueType']?.toString()) ??
           HelpIssueType.generalInquiry,
       status: HelpQuestionStatus.fromApi(json['status']?.toString()),
       userId: json['userId']?.toString() ?? user?.id ?? '',

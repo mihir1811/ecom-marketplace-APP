@@ -214,7 +214,12 @@ abstract final class SellerInsightsAggregator {
 
   /// Current window and the equally long window right before it.
   static ({SellerStatsQuery current, SellerStatsQuery previous})
-  analyticsQueries(AnalyticsRange range, {DateTime? now}) {
+  analyticsQueries(
+    AnalyticsRange range, {
+    DateTime? now,
+    DateTime? from,
+    DateTime? to,
+  }) {
     final today = _day(now ?? DateTime.now());
     final y = today.year;
     final m = today.month;
@@ -242,6 +247,10 @@ abstract final class SellerInsightsAggregator {
       AnalyticsRange.last7 => trailing(7, SellerStatsPeriod.daily),
       AnalyticsRange.last30 => trailing(30, SellerStatsPeriod.daily),
       AnalyticsRange.last90 => trailing(90, SellerStatsPeriod.weekly),
+      AnalyticsRange.custom => _customQueries(
+        from ?? DateTime(y, m, d - 29),
+        to ?? today,
+      ),
       // Year to date vs the same days of last year.
       AnalyticsRange.year => (
         current: SellerStatsQuery(
@@ -256,6 +265,26 @@ abstract final class SellerInsightsAggregator {
         ),
       ),
     };
+  }
+
+  /// Picked days vs the equally long stretch right before them.
+  static ({SellerStatsQuery current, SellerStatsQuery previous}) _customQueries(
+    DateTime start,
+    DateTime end,
+  ) {
+    var from = _day(start);
+    var to = _day(end);
+    if (to.isBefore(from)) (from, to) = (to, from);
+    final days = _daysBetween(from, to) + 1;
+    final period = _periodForSpan(from, to);
+    return (
+      current: SellerStatsQuery(period: period, from: from, to: to),
+      previous: SellerStatsQuery(
+        period: period,
+        from: DateTime(from.year, from.month, from.day - days),
+        to: DateTime(from.year, from.month, from.day - 1),
+      ),
+    );
   }
 
   static SellerAnalyticsSnapshot analytics({

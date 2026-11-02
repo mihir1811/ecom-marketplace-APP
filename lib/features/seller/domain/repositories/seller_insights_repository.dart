@@ -13,6 +13,8 @@ abstract class SellerInsightsRepository {
 
   Future<Result<SellerAnalyticsSnapshot, Failure>> getAnalytics({
     required AnalyticsRange range,
+    DateTime? from,
+    DateTime? to,
     CancelToken? cancelToken,
   });
 

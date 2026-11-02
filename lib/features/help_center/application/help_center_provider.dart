@@ -80,10 +80,7 @@ class HelpQuestionListNotifier extends Notifier<HelpQuestionListState> {
         );
       case ResultFailure(failure: final failure):
         if (failure is NetworkFailure && failure.isCancelled) return;
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-        );
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
     }
   }
 
@@ -115,8 +112,8 @@ class HelpQuestionListNotifier extends Notifier<HelpQuestionListState> {
 
 final helpQuestionListProvider =
     NotifierProvider<HelpQuestionListNotifier, HelpQuestionListState>(
-  HelpQuestionListNotifier.new,
-);
+      HelpQuestionListNotifier.new,
+    );
 
 class HelpCenterMutationNotifier extends Notifier<AsyncValue<void>> {
   @override
@@ -128,16 +125,16 @@ class HelpCenterMutationNotifier extends Notifier<AsyncValue<void>> {
     required String body,
   }) async {
     state = const AsyncValue.loading();
-    final result = await ref.read(helpCenterRepositoryProvider).createQuestion(
-          issueType: issueType,
-          subject: subject,
-          body: body,
-        );
+    final result = await ref
+        .read(helpCenterRepositoryProvider)
+        .createQuestion(issueType: issueType, subject: subject, body: body);
 
     state = switch (result) {
       Success() => const AsyncValue.data(null),
-      ResultFailure(failure: final failure) =>
-        AsyncValue.error(failure, StackTrace.current),
+      ResultFailure(failure: final failure) => AsyncValue.error(
+        failure,
+        StackTrace.current,
+      ),
     };
 
     if (result case Success()) {
@@ -149,13 +146,16 @@ class HelpCenterMutationNotifier extends Notifier<AsyncValue<void>> {
 
   Future<Result<HelpQuestion, Failure>> close({required String id}) async {
     state = const AsyncValue.loading();
-    final result =
-        await ref.read(helpCenterRepositoryProvider).closeQuestion(id: id);
+    final result = await ref
+        .read(helpCenterRepositoryProvider)
+        .closeQuestion(id: id);
 
     state = switch (result) {
       Success() => const AsyncValue.data(null),
-      ResultFailure(failure: final failure) =>
-        AsyncValue.error(failure, StackTrace.current),
+      ResultFailure(failure: final failure) => AsyncValue.error(
+        failure,
+        StackTrace.current,
+      ),
     };
 
     if (result case Success()) {
@@ -168,5 +168,5 @@ class HelpCenterMutationNotifier extends Notifier<AsyncValue<void>> {
 
 final helpCenterMutationProvider =
     NotifierProvider<HelpCenterMutationNotifier, AsyncValue<void>>(
-  HelpCenterMutationNotifier.new,
-);
+      HelpCenterMutationNotifier.new,
+    );

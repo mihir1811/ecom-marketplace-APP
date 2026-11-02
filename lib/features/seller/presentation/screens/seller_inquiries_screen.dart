@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
+import '../../../../core/widgets/navigation/top_bar/top_bar_create_action.dart';
 import '../../application/inquiry_provider.dart';
 import '../../domain/models/seller_inquiry.dart';
 import '../atelier/atelier_components.dart';
@@ -62,8 +63,6 @@ class _SellerInquiriesScreenState extends ConsumerState<SellerInquiriesScreen> {
     ];
 
     final children = <Widget>[
-      Reveal(child: _Header(onNew: _openNew)),
-      const SizedBox(height: AtelierSpace.s24),
       Reveal(index: 1, child: AtelierSectionHeader(title: _category.listTitle)),
       const SizedBox(height: AtelierSpace.s12),
       Reveal(
@@ -199,86 +198,38 @@ class _SellerInquiriesScreenState extends ConsumerState<SellerInquiriesScreen> {
       );
     }
 
-    return RefreshIndicator(
-      color: p.gold,
-      backgroundColor: p.surface,
-      onRefresh: () =>
-          ref.read(inquiryListProvider(_category).notifier).refresh(),
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 40),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 920),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                ...children,
-                AnimatedSwitcher(
-                  duration: AtelierMotion.base,
-                  child: KeyedSubtree(
-                    key: ValueKey('${_category.name}-${_reply.name}'),
-                    child: list,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+    return TopBarCreateAction(
+      create: TopBarCreate(
+        label: 'Inquiry',
+        tooltip: context.tr(RemainingL10n.newInquiry),
+        onPressed: _openNew,
       ),
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  const _Header({required this.onNew});
-
-  final VoidCallback onNew;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.atelier;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AtelierRadius.xl),
-      child: Container(
-        decoration: BoxDecoration(
-          color: p.surface,
-          border: Border.all(color: p.hairline),
-          borderRadius: BorderRadius.circular(AtelierRadius.xl),
-        ),
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(22),
+      child: RefreshIndicator(
+        color: p.gold,
+        backgroundColor: p.surface,
+        onRefresh: () =>
+            ref.read(inquiryListProvider(_category).notifier).refresh(),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 40),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 920),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const AtelierPill(
-                    label: 'Seller · Sent to admin',
-                    tone: AtelierTone.gold,
-                    icon: Icons.verified_user_outlined,
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    context.tr(RemainingL10n.myInquiries),
-                    style: AtelierType.display(p.ink, size: 32),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    context.tr(RemainingL10n.inquiriesYouSubmitGoDirectlyTo),
-                    style: AtelierType.body(p.inkSoft, size: 13.5),
-                  ),
-                  const SizedBox(height: 18),
-                  AtelierButton(
-                    label: context.tr(RemainingL10n.newInquiry),
-                    icon: Icons.add_comment_outlined,
-                    variant: AtelierButtonVariant.gold,
-                    onPressed: onNew,
+                  ...children,
+                  AnimatedSwitcher(
+                    duration: AtelierMotion.base,
+                    child: KeyedSubtree(
+                      key: ValueKey('${_category.name}-${_reply.name}'),
+                      child: list,
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

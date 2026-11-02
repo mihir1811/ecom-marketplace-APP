@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gemstone/core/theme/app_fonts.dart';
 
+import '../../../../core/widgets/navigation/top_bar/top_bar_create_action.dart';
 import '../../../../core/auth/auth_validators.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
@@ -171,90 +172,87 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
         ? state.errorMessage
         : null;
 
-    return ColoredBox(
-      color: p.canvas,
-      child: AtelierPage(
-        onRefresh: _refresh,
-        maxWidth: 900,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  firstLoad
-                      ? context.tr(RemainingL10n.apiKeys)
-                      : '${keys.length} ${keys.length == 1 ? 'key' : 'keys'}'
-                            ' · ${partners.length} '
-                            '${partners.length == 1 ? 'partner' : 'partners'}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AtelierType.label(p.ink, size: 13),
+    return TopBarCreateAction(
+      create: TopBarCreate(
+        label: 'API key',
+        tooltip: context.tr(RemainingL10n.generateApiKey),
+        onPressed: state.isMutating ? null : _generate,
+      ),
+      child: ColoredBox(
+        color: p.canvas,
+        child: AtelierPage(
+          onRefresh: _refresh,
+          maxWidth: 900,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    firstLoad
+                        ? context.tr(RemainingL10n.apiKeys)
+                        : '${keys.length} ${keys.length == 1 ? 'key' : 'keys'}'
+                              ' · ${partners.length} '
+                              '${partners.length == 1 ? 'partner' : 'partners'}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AtelierType.label(p.ink, size: 13),
+                  ),
                 ),
-              ),
-              IconButton(
-                tooltip: context.tr(RemainingL10n.refresh),
-                visualDensity: VisualDensity.compact,
-                icon: Icon(Icons.refresh_rounded, size: 20, color: p.inkSoft),
-                onPressed: state.isLoading || state.isMutating
-                    ? null
-                    : _refresh,
-              ),
-              const SizedBox(width: 4),
-              Flexible(
-                child: AtelierButton(
-                  label: context.tr(RemainingL10n.generateApiKey),
-                  icon: Icons.add_rounded,
-                  variant: AtelierButtonVariant.gold,
-                  compact: true,
-                  onPressed: state.isMutating ? null : _generate,
+                IconButton(
+                  tooltip: context.tr(RemainingL10n.refresh),
+                  visualDensity: VisualDensity.compact,
+                  icon: Icon(Icons.refresh_rounded, size: 20, color: p.inkSoft),
+                  onPressed: state.isLoading || state.isMutating
+                      ? null
+                      : _refresh,
                 ),
+              ],
+            ),
+            if (loadError != null && keys.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              AtelierNotice(
+                tone: AtelierTone.ruby,
+                icon: Icons.cloud_off_rounded,
+                text: loadError,
+                actionLabel: context.tr(RemainingL10n.retry),
+                onAction: _refresh,
               ),
             ],
-          ),
-          if (loadError != null && keys.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            AtelierNotice(
-              tone: AtelierTone.ruby,
-              icon: Icons.cloud_off_rounded,
-              text: loadError,
-              actionLabel: context.tr(RemainingL10n.retry),
-              onAction: _refresh,
-            ),
-          ],
-          if (keys.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            AtelierSegmented<ApiSharePermission?>(
-              dense: true,
-              segments: [
-                AtelierSegment(
-                  value: null,
-                  label: context.tr(RemainingL10n.all),
-                  count: keys.length,
-                ),
-                for (final perm in ApiSharePermission.values)
+            if (keys.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              AtelierSegmented<ApiSharePermission?>(
+                dense: true,
+                segments: [
                   AtelierSegment(
-                    value: perm,
-                    label: perm.title,
-                    count: keys
-                        .where((k) => k.permissions.contains(perm))
-                        .length,
+                    value: null,
+                    label: context.tr(RemainingL10n.all),
+                    count: keys.length,
                   ),
-              ],
-              selected: _filter,
-              onChanged: (v) => setState(() => _filter = v),
-            ),
-          ],
-          if (keys.length > 3) ...[
+                  for (final perm in ApiSharePermission.values)
+                    AtelierSegment(
+                      value: perm,
+                      label: perm.title,
+                      count: keys
+                          .where((k) => k.permissions.contains(perm))
+                          .length,
+                    ),
+                ],
+                selected: _filter,
+                onChanged: (v) => setState(() => _filter = v),
+              ),
+            ],
+            if (keys.length > 3) ...[
+              const SizedBox(height: 8),
+              AtelierSearchField(
+                controller: _search,
+                hint: 'Search by key name or partner email',
+                onChanged: (v) => setState(() => _query = v),
+              ),
+            ],
             const SizedBox(height: 8),
-            AtelierSearchField(
-              controller: _search,
-              hint: 'Search by key name or partner email',
-              onChanged: (v) => setState(() => _query = v),
-            ),
+            _keyList(state, visible, loadError),
           ],
-          const SizedBox(height: 8),
-          _keyList(state, visible, loadError),
-        ],
+        ),
       ),
     );
   }

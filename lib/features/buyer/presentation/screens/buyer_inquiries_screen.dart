@@ -5,6 +5,7 @@ import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/widgets/gem3d/gem_mesh.dart';
+import '../../../../core/widgets/navigation/top_bar/top_bar_create_action.dart';
 import '../../../seller/application/inquiry_provider.dart';
 import '../../../seller/domain/models/seller_inquiry.dart';
 import '../../../seller/presentation/atelier/atelier_components.dart';
@@ -113,105 +114,89 @@ class _BuyerInquiriesScreenState extends ConsumerState<BuyerInquiriesScreen> {
     final gutter = AtelierSpace.gutter(MediaQuery.sizeOf(context).width);
 
     return MaisonLayout(
-      child: RefreshIndicator(
-        color: p.gold,
-        backgroundColor: p.surface,
-        onRefresh: _refresh,
-        child: NotificationListener<ScrollNotification>(
-          onNotification: _onScroll,
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(
-              parent: BouncingScrollPhysics(),
-            ),
-            slivers: [
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 18),
-                sliver: SliverToBoxAdapter(
-                  child: MaisonCentered(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        MaisonHeader(
-                          title: context.tr(AccountCommerceL10n.inquiries),
-                          cut: _categoryCut(_category),
+      child: TopBarCreateAction(
+        create: TopBarCreate(
+          label: 'Inquiry',
+          tooltip: context.tr(AccountCommerceL10n.newInquiry),
+          onPressed: _newInquiry,
+        ),
+        child: RefreshIndicator(
+          color: p.gold,
+          backgroundColor: p.surface,
+          onRefresh: _refresh,
+          child: NotificationListener<ScrollNotification>(
+            onNotification: _onScroll,
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
+              slivers: [
+                const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                MaisonPinnedBar(
+                  height: 178,
+                  gutter: gutter,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(
+                        height: 40,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: InquiryCategory.values.length,
+                          separatorBuilder: (_, _) => const SizedBox(width: 8),
+                          itemBuilder: (context, index) {
+                            final c = InquiryCategory.values[index];
+                            return AtelierChoiceChip(
+                              label: c.label,
+                              icon: _categoryIcon(c),
+                              selected: c == _category,
+                              onTap: () => setState(() {
+                                _category = c;
+                                _reply = _Reply.all;
+                              }),
+                            );
+                          },
                         ),
-                        const SizedBox(height: 18),
-                        Reveal(
-                          index: 2,
-                          child: AtelierButton(
-                            label: context.tr(AccountCommerceL10n.newInquiry),
-                            icon: Icons.add_rounded,
-                            variant: AtelierButtonVariant.gold,
-                            onPressed: _newInquiry,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 10),
+                      AtelierSegmented<_Reply>(
+                        dense: true,
+                        segments: [
+                          for (final r in _Reply.values)
+                            AtelierSegment(
+                              value: r,
+                              label: r.label,
+                              count: counts[r],
+                            ),
+                        ],
+                        selected: _reply,
+                        onChanged: (r) => setState(() => _reply = r),
+                      ),
+                      const SizedBox(height: 10),
+                      MaisonSearchRow(
+                        controller: _search,
+                        hint: 'Search your inquiries',
+                        onChanged: (_) => setState(() {}),
+                        sortLabel: _oldestFirst
+                            ? 'Oldest first'
+                            : 'Newest first',
+                        sortActive: _oldestFirst,
+                        onSort: () =>
+                            setState(() => _oldestFirst = !_oldestFirst),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              MaisonPinnedBar(
-                height: 178,
-                gutter: gutter,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SizedBox(
-                      height: 40,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: InquiryCategory.values.length,
-                        separatorBuilder: (_, _) => const SizedBox(width: 8),
-                        itemBuilder: (context, index) {
-                          final c = InquiryCategory.values[index];
-                          return AtelierChoiceChip(
-                            label: c.label,
-                            icon: _categoryIcon(c),
-                            selected: c == _category,
-                            onTap: () => setState(() {
-                              _category = c;
-                              _reply = _Reply.all;
-                            }),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    AtelierSegmented<_Reply>(
-                      dense: true,
-                      segments: [
-                        for (final r in _Reply.values)
-                          AtelierSegment(
-                            value: r,
-                            label: r.label,
-                            count: counts[r],
-                          ),
-                      ],
-                      selected: _reply,
-                      onChanged: (r) => setState(() => _reply = r),
-                    ),
-                    const SizedBox(height: 10),
-                    MaisonSearchRow(
-                      controller: _search,
-                      hint: 'Search your inquiries',
-                      onChanged: (_) => setState(() {}),
-                      sortLabel: _oldestFirst ? 'Oldest first' : 'Newest first',
-                      sortActive: _oldestFirst,
-                      onSort: () =>
-                          setState(() => _oldestFirst = !_oldestFirst),
-                    ),
-                  ],
+                MaisonRefreshHairline(
+                  visible: state.isLoading && items.isNotEmpty,
                 ),
-              ),
-              MaisonRefreshHairline(
-                visible: state.isLoading && items.isNotEmpty,
-              ),
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 32),
-                sliver: _body(context, state, visible),
-              ),
-            ],
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 32),
+                  sliver: _body(context, state, visible),
+                ),
+              ],
+            ),
           ),
         ),
       ),

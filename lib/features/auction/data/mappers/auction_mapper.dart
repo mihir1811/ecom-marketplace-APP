@@ -155,7 +155,8 @@ abstract final class AuctionMapper {
     final data = _map(body?['data']);
     AuctionListing? auction;
     String? bidId;
-    if (data != null && (_str(data['id']) != null || data['productId'] != null)) {
+    if (data != null &&
+        (_str(data['id']) != null || data['productId'] != null)) {
       if (data['startTime'] != null || data['productType'] != null) {
         auction = listingFromJson(data);
       } else if (data['amount'] != null) {
@@ -237,7 +238,10 @@ abstract final class AuctionMapper {
     return best;
   }
 
-  static String _title(Map<String, dynamic> product, Map<String, dynamic> json) {
+  static String _title(
+    Map<String, dynamic> product,
+    Map<String, dynamic> json,
+  ) {
     final name = _str(product['name']);
     if (name != null) return name;
     final carat = _str(product['caratWeight']);
@@ -251,13 +255,7 @@ abstract final class AuctionMapper {
   }
 
   static String? _image(Map<String, dynamic> product) {
-    for (final key in [
-      'image',
-      'image1',
-      'image2',
-      'imageUrl',
-      'thumbnail',
-    ]) {
+    for (final key in ['image', 'image1', 'image2', 'imageUrl', 'thumbnail']) {
       final value = _str(product[key]);
       if (value != null && value.startsWith('http')) return value;
     }

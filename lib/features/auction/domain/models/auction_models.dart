@@ -300,6 +300,7 @@ class SellerAuctionStanding {
     required this.sold,
     required this.bids,
     this.awaitingDecision = const [],
+    this.soldAuctions = const [],
   });
 
   final int total;
@@ -312,6 +313,9 @@ class SellerAuctionStanding {
   /// Finished auctions waiting for the seller to accept, pick a bidder,
   /// restart or remove.
   final List<AuctionListing> awaitingDecision;
+
+  /// Finished auctions that ended in a sale (within the scanned pages).
+  final List<AuctionListing> soldAuctions;
 
   int get needsDecision => awaitingDecision.length;
 }

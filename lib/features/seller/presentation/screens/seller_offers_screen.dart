@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../../../product_detail/open_catalog_product_detail.dart';
 import '../../../product_offer/application/product_offer_providers.dart';
 import '../../../product_offer/domain/models/product_offer.dart';
@@ -231,49 +230,10 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen>
     }
     final counts = _counts;
     final items = _visible(state.items);
-    final pending = state.items.where((o) => o.isAwaitingSeller).toList();
-    final pendingCount = pending.length;
-    final pendingValue = pending.fold<double>(0, (s, o) => s + o.amount);
-    final ratios = [
-      for (final o in state.items)
-        if ((o.listPrice ?? 0) > 0) o.amount / o.listPrice!,
-    ];
-    final avgRatio = ratios.isEmpty
-        ? null
-        : ratios.reduce((a, b) => a + b) / ratios.length;
 
     return AtelierPage(
       onRefresh: _refresh,
       children: [
-        AtelierHero(
-          title: context.tr(RemainingL10n.offers),
-          cut: GemCut.cushion,
-          footer: AtelierHeroStats(
-            stats: [
-              AtelierHeroStat(
-                label: 'Awaiting you',
-                value: '$pendingCount',
-                caption: pendingCount == 1
-                    ? 'offer to answer'
-                    : 'offers to answer',
-                tone: pendingCount > 0 ? AtelierTone.amber : null,
-              ),
-              AtelierHeroStat(
-                label: 'On the table',
-                value: atelierMoney(pendingValue),
-                caption: 'Pending offer value',
-              ),
-              AtelierHeroStat(
-                label: 'Avg. vs list',
-                value: avgRatio == null
-                    ? '—'
-                    : '${(avgRatio * 100).toStringAsFixed(0)}%',
-                caption: 'Of asking price',
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: AtelierSpace.s16),
         Reveal(
           index: 2,
           child: AtelierSegmented<ProductOfferStatus?>(

@@ -167,6 +167,7 @@ class AppRouteNames {
   static const String sellerPromotions = '/seller/promotions';
   static const String sellerProfile = '/seller/profile';
   static const String sellerApiKeys = '/seller/api-keys';
+  static const String sellerSettings = '/seller/settings';
   static const String sellerAbout = '/seller/about';
   static const String sellerPrivacy = '/seller/privacy';
   static const String sellerTerms = '/seller/terms';

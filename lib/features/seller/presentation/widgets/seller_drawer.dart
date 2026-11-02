@@ -6,7 +6,6 @@ import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/router/workspace_mode.dart';
 import '../../../../core/widgets/navigation/app_nav_drawer.dart';
-import '../../../notifications/application/notifications_provider.dart';
 
 /// Side drawer for seller workspace screens: every seller tool, grouped by
 /// intent, with the current page highlighted.
@@ -23,7 +22,6 @@ class SellerDrawer extends ConsumerWidget {
     final pending = ref.watch(
       authProvider.select((s) => s.isVerificationPending),
     );
-    final unread = ref.watch(notificationUnreadCountProvider);
     final user = ref.watch(authProvider.select((s) => s.user));
     final company = user?.sellerAccount?.companyName?.trim();
     final displayName = (company != null && company.isNotEmpty)
@@ -109,12 +107,6 @@ class SellerDrawer extends ConsumerWidget {
               CoreL10n.messages,
               Icons.chat_bubble_outline_rounded,
             ),
-          AppNavItem(
-            route: AppRouteNames.sellerNotifications,
-            label: context.tr(NavL10n.notifications),
-            icon: Icons.notifications_none_rounded,
-            badge: unread,
-          ),
           item(
             AppRouteNames.sellerHelpCenter,
             RemainingL10n.helpCenter,
@@ -137,24 +129,9 @@ class SellerDrawer extends ConsumerWidget {
               Icons.vpn_key_outlined,
             ),
           item(
-            AppRouteNames.sellerAbout,
-            RemainingL10n.aboutGemWorld,
-            Icons.diamond_outlined,
-          ),
-          item(
-            AppRouteNames.sellerPrivacy,
-            AccountCommerceL10n.privacyPolicy,
-            Icons.privacy_tip_outlined,
-          ),
-          item(
-            AppRouteNames.sellerTerms,
-            RemainingL10n.termsConditions,
-            Icons.description_outlined,
-          ),
-          item(
-            AppRouteNames.sellerPolicies,
-            RemainingL10n.policiesLegal,
-            Icons.menu_book_outlined,
+            AppRouteNames.sellerSettings,
+            CoreL10n.settings,
+            Icons.settings_outlined,
           ),
         ],
       ),

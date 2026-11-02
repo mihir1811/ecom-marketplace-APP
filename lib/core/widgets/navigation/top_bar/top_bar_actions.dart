@@ -14,6 +14,7 @@ import '../../../router/app_navigation.dart';
 import '../../../router/route_names.dart';
 import '../../../theme/luxe_tokens.dart';
 import '../../luxe/luxe_button.dart';
+import 'top_bar_create_action.dart';
 import 'top_bar_registry.dart';
 
 /// One [TopBarAction] resolved for the current location and user.
@@ -190,9 +191,14 @@ class TopBarActions extends ConsumerWidget {
     final loc = location ?? GoRouterState.of(context).uri.path;
     final search = includeSearch && TopBarRegistry.specFor(loc).search;
     final actions = resolveTopBarActions(context, ref, loc);
-    if (!search && actions.isEmpty) return const SizedBox.shrink();
+    final create = topBarCreateFor(ref, loc);
+    if (!search && actions.isEmpty && create == null) {
+      return const SizedBox.shrink();
+    }
 
     final children = <Widget>[
+      // The page's own create shortcut leads, ahead of the section icons.
+      if (create != null) TopBarCreateButton(create: create),
       if (search)
         _button(
           context,

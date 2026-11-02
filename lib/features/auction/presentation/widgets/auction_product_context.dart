@@ -60,8 +60,7 @@ String auctionProductContextLine(AuctionListing auction) {
 
 String _originOrType(String productType, Map<String, dynamic> product) {
   return switch (productType) {
-    CartProductType.diamond =>
-      _isLabGrown(product) ? 'Lab Grown' : 'Natural',
+    CartProductType.diamond => _isLabGrown(product) ? 'Lab Grown' : 'Natural',
     CartProductType.meleeDiamond =>
       _isLabGrown(product) ? 'Lab Melee' : 'Natural Melee',
     CartProductType.gemstone =>

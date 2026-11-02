@@ -46,35 +46,39 @@ class _ManualInsightsRepo implements SellerInsightsRepository {
   }
 
   void succeed(SalesRange range) {
-    pending.remove(range)!.complete(
-      Result.success(
-        SellerDashboardSnapshot(
-          metrics: const [],
-          chartBuckets: [
-            InsightsChartBucket(
-              label: range.name,
-              totalSales: 1,
-              productsSold: 0,
-              orders: 0,
+    pending
+        .remove(range)!
+        .complete(
+          Result.success(
+            SellerDashboardSnapshot(
+              metrics: const [],
+              chartBuckets: [
+                InsightsChartBucket(
+                  label: range.name,
+                  totalSales: 1,
+                  productsSold: 0,
+                  orders: 0,
+                ),
+              ],
+              recentOrders: const [],
+              fetchedAt: DateTime(2026, 10, 1),
+              params: SellerDashboardParams(range: range),
             ),
-          ],
-          recentOrders: const [],
-          fetchedAt: DateTime(2026, 10, 1),
-          params: SellerDashboardParams(range: range),
-        ),
-      ),
-    );
+          ),
+        );
   }
 
   void fail(SalesRange range) {
-    pending.remove(range)!.complete(
-      Result.failure(const NetworkFailure('offline')),
-    );
+    pending
+        .remove(range)!
+        .complete(Result.failure(const NetworkFailure('offline')));
   }
 
   @override
   Future<Result<SellerAnalyticsSnapshot, Failure>> getAnalytics({
     required AnalyticsRange range,
+    DateTime? from,
+    DateTime? to,
     CancelToken? cancelToken,
   }) => throw UnimplementedError();
 

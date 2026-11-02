@@ -130,7 +130,7 @@ class SellerAnalyticsState {
 }
 
 class SellerAnalyticsNotifier
-    extends FamilyNotifier<SellerAnalyticsState, AnalyticsRange> {
+    extends FamilyNotifier<SellerAnalyticsState, AnalyticsWindow> {
   bool _started = false;
   Future<void>? _inFlight;
   SellerAnalyticsState _latest = const SellerAnalyticsState(isLoading: true);
@@ -140,7 +140,7 @@ class SellerAnalyticsNotifier
       ref.read(sellerInsightsRepositoryProvider);
 
   @override
-  SellerAnalyticsState build(AnalyticsRange arg) {
+  SellerAnalyticsState build(AnalyticsWindow arg) {
     final userId = ref.watch(authProvider.select((s) => s.user?.id));
     if (userId != _boundUserId) {
       _boundUserId = userId;
@@ -182,7 +182,11 @@ class SellerAnalyticsNotifier
       state = _latest;
     }
 
-    final result = await _repo.getAnalytics(range: arg);
+    final result = await _repo.getAnalytics(
+      range: arg.range,
+      from: arg.from,
+      to: arg.to,
+    );
     switch (result) {
       case Success(:final value):
         _latest = SellerAnalyticsState(snapshot: value);
@@ -201,5 +205,5 @@ final sellerAnalyticsProvider =
     NotifierProvider.family<
       SellerAnalyticsNotifier,
       SellerAnalyticsState,
-      AnalyticsRange
+      AnalyticsWindow
     >(SellerAnalyticsNotifier.new);
