@@ -60,7 +60,7 @@ class ViewIn360Button extends StatelessWidget {
           shape: const StadiumBorder(
             side: BorderSide(color: LuxeStage.glassBorder),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         ),
       );
     }
@@ -75,11 +75,11 @@ class ViewIn360Button extends StatelessWidget {
       child: InkWell(
         onTap: go,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Row(
             children: [
               Icon(Icons.threed_rotation_rounded, color: LuxeStage.gold),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(label, style: LuxeType.label(LuxeStage.ink)),
               ),

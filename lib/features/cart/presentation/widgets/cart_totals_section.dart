@@ -101,7 +101,7 @@ class CartTotalsSection extends ConsumerWidget {
           if (unavailableCount > 0) ...[
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               decoration: BoxDecoration(
                 color: p.caution.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
@@ -112,7 +112,7 @@ class CartTotalsSection extends ConsumerWidget {
                 style: LuxeType.label(p.caution, size: 12),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
           ],
           if (showItemsSubtotal) ...[
             _usdOnlyRow(
@@ -165,7 +165,7 @@ class CartTotalsSection extends ConsumerWidget {
               _inrRow(context, _feeLabel(fee), fee.amountInr, hasRate: true),
           ] else if (feesAsync.isLoading) ...[
             const Padding(
-              padding: EdgeInsets.only(bottom: 10),
+              padding: EdgeInsets.only(bottom: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -176,7 +176,7 @@ class CartTotalsSection extends ConsumerWidget {
             ),
           ] else if (merchandiseUsd > 0) ...[
             Padding(
-              padding: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.only(bottom: 8),
               child: Text(
                 'Fees appear once the live exchange rate loads.',
                 style: LuxeType.label(p.inkFaint, size: 12),
@@ -186,13 +186,13 @@ class CartTotalsSection extends ConsumerWidget {
           if (summary.appliedPromoCodes.isNotEmpty) ...[
             const SizedBox(height: 4),
             Wrap(
-              spacing: 6,
-              runSpacing: 6,
+              spacing: 5,
+              runSpacing: 5,
               children: [
                 for (final promo in summary.appliedPromoCodes)
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
+                      horizontal: 8,
                       vertical: 4,
                     ),
                     decoration: ShapeDecoration(
@@ -209,7 +209,7 @@ class CartTotalsSection extends ConsumerWidget {
             const SizedBox(height: 4),
           ],
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            padding: const EdgeInsets.symmetric(vertical: 8),
             child: Divider(height: 1, color: p.hairline),
           ),
           Row(
@@ -220,7 +220,7 @@ class CartTotalsSection extends ConsumerWidget {
                 context.tr(ExperienceL10n.cartTotal),
                 style: LuxeType.display(24, p.ink),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Flexible(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -257,7 +257,7 @@ class CartTotalsSection extends ConsumerWidget {
           ),
           if (estimate.hasLiveRate &&
               (split.usesPoints || split.usesWallet)) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             if (split.usesPoints)
               _inrRow(
                 context,
@@ -288,7 +288,7 @@ class CartTotalsSection extends ConsumerWidget {
             const SizedBox(height: 4),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               decoration: BoxDecoration(
                 color: p.accentSoft,
                 borderRadius: BorderRadius.circular(10),
@@ -296,7 +296,7 @@ class CartTotalsSection extends ConsumerWidget {
               child: Row(
                 children: [
                   Icon(Icons.auto_awesome_outlined, size: 15, color: p.accent),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       'You\'ll earn about '
@@ -324,7 +324,7 @@ class CartTotalsSection extends ConsumerWidget {
   Widget _subtotalRow(BuildContext context, CartOrderEstimate estimate) {
     final p = LuxePalette.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -362,7 +362,7 @@ class CartTotalsSection extends ConsumerWidget {
   }) {
     final p = LuxePalette.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -374,7 +374,7 @@ class CartTotalsSection extends ConsumerWidget {
                   : LuxeType.body(p.inkMuted, size: 13.5),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Text(
             hasRate ? _inrLabel(inrValue) : AppCurrency.usd(fallbackUsd ?? 0),
             style: LuxeType.figure(positive ? p.positive : p.ink, size: 14.5),
@@ -392,7 +392,7 @@ class CartTotalsSection extends ConsumerWidget {
   }) {
     final p = LuxePalette.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

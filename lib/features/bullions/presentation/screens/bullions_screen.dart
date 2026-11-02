@@ -204,7 +204,7 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen>
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 6, 16, 18),
+                  padding: const EdgeInsets.fromLTRB(12, 5, 12, 12),
                   child: LuxeSearchField(
                     controller: _searchController,
                     hintText: context.tr(CatalogL10n.searchBullions),
@@ -327,7 +327,7 @@ class _MetalPresets extends ConsumerWidget {
           child: variants.isEmpty
               ? const SizedBox(width: double.infinity)
               : Padding(
-                  padding: const EdgeInsets.only(top: 8),
+                  padding: const EdgeInsets.only(top: 6),
                   child: LuxeQuickChips<String>(
                     key: ValueKey(metal),
                     dense: true,
@@ -398,7 +398,7 @@ class _ActiveFilterPills extends ConsumerWidget {
       ..values(BullionsFilterSection.provenance, f.certifications)
       ..values(BullionsFilterSection.provenance, f.mintMarks);
     return Padding(
-      padding: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.only(top: 6),
       child: LuxeActiveFilterPills(
         labels: pills.build(
           sections: BullionsFilterSection.values,

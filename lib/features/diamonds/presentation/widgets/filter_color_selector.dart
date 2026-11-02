@@ -214,7 +214,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
               children: [
                 ...initialChunks.map((chunk) {
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
+                    padding: const EdgeInsets.only(bottom: 6.0),
                     child: _buildChunkRow(
                       chunk: chunk,
                       state: state,
@@ -231,7 +231,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                       ? Column(
                           children: expandableChunks.map((chunk) {
                             return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
+                              padding: const EdgeInsets.only(bottom: 6.0),
                               child: _buildChunkRow(
                                 chunk: chunk,
                                 state: state,
@@ -289,7 +289,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                     colorName,
                   );
                   return Padding(
-                    padding: const EdgeInsets.only(right: 12.0),
+                    padding: const EdgeInsets.only(right: 8.0),
                     child: FancyColorDiamondButton(
                       colorName: colorName,
                       isSelected: isSelected,
@@ -320,8 +320,8 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 4,
                   childAspectRatio: 1.8,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 6,
+                  mainAxisSpacing: 6,
                 ),
                 itemBuilder: (context, index) {
                   final overtone = DiamondFilterState.overtones[index];
@@ -408,7 +408,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                     intensity,
                   );
                   return Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
+                    padding: const EdgeInsets.only(right: 6.0),
                     child: GestureDetector(
                       onTap: () {
                         AppHaptics.selection();
@@ -416,7 +416,7 @@ class _ColorTabsSelectorState extends ConsumerState<ColorTabsSelector> {
                       },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: isSelected
@@ -575,7 +575,7 @@ class FancyColorDiamondButton extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 5),
               Text(
                 colorName,
                 textAlign: TextAlign.center,

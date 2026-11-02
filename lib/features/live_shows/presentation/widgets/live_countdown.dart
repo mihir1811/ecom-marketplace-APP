@@ -105,8 +105,8 @@ class _LiveCountdownState extends State<LiveCountdown>
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 240),
           padding: EdgeInsets.symmetric(
-            horizontal: widget.large ? 12 : 9,
-            vertical: widget.large ? 7 : 5,
+            horizontal: widget.large ? 8 : 8,
+            vertical: widget.large ? 6 : 5,
           ),
           decoration: BoxDecoration(
             color: hot

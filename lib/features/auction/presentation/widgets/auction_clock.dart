@@ -130,13 +130,13 @@ class AuctionPhaseBadge extends StatelessWidget {
         ? (p.isDark ? const Color(0x99000000) : const Color(0xEBFFFFFF))
         : tone.withValues(alpha: 0.1);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: ShapeDecoration(color: bg, shape: const StadiumBorder()),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           dot,
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           Text(
             a.phaseLabel.toUpperCase(),
             style: LuxeType.eyebrow(tone).copyWith(fontSize: 9.5),

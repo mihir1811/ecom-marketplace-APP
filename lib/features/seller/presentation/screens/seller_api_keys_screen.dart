@@ -209,7 +209,7 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
               ],
             ),
             if (loadError != null && keys.isNotEmpty) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               AtelierNotice(
                 tone: AtelierTone.ruby,
                 icon: Icons.cloud_off_rounded,
@@ -219,7 +219,7 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
               ),
             ],
             if (keys.isNotEmpty) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               AtelierSegmented<ApiSharePermission?>(
                 dense: true,
                 segments: [
@@ -242,14 +242,14 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
               ),
             ],
             if (keys.length > 3) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               AtelierSearchField(
                 controller: _search,
                 hint: 'Search by key name or partner email',
                 onChanged: (v) => setState(() => _query = v),
               ),
             ],
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             _keyList(state, visible, loadError),
           ],
         ),
@@ -276,7 +276,7 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
     }
     if (state.keys.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         child: Text(
           '${context.tr(RemainingL10n.noApiKeysYetGenerateOneTo)}\n'
           'Name the partner, pick scopes — the key is emailed to them.',
@@ -287,7 +287,7 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
     }
     if (visible.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 6),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -316,7 +316,7 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
         for (final k in visible)
           Padding(
             key: ValueKey(k.id),
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: 6),
             child: _ApiKeyCard(
               apiKey: k,
               revoking: _revoking == k.id,
@@ -419,7 +419,7 @@ class _ApiKeyCardState extends State<_ApiKeyCard> {
     return Opacity(
       opacity: widget.revoking ? 0.55 : 1,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(12, 8, 4, 2),
+        padding: const EdgeInsets.fromLTRB(8, 6, 4, 2),
         decoration: BoxDecoration(
           color: p.surface,
           borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -429,7 +429,7 @@ class _ApiKeyCardState extends State<_ApiKeyCard> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.only(right: 6),
               child: Row(
                 children: [
                   Expanded(
@@ -453,7 +453,7 @@ class _ApiKeyCardState extends State<_ApiKeyCard> {
                   ),
                   if (created != null)
                     Padding(
-                      padding: const EdgeInsets.only(left: 8),
+                      padding: const EdgeInsets.only(left: 6),
                       child: Text(
                         edited ? 'Edited ${_date(updated)}' : _date(created),
                         style: AtelierType.caption(p.muted, size: 11),
@@ -462,9 +462,9 @@ class _ApiKeyCardState extends State<_ApiKeyCard> {
                 ],
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 5),
             Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.only(right: 6),
               child: _KeyWell(
                 value: _shown ? k.apiKey : k.maskedApiKey,
                 shown: _shown,
@@ -544,7 +544,7 @@ class _KeyWell extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.atelier;
     return Container(
-      padding: const EdgeInsets.only(left: 10),
+      padding: const EdgeInsets.only(left: 8),
       decoration: BoxDecoration(
         color: p.sunken,
         borderRadius: BorderRadius.circular(AtelierRadius.xs),
@@ -599,7 +599,7 @@ class _ScopeChip extends StatelessWidget {
           '${permission.title}: ${permission.blurb}'
           '${granted ? '' : ' (not granted)'}',
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
           color: granted ? c.withValues(alpha: p.isDark ? 0.16 : 0.1) : null,
           borderRadius: BorderRadius.circular(AtelierRadius.xs),
@@ -720,7 +720,7 @@ class _PermissionToggle extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           child: Row(
             children: [
               Icon(
@@ -728,9 +728,9 @@ class _PermissionToggle extends StatelessWidget {
                 size: 20,
                 color: on ? p.gold : p.muted,
               ),
-              const SizedBox(width: 10),
-              Text(permission.title, style: AtelierType.label(p.ink, size: 13)),
               const SizedBox(width: 8),
+              Text(permission.title, style: AtelierType.label(p.ink, size: 13)),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   permission.blurb,
@@ -1075,7 +1075,7 @@ class _KeyCreatedDialogState extends State<_KeyCreatedDialog> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: p.sunken,
               borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -1089,10 +1089,10 @@ class _KeyCreatedDialogState extends State<_KeyCreatedDialog> {
               ).copyWith(fontFamily: AppFonts.monoFontFamily, height: 1.5),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Wrap(
-            spacing: 6,
-            runSpacing: 6,
+            spacing: 5,
+            runSpacing: 5,
             children: [
               for (final perm in ApiSharePermission.values)
                 _ScopeChip(
@@ -1101,7 +1101,7 @@ class _KeyCreatedDialogState extends State<_KeyCreatedDialog> {
                 ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           const AtelierNotice(
             tone: AtelierTone.amber,
             icon: Icons.shield_outlined,

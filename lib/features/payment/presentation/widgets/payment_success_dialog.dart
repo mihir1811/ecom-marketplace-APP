@@ -135,14 +135,14 @@ class _PaymentSuccessDialogState extends ConsumerState<PaymentSuccessDialog> {
     return PopScope(
       canPop: !_submitting,
       child: Dialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: 420, maxHeight: maxHeight),
           child: Stack(
             children: [
               SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 32, 20, 16),
+                padding: const EdgeInsets.fromLTRB(14, 20, 14, 12),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -155,7 +155,7 @@ class _PaymentSuccessDialogState extends ConsumerState<PaymentSuccessDialog> {
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 5),
                     Text(
                       'Order ${widget.order.id}',
                       textAlign: TextAlign.center,
@@ -178,7 +178,7 @@ class _PaymentSuccessDialogState extends ConsumerState<PaymentSuccessDialog> {
                         sellerName: _sellerName,
                       ),
                       if (_error != null) ...[
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         Text(
                           _error!,
                           style: AppTypography.caption.copyWith(
@@ -212,7 +212,7 @@ class _PaymentSuccessDialogState extends ConsumerState<PaymentSuccessDialog> {
                                 ),
                         ),
                       ),
-                    if (_canReview) const SizedBox(height: 8),
+                    if (_canReview) const SizedBox(height: 6),
                     SizedBox(
                       width: double.infinity,
                       height: 48,

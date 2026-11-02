@@ -170,21 +170,21 @@ abstract final class AuthType {
 abstract final class AuthSpace {
   static const s4 = 4.0;
   static const s6 = 6.0;
-  static const s8 = 8.0;
-  static const s12 = 12.0;
-  static const s16 = 16.0;
-  static const s20 = 20.0;
-  static const s24 = 24.0;
-  static const s32 = 32.0;
-  static const s40 = 40.0;
-  static const s48 = 48.0;
+  static const s8 = 6.0;
+  static const s12 = 8.0;
+  static const s16 = 12.0;
+  static const s20 = 14.0;
+  static const s24 = 16.0;
+  static const s32 = 20.0;
+  static const s40 = 24.0;
+  static const s48 = 28.0;
 
   static const rField = 16.0;
   static const rCard = 22.0;
   static const rPill = 999.0;
 
-  static const fieldHeight = 58.0;
-  static const buttonHeight = 56.0;
+  static const fieldHeight = 52.0;
+  static const buttonHeight = 52.0;
   static const contentMaxWidth = 440.0;
 }
 

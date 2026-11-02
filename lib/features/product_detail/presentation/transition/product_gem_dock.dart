@@ -228,7 +228,7 @@ class _Caption extends StatelessWidget {
               style: LuxeType.label(Colors.white, size: 12),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           Text(
             '${index + 1} / $count',
             style: LuxeType.figure(Colors.white70, size: 11),

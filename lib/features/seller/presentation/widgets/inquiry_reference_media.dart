@@ -87,7 +87,7 @@ class InquiryReferenceMedia extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(child: photo),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Expanded(child: video),
           ],
         );
@@ -110,7 +110,7 @@ class InquiryReferenceMedia extends StatelessWidget {
     required Widget fileField,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -123,7 +123,7 @@ class InquiryReferenceMedia extends StatelessWidget {
             ],
             onChanged: onSource,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           if (fromUrl) urlField else fileField,
         ],
       ),

@@ -133,7 +133,7 @@ class _Hero extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: LuxeType.eyebrow(LuxeStage.gold),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Semantics(
                       header: true,
                       child: Text(
@@ -142,7 +142,7 @@ class _Hero extends StatelessWidget {
                         style: LuxeType.display(34, LuxeStage.ink),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Text(
                       context.tr(JewelryEduL10n.body),
                       textAlign: TextAlign.center,
@@ -192,7 +192,7 @@ class _Pieces extends StatelessWidget {
           eyebrow: context.tr(JewelryEduL10n.piecesEyebrow),
           title: context.tr(JewelryEduL10n.piecesTitle),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 14),
         for (final (type, icon, body) in items) ...[
           EduCard(
             child: EduPoint(
@@ -201,7 +201,7 @@ class _Pieces extends StatelessWidget {
               body: context.tr(body),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
         ],
       ],
     );
@@ -237,7 +237,7 @@ class _Metals extends StatelessWidget {
           title: context.tr(JewelryEduL10n.metalsTitle),
           body: context.tr(JewelryEduL10n.metalsBody),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 14),
         EduCard(
           child: Column(
             children: [
@@ -263,26 +263,26 @@ class _Metals extends StatelessWidget {
                   title: context.metalName(e.key),
                   body: context.tr(e.value),
                 ),
-                if (e.key != JewelryMetal.silver) const SizedBox(height: 16),
+                if (e.key != JewelryMetal.silver) const SizedBox(height: 12),
               ],
             ],
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
         EduSubhead(context.tr(JewelryEduL10n.purityTitle)),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Text(
           context.tr(JewelryEduL10n.purityBody),
           style: LuxeType.body(p.inkMuted),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         EduCard(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Column(
             children: [
               for (final (label, parts) in purity)
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  padding: const EdgeInsets.symmetric(vertical: 5),
                   child: Row(
                     children: [
                       SizedBox(
@@ -303,7 +303,7 @@ class _Metals extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
                       SizedBox(
                         width: 54,
                         child: Text(
@@ -355,7 +355,7 @@ class _Settings extends StatelessWidget {
           title: context.tr(JewelryEduL10n.settingsTitle),
           body: context.tr(JewelryEduL10n.settingsBody),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 14),
         EduCard(
           child: Column(
             children: [
@@ -365,7 +365,7 @@ class _Settings extends StatelessWidget {
                   title: context.tr(points[i].$2),
                   body: context.tr(points[i].$3),
                 ),
-                if (i < points.length - 1) const SizedBox(height: 16),
+                if (i < points.length - 1) const SizedBox(height: 12),
               ],
             ],
           ),
@@ -385,19 +385,19 @@ class _Bands extends StatelessWidget {
     return EduSection(
       children: [
         EduSubhead(context.tr(JewelryEduL10n.bandTitle)),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Text(
           context.tr(JewelryEduL10n.bandBody),
           style: LuxeType.body(p.inkMuted),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Text(
           context.tr(JewelryEduL10n.sizeBody),
           style: LuxeType.body(p.inkMuted),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         EduCard(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Column(
             children: [
               Row(
@@ -414,7 +414,7 @@ class _Bands extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 5),
               for (final s in sizes)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 5),
@@ -472,12 +472,12 @@ class _Chains extends StatelessWidget {
     return EduSection(
       children: [
         EduSubhead(context.tr(JewelryEduL10n.neckTitle)),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Text(
           context.tr(JewelryEduL10n.neckBody),
           style: LuxeType.body(p.inkMuted),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         EduCard(
           child: Column(
             children: [
@@ -509,7 +509,7 @@ class _Chains extends StatelessWidget {
                     ),
                   ],
                 ),
-                if (l != ChainLength.values.last) const SizedBox(height: 12),
+                if (l != ChainLength.values.last) const SizedBox(height: 8),
               ],
             ],
           ),
@@ -557,7 +557,7 @@ class _Care extends StatelessWidget {
     return EduSection(
       children: [
         EduSubhead(context.tr(JewelryEduL10n.careTitle)),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         EduCard(
           child: Column(
             children: [
@@ -566,7 +566,7 @@ class _Care extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(tips[i].$1, size: 20, color: p.accent),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         context.tr(tips[i].$2),
@@ -575,7 +575,7 @@ class _Care extends StatelessWidget {
                     ),
                   ],
                 ),
-                if (i < tips.length - 1) const SizedBox(height: 14),
+                if (i < tips.length - 1) const SizedBox(height: 10),
               ],
             ],
           ),
@@ -603,7 +603,7 @@ class _PointsSection extends StatelessWidget {
     return EduSection(
       children: [
         EduSubhead(context.tr(title)),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         EduCard(
           child: Column(
             children: [
@@ -613,13 +613,13 @@ class _PointsSection extends StatelessWidget {
                   title: context.tr(points[i].$2),
                   body: context.tr(points[i].$3),
                 ),
-                if (i < points.length - 1) const SizedBox(height: 16),
+                if (i < points.length - 1) const SizedBox(height: 12),
               ],
             ],
           ),
         ),
         if (footer != null) ...[
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             context.tr(footer!),
             style: LuxeType.body(p.inkMuted, size: 13.5),
@@ -650,7 +650,7 @@ class _FinalCta extends StatelessWidget {
               borderRadius: BorderRadius.circular(LuxeSpace.radius),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -658,12 +658,12 @@ class _FinalCta extends StatelessWidget {
                     context.tr(JewelryEduL10n.ctaTitle),
                     style: LuxeType.display(28, LuxeStage.ink),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     context.tr(JewelryEduL10n.ctaBody),
                     style: LuxeType.body(LuxeStage.inkMuted),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 14),
                   LuxeButton(
                     label: context.tr(JewelryEduL10n.browseJewelry),
                     variant: LuxeButtonVariant.accent,

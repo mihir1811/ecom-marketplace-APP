@@ -41,7 +41,7 @@ class SettingsIdentityCard extends StatelessWidget {
       onTap: onTap,
       semanticLabel:
           '$displayName, ${context.tr(AccountCommerceL10n.myProfile)}',
-      padding: const EdgeInsets.fromLTRB(18, 18, 14, 18),
+      padding: const EdgeInsets.fromLTRB(12, 12, 10, 12),
       child: Row(
         children: [
           Container(
@@ -63,7 +63,7 @@ class SettingsIdentityCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,10 +83,10 @@ class SettingsIdentityCard extends StatelessWidget {
                     style: AtelierType.caption(p.muted, size: 12),
                   ),
                 ],
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
+                  spacing: 5,
+                  runSpacing: 5,
                   children: [
                     AtelierPill(
                       label: isSeller
@@ -110,7 +110,7 @@ class SettingsIdentityCard extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           Icon(Icons.chevron_right_rounded, color: p.muted),
         ],
       ),
@@ -138,12 +138,12 @@ class SettingsThemeChooser extends StatelessWidget {
     return Column(
       children: [
         for (var row = 0; row < palettes.length; row += 2) ...[
-          if (row > 0) const SizedBox(height: 12),
+          if (row > 0) const SizedBox(height: 8),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               for (var i = row; i < row + 2; i++) ...[
-                if (i > row) const SizedBox(width: 12),
+                if (i > row) const SizedBox(width: 8),
                 Expanded(
                   child: i < palettes.length
                       ? _ThemeTile(
@@ -195,7 +195,7 @@ class _ThemeTile extends StatelessWidget {
         child: AnimatedContainer(
           duration: AtelierMotion.base,
           curve: AtelierMotion.emphasized,
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
             color: p.surface,
             borderRadius: BorderRadius.circular(AtelierRadius.lg),
@@ -211,7 +211,7 @@ class _ThemeTile extends StatelessWidget {
               // Miniature of a buyer page in this palette.
               Container(
                 height: 96,
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: m.canvas,
                   borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -236,7 +236,7 @@ class _ThemeTile extends StatelessWidget {
                         Icon(Icons.diamond_outlined, size: 11, color: m.gold),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 5),
                     Container(
                       width: 54,
                       height: 7,
@@ -248,7 +248,7 @@ class _ThemeTile extends StatelessWidget {
                     const Spacer(),
                     Container(
                       height: 34,
-                      padding: const EdgeInsets.all(7),
+                      padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
                         color: m.surface,
                         borderRadius: BorderRadius.circular(7),
@@ -264,7 +264,7 @@ class _ThemeTile extends StatelessWidget {
                               gradient: m.goldGradient,
                             ),
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 5),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -295,7 +295,7 @@ class _ThemeTile extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(6, 10, 4, 4),
+                padding: const EdgeInsets.fromLTRB(5, 8, 4, 4),
                 child: Row(
                   children: [
                     Expanded(
@@ -380,7 +380,7 @@ class SettingsLanguageChooser extends StatelessWidget {
     return Row(
       children: [
         for (var i = 0; i < options.length; i++) ...[
-          if (i > 0) const SizedBox(width: 10),
+          if (i > 0) const SizedBox(width: 8),
           Expanded(
             child: _LanguageTile(
               glyph: options[i].$2,
@@ -424,7 +424,7 @@ class _LanguageTile extends StatelessWidget {
         child: AnimatedContainer(
           duration: AtelierMotion.base,
           curve: AtelierMotion.emphasized,
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
           decoration: BoxDecoration(
             color: selected ? p.ink : p.surface,
             borderRadius: BorderRadius.circular(AtelierRadius.lg),
@@ -438,7 +438,7 @@ class _LanguageTile extends StatelessWidget {
                 style: AtelierType.display(selected ? p.gold : p.ink, size: 30),
                 child: Text(glyph, maxLines: 1),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 5),
               AnimatedDefaultTextStyle(
                 duration: AtelierMotion.base,
                 style: AtelierType.label(
@@ -520,7 +520,7 @@ class SettingsRow extends StatelessWidget {
       scale: 0.985,
       semanticLabel: title,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
+        padding: const EdgeInsets.fromLTRB(10, 10, 8, 10),
         child: Row(
           children: [
             Container(
@@ -538,7 +538,7 @@ class SettingsRow extends StatelessWidget {
                 color: tone == null ? p.inkSoft : accent,
               ),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -562,7 +562,7 @@ class SettingsRow extends StatelessWidget {
               ),
             ),
             if (chevron) ...[
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Icon(Icons.chevron_right_rounded, size: 20, color: p.muted),
             ],
           ],
@@ -654,10 +654,10 @@ class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
               context.tr(AccountCommerceL10n.currentPassword).toUpperCase(),
               style: AtelierType.overline(p.muted),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             AnimatedContainer(
               duration: AtelierMotion.base,
-              padding: const EdgeInsets.only(left: 16, right: 4),
+              padding: const EdgeInsets.only(left: 12, right: 4),
               decoration: BoxDecoration(
                 color: p.sunken,
                 borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -671,7 +671,7 @@ class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
               child: Row(
                 children: [
                   Icon(Icons.lock_outline_rounded, size: 17, color: p.muted),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
                       controller: _password,
@@ -693,7 +693,7 @@ class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
                         focusedBorder: InputBorder.none,
                         disabledBorder: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(
-                          vertical: 15,
+                          vertical: 10,
                         ),
                         hintText: '••••••••',
                         hintStyle: AtelierType.body(p.muted),

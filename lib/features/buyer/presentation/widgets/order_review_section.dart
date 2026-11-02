@@ -79,10 +79,10 @@ class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
             color: AppColors.textMuted(context),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         if (orderAsync.isLoading)
           const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
+            padding: EdgeInsets.symmetric(vertical: 8),
             child: Center(child: CircularProgressIndicator()),
           )
         else if (orderAsync.hasError)
@@ -99,7 +99,7 @@ class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
             const SizedBox(height: 4),
           ],
           if (!_isPaid && targets.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               'You can leave a review after payment is complete.',
               style: AppTypography.caption.copyWith(
@@ -108,7 +108,7 @@ class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
             ),
           ],
           if (_isPaid && pendingTargets.isEmpty && targets.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               'You have reviewed every seller on this order.',
               style: AppTypography.caption.copyWith(
@@ -118,7 +118,7 @@ class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
           ],
           if (_isPaid)
             for (final target in pendingTargets) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               _SellerReviewFormBlock(
                 key: ValueKey('review-form-${target.sellerId}'),
                 orderId: widget.order.id,
@@ -239,13 +239,13 @@ class _SellerReviewFormBlockState
           sellerName: widget.sellerName,
         ),
         if (_error != null) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             _error!,
             style: AppTypography.caption.copyWith(color: AppColors.error),
           ),
         ],
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         SizedBox(
           height: 48,
           child: FilledButton(
@@ -297,7 +297,7 @@ class _ExistingReviewCard extends ConsumerWidget {
         : '${date.day}/${date.month}/${date.year}';
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(AppSpacing.s12),
       decoration: BoxDecoration(
         color: AppColors.surface(context),
@@ -335,7 +335,7 @@ class _ExistingReviewCard extends ConsumerWidget {
               ),
             ),
           ],
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           Row(
             children: List.generate(5, (i) {
               return Icon(
@@ -348,7 +348,7 @@ class _ExistingReviewCard extends ConsumerWidget {
             }),
           ),
           if (review.title != null && review.title!.isNotEmpty) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 5),
             Text(
               review.title!,
               style: AppTypography.label.copyWith(fontWeight: FontWeight.w600),
@@ -365,7 +365,7 @@ class _ExistingReviewCard extends ConsumerWidget {
             ),
           ],
           if (review.sellerReply != null && review.sellerReply!.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               'Seller reply: ${review.sellerReply}',
               style: AppTypography.caption.copyWith(

@@ -107,8 +107,8 @@ class DiamondProjectHero extends StatelessWidget {
         border: Border.all(color: LuxeStage.glassBorder),
       ),
       padding: compact
-          ? const EdgeInsets.fromLTRB(16, 14, 8, 14)
-          : const EdgeInsets.fromLTRB(20, 18, 12, 20),
+          ? const EdgeInsets.fromLTRB(12, 10, 6, 10)
+          : const EdgeInsets.fromLTRB(14, 12, 8, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -121,7 +121,7 @@ class DiamondProjectHero extends StatelessWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
+                        horizontal: 8,
                         vertical: 4,
                       ),
                       decoration: ShapeDecoration(
@@ -238,7 +238,7 @@ class DiamondProjectAverages extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 10),
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
             context.tr(ExperienceL10n.projectAverages).toUpperCase(),
             style: LuxeType.eyebrow(p.inkMuted).copyWith(fontSize: 10),
@@ -325,11 +325,11 @@ class DiamondProjectTabView extends StatelessWidget {
     final p = LuxePalette.of(context);
     final wide = MediaQuery.sizeOf(context).width >= 720;
     Widget hint() => Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 10),
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
       child: Row(
         children: [
           Icon(Icons.touch_app_outlined, size: 13, color: p.inkFaint),
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           Flexible(
             child: Text(
               context.tr(ExperienceL10n.projectTapHint),

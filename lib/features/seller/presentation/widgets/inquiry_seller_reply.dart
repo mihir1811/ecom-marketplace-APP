@@ -200,7 +200,7 @@ class _InquirySellerReplyComposerState
               ),
               const Spacer(),
               Padding(
-                padding: const EdgeInsets.only(right: 12),
+                padding: const EdgeInsets.only(right: 8),
                 child: Text(
                   context.tr(RemainingL10n.richReply),
                   style: AppTypography.caption.copyWith(
@@ -261,7 +261,7 @@ class _InquirySellerReplyComposerState
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         InquiryImagePickerField(
           label: context.tr(RemainingL10n.referenceImage),
           helperText: context.tr(RemainingL10n.attachAPhotoOfWhatYouHave),
@@ -277,7 +277,7 @@ class _InquirySellerReplyComposerState
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.textPrimary(context),
               foregroundColor: AppColors.onSelected(context),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
             icon: const Icon(Icons.send, size: 18),
             label: Text(context.tr(RemainingL10n.sendReply)),

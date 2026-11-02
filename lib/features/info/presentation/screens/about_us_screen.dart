@@ -125,42 +125,42 @@ class AboutUsScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           reveal(
             Text(
               context.tr(RemainingL10n.ourStory).toUpperCase(),
               style: AtelierType.overline(p.gold),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           reveal(
             Text(
               context.tr(RemainingL10n.trustedMarketplaceTitle),
               style: AtelierType.display(p.ink, size: wide ? 28 : 24),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           reveal(
             Text(
               context.tr(RemainingL10n.gemworldWasBuiltOnASimple),
               style: AtelierType.body(p.inkSoft, size: 15),
             ),
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: 14),
           reveal(
             Text(
               context.tr(RemainingL10n.ourPromise).toUpperCase(),
               style: AtelierType.overline(p.gold),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           reveal(
             Text(
               context.tr(RemainingL10n.shopConfidence),
               style: AtelierType.display(p.ink, size: wide ? 28 : 24),
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           for (final item in promises) ...[
             reveal(
               AtelierCard(
@@ -168,7 +168,7 @@ class AboutUsScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AtelierIconBadge(icon: item.$1),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,48 +186,48 @@ class AboutUsScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
           ],
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           reveal(
             Text(
               context.tr(RemainingL10n.whatWeDo).toUpperCase(),
               style: AtelierType.overline(p.gold),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           reveal(
             Text(
               context.tr(RemainingL10n.onePlatformTrade),
               style: AtelierType.display(p.ink, size: wide ? 28 : 24),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           reveal(
             Text(
               context.tr(RemainingL10n.gemworldBringsTogetherNaturalDiamondsLab),
               style: AtelierType.body(p.inkSoft, size: 15),
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           reveal(
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: 6,
+              runSpacing: 6,
               children: [
                 for (final label in categories)
                   AtelierPill(label: label, tone: AtelierTone.gold),
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           reveal(
             Text(
               context.tr(RemainingL10n.ourValues).toUpperCase(),
               style: AtelierType.overline(p.gold),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           LayoutBuilder(
             builder: (context, constraints) {
               final cols = constraints.maxWidth >= 640 ? 2 : 1;
@@ -246,9 +246,9 @@ class AboutUsScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               AtelierIconBadge(icon: v.$1),
-                              const SizedBox(height: 12),
-                              Text(v.$2, style: AtelierType.title(p.ink)),
                               const SizedBox(height: 8),
+                              Text(v.$2, style: AtelierType.title(p.ink)),
+                              const SizedBox(height: 6),
                               Text(
                                 v.$3,
                                 style: AtelierType.body(p.inkSoft, size: 13.5),
@@ -262,7 +262,7 @@ class AboutUsScreen extends StatelessWidget {
               );
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           reveal(
             AtelierCard(
               color: p.isDark ? p.surface : const Color(0xFF16140F),
@@ -277,7 +277,7 @@ class AboutUsScreen extends StatelessWidget {
                       size: 17,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   Text(
                     context.tr(RemainingL10n.highValueTradeDemandsMoreThan),
                     style: AtelierType.body(
@@ -289,7 +289,7 @@ class AboutUsScreen extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           reveal(
             AtelierCard(
               child: Column(
@@ -299,7 +299,7 @@ class AboutUsScreen extends StatelessWidget {
                     context.tr(RemainingL10n.getInTouch),
                     style: AtelierType.title(p.ink),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     context.tr(
                       RemainingL10n
@@ -307,15 +307,15 @@ class AboutUsScreen extends StatelessWidget {
                     ),
                     style: AtelierType.body(p.inkSoft, size: 14),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     context.tr(RemainingL10n.supportGemworldCom),
                     style: AtelierType.label(p.gold),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
+                    spacing: 8,
+                    runSpacing: 8,
                     children: [
                       AtelierButton(
                         label: context.tr(AccountCommerceL10n.privacyPolicy),

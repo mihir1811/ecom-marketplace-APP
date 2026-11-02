@@ -148,7 +148,7 @@ class _Tag extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = AuthPalette.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: strong ? p.accentSoft : Colors.transparent,
         borderRadius: BorderRadius.circular(AuthSpace.rPill),

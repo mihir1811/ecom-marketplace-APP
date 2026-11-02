@@ -60,6 +60,14 @@ class AppTheme {
         iconTheme: IconThemeData(color: c.textPrimaryLight),
       ),
 
+      // Compact list rows for phone screens.
+      listTileTheme: const ListTileThemeData(
+        contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.s16),
+        minVerticalPadding: AppSpacing.s8,
+        horizontalTitleGap: AppSpacing.s16,
+        minLeadingWidth: 28,
+      ),
+
       // Card Design
       cardTheme: CardThemeData(
         color: c.sandSurface,
@@ -221,6 +229,14 @@ class AppTheme {
         centerTitle: false,
         titleTextStyle: AppTypography.title.copyWith(color: c.textPrimaryDark),
         iconTheme: IconThemeData(color: c.textPrimaryDark),
+      ),
+
+      // Compact list rows for phone screens.
+      listTileTheme: const ListTileThemeData(
+        contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.s16),
+        minVerticalPadding: AppSpacing.s8,
+        horizontalTitleGap: AppSpacing.s16,
+        minLeadingWidth: 28,
       ),
 
       // Card Design

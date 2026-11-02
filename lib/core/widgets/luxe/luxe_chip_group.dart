@@ -85,13 +85,13 @@ class _LuxeChipGroupState extends State<LuxeChipGroup> {
       children: [
         if (widget.title != null) ...[
           FilterSectionHeader(title: widget.title!, infoText: widget.infoText),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
         ],
         if (widget.searchHint != null) ...[
           TextField(
             controller: _search,
             onChanged: (v) => setState(() => _query = v),
-            scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
+            scrollPadding: const EdgeInsets.fromLTRB(14, 14, 14, 120),
             decoration: InputDecoration(
               isDense: true,
               hintText: widget.searchHint,
@@ -110,7 +110,7 @@ class _LuxeChipGroupState extends State<LuxeChipGroup> {
                     ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
         ],
         AnimatedSize(
           duration: LuxeMotion.medium,
@@ -118,15 +118,15 @@ class _LuxeChipGroupState extends State<LuxeChipGroup> {
           alignment: Alignment.topCenter,
           child: matches.isEmpty
               ? Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  padding: const EdgeInsets.symmetric(vertical: 5),
                   child: Text(
                     widget.emptyLabel ?? '—',
                     style: LuxeType.body(p.inkMuted, size: 13),
                   ),
                 )
               : Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: 6,
+                  runSpacing: 6,
                   children: [
                     for (final o in shown)
                       FilterChipWidget(

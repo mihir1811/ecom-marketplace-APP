@@ -271,7 +271,7 @@ class _SellerInquiryFormScreenState
         children: [
           Expanded(
             child: ListView(
-              padding: EdgeInsets.fromLTRB(gutter, 12, gutter, 28),
+              padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 18),
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               children: [
                 _centered(
@@ -422,7 +422,7 @@ class _SellerInquiryFormScreenState
           ),
         ],
       ),
-      padding: EdgeInsets.fromLTRB(gutter, 12, gutter, 12),
+      padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 8),
       child: SafeArea(
         top: false,
         child: _centered(

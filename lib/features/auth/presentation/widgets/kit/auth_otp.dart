@@ -135,7 +135,7 @@ class _AuthOtpInputState extends State<AuthOtpInput> {
                     focusedBorder: InputBorder.none,
                     disabledBorder: InputBorder.none,
                     counterText: '',
-                    contentPadding: EdgeInsets.symmetric(vertical: 24),
+                    contentPadding: EdgeInsets.symmetric(vertical: 16),
                   ),
                   onSubmitted: (_) {
                     if (widget.controller.text.length == widget.length) {

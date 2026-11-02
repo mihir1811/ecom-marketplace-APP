@@ -363,11 +363,11 @@ class _TopicDropdownState extends State<_TopicDropdown> {
             borderRadius: BorderRadius.circular(AtelierRadius.lg),
             onTap: () => setState(() => _open = !_open),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+              padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
               child: Row(
                 children: [
                   Icon(Icons.support_agent_rounded, size: 20, color: p.gold),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'What do you need help with?',
@@ -400,14 +400,14 @@ class _TopicDropdownState extends State<_TopicDropdown> {
                             widget.onPick(type);
                           },
                           child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+                            padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
                             child: Row(
                               children: [
                                 AtelierIconBadge(
                                   icon: _issueIcon(type),
                                   size: 32,
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -490,7 +490,7 @@ class _TicketCard extends StatelessWidget {
                 '${expanded ? 'Collapse' : 'Expand'}',
             borderRadius: BorderRadius.circular(AtelierRadius.lg),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 14, 16),
+              padding: const EdgeInsets.fromLTRB(12, 12, 10, 12),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -499,7 +499,7 @@ class _TicketCard extends StatelessWidget {
                     tone: tone == AtelierTone.neutral ? AtelierTone.gold : tone,
                     size: 40,
                   ),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -524,7 +524,7 @@ class _TicketCard extends StatelessWidget {
                           child: expanded
                               ? const SizedBox(width: double.infinity)
                               : Padding(
-                                  padding: const EdgeInsets.only(top: 10),
+                                  padding: const EdgeInsets.only(top: 8),
                                   child: Text(
                                     ticket.body,
                                     maxLines: 2,
@@ -537,7 +537,7 @@ class _TicketCard extends StatelessWidget {
                                 ),
                         ),
                         if (!expanded && replied) ...[
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 8),
                           Row(
                             children: [
                               Icon(
@@ -545,7 +545,7 @@ class _TicketCard extends StatelessWidget {
                                 size: 14,
                                 color: p.emerald,
                               ),
-                              const SizedBox(width: 6),
+                              const SizedBox(width: 5),
                               Flexible(
                                 child: Text(
                                   'Support replied — tap to read',
@@ -558,7 +558,7 @@ class _TicketCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
@@ -568,7 +568,7 @@ class _TicketCard extends StatelessWidget {
                         icon: statusIcon,
                         dense: true,
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
                       AnimatedRotation(
                         turns: expanded ? 0.5 : 0,
                         duration: AtelierMotion.base,
@@ -592,22 +592,22 @@ class _TicketCard extends StatelessWidget {
             child: !expanded
                 ? const SizedBox(width: double.infinity)
                 : Padding(
-                    padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const AtelierHairline(),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                         Text(
                           'YOUR QUESTION',
                           style: AtelierType.overline(p.muted),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         SelectableText(
                           ticket.body,
                           style: AtelierType.body(p.inkSoft, size: 13.5),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                         if (replied)
                           Reveal(
                             child: _ReplyPanel(
@@ -625,7 +625,7 @@ class _TicketCard extends StatelessWidget {
                           Row(
                             children: [
                               const AtelierPulseDot(tone: AtelierTone.amber),
-                              const SizedBox(width: 10),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   context.tr(RemainingL10n.awaitingAdminReview),
@@ -638,7 +638,7 @@ class _TicketCard extends StatelessWidget {
                             ],
                           ),
                         if (onClose != null) ...[
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           Align(
                             alignment: Alignment.centerLeft,
                             child: AtelierButton(
@@ -673,7 +673,7 @@ class _ReplyPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.atelier;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: p.emerald.withValues(alpha: p.isDark ? 0.1 : 0.05),
         borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -689,7 +689,7 @@ class _ReplyPanel extends StatelessWidget {
                 tone: AtelierTone.emerald,
                 size: 30,
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   meta,
@@ -699,7 +699,7 @@ class _ReplyPanel extends StatelessWidget {
             ],
           ),
           if (answer.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             SelectableText(answer, style: AtelierType.body(p.ink, size: 14)),
           ],
         ],
@@ -815,12 +815,12 @@ class _QuestionComposerState extends ConsumerState<_QuestionComposer> {
               style: AtelierType.overline(typeError != null ? p.ruby : p.muted),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Reveal(
             index: 1,
             child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: 6,
+              runSpacing: 6,
               children: [
                 for (final type in HelpIssueType.values)
                   AtelierChoiceChip(
@@ -838,7 +838,7 @@ class _QuestionComposerState extends ConsumerState<_QuestionComposer> {
             ),
           ),
           AtelierFieldError(error: typeError),
-          const SizedBox(height: 20),
+          const SizedBox(height: 14),
           Reveal(
             index: 2,
             child: AtelierTextField(
@@ -852,7 +852,7 @@ class _QuestionComposerState extends ConsumerState<_QuestionComposer> {
               inputFormatters: [LengthLimitingTextInputFormatter(200)],
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
           Reveal(
             index: 3,
             child: AtelierTextField(
@@ -871,7 +871,7 @@ class _QuestionComposerState extends ConsumerState<_QuestionComposer> {
               inputFormatters: [LengthLimitingTextInputFormatter(_maxLength)],
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           Align(
             alignment: Alignment.centerRight,
             child: Text(
@@ -889,7 +889,7 @@ class _QuestionComposerState extends ConsumerState<_QuestionComposer> {
             child: _failure == null && !(_tried && !_valid)
                 ? const SizedBox(width: double.infinity)
                 : Padding(
-                    padding: const EdgeInsets.only(top: 14),
+                    padding: const EdgeInsets.only(top: 10),
                     child: AtelierNotice(
                       text: _failure ?? context.tr(RemainingL10n.fillAllFields),
                       tone: _failure != null
@@ -901,7 +901,7 @@ class _QuestionComposerState extends ConsumerState<_QuestionComposer> {
                     ),
                   ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 14),
           Reveal(
             index: 4,
             child: AtelierButton(

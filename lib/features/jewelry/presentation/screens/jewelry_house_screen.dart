@@ -223,21 +223,21 @@ class _Hero extends StatelessWidget {
           ),
         ),
         Padding(
-          padding: EdgeInsets.fromLTRB(20, bannerHeight - 52, 20, 26),
+          padding: EdgeInsets.fromLTRB(14, bannerHeight - 52, 14, 18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               JewelryHouseLogo(house: house, radius: 38),
-              const SizedBox(height: 14),
+              const SizedBox(height: 10),
               Text(house.name, style: LuxeType.display(34, LuxeStage.ink)),
               if (headline != null && headline.isNotEmpty) ...[
-                const SizedBox(height: 6),
+                const SizedBox(height: 5),
                 Text(
                   headline,
                   style: LuxeType.body(LuxeStage.inkMuted, size: 14),
                 ),
               ],
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               // Space kept while the full record loads, so nothing jumps.
               ConstrainedBox(
                 constraints: const BoxConstraints(minHeight: 30),
@@ -246,8 +246,8 @@ class _Hero extends StatelessWidget {
                   duration: LuxeMotion.medium,
                   curve: LuxeMotion.settle,
                   child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                    spacing: 6,
+                    runSpacing: 6,
                     children: [
                       if (pieces != null)
                         _StatPill(
@@ -284,7 +284,7 @@ class _StatPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: const ShapeDecoration(
         color: LuxeStage.glass,
         shape: StadiumBorder(side: BorderSide(color: LuxeStage.glassBorder)),
@@ -293,7 +293,7 @@ class _StatPill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 14, color: LuxeStage.gold),
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           Text(label, style: LuxeType.label(LuxeStage.ink, size: 12)),
         ],
       ),
@@ -322,7 +322,7 @@ class _AboutState extends State<_About> {
     final style = LuxeType.body(p.inkMuted, size: 14);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 26, 20, 0),
+      padding: const EdgeInsets.fromLTRB(14, 18, 14, 0),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final painter = TextPainter(
@@ -339,7 +339,7 @@ class _AboutState extends State<_About> {
                 context.tr(JewelryFlowL10n.aboutHouse).toUpperCase(),
                 style: LuxeType.eyebrow(p.accent),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               AnimatedSize(
                 duration: LuxeMotion.medium,
                 curve: LuxeMotion.settle,
@@ -404,9 +404,9 @@ class _Policies extends StatelessWidget {
     final p = LuxePalette.of(context);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 26, 16, 0),
+      padding: const EdgeInsets.fromLTRB(12, 18, 12, 0),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 5),
         decoration: BoxDecoration(
           color: p.surface,
           borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall + 4),
@@ -419,15 +419,15 @@ class _Policies extends StatelessWidget {
               context.tr(JewelryMarketL10n.shopPolicies).toUpperCase(),
               style: LuxeType.eyebrow(p.accent),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             for (final r in rows)
               Padding(
-                padding: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(r.icon, size: 18, color: p.accent),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

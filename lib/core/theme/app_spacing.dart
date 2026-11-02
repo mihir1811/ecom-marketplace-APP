@@ -10,15 +10,15 @@ class AppSpacing {
   static const double s20 = 14.0;
   static const double s24 = 16.0;
   static const double s32 = 20.0;
-  static const double s40 = 24.0;
-  static const double s48 = 32.0;
-  static const double s64 = 40.0;
+  static const double s40 = 20.0;
+  static const double s48 = 24.0;
+  static const double s64 = 28.0;
 
   /// Vertical gap between text lines inside product cards (grid + list).
-  static const double cardLineGap = 6.0;
+  static const double cardLineGap = 4.0;
 
   /// Gap before the price row inside product cards.
-  static const double cardPriceGap = 12.0;
+  static const double cardPriceGap = 8.0;
 
   // Corner Radius scale
   static const double r4 = 3.0;

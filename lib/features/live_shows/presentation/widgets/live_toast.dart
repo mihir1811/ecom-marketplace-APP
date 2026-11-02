@@ -104,12 +104,12 @@ class _ToastState extends State<_Toast> with SingleTickerProviderStateMixin {
           },
           child: LiveGlass(
             radius: 18,
-            padding: const EdgeInsets.fromLTRB(14, 12, 16, 12),
+            padding: const EdgeInsets.fromLTRB(10, 8, 12, 8),
             border: Border.all(color: accent.withValues(alpha: 0.35)),
             child: Row(
               children: [
                 Icon(icon, size: 20, color: accent),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     widget.message,

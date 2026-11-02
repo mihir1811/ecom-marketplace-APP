@@ -60,7 +60,7 @@ class _LineupBodyState extends ConsumerState<_LineupBody> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+          padding: const EdgeInsets.fromLTRB(14, 0, 14, 6),
           child: _Segmented(
             left: 'Up next',
             leftCount: upCount,
@@ -92,9 +92,9 @@ class _LineupBodyState extends ConsumerState<_LineupBody> {
                 : ListView.separated(
                     key: ValueKey('list-$_results'),
                     shrinkWrap: true,
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+                    padding: const EdgeInsets.fromLTRB(12, 6, 12, 14),
                     itemCount: lots.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 8),
+                    separatorBuilder: (_, _) => const SizedBox(height: 6),
                     itemBuilder: (context, i) {
                       Widget row = _LotRow(
                         lot: lots[i],
@@ -207,7 +207,7 @@ class _Empty extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 28, 32, 40),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 40),
       child: Column(
         children: [
           Icon(
@@ -215,12 +215,12 @@ class _Empty extends StatelessWidget {
             size: 30,
             color: LiveStage.champagne.withValues(alpha: 0.7),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Text(
             results ? 'No results yet' : 'Nothing lined up yet',
             style: LiveType.display(22),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           Text(
             results
                 ? 'Sold and closed pieces appear here as the show goes on.'
@@ -277,7 +277,7 @@ class _LotRow extends ConsumerWidget {
       semanticLabel: '${lot.title}, ${won ? 'you won' : status}',
       onTap: () => openLiveLot(context, ref, lot),
       child: Container(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           color: isCurrent
@@ -319,7 +319,7 @@ class _LotRow extends ConsumerWidget {
                   ),
               ],
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -354,7 +354,7 @@ class _LotRow extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             if (won && win!.orderId.isNotEmpty)
               LiveButton(
                 label: 'View order',

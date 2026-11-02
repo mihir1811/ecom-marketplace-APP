@@ -197,7 +197,7 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen> {
             )
           : SellerProductCardsView(
               products: pageItems,
-              padding: EdgeInsets.fromLTRB(gutter, 4, gutter, 16),
+              padding: EdgeInsets.fromLTRB(gutter, 4, gutter, 12),
               selectedIds: state.selectedProductIds,
               onToggleSelection: ctrl.toggleProductSelection,
               onEdit: _editProduct,
@@ -210,7 +210,7 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 0),
+          padding: EdgeInsets.fromLTRB(gutter, 5, gutter, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -334,7 +334,7 @@ class _SellerProductsScreenState extends ConsumerState<SellerProductsScreen> {
           child: state.selectedProductIds.isEmpty
               ? const SizedBox(width: double.infinity)
               : Padding(
-                  padding: EdgeInsets.fromLTRB(gutter, 4, gutter, 8),
+                  padding: EdgeInsets.fromLTRB(gutter, 4, gutter, 6),
                   child: _SelectionBar(
                     count: state.selectedProductIds.length,
                     onSelectPage: () =>
@@ -452,7 +452,7 @@ class _InventorySummary extends StatelessWidget {
             Container(
               width: 1,
               height: 30,
-              margin: const EdgeInsets.symmetric(horizontal: 12),
+              margin: const EdgeInsets.symmetric(horizontal: 8),
               color: p.hairline,
             ),
           Expanded(
@@ -568,7 +568,7 @@ class _SelectionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.atelier;
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 6, 6, 6),
+      padding: const EdgeInsets.fromLTRB(12, 5, 5, 5),
       decoration: BoxDecoration(
         color: p.isDark ? p.raised : p.onyx,
         borderRadius: BorderRadius.circular(AtelierRadius.pill),
@@ -577,7 +577,7 @@ class _SelectionBar extends StatelessWidget {
       child: Row(
         children: [
           Icon(Icons.check_circle_rounded, size: 18, color: p.gold),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               '$count selected',
@@ -620,17 +620,17 @@ class _GallerySkeleton extends StatelessWidget {
       builder: (context, constraints) {
         final columns = constraints.maxWidth >= 680 ? 3 : 2;
         return GridView.builder(
-          padding: EdgeInsets.fromLTRB(gutter, 4, gutter, 16),
+          padding: EdgeInsets.fromLTRB(gutter, 4, gutter, 12),
           physics: const NeverScrollableScrollPhysics(),
           itemCount: columns * 2,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns,
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 16,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
             mainAxisExtent: 284,
           ),
           itemBuilder: (_, _) => Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: p.surface,
               borderRadius: BorderRadius.circular(AtelierRadius.lg),
@@ -640,11 +640,11 @@ class _GallerySkeleton extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(child: SkeletonBox(height: double.infinity)),
-                SizedBox(height: 14),
+                SizedBox(height: 10),
                 SkeletonBox(width: 110, height: 16),
-                SizedBox(height: 8),
+                SizedBox(height: 6),
                 SkeletonBox(width: 150, height: 10),
-                SizedBox(height: 12),
+                SizedBox(height: 8),
                 SkeletonBox(width: 80, height: 14),
               ],
             ),
@@ -694,7 +694,7 @@ class _PaginationBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.atelier;
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+      padding: const EdgeInsets.fromLTRB(12, 6, 6, 6),
       decoration: BoxDecoration(
         color: p.canvas,
         border: Border(top: BorderSide(color: p.hairline)),
@@ -708,8 +708,8 @@ class _PaginationBar extends StatelessWidget {
               semanticLabel: context.tr(RemainingL10n.rowsPerPage),
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 7,
+                  horizontal: 8,
+                  vertical: 6,
                 ),
                 decoration: BoxDecoration(
                   color: p.sunken,
@@ -737,7 +737,7 @@ class _PaginationBar extends StatelessWidget {
                 style: AtelierType.figure(p.inkSoft, size: 12.5),
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             AtelierIconButton(
               icon: Icons.chevron_left_rounded,
               tooltip: 'Previous page',
@@ -745,7 +745,7 @@ class _PaginationBar extends StatelessWidget {
               filled: true,
               onPressed: onPrevious,
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             AtelierIconButton(
               icon: Icons.chevron_right_rounded,
               tooltip: 'Next page',

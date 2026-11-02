@@ -189,8 +189,8 @@ abstract final class LuxeMotion {
 
 /// Spacing scale for luxe layouts.
 abstract final class LuxeSpace {
-  static const gutter = 20.0;
-  static const section = 72.0;
+  static const gutter = 14.0;
+  static const section = 40.0;
   static const radius = 22.0;
   static const radiusSmall = 14.0;
 }

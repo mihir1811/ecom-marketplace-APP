@@ -100,7 +100,7 @@ class SellerInquiryDetailScreen extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(message, style: AppTypography.body),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               TextButton(
                 onPressed: () => context.goBack(),
                 child: Text(context.tr(RemainingL10n.backToInquiries)),
@@ -186,7 +186,7 @@ class _InquiryDetailBody extends StatelessWidget {
                       ),
                       child: Icon(icon, color: accent),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,7 +213,7 @@ class _InquiryDetailBody extends StatelessWidget {
                                 size: 14,
                                 color: AppColors.textMuted(context),
                               ),
-                              const SizedBox(width: 6),
+                              const SizedBox(width: 5),
                               Expanded(
                                 child: Text(
                                   inquiry.createdAtLong,
@@ -230,7 +230,7 @@ class _InquiryDetailBody extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               _Card(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -240,7 +240,7 @@ class _InquiryDetailBody extends StatelessWidget {
                       backgroundColor: AppColors.surface(context),
                       child: const Icon(Icons.person_outline),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,7 +269,7 @@ class _InquiryDetailBody extends StatelessWidget {
                                 size: 14,
                                 color: AppColors.textMuted(context),
                               ),
-                              const SizedBox(width: 6),
+                              const SizedBox(width: 5),
                               Expanded(
                                 child: Text(
                                   inquiry.buyerEmail,
@@ -296,7 +296,7 @@ class _InquiryDetailBody extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               _Card(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -304,7 +304,7 @@ class _InquiryDetailBody extends StatelessWidget {
                     Row(
                       children: [
                         const Icon(Icons.description_outlined, size: 18),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Text(
                           context.tr(RemainingL10n.inquiryDetails),
                           style: AppTypography.title.copyWith(
@@ -322,9 +322,9 @@ class _InquiryDetailBody extends StatelessWidget {
                         color: AppColors.textMuted(context),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     for (final section in sections) ...[
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text(
                         section.title,
                         style: AppTypography.label.copyWith(
@@ -332,11 +332,11 @@ class _InquiryDetailBody extends StatelessWidget {
                           color: AppColors.textPrimary(context),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       _TwoColGrid(entries: section.entries),
                     ],
                     if (inquiry.referenceImages.isNotEmpty) ...[
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       InquiryImageGallery(
                         title: context.tr(RemainingL10n.yourReferenceImages),
                         images: inquiry.referenceImages,
@@ -344,7 +344,7 @@ class _InquiryDetailBody extends StatelessWidget {
                     ],
                     if (inquiry.imageUrl != null &&
                         inquiry.imageUrl!.isNotEmpty) ...[
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       Text(
                         context.tr(RemainingL10n.referenceImage2),
                         style: AppTypography.caption.copyWith(
@@ -352,7 +352,7 @@ class _InquiryDetailBody extends StatelessWidget {
                           letterSpacing: 0.3,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: Image.network(
@@ -377,7 +377,7 @@ class _InquiryDetailBody extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               _Card(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -385,7 +385,7 @@ class _InquiryDetailBody extends StatelessWidget {
                     Row(
                       children: [
                         const Icon(Icons.support_agent_outlined, size: 18),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Text(
                           context.tr(RemainingL10n.adminResponse),
                           style: AppTypography.title.copyWith(
@@ -401,11 +401,11 @@ class _InquiryDetailBody extends StatelessWidget {
                         color: AppColors.textMuted(context),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     if (inquiry.hasAdminReply) ...[
                       Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: AppColors.surface(context),
                           borderRadius: BorderRadius.circular(10),
@@ -427,11 +427,11 @@ class _InquiryDetailBody extends StatelessWidget {
                             if (inquiry.adminReply != null &&
                                 inquiry.adminReply!.trim().isNotEmpty &&
                                 inquiry.adminReply != '(Image attached)') ...[
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 6),
                               InquiryReplyText(inquiry.adminReply!),
                             ],
                             if (inquiry.adminReplyImages.isNotEmpty) ...[
-                              const SizedBox(height: 12),
+                              const SizedBox(height: 8),
                               InquiryImageGallery(
                                 title: context.tr(
                                   RemainingL10n.adminReferenceImages,
@@ -453,7 +453,7 @@ class _InquiryDetailBody extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               _Card(
                 child: OutlinedButton(
                   onPressed: onDelete,
@@ -687,14 +687,14 @@ class _TwoColGrid extends StatelessWidget {
       builder: (context, constraints) {
         final width = (constraints.maxWidth - 12) / 2;
         return Wrap(
-          spacing: 12,
+          spacing: 8,
           runSpacing: 4,
           children: [
             for (final e in entries)
               SizedBox(
                 width: width,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
                     border: Border(
                       bottom: BorderSide(color: AppColors.border(context)),

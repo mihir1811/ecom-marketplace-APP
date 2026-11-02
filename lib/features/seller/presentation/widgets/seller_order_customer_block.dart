@@ -31,7 +31,7 @@ class SellerOrderCustomerBlock extends StatelessWidget {
     return Row(
       children: [
         AtelierMonogram(name: name, size: 36),
-        const SizedBox(width: 12),
+        const SizedBox(width: 8),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -45,7 +45,7 @@ class SellerOrderCustomerBlock extends StatelessWidget {
               if (contacts.isNotEmpty) ...[
                 const SizedBox(height: 3),
                 Wrap(
-                  spacing: 12,
+                  spacing: 8,
                   runSpacing: 2,
                   children: [
                     for (final (icon, text) in contacts)

@@ -53,7 +53,7 @@ class FilterScrollableChips extends StatelessWidget {
                       color: AppColors.textPrimary(context),
                     ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             FilterInfoTooltip(message: infoText, diagram: infoDiagram),
           ],
         ),
@@ -64,7 +64,7 @@ class FilterScrollableChips extends StatelessWidget {
             children: options.map((opt) {
               final isSelected = selectedItems.contains(opt);
               return Padding(
-                padding: const EdgeInsets.only(right: 8.0),
+                padding: const EdgeInsets.only(right: 6.0),
                 child: GestureDetector(
                   onTap: () {
                     AppHaptics.selection();
@@ -73,8 +73,8 @@ class FilterScrollableChips extends StatelessWidget {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 150),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
+                      horizontal: 12,
+                      vertical: 8,
                     ),
                     decoration: BoxDecoration(
                       color: isSelected

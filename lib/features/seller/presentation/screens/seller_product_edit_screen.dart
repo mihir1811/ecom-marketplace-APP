@@ -468,7 +468,7 @@ class _EditTextField extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: _kEditInputMinHeight),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.s16,
-          vertical: 14,
+          vertical: 10,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.r8),

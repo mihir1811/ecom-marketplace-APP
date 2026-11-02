@@ -32,9 +32,9 @@ class EduAnatomySection extends StatelessWidget {
           title: context.tr(EducationL10n.anatomyTitle),
           body: context.tr(EducationL10n.anatomyBody),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 12),
         EduCard(
-          padding: const EdgeInsets.fromLTRB(8, 18, 8, 12),
+          padding: const EdgeInsets.fromLTRB(6, 12, 6, 8),
           child: DiamondProfileDiagram(
             height: 210,
             proportions: DiamondProportions.ideal(
@@ -52,7 +52,7 @@ class EduAnatomySection extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         for (final (name, body) in parts) ...[
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,7 +72,7 @@ class EduAnatomySection extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
         ],
       ],
     );
@@ -111,14 +111,14 @@ class EduProportionsSection extends StatelessWidget {
           title: context.tr(EducationL10n.propTitle),
           body: context.tr(EducationL10n.propBody),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         EduCard(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
           child: Column(
             children: [
               for (var i = 0; i < rows.length; i++)
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
                     border: i == rows.length - 1
                         ? null
@@ -165,14 +165,14 @@ class EduFluorescenceSection extends StatelessWidget {
           title: context.tr(EducationL10n.fluorTitle),
           body: context.tr(EducationL10n.fluorBody),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 12),
         DecoratedBox(
           decoration: BoxDecoration(
             color: LuxeStage.obsidian,
             borderRadius: BorderRadius.circular(LuxeSpace.radius),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 8),
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
             child: Row(
               children: [
                 for (final f in FluorescenceIntensity.values)
@@ -204,7 +204,7 @@ class EduFluorescenceSection extends StatelessWidget {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 8),
                         Text(
                           context.fluorescenceName(f),
                           textAlign: TextAlign.center,
@@ -218,7 +218,7 @@ class EduFluorescenceSection extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         Text(
           context.tr(EducationL10n.fluorTip),
           style: LuxeType.body(p.inkMuted, size: 13),
@@ -258,7 +258,7 @@ class EduOriginSection extends StatelessWidget {
       ),
     ];
     Widget cell(String text, {bool head = false}) => Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
       child: Text(
         text,
         style: head
@@ -273,9 +273,9 @@ class EduOriginSection extends StatelessWidget {
           title: context.tr(EducationL10n.labTitle),
           body: context.tr(EducationL10n.labBody),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         EduCard(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
           child: Table(
             columnWidths: const {
               0: FlexColumnWidth(0.8),
@@ -329,7 +329,7 @@ class EduCertificationSection extends StatelessWidget {
           title: context.tr(EducationL10n.certTitle),
           body: context.tr(EducationL10n.certBody),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         for (final (name, body) in labs) ...[
           EduPoint(
             leading: Container(
@@ -345,7 +345,7 @@ class EduCertificationSection extends StatelessWidget {
             title: name,
             body: context.tr(body),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
         ],
       ],
     );
@@ -372,7 +372,7 @@ class EduTipsSection extends StatelessWidget {
           eyebrow: context.tr(EducationL10n.tipsEyebrow),
           title: context.tr(EducationL10n.tipsTitle),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         for (var i = 0; i < tips.length; i++) ...[
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -392,9 +392,9 @@ class EduTipsSection extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
         ],
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         EduCard(
           child: EduPoint(
             icon: Icons.cleaning_services_outlined,
@@ -428,7 +428,7 @@ class EduFinalCta extends StatelessWidget {
               borderRadius: BorderRadius.circular(LuxeSpace.radius),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -436,12 +436,12 @@ class EduFinalCta extends StatelessWidget {
                     context.tr(EducationL10n.ctaTitle),
                     style: LuxeType.display(28, LuxeStage.ink),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     context.tr(EducationL10n.ctaBody),
                     style: LuxeType.body(LuxeStage.inkMuted),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 14),
                   LuxeButton(
                     label: context.tr(EducationL10n.ctaBrowse),
                     variant: LuxeButtonVariant.accent,

@@ -65,7 +65,7 @@ class OrderTrackingPanel extends ConsumerWidget {
                   tone: AtelierTone.neutral,
                   size: 44,
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,7 +89,7 @@ class OrderTrackingPanel extends ConsumerWidget {
           return Column(
             children: [
               for (var i = 0; i < shipments.length; i++) ...[
-                if (i > 0) const SizedBox(height: 12),
+                if (i > 0) const SizedBox(height: 8),
                 Reveal(
                   index: i,
                   child: _ShipmentCard(shipment: shipments[i]),
@@ -123,7 +123,7 @@ class _ShipmentCard extends ConsumerWidget {
     final location = detail.currentLocation?.trim();
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: p.sunken,
         borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -152,10 +152,10 @@ class _ShipmentCard extends ConsumerWidget {
           ),
           if ((number != null && number.isNotEmpty) ||
               (location != null && location.isNotEmpty)) ...[
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             Wrap(
-              spacing: 24,
-              runSpacing: 12,
+              spacing: 16,
+              runSpacing: 8,
               children: [
                 if (number != null && number.isNotEmpty)
                   AtelierKeyValue(
@@ -198,9 +198,9 @@ class _ShipmentCard extends ConsumerWidget {
             ),
           ],
           if (updates.isNotEmpty) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Text('TIMELINE', style: AtelierType.overline(p.muted)),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             for (var i = 0; i < updates.length; i++)
               _TimelineRow(
                 update: updates[i],
@@ -209,13 +209,13 @@ class _ShipmentCard extends ConsumerWidget {
               ),
           ],
           if (detail.comments.isNotEmpty) ...[
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             Text('FROM THE SELLER', style: AtelierType.overline(p.muted)),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             for (final c in detail.comments)
               Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 6),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: p.surface,
                   borderRadius: BorderRadius.circular(AtelierRadius.sm),
@@ -294,10 +294,10 @@ class _TimelineRow extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Expanded(
             child: Padding(
-              padding: EdgeInsets.only(bottom: isLast ? 0 : 14),
+              padding: EdgeInsets.only(bottom: isLast ? 0 : 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

@@ -90,7 +90,7 @@ class LuxeMultiSelectField extends StatelessWidget {
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 48),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Row(
                   children: [
                     Expanded(
@@ -109,7 +109,7 @@ class LuxeMultiSelectField extends StatelessWidget {
                     if (has) ...[
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
+                          horizontal: 6,
                           vertical: 2,
                         ),
                         decoration: ShapeDecoration(
@@ -125,7 +125,7 @@ class LuxeMultiSelectField extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 5),
                     ],
                     Icon(
                       Icons.expand_more_rounded,
@@ -138,10 +138,10 @@ class LuxeMultiSelectField extends StatelessWidget {
           ),
         ),
         if (has) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Wrap(
-            spacing: 6,
-            runSpacing: 6,
+            spacing: 5,
+            runSpacing: 5,
             children: [
               for (final o in selected)
                 InputChip(
@@ -241,7 +241,7 @@ class _MultiSelectSheetState extends State<_MultiSelectSheet> {
           children: [
             Center(
               child: Container(
-                margin: const EdgeInsets.only(top: 10, bottom: 6),
+                margin: const EdgeInsets.only(top: 8, bottom: 5),
                 width: 38,
                 height: 4,
                 decoration: BoxDecoration(
@@ -251,7 +251,7 @@ class _MultiSelectSheetState extends State<_MultiSelectSheet> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 6, 12, 4),
+              padding: const EdgeInsets.fromLTRB(14, 5, 8, 4),
               child: Row(
                 children: [
                   Expanded(
@@ -273,7 +273,7 @@ class _MultiSelectSheetState extends State<_MultiSelectSheet> {
             ),
             if (widget.searchable)
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                padding: const EdgeInsets.fromLTRB(12, 4, 12, 6),
                 child: TextField(
                   onChanged: (v) => setState(() => _query = v),
                   decoration: InputDecoration(
@@ -296,7 +296,7 @@ class _MultiSelectSheetState extends State<_MultiSelectSheet> {
             Flexible(
               child: ListView.builder(
                 shrinkWrap: true,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 6),
                 itemCount: visible.length,
                 itemBuilder: (context, i) {
                   final o = visible[i];
@@ -332,7 +332,7 @@ class _MultiSelectSheetState extends State<_MultiSelectSheet> {
             SafeArea(
               top: false,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
                 child: SizedBox(
                   height: 48,
                   child: FilledButton(

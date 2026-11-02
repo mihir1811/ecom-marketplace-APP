@@ -174,7 +174,7 @@ class _BuyerLegalDocumentScreenState extends State<_BuyerLegalDocumentScreen> {
             physics: const AlwaysScrollableScrollPhysics(
               parent: BouncingScrollPhysics(),
             ),
-            padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 48),
+            padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 48),
             children: [
               MaisonCentered(
                 maxWidth: 720,
@@ -189,7 +189,7 @@ class _BuyerLegalDocumentScreenState extends State<_BuyerLegalDocumentScreen> {
                       cut: widget.cut,
                       look: widget.look,
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 14),
                     if (loading)
                       reveal(const PolicyDocumentSkeleton())
                     else if (failed)
@@ -216,14 +216,14 @@ class _BuyerLegalDocumentScreenState extends State<_BuyerLegalDocumentScreen> {
                           ),
                         ),
                       if (doc.sections.length > 3)
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 12),
                       reveal(
                         PolicyDocumentBody(
                           document: doc,
                           sectionKeys: _sectionKeys,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       reveal(
                         AtelierCard(
                           child: Column(
@@ -233,7 +233,7 @@ class _BuyerLegalDocumentScreenState extends State<_BuyerLegalDocumentScreen> {
                                 context.tr(RemainingL10n.needHelp),
                                 style: AtelierType.title(p.ink),
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 6),
                               Text(
                                 context.tr(
                                   RemainingL10n
@@ -241,10 +241,10 @@ class _BuyerLegalDocumentScreenState extends State<_BuyerLegalDocumentScreen> {
                                 ),
                                 style: AtelierType.body(p.inkSoft, size: 14),
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 12),
                               Wrap(
-                                spacing: 10,
-                                runSpacing: 10,
+                                spacing: 8,
+                                runSpacing: 8,
                                 children: [
                                   AtelierButton(
                                     label: context.tr(
@@ -278,7 +278,7 @@ class _BuyerLegalDocumentScreenState extends State<_BuyerLegalDocumentScreen> {
                         ),
                       ),
                     ],
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 12),
                     const MaisonListFooter(
                       loadingMore: false,
                       hasMore: false,

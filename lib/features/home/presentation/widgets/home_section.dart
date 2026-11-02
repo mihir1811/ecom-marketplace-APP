@@ -46,7 +46,7 @@ class HomeSectionHeading extends StatelessWidget {
               children: [
                 if (leading != null) ...[
                   Opacity(opacity: opacity, child: leading),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                 ],
                 Expanded(
                   child: ClipRect(
@@ -92,14 +92,14 @@ class HomeArrowLink extends StatelessWidget {
       onPressed: onTap,
       style: TextButton.styleFrom(
         foregroundColor: tint,
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
         minimumSize: const Size(48, 44),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(label, style: HomeType.label(tint)),
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           Icon(Icons.arrow_forward_rounded, size: 16, color: tint),
         ],
       ),

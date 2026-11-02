@@ -41,7 +41,7 @@ class GemAgentSheet extends StatelessWidget {
           ],
         ),
         child: const Padding(
-          padding: EdgeInsets.fromLTRB(18, 14, 14, 14),
+          padding: EdgeInsets.fromLTRB(12, 10, 10, 10),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -50,7 +50,7 @@ class GemAgentSheet extends StatelessWidget {
               _Conversation(),
               _StatusLine(),
               _QuickReplies(),
-              SizedBox(height: 12),
+              SizedBox(height: 8),
               GemAgentInputBar(),
             ],
           ),
@@ -78,7 +78,7 @@ class _Header extends ConsumerWidget {
     return Row(
       children: [
         const _Mark(),
-        const SizedBox(width: 12),
+        const SizedBox(width: 8),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,7 +96,7 @@ class _Header extends ConsumerWidget {
                       color: live ? LuxeStage.gold : LuxeStage.inkMuted,
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 5),
                   Text(
                     status.toUpperCase(),
                     style: LuxeType.eyebrow(
@@ -195,7 +195,7 @@ class _Conversation extends ConsumerWidget {
     if (entries.isEmpty) return const _Suggestions();
     final maxHeight = MediaQuery.sizeOf(context).height * 0.5;
     return Padding(
-      padding: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.only(top: 8),
       child: ConstrainedBox(
         constraints: BoxConstraints(maxHeight: maxHeight),
         child: ListView.builder(
@@ -236,15 +236,15 @@ class _Suggestions extends ConsumerWidget {
     final controller = ref.read(gemAgentControllerProvider.notifier);
     final prompts = controller.starterPrompts();
     return Padding(
-      padding: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.only(top: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('How can I help?', style: LuxeType.display(24, LuxeStage.ink)),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 6,
+            runSpacing: 6,
             children: [
               for (final label in prompts)
                 _Chip(
@@ -278,13 +278,13 @@ class _Chip extends StatelessWidget {
         customBorder: const StadiumBorder(),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (icon != null) ...[
                 Icon(icon, size: 14, color: LuxeStage.goldLight),
-                const SizedBox(width: 6),
+                const SizedBox(width: 5),
               ],
               Text(label, style: LuxeType.label(LuxeStage.ink)),
             ],
@@ -333,7 +333,7 @@ class _Bubble extends StatelessWidget {
       alignment: user ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 3),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         constraints: BoxConstraints(
           maxWidth: MediaQuery.sizeOf(context).width * 0.72,
         ),
@@ -371,7 +371,7 @@ class _StatusLine extends ConsumerWidget {
       GemAgentPhase.listening => Row(
         children: [
           _Level(level: s.soundLevel),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               s.liveTranscript.isEmpty ? 'Speak now' : s.liveTranscript,
@@ -391,7 +391,7 @@ class _StatusLine extends ConsumerWidget {
               color: LuxeStage.gold,
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Expanded(child: Text(s.activity ?? 'Working…', style: muted)),
         ],
       ),
@@ -404,7 +404,7 @@ class _StatusLine extends ConsumerWidget {
       child: line == null
           ? const SizedBox(width: double.infinity)
           : Padding(
-              padding: const EdgeInsets.only(top: 10),
+              padding: const EdgeInsets.only(top: 8),
               child: Semantics(liveRegion: true, child: line),
             ),
     );
@@ -455,10 +455,10 @@ class _QuickReplies extends ConsumerWidget {
     if (options.isEmpty) return const SizedBox.shrink();
     final controller = ref.read(gemAgentControllerProvider.notifier);
     return Padding(
-      padding: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.only(top: 8),
       child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
+        spacing: 6,
+        runSpacing: 6,
         children: [
           for (final option in options)
             _Chip(label: option, onTap: () => controller.submitText(option)),

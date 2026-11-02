@@ -121,9 +121,9 @@ class LuxeFinderIndex<S> extends StatelessWidget {
     return ListView.separated(
       scrollDirection: Axis.horizontal,
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       itemCount: sections.length,
-      separatorBuilder: (_, _) => const SizedBox(width: 8),
+      separatorBuilder: (_, _) => const SizedBox(width: 6),
       itemBuilder: (context, i) {
         final s = sections[i];
         final selected = s == active;
@@ -139,7 +139,7 @@ class LuxeFinderIndex<S> extends StatelessWidget {
             child: AnimatedContainer(
               duration: LuxeMotion.medium,
               curve: LuxeMotion.settle,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               alignment: Alignment.center,
               decoration: ShapeDecoration(
                 color: selected ? p.ink : p.surface,
@@ -158,7 +158,7 @@ class LuxeFinderIndex<S> extends StatelessWidget {
                     ),
                   ),
                   if (hasActive) ...[
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 5),
                     Container(
                       width: 6,
                       height: 6,
@@ -200,7 +200,7 @@ class LuxeFinderActionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
       decoration: BoxDecoration(
         color: p.surface,
         border: Border(top: BorderSide(color: p.hairline, width: 0.6)),
@@ -213,7 +213,7 @@ class LuxeFinderActionBar extends StatelessWidget {
             child: onReset == null
                 ? const SizedBox.shrink()
                 : Padding(
-                    padding: const EdgeInsets.only(right: 10),
+                    padding: const EdgeInsets.only(right: 8),
                     child: LuxeButton(
                       label: resetLabel,
                       onPressed: onReset,
@@ -312,7 +312,7 @@ class LuxeFinderScaffold<S> extends StatelessWidget {
               if (controls != null)
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 6),
+                    padding: const EdgeInsets.fromLTRB(14, 6, 14, 5),
                     child: controls,
                   ),
                 ),
@@ -329,7 +329,7 @@ class LuxeFinderScaffold<S> extends StatelessWidget {
                 ),
               ),
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 20),
                 // Built eagerly so every section key resolves and any pill
                 // can jump straight to its section; expanded state also
                 // survives scrolling.

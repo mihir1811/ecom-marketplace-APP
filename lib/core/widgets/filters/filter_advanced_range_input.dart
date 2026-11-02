@@ -154,7 +154,7 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             FilterInfoTooltip(
               message: widget.infoText,
               diagram: widget.infoDiagram,
@@ -180,7 +180,7 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
             if (max != widget.currentMax) widget.onMaxChanged(max);
           },
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Row(
           children: [
             Expanded(
@@ -209,9 +209,9 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
                           decimal: true,
                         ),
                         scrollPadding: const EdgeInsets.fromLTRB(
-                          20,
-                          20,
-                          20,
+                          14,
+                          14,
+                          14,
                           80,
                         ),
                         style: AppTypography.caption,
@@ -221,7 +221,7 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
                             color: AppColors.textMuted(context),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 8,
+                            horizontal: 6,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(4),
@@ -263,9 +263,9 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
                           decimal: true,
                         ),
                         scrollPadding: const EdgeInsets.fromLTRB(
-                          20,
-                          20,
-                          20,
+                          14,
+                          14,
+                          14,
                           80,
                         ),
                         style: AppTypography.caption,
@@ -275,7 +275,7 @@ class _FilterAdvancedRangeInputState extends State<FilterAdvancedRangeInput> {
                             color: AppColors.textMuted(context),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 8,
+                            horizontal: 6,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(4),

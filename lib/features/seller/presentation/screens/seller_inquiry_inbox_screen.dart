@@ -58,7 +58,7 @@ class _SellerInquiryInboxScreenState
       children: [
         if (widget.showHeader)
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+            padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
             child: Row(
               children: [
                 IconButton(
@@ -107,7 +107,7 @@ class _SellerInquiryInboxScreenState
                             alignment: Alignment.centerLeft,
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
+                                horizontal: 8,
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
@@ -127,7 +127,7 @@ class _SellerInquiryInboxScreenState
                               ),
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 8),
                           Text(
                             context.tr(RemainingL10n.myInquiries),
                             style: AppTypography.headline.copyWith(
@@ -135,7 +135,7 @@ class _SellerInquiryInboxScreenState
                               fontSize: 22,
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 5),
                           Text(
                             context.tr(
                               RemainingL10n.inquiriesYouSubmitGoDirectlyTo,
@@ -145,7 +145,7 @@ class _SellerInquiryInboxScreenState
                               height: 1.4,
                             ),
                           ),
-                          const SizedBox(height: 14),
+                          const SizedBox(height: 10),
                           OutlinedButton(
                             onPressed: () => context.openRoute(
                               inquiryNewPathFor(
@@ -163,7 +163,7 @@ class _SellerInquiryInboxScreenState
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 14),
                 Text(
                   context.tr(RemainingL10n.browseByType),
                   style: AppTypography.title.copyWith(
@@ -177,10 +177,10 @@ class _SellerInquiryInboxScreenState
                     color: AppColors.textSecondary(context),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: 6,
+                  runSpacing: 6,
                   children: [
                     for (final c in InquiryCategory.values)
                       _CategoryChip(
@@ -192,9 +192,9 @@ class _SellerInquiryInboxScreenState
                       ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: AppColors.card(context),
                     borderRadius: BorderRadius.circular(12),
@@ -217,7 +217,7 @@ class _SellerInquiryInboxScreenState
                           color: _accentFor(context, _category),
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,10 +249,10 @@ class _SellerInquiryInboxScreenState
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 if (listState.errorMessage != null) ...[
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: AppColors.error.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(10),
@@ -267,16 +267,16 @@ class _SellerInquiryInboxScreenState
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                 ],
                 if (listState.isLoading && listState.items.isEmpty)
                   const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 32),
+                    padding: EdgeInsets.symmetric(vertical: 20),
                     child: Center(child: CircularProgressIndicator()),
                   )
                 else if (listState.items.isEmpty)
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 32),
+                    padding: const EdgeInsets.symmetric(vertical: 20),
                     child: Center(
                       child: Text(
                         context.tr(RemainingL10n.noCategoryInquiries, {
@@ -302,7 +302,7 @@ class _SellerInquiryInboxScreenState
                         ),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                   ],
                 if (listState.hasMore) ...[
                   const SizedBox(height: 4),
@@ -360,7 +360,7 @@ class _CategoryChip extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(10),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -369,7 +369,7 @@ class _CategoryChip extends StatelessWidget {
                 size: 18,
                 color: selected ? accent : AppColors.textPrimary(context),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 5),
               Text(
                 label,
                 style: AppTypography.caption.copyWith(
@@ -428,7 +428,7 @@ class _InquiryCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             inquiry.buyerName,
             style: AppTypography.label.copyWith(fontWeight: FontWeight.w700),
@@ -440,11 +440,11 @@ class _InquiryCard extends StatelessWidget {
               color: AppColors.textSecondary(context),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Align(
             alignment: Alignment.centerLeft,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
               decoration: BoxDecoration(
                 color: inquiry.hasAdminReply
                     ? AppColors.info.withValues(alpha: 0.12)
@@ -465,7 +465,7 @@ class _InquiryCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           OutlinedButton(
             onPressed: onView,
             style: OutlinedButton.styleFrom(

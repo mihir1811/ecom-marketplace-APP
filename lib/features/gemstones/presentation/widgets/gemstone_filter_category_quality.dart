@@ -54,7 +54,7 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
                 itemBuilder: (context, index) {
                   final colorName = colors[index];
                   return Padding(
-                    padding: const EdgeInsets.only(right: 12.0),
+                    padding: const EdgeInsets.only(right: 8.0),
                     child: FancyColorDiamondButton(
                       colorName: colorName,
                       isSelected: state.selectedColors.contains(colorName),
@@ -120,7 +120,7 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
                   final isSelected = state.selectedFluorescenceColor == name;
                   final hex = GemstoneFilterState.fluorescenceColorsHex[name]!;
                   return Padding(
-                    padding: const EdgeInsets.only(right: 12.0),
+                    padding: const EdgeInsets.only(right: 8.0),
                     child: GestureDetector(
                       onTap: () {
                         AppHaptics.selection();
@@ -129,8 +129,8 @@ class GemstoneFilterCategoryQuality extends ConsumerWidget {
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 6,
+                          horizontal: 6,
+                          vertical: 5,
                         ),
                         decoration: BoxDecoration(
                           color: isSelected

@@ -178,7 +178,7 @@ class _HomeSearchOverlayState extends ConsumerState<_HomeSearchOverlay> {
       ),
       child: Row(
         children: [
-          const SizedBox(width: 18),
+          const SizedBox(width: 12),
           AnimatedSwitcher(
             duration: HomeMotion.medium,
             switchInCurve: HomeMotion.settle,
@@ -213,7 +213,7 @@ class _HomeSearchOverlayState extends ConsumerState<_HomeSearchOverlay> {
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
                 filled: false,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 8),
               ),
             ),
           ),
@@ -227,7 +227,7 @@ class _HomeSearchOverlayState extends ConsumerState<_HomeSearchOverlay> {
                   color: palette.accent,
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(6),
+                  padding: const EdgeInsets.all(5),
                   child: Icon(
                     Icons.arrow_upward_rounded,
                     size: 18,
@@ -265,10 +265,10 @@ class _HomeSearchOverlayState extends ConsumerState<_HomeSearchOverlay> {
       ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
-          16,
+          12,
           MediaQuery.paddingOf(context).top + 8,
-          16,
-          16,
+          12,
+          12,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -288,9 +288,9 @@ class _HomeSearchOverlayState extends ConsumerState<_HomeSearchOverlay> {
                 ],
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             arrive(1, field),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             arrive(
               2,
               HomeSearchModeSwitch(aiMode: _aiMode, onChanged: _setAiMode),

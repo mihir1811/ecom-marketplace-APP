@@ -109,7 +109,7 @@ class _LabeledBtn extends StatelessWidget {
         onTap();
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.bronze : Colors.transparent,
           borderRadius: isSelected

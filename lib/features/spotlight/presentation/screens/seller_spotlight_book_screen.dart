@@ -524,7 +524,7 @@ class _BookingFormState extends ConsumerState<_BookingForm> {
             style: AtelierType.display(p.ink, size: 30),
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 5),
         Text(
           'Wallet balance ${maisonInr(_o.availableBalance)} · '
           'ads run on India time',
@@ -554,8 +554,8 @@ class _BookingFormState extends ConsumerState<_BookingForm> {
             _step('2', 'Section'),
             const SizedBox(height: AtelierSpace.s10),
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: 6,
+              runSpacing: 6,
               children: [
                 for (final c in _categories)
                   AtelierChoiceChip(
@@ -624,7 +624,7 @@ class _BookingFormState extends ConsumerState<_BookingForm> {
           decoration: BoxDecoration(shape: BoxShape.circle, color: p.onyx),
           child: Text(n, style: AtelierType.label(p.onOnyx, size: 11)),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         Text(label, style: AtelierType.title(p.ink)),
       ],
     );
@@ -707,14 +707,14 @@ class _BookingFormState extends ConsumerState<_BookingForm> {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: days.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 6),
+                separatorBuilder: (_, _) => const SizedBox(width: 5),
                 itemBuilder: (context, i) {
                   final d = days[i];
                   final full = short.contains(d);
                   final tone = full ? p.ruby : p.emerald;
                   return Container(
                     width: 52,
-                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    padding: const EdgeInsets.symmetric(vertical: 5),
                     decoration: BoxDecoration(
                       color: tone.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(AtelierRadius.xs),
@@ -882,7 +882,7 @@ class _BookingFormState extends ConsumerState<_BookingForm> {
           ),
           const SizedBox(height: AtelierSpace.s16),
           Text('OPENS', style: AtelierType.overline(p.muted)),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           Row(
             children: [
               Expanded(
@@ -943,7 +943,7 @@ class _BookingFormState extends ConsumerState<_BookingForm> {
           const SizedBox(height: 4),
           Text(perUnit, style: AtelierType.caption(p.muted)),
           if (_quotedTotal != null) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 5),
             Text(
               'The rate changed. This is the new total.',
               style: AtelierType.caption(p.amber),
@@ -1020,7 +1020,7 @@ class _RateCard extends StatelessWidget {
                     style: AtelierType.caption(p.muted, size: 12.5),
                   ),
                 ],
-                const SizedBox(height: 6),
+                const SizedBox(height: 5),
                 Text(
                   '$days · book up to ${rate.bookAheadDays} days ahead'
                   '${rate.slots > 0 ? ' · ${rate.slots} slots a day' : ''}',
@@ -1077,7 +1077,7 @@ class _ImageSlot extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(label, style: AtelierType.caption(p.inkSoft, size: 12)),
-        const SizedBox(height: 6),
+        const SizedBox(height: 5),
         Pressable(
           onTap: uploading ? null : onPick,
           child: AspectRatio(

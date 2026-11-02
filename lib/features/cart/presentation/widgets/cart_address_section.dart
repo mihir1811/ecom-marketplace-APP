@@ -36,7 +36,7 @@ class CartAddressSection extends ConsumerWidget {
               context.tr(AccountCommerceL10n.noAddress),
               style: LuxeType.body(p.inkMuted, size: 13.5),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             LuxeButton(
               label: context.tr(AccountCommerceL10n.addAddress),
               icon: Icons.add_location_alt_outlined,
@@ -223,7 +223,7 @@ class _AddressManager extends ConsumerWidget {
       children: [
         if (list.isEmpty)
           Padding(
-            padding: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.only(bottom: 10),
             child: Text(
               context.tr(AccountCommerceL10n.noAddress),
               style: LuxeType.body(p.inkMuted, size: 13.5),
@@ -231,7 +231,7 @@ class _AddressManager extends ConsumerWidget {
           ),
         for (final a in list)
           Padding(
-            padding: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.only(bottom: 8),
             child: _AddressTile(
               address: a,
               selected: a.id != null && a.id == selected?.id,
@@ -304,7 +304,7 @@ class _AddressTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
           onTap: enabled && !selected ? onSelect : null,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 4, 12),
+            padding: const EdgeInsets.fromLTRB(10, 8, 4, 8),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -318,7 +318,7 @@ class _AddressTile extends StatelessWidget {
                     color: selected ? p.accent : p.inkFaint,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

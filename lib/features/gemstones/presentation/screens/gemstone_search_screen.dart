@@ -299,7 +299,7 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
                   title: context.tr(CatalogL10n.originCountry),
                   infoText: context.tr(CatalogL10n.originCountryHelp),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 LuxeMultiSelectField(
                   options: GemstoneFilterState.origins,
                   selected: state.selectedOriginCountries,

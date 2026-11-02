@@ -65,19 +65,19 @@ class _SponsoredDiamondsStripState
                     style: LuxeType.display(22, p.ink),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 const SpotlightTag(),
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           SizedBox(
             height: height,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: EdgeInsets.symmetric(horizontal: gutter),
               itemCount: stones.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 12),
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
               itemBuilder: (context, i) {
                 final s = stones[i];
                 return SizedBox(

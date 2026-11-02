@@ -76,7 +76,7 @@ class _ItemRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AtelierThumb(url: item.image, size: 64),
-        const SizedBox(width: 14),
+        const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,7 +96,7 @@ class _ItemRow extends StatelessWidget {
                 ),
               ],
               if (item.isReturned) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 const AtelierPill(
                   label: 'Returned',
                   tone: AtelierTone.amber,
@@ -107,7 +107,7 @@ class _ItemRow extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 8),
         Text(
           item.pricedInInr
               ? maisonInr(item.lineTotal)
@@ -158,7 +158,7 @@ class OrderPaymentPanel extends StatelessWidget {
               label: 'Purchased in live auction',
               value: order.liveAuction?.showTitle ?? 'Live show',
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             _TotalRow(primary: maisonInr(order.amount)),
           ] else if (pricing != null)
             _Breakdown(
@@ -169,7 +169,7 @@ class OrderPaymentPanel extends StatelessWidget {
           else
             _TotalRow(primary: maisonUsd(order.amountUsd)),
           if (order.rewardPoints.used > 0) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             _Line(
               label: 'Paid with reward points',
               value: '−${maisonInr(order.rewardPoints.usedAmountInr)}',
@@ -179,9 +179,9 @@ class OrderPaymentPanel extends StatelessWidget {
           ],
           _RewardEarnNote(points: order.rewardPoints),
           if (hasInvoice) ...[
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: p.sunken,
                 borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -196,7 +196,7 @@ class OrderPaymentPanel extends StatelessWidget {
                         size: 20,
                         color: p.gold,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,7 +219,7 @@ class OrderPaymentPanel extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   AtelierButton(
                     label: context.tr(AccountCommerceL10n.downloadInvoice),
                     icon: Icons.download_rounded,
@@ -328,7 +328,7 @@ class _RewardEarnNote extends StatelessWidget {
               '${rewardMultiplierLabel(points.earnMultiplier)} points.'
         : '';
     return Padding(
-      padding: const EdgeInsets.only(top: 14),
+      padding: const EdgeInsets.only(top: 10),
       child: AtelierNotice(
         tone: pending ? AtelierTone.gold : AtelierTone.emerald,
         icon: pending
@@ -361,7 +361,7 @@ class _Line extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.atelier;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -399,7 +399,7 @@ class _TotalRow extends StatelessWidget {
       children: [
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(top: 6),
+            padding: const EdgeInsets.only(top: 5),
             child: Text('Total', style: AtelierType.title(p.ink, size: 15)),
           ),
         ),

@@ -163,7 +163,7 @@ class LuxeMetalSwatchStack extends StatelessWidget {
     );
     if (!onImage) return row;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
       decoration: ShapeDecoration(
         color: p.isDark ? const Color(0x66000000) : const Color(0xE6FFFFFF),
         shape: const StadiumBorder(),
@@ -193,8 +193,8 @@ class LuxeMetalSwatchPicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     return Wrap(
-      spacing: 6,
-      runSpacing: 14,
+      spacing: 5,
+      runSpacing: 10,
       children: [
         for (final o in options)
           _SwatchTile(
@@ -288,7 +288,7 @@ class _SwatchTile extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 7),
+              const SizedBox(height: 6),
               Text(
                 label,
                 maxLines: 2,

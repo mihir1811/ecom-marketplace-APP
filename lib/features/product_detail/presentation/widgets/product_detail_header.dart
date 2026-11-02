@@ -200,7 +200,7 @@ class _ActionIcon extends StatelessWidget {
           ),
           child: loading
               ? Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(8),
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
                     color: iconColor,

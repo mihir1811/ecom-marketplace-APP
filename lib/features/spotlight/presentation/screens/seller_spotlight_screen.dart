@@ -291,7 +291,7 @@ class SpotlightAdTile extends StatelessWidget {
                         style: AtelierType.title(p.ink, size: 15),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     AtelierPill(
                       label: ad.state.label,
                       tone: spotlightStateTone(ad.state),
@@ -311,7 +311,7 @@ class SpotlightAdTile extends StatelessWidget {
                   spotlightRange(ad.startDate, ad.endDate),
                   style: AtelierType.caption(p.muted),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 5),
                 Row(
                   children: [
                     Icon(Icons.visibility_outlined, size: 14, color: p.muted),
@@ -320,7 +320,7 @@ class SpotlightAdTile extends StatelessWidget {
                       '${ad.views}',
                       style: AtelierType.figure(p.inkSoft, size: 12.5),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     Icon(Icons.ads_click_rounded, size: 14, color: p.muted),
                     const SizedBox(width: 4),
                     Text(

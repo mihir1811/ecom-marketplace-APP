@@ -76,7 +76,7 @@ class JewelryHouseRow extends StatelessWidget {
       semanticLabel: house.name,
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: LuxeStage.glass,
           borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall + 4),
@@ -85,7 +85,7 @@ class JewelryHouseRow extends StatelessWidget {
         child: Row(
           children: [
             JewelryHouseLogo(house: house, radius: 24),
-            const SizedBox(width: 14),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,7 +105,7 @@ class JewelryHouseRow extends StatelessWidget {
                       style: LuxeType.body(LuxeStage.inkMuted, size: 12.5),
                     ),
                   ],
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   Row(
                     children: [
                       Text(
@@ -115,7 +115,7 @@ class JewelryHouseRow extends StatelessWidget {
                         style: LuxeType.label(LuxeStage.gold, size: 11.5),
                       ),
                       if (city != null) ...[
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 8),
                         Icon(
                           Icons.place_outlined,
                           size: 12,
@@ -139,7 +139,7 @@ class JewelryHouseRow extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             const JewelryHouseArrow(size: 30),
           ],
         ),
@@ -219,9 +219,9 @@ class JewelryStageChipRow extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         itemCount: children.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 6),
         itemBuilder: (_, i) => Center(child: children[i]),
       ),
     );
@@ -263,7 +263,7 @@ class JewelryStageChip extends StatelessWidget {
           duration: LuxeMotion.medium,
           curve: LuxeMotion.settle,
           height: 36,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           alignment: Alignment.center,
           decoration: ShapeDecoration(
             color: selected ? LuxeStage.ink : LuxeStage.glass,
@@ -278,11 +278,11 @@ class JewelryStageChip extends StatelessWidget {
             children: [
               if (icon != null) ...[
                 Icon(icon, size: 14, color: fg),
-                const SizedBox(width: 6),
+                const SizedBox(width: 5),
               ],
               Text(label, style: LuxeType.label(fg, size: 12.5)),
               if (trailingIcon != null) ...[
-                const SizedBox(width: 6),
+                const SizedBox(width: 5),
                 Icon(trailingIcon, size: 14, color: fg),
               ],
             ],
@@ -313,19 +313,19 @@ class JewelryStageMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 48, 32, 24),
+      padding: const EdgeInsets.fromLTRB(20, 48, 20, 16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 34, color: LuxeStage.gold),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           Text(
             title,
             textAlign: TextAlign.center,
             style: LuxeType.display(24, LuxeStage.ink),
           ),
           if (message != null) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               message!,
               textAlign: TextAlign.center,
@@ -333,7 +333,7 @@ class JewelryStageMessage extends StatelessWidget {
             ),
           ],
           if (actionLabel != null && onAction != null) ...[
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
             JewelryStageChip(
               label: actionLabel!,
               selected: true,

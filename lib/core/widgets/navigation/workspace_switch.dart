@@ -69,7 +69,7 @@ class WorkspaceSwitcher extends ConsumerWidget {
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Text(
           context.tr(NavL10n.modeHint),
           textAlign: TextAlign.center,
@@ -118,7 +118,7 @@ class _SwitchSegment extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(workspaceIcon(workspace), size: 18, color: fg),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Flexible(
                 child: Text(
                   label,
@@ -152,7 +152,7 @@ class StartSellingCard extends ConsumerWidget {
       borderRadius: BorderRadius.circular(AtelierRadius.md),
       onTap: () => startSellingFlow(context, ref),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+        padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
         decoration: BoxDecoration(
           color: p.goldSoft,
           borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -161,7 +161,7 @@ class StartSellingCard extends ConsumerWidget {
         child: Row(
           children: [
             Icon(Icons.storefront_outlined, size: 22, color: p.gold),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,7 +186,7 @@ class StartSellingCard extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Icon(Icons.arrow_forward_rounded, size: 18, color: p.ink),
           ],
         ),
@@ -228,10 +228,10 @@ class WorkspaceSwitchPill extends ConsumerWidget {
             switchWorkspace(GoRouter.of(context), target, pending: pending),
         child: Padding(
           // Keeps a 48dp touch target around the 36dp pill.
-          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
           child: Container(
             height: 36,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             decoration: BoxDecoration(
               color: foreground == null ? p.goldSoft : Colors.transparent,
               borderRadius: BorderRadius.circular(AtelierRadius.pill),
@@ -245,7 +245,7 @@ class WorkspaceSwitchPill extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.swap_horiz_rounded, size: 18, color: fg),
-                const SizedBox(width: 6),
+                const SizedBox(width: 5),
                 Text(
                   label,
                   maxLines: 1,

@@ -45,7 +45,7 @@ class _GemAgentInputBarState extends ConsumerState<GemAgentInputBar> {
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
-      padding: const EdgeInsets.fromLTRB(16, 4, 4, 4),
+      padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
       decoration: BoxDecoration(
         color: LuxeStage.glass,
         borderRadius: BorderRadius.circular(28),
@@ -77,11 +77,11 @@ class _GemAgentInputBarState extends ConsumerState<GemAgentInputBar> {
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
                 disabledBorder: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(vertical: 8),
               ),
             ),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           if (typed)
             _RoundButton(
               icon: Icons.arrow_upward_rounded,

@@ -207,7 +207,7 @@ class _ShapeItem extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(10),
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -395,7 +395,7 @@ class _LuxeShapeDialPickerState extends State<LuxeShapeDialPicker> {
                     Icon(Icons.diamond_outlined, color: color, size: size),
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 5),
         Align(
           alignment: Alignment.centerRight,
           child: TextButton.icon(

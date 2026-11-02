@@ -64,8 +64,8 @@ class LuxeScope extends StatelessWidget {
         hintStyle: LuxeType.body(p.inkFaint, size: 14),
         labelStyle: LuxeType.label(p.inkMuted),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
+          horizontal: 12,
+          vertical: 10,
         ),
         border: border(p.hairline),
         enabledBorder: border(p.hairline),
@@ -87,7 +87,7 @@ class LuxeScope extends StatelessWidget {
         ),
         actionTextColor: p.accent,
         elevation: 0,
-        insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        insetPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
         ),

@@ -170,7 +170,7 @@ class _AuctionsListScreenState extends ConsumerState<AuctionsListScreen>
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(right: 16),
+                  padding: const EdgeInsets.only(right: 12),
                   child: LuxeViewToggle(
                     viewMode: _viewMode,
                     onChanged: switchListingViewMode,
@@ -223,7 +223,7 @@ class _AuctionsListScreenState extends ConsumerState<AuctionsListScreen>
     final summary = feed.summary;
     if (widget.kind == AuctionFeedKind.activity && summary != null) {
       return Padding(
-        padding: const EdgeInsets.fromLTRB(0, 8, 0, 6),
+        padding: const EdgeInsets.fromLTRB(0, 6, 0, 5),
         child: AuctionStandingStrip(
           selectedId: _outcome,
           onSelected: _setOutcome,
@@ -246,7 +246,7 @@ class _AuctionsListScreenState extends ConsumerState<AuctionsListScreen>
     }
     if (widget.outcomes.isNotEmpty) {
       return Padding(
-        padding: const EdgeInsets.fromLTRB(0, 8, 0, 6),
+        padding: const EdgeInsets.fromLTRB(0, 6, 0, 5),
         child: LuxeQuickChips<String>(
           chips: [
             for (final o in widget.outcomes)
@@ -259,7 +259,7 @@ class _AuctionsListScreenState extends ConsumerState<AuctionsListScreen>
     }
     if (widget.kind == AuctionFeedKind.live) {
       return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 5),
         child: Text(
           context.tr(NavL10n.liveAuctions),
           style: LuxeType.display(26, LuxePalette.of(context).ink),

@@ -62,7 +62,7 @@ class BuyerRefundCard extends ConsumerWidget {
         ),
         boxShadow: p.softShadow,
       ),
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -79,7 +79,7 @@ class BuyerRefundCard extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 170),
                 child: FittedBox(
@@ -108,13 +108,13 @@ class BuyerRefundCard extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           RefundTrack(status: refund.status),
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
           Row(
             children: [
               AtelierMonogram(name: refund.sellerLabel, size: 36),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,13 +130,13 @@ class BuyerRefundCard extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               _OrderLink(orderId: refund.orderId),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: p.sunken,
               borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -145,15 +145,15 @@ class BuyerRefundCard extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('YOUR REASON', style: AtelierType.overline(p.muted)),
-                const SizedBox(height: 6),
+                const SizedBox(height: 5),
                 Text(
                   refund.reason,
                   style: AtelierType.body(p.inkSoft, size: 13),
                 ),
                 if (refund.sellerNote != null) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Text('SELLER’S NOTE', style: AtelierType.overline(p.muted)),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   Text(
                     '“${refund.sellerNote}”',
                     style: AtelierType.body(
@@ -165,10 +165,10 @@ class BuyerRefundCard extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           Wrap(
-            spacing: 24,
-            runSpacing: 12,
+            spacing: 16,
+            runSpacing: 8,
             children: [
               AtelierKeyValue(
                 label: context.tr(RemainingL10n.requested),
@@ -221,7 +221,7 @@ class BuyerRefundCard extends ConsumerWidget {
             ],
           ),
           if (refund.status == RefundStatus.accepted) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             AtelierNotice(
               text: 'Approved refunds are credited to your GemWorld wallet.',
               tone: AtelierTone.emerald,
@@ -231,7 +231,7 @@ class BuyerRefundCard extends ConsumerWidget {
             ),
           ],
           if (refund.canCancel) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
@@ -241,7 +241,7 @@ class BuyerRefundCard extends ConsumerWidget {
                     style: AtelierType.caption(p.muted, size: 11.5),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 AtelierButton(
                   label: context.tr(AccountCommerceL10n.cancelRequest),
                   icon: Icons.undo_rounded,
@@ -303,7 +303,7 @@ class _OrderLink extends StatelessWidget {
       semanticLabel: 'Open order ${maisonShortId(orderId)}',
       borderRadius: BorderRadius.circular(AtelierRadius.pill),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
           color: p.goldSoft,
           borderRadius: BorderRadius.circular(AtelierRadius.pill),
@@ -372,7 +372,7 @@ class RefundTrack extends StatelessWidget {
               if (i > 0)
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.only(top: 9),
+                    padding: const EdgeInsets.only(top: 8),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(2),
                       child: LinearProgressIndicator(
@@ -457,7 +457,7 @@ class _TrackNode extends StatelessWidget {
                     child: AtelierPulseDot(tone: AtelierTone.gold, size: 6),
                   ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           Text(
             label,
             maxLines: 2,

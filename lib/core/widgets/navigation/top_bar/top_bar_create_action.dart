@@ -173,7 +173,7 @@ class TopBarCreateButton extends StatelessWidget {
                   onTap: create.onPressed,
                   child: Container(
                     height: 34,
-                    padding: const EdgeInsets.only(left: 9, right: 13),
+                    padding: const EdgeInsets.only(left: 8, right: 10),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [

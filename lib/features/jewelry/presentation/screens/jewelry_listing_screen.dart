@@ -218,7 +218,7 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
+                  padding: const EdgeInsets.fromLTRB(12, 5, 12, 10),
                   child: LuxeSearchField(
                     controller: _searchController,
                     hintText: context.tr(CatalogL10n.searchJewelry),
@@ -232,9 +232,9 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
                 ),
                 const _ShopPill(),
                 const JewelryStyleChips(),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 const JewelryMetalChips(),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
               ],
             ),
           ),
@@ -320,7 +320,7 @@ class _ShopPill extends ConsumerWidget {
       }),
     );
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
       child: Align(
         alignment: Alignment.centerLeft,
         child: InputChip(

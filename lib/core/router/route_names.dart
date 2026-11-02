@@ -75,6 +75,11 @@ class AppRouteNames {
   static String sellerShopPath(String sellerId) =>
       '/shop/${Uri.encodeComponent(sellerId)}';
 
+  /// Everything one seller has for sale in one section (shop "View all").
+  static const String sellerShopSection = '/shop/:sellerId/:segment';
+  static String sellerShopSectionPath(String sellerId, String segment) =>
+      '/shop/${Uri.encodeComponent(sellerId)}/${Uri.encodeComponent(segment)}';
+
   /// Public product share deep link (`GET /product-share/{token}`).
   static const String productShare = '/share/:token';
   static String productSharePath(String token) =>

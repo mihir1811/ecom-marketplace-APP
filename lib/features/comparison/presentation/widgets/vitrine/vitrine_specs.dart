@@ -45,7 +45,7 @@ class VitrineSpecGroup extends StatelessWidget {
           : Padding(
               padding: const EdgeInsets.fromLTRB(
                 VitrineColumns.pad,
-                28,
+                18,
                 VitrineColumns.pad,
                 0,
               ),
@@ -62,7 +62,7 @@ class VitrineSpecGroup extends StatelessWidget {
                           style: v.display(21, style: FontStyle.italic),
                         ),
                       ),
-                      const SizedBox(width: 14),
+                      const SizedBox(width: 10),
                       Expanded(child: Container(height: 0.6, color: v.line)),
                     ],
                   ),
@@ -115,18 +115,18 @@ class _SpecRow extends StatelessWidget {
                   border: Border(bottom: BorderSide(color: v.line, width: 0.6)),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(left: 6),
+                        padding: const EdgeInsets.only(left: 5),
                         child: Text(
                           context.tr(spec.label).toUpperCase(),
                           style: v.eyebrow(),
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 5),
                       if (insights.identical.contains(spec.key))
                         _Shared(value: _value(context, 0))
                       else
@@ -209,7 +209,7 @@ class _Cell extends StatelessWidget {
           duration: VitrineMotion.settle,
           curve: VitrineMotion.ease,
           // Same inset for every cell, so values line up whether they lead.
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
           decoration: BoxDecoration(
             color: leads ? v.wash : v.wash.withValues(alpha: 0),
             borderRadius: BorderRadius.circular(8),
@@ -219,7 +219,7 @@ class _Cell extends StatelessWidget {
         if (delta != null) ...[
           const SizedBox(height: 2),
           Padding(
-            padding: const EdgeInsets.only(left: 6),
+            padding: const EdgeInsets.only(left: 5),
             child: Text(
               delta!,
               style: v.figure(10.5, color: v.muted, weight: FontWeight.w600),
@@ -247,7 +247,7 @@ class _Shared extends StatelessWidget {
         Flexible(
           flex: 4,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Text(
               missing ? '—' : value,
               textAlign: TextAlign.center,

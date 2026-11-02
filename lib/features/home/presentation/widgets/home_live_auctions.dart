@@ -64,15 +64,15 @@ class HomeLiveAuctions extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
             SizedBox(
               height: _railHeight + 22,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(gutter, 4, gutter, 18),
+                padding: EdgeInsets.fromLTRB(gutter, 4, gutter, 12),
                 itemCount: loading ? 3 : live.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 12),
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
                 itemBuilder: (context, i) => SizedBox(
                   width: _cardWidth,
                   child: ScrollReveal(
@@ -121,7 +121,7 @@ class _AuctionBand extends StatelessWidget {
       child: CustomPaint(
         painter: _BandPainter(dark: p.isDark, band: band, lamp: lamp),
         child: Padding(
-          padding: const EdgeInsets.only(top: 30, bottom: 22),
+          padding: const EdgeInsets.only(top: 20, bottom: 14),
           child: child,
         ),
       ),
@@ -219,7 +219,7 @@ class _AuctionCard extends StatelessWidget {
             AspectRatio(
               aspectRatio: 1,
               child: Padding(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(5),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(HomeSpace.radius - 6),
                   child: Stack(
@@ -260,7 +260,7 @@ class _AuctionCard extends StatelessWidget {
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -339,7 +339,7 @@ class _PhaseChip extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: const ShapeDecoration(
         color: Color(0xB3000000),
         shape: StadiumBorder(),
@@ -348,7 +348,7 @@ class _PhaseChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           dot,
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           Text(
             label.toUpperCase(),
             style: HomeType.eyebrow(Colors.white).copyWith(fontSize: 9.5),
@@ -424,7 +424,7 @@ class _CountdownState extends State<_Countdown> {
     final caption = widget.upcoming ? 'Starts in' : context.tr(HomeL10n.endsIn);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: const Color(0xD9FFFFFF),
         borderRadius: BorderRadius.circular(10),
@@ -478,7 +478,7 @@ class _SkeletonCard extends StatelessWidget {
         border: Border.all(color: palette.hairline),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(6),
+        padding: const EdgeInsets.all(5),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -491,16 +491,16 @@ class _SkeletonCard extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   bar(150, 12),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   bar(90, 12),
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 14),
                   bar(110, 20),
                 ],
               ),

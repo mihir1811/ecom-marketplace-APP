@@ -288,7 +288,7 @@ class JewelryProductCard extends ConsumerWidget {
                   Row(
                     children: [
                       for (var i = 0; i < variants.length; i++) ...[
-                        if (i > 0) const SizedBox(width: 6),
+                        if (i > 0) const SizedBox(width: 5),
                         Container(
                           width: 16,
                           height: 16,
@@ -303,7 +303,7 @@ class JewelryProductCard extends ConsumerWidget {
                         ),
                       ],
                       if (extra > 0) ...[
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 5),
                         Text(
                           '+$extra',
                           style: AppTypography.caption.copyWith(
@@ -728,7 +728,7 @@ class _OutlineBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: borderColor),
@@ -754,7 +754,7 @@ class _StoneCountBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final muted = AppColors.textSecondary(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: muted.withValues(alpha: 0.35)),

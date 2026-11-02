@@ -272,7 +272,7 @@ class _WatchBrandCarouselState extends ConsumerState<WatchBrandCarousel>
               );
             },
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           AnimatedSwitcher(
             duration: LuxeMotion.medium,
             switchInCurve: LuxeMotion.settle,
@@ -307,7 +307,7 @@ class _WatchBrandCarouselState extends ConsumerState<WatchBrandCarousel>
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Center(
             child: FilledButton(
               onPressed: () {
@@ -319,8 +319,8 @@ class _WatchBrandCarouselState extends ConsumerState<WatchBrandCarousel>
                 foregroundColor: isSelected ? p.onAccent : p.canvas,
                 shape: const StadiumBorder(),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 26,
-                  vertical: 16,
+                  horizontal: 18,
+                  vertical: 12,
                 ),
               ),
               child: AnimatedSwitcher(
@@ -331,7 +331,7 @@ class _WatchBrandCarouselState extends ConsumerState<WatchBrandCarousel>
                   children: [
                     if (isSelected) ...[
                       Icon(Icons.check_rounded, size: 18, color: p.onAccent),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                     ],
                     Flexible(
                       child: Text(
@@ -345,7 +345,7 @@ class _WatchBrandCarouselState extends ConsumerState<WatchBrandCarousel>
                       ),
                     ),
                     if (!isSelected) ...[
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 8),
                       Icon(
                         Icons.arrow_forward_rounded,
                         size: 18,

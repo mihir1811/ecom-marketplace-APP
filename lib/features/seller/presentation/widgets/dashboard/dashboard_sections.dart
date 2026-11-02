@@ -146,11 +146,11 @@ class _AttentionRow extends StatelessWidget {
       child: InkWell(
         onTap: data.error ? data.onRetry : data.onTap,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+          padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
           child: Row(
             children: [
               Icon(data.icon, size: 18, color: accent),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   data.label,
@@ -163,7 +163,7 @@ class _AttentionRow extends StatelessWidget {
                 data.error ? 'Retry' : '${data.count ?? 0}',
                 style: AtelierType.title(accent, size: 15),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 5),
               Icon(
                 data.error
                     ? Icons.refresh_rounded
@@ -264,11 +264,11 @@ class _QuickAction extends StatelessWidget {
       semanticLabel: label,
       elevated: false,
       radius: AtelierRadius.md,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       child: Row(
         children: [
           Icon(icon, size: 19, color: p.gold),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               label,
@@ -293,7 +293,7 @@ class DashboardAuctionOutcomes extends ConsumerWidget {
     final p = context.atelier;
     final standing = ref.watch(sellerAuctionStandingProvider);
     return AtelierCard(
-      padding: const EdgeInsets.fromLTRB(16, 12, 8, 14),
+      padding: const EdgeInsets.fromLTRB(12, 8, 6, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -319,7 +319,7 @@ class DashboardAuctionOutcomes extends ConsumerWidget {
           const SizedBox(height: AtelierSpace.s8),
           standing.when(
             loading: () => const Padding(
-              padding: EdgeInsets.only(right: 8),
+              padding: EdgeInsets.only(right: 6),
               child: SkeletonBox(height: 40),
             ),
             error: (error, _) => Row(
@@ -416,7 +416,7 @@ class _Outcome extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             Flexible(
               child: Text(
                 label,

@@ -44,8 +44,8 @@ void showLuxeToast(
         persist: false,
         backgroundColor: day.ink,
         elevation: 0,
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+        margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
         ),
@@ -130,7 +130,7 @@ class LuxeStateView extends StatelessWidget {
     final tint = tone == LuxeTone.error ? p.caution : p.accent;
     Widget view = Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 360),
           child: Column(
@@ -146,20 +146,20 @@ class LuxeStateView extends StatelessWidget {
                 ),
                 child: Icon(icon, size: 34, color: tint),
               ),
-              const SizedBox(height: 22),
+              const SizedBox(height: 14),
               Text(
                 title,
                 textAlign: TextAlign.center,
                 style: LuxeType.display(28, p.ink),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Text(
                 message,
                 textAlign: TextAlign.center,
                 style: LuxeType.body(p.inkMuted, size: 14),
               ),
               if (actionLabel != null) ...[
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 LuxeButton(
                   label: actionLabel!,
                   onPressed: onAction,
@@ -167,7 +167,7 @@ class LuxeStateView extends StatelessWidget {
                 ),
               ],
               if (secondaryLabel != null) ...[
-                const SizedBox(height: 6),
+                const SizedBox(height: 5),
                 LuxeButton(
                   label: secondaryLabel!,
                   onPressed: onSecondary,
@@ -227,7 +227,7 @@ Future<T?> showLuxeSheet<T>(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Center(
                   child: Container(
                     width: 40,
@@ -239,7 +239,7 @@ Future<T?> showLuxeSheet<T>(
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 18, 12, 6),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 8, 5),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -271,11 +271,11 @@ Future<T?> showLuxeSheet<T>(
                 Flexible(
                   child: scrollable
                       ? SingleChildScrollView(
-                          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                          padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
                           child: builder(sheetContext),
                         )
                       : Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                          padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
                           child: builder(sheetContext),
                         ),
                 ),

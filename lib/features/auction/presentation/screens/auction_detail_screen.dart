@@ -119,21 +119,21 @@ class _Summary extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         enter(LuxeDetailEyebrow(detail: detail), 0),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         enter(Text(detail.title, style: LuxeType.display(34, p.ink)), 1),
         if (detail.subtitle.isNotEmpty) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           enter(
             Text(detail.subtitle, style: LuxeType.body(p.inkMuted, size: 15)),
             2,
           ),
         ],
         if (detail.badges.isNotEmpty) ...[
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           enter(
             Wrap(
-              spacing: 6,
-              runSpacing: 6,
+              spacing: 5,
+              runSpacing: 5,
               children: [
                 for (final b in detail.badges) LuxeDetailBadge(badge: b),
               ],
@@ -141,12 +141,12 @@ class _Summary extends StatelessWidget {
             3,
           ),
         ],
-        const SizedBox(height: 20),
+        const SizedBox(height: 14),
         enter(AuctionBidPanel(auction: auction), 4),
-        const SizedBox(height: 26),
+        const SizedBox(height: 18),
         if (detail.highlights.isNotEmpty) ...[
           enter(LuxeGlance(highlights: detail.highlights), 5),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
         ],
         if (detail.certification != null &&
             !luxeIsMissing(detail.certification!.authority))
@@ -193,9 +193,9 @@ class _Record extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (errorMessage != null) ...[
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: p.caution.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
@@ -205,7 +205,7 @@ class _Record extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(Icons.error_outline_rounded, size: 18, color: p.caution),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     errorMessage!,
@@ -216,20 +216,20 @@ class _Record extends StatelessWidget {
             ),
           ),
         ],
-        const SizedBox(height: 32),
+        const SizedBox(height: 20),
         AuctionBidHistory(auction: auction),
         if (specs != null && specs.tabs.isNotEmpty) ...[
-          const SizedBox(height: 32),
+          const SizedBox(height: 20),
           LuxeSpecTabs(specs: specs),
         ],
         if (detail.listingSeller != null) ...[
-          const SizedBox(height: 28),
+          const SizedBox(height: 18),
           ProductDetailSellerPanel(
             seller: detail.listingSeller!,
             showContactDetails: true,
           ),
         ],
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
       ],
     );
   }
@@ -261,19 +261,19 @@ class _DetailSkeleton extends StatelessWidget {
     return _Shell(
       child: ListView(
         physics: const NeverScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+        padding: const EdgeInsets.fromLTRB(14, 6, 14, 14),
         children: [
           LuxeSkeleton(
             height: (width - 40).clamp(0.0, 520.0),
             radius: LuxeSpace.radius,
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: 14),
           const LuxeSkeleton(width: 120, height: 11),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           LuxeSkeleton(width: width * 0.7, height: 28),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           LuxeSkeleton(width: width * 0.5, height: 14),
-          const SizedBox(height: 22),
+          const SizedBox(height: 14),
           const LuxeSkeleton(height: 190, radius: LuxeSpace.radius),
         ],
       ),

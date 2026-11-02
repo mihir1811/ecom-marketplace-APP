@@ -57,7 +57,7 @@ class _ComparisonScreenState extends ConsumerState<ComparisonScreen> {
           behavior: SnackBarBehavior.floating,
           backgroundColor: v.ink,
           shape: const StadiumBorder(),
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
           duration: const Duration(seconds: 4),
           content: Text(
             '${context.tr(AccountCommerceL10n.removedComparison)} · ${item.title}',
@@ -193,7 +193,7 @@ class _TopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final v = Vitrine.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+      padding: const EdgeInsets.fromLTRB(8, 6, 8, 5),
       child: Row(
         children: [
           _RoundButton(
@@ -331,7 +331,7 @@ class _Board extends StatelessWidget {
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
+                padding: const EdgeInsets.fromLTRB(12, 5, 12, 4),
                 child: Text(
                   context.tr(AccountCommerceL10n.comparePiecesOf, {
                     'count': items.length,
@@ -389,10 +389,10 @@ class _Board extends StatelessWidget {
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
-                  24,
-                  28,
-                  24,
-                  32 + MediaQuery.paddingOf(context).bottom,
+                  16,
+                  18,
+                  16,
+                  20 + MediaQuery.paddingOf(context).bottom,
                 ),
                 child: Column(
                   children: [
@@ -403,7 +403,7 @@ class _Board extends StatelessWidget {
                           angle: 0.785,
                           child: Container(width: 6, height: 6, color: v.gold),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Flexible(
                           child: Text(
                             context.tr(AccountCommerceL10n.compareLegend),
@@ -414,7 +414,7 @@ class _Board extends StatelessWidget {
                       ],
                     ),
                     if (items.length > 1) ...[
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 5),
                       Text(
                         context.tr(AccountCommerceL10n.reorderHint),
                         textAlign: TextAlign.center,
@@ -443,8 +443,8 @@ class _Notice extends StatelessWidget {
   Widget build(BuildContext context) {
     final v = Vitrine.of(context);
     return Container(
-          margin: const EdgeInsets.fromLTRB(16, 18, 16, 0),
-          padding: const EdgeInsets.fromLTRB(18, 16, 12, 16),
+          margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+          padding: const EdgeInsets.fromLTRB(12, 12, 8, 12),
           decoration: BoxDecoration(
             color: v.card,
             borderRadius: BorderRadius.circular(20),
@@ -491,12 +491,12 @@ class _Empty extends StatelessWidget {
 
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             enter(const VitrineGem(size: 170), 0),
-            const SizedBox(height: 22),
+            const SizedBox(height: 14),
             enter(
               Text(
                 context.tr(AccountCommerceL10n.compareEmptyTitle),
@@ -505,7 +505,7 @@ class _Empty extends StatelessWidget {
               ),
               1,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             enter(
               Text(
                 context.tr(AccountCommerceL10n.compareEmptyBody),
@@ -514,7 +514,7 @@ class _Empty extends StatelessWidget {
               ),
               2,
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 18),
             enter(
               Material(
                 color: v.ink,
@@ -527,8 +527,8 @@ class _Empty extends StatelessWidget {
                   },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 28,
-                      vertical: 15,
+                      horizontal: 18,
+                      vertical: 10,
                     ),
                     child: Text(
                       context.tr(AccountCommerceL10n.browseMore),

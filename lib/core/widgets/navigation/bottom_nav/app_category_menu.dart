@@ -94,9 +94,9 @@ class _CategoryMenu extends StatelessWidget {
           alignment: Alignment.bottomCenter,
           child: Padding(
             padding: EdgeInsets.fromLTRB(
-              16,
-              padding.top + 16,
-              16,
+              12,
+              padding.top + 12,
+              12,
               padding.bottom + _bubbleClearance,
             ),
             child: ConstrainedBox(
@@ -127,13 +127,13 @@ class _CategoryMenu extends StatelessWidget {
                       borderRadius: BorderRadius.circular(LuxeSpace.radius + 6),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(left: 4, bottom: 14),
+                            padding: const EdgeInsets.only(left: 4, bottom: 10),
                             child: Text(
                               context.tr(NavL10n.categories).toUpperCase(),
                               style: LuxeType.eyebrow(p.inkMuted),
@@ -147,8 +147,8 @@ class _CategoryMenu extends StatelessWidget {
                               shrinkWrap: true,
                               physics: const ClampingScrollPhysics(),
                               padding: EdgeInsets.zero,
-                              mainAxisSpacing: 14,
-                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 10,
+                              crossAxisSpacing: 8,
                               childAspectRatio: 0.8,
                               children: [
                                 for (var i = 0; i < items.length; i++)
@@ -166,7 +166,7 @@ class _CategoryMenu extends StatelessWidget {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 14),
+                          const SizedBox(height: 10),
                           _LiveShowsRow(
                             reveal: CurvedAnimation(
                               parent: animation,
@@ -238,7 +238,7 @@ class _CategoryTile extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
                 title,
                 maxLines: 1,
@@ -279,7 +279,7 @@ class _LiveShowsRow extends StatelessWidget {
             Navigator.of(context).pop(AppRouteNames.liveShows);
           },
           child: Ink(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
               color: p.surfaceRaised,
               borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
@@ -292,7 +292,7 @@ class _LiveShowsRow extends StatelessWidget {
                   size: 20,
                   color: Color(0xFFFF3D57),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     title,

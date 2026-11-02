@@ -134,7 +134,7 @@ class _SellerSpotlightDetailScreenState
                             style: AtelierType.display(p.ink, size: 24),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         AtelierPill(
                           label: ad.state.label,
                           tone: spotlightStateTone(ad.state),
@@ -142,7 +142,7 @@ class _SellerSpotlightDetailScreenState
                       ],
                     ),
                     if (subtitle != null && subtitle.isNotEmpty) ...[
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 5),
                       Text(subtitle, style: AtelierType.body(p.muted)),
                     ],
                   ],

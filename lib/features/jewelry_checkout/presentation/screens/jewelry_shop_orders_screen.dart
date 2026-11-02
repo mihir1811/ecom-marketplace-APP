@@ -40,10 +40,10 @@ class JewelryShopOrdersScreen extends ConsumerWidget {
       body: orders.when(
         skipLoadingOnRefresh: true,
         loading: () => ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           children: const [
             LuxeSkeleton(height: 104, radius: LuxeSpace.radius),
-            SizedBox(height: 12),
+            SizedBox(height: 8),
             LuxeSkeleton(height: 104, radius: LuxeSpace.radius),
           ],
         ),
@@ -76,7 +76,7 @@ class JewelryShopOrdersScreen extends ConsumerWidget {
             color: p.accent,
             onRefresh: () => ref.refresh(jewelryShopOrdersProvider.future),
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              padding: const EdgeInsets.fromLTRB(12, 6, 12, 16),
               children: [
                 if (askedForOne) ...[
                   if (opened != null) ...[
@@ -91,13 +91,13 @@ class JewelryShopOrdersScreen extends ConsumerWidget {
                   ] else
                     const _OtherShopNotice(),
                   if (rest.isNotEmpty) ...[
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 14),
                     _SectionLabel(context.tr(JewelryMarketL10n.shopOrdersAll)),
                   ],
                 ],
                 for (final o in rest) ...[
                   _ShopOrderCard(key: ValueKey(o.id), order: o),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                 ],
               ],
             ),
@@ -117,7 +117,7 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Text(text.toUpperCase(), style: LuxeType.eyebrow(p.inkMuted)),
     );
   }
@@ -130,7 +130,7 @@ class _OtherShopNotice extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: p.caution.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(LuxeSpace.radius),
@@ -140,7 +140,7 @@ class _OtherShopNotice extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(Icons.info_outline_rounded, color: p.caution, size: 20),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -201,11 +201,11 @@ class _ShopOrderCardState extends State<_ShopOrderCard> {
             borderRadius: BorderRadius.circular(LuxeSpace.radius),
             onTap: () => setState(() => _expanded = !_expanded),
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
               child: Row(
                 children: [
                   _Thumb(url: image, size: 64),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,7 +221,7 @@ class _ShopOrderCardState extends State<_ShopOrderCard> {
                             if (step != null) _StepPill(status: step),
                           ],
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 5),
                         if (o.buyerName.isNotEmpty)
                           Text(
                             context.tr(JewelryMarketL10n.shopBuyer, {
@@ -283,12 +283,12 @@ class _Details extends StatelessWidget {
     final s = o.shipment;
     final note = o.buyerNote?.trim() ?? '';
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Divider(color: p.hairline, height: 1),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           for (final item in o.items) _ItemRow(item: item),
           Row(
             children: [
@@ -308,7 +308,7 @@ class _Details extends StatelessWidget {
             ],
           ),
           if (a != null) ...[
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             _Block(
               icon: Icons.local_shipping_outlined,
               title: context.tr(JewelryMarketL10n.deliverTo),
@@ -319,7 +319,7 @@ class _Details extends StatelessWidget {
             ),
           ],
           if (note.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             _Block(
               icon: Icons.sticky_note_2_outlined,
               title: context.tr(JewelryMarketL10n.orderNote),
@@ -330,7 +330,7 @@ class _Details extends StatelessWidget {
               (s.expectedDeliveryAt != null ||
                   (s.courierName?.isNotEmpty ?? false) ||
                   (s.trackingNumber?.isNotEmpty ?? false))) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             _Block(
               icon: Icons.inventory_2_outlined,
               title: jewelryStepLabel(context, s.status),
@@ -367,12 +367,12 @@ class _ItemRow extends StatelessWidget {
         .join(' · ');
     final cancelled = i.status == MarketplaceStepStatus.cancelled;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _Thumb(url: i.imageUrl, size: 48),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -404,7 +404,7 @@ class _ItemRow extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           Text(
             rupees(i.lineTotal),
             style: LuxeType.figure(cancelled ? p.inkMuted : p.ink, size: 13),
@@ -430,7 +430,7 @@ class _Block extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(icon, size: 18, color: p.accent),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -460,7 +460,7 @@ class _StepPill extends StatelessWidget {
       _ => p.accent,
     };
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: ShapeDecoration(
         color: tone.withValues(alpha: 0.12),
         shape: const StadiumBorder(),

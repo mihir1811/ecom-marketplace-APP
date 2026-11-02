@@ -91,12 +91,12 @@ class _CreateAuctionSheetState extends ConsumerState<_CreateAuctionSheet> {
       children: [
         Flexible(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const _StepLabel(index: 1, label: 'Schedule'),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     Expanded(
@@ -107,7 +107,7 @@ class _CreateAuctionSheetState extends ConsumerState<_CreateAuctionSheet> {
                         onTap: () => _pick(isStart: true),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: AtelierDateTile(
                         label: 'Ends',
@@ -121,10 +121,10 @@ class _CreateAuctionSheetState extends ConsumerState<_CreateAuctionSheet> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: 6,
+                  runSpacing: 6,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     for (final d in presets)
@@ -138,7 +138,7 @@ class _CreateAuctionSheetState extends ConsumerState<_CreateAuctionSheet> {
                       ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Text(
                   duration.isNegative
                       ? 'End must be after the start · max $maxDays days'
@@ -151,7 +151,7 @@ class _CreateAuctionSheetState extends ConsumerState<_CreateAuctionSheet> {
                     size: 11.5,
                   ),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 18),
                 Row(
                   children: [
                     const Expanded(
@@ -170,13 +170,13 @@ class _CreateAuctionSheetState extends ConsumerState<_CreateAuctionSheet> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 AtelierSearchField(
                   controller: _search,
                   hint: 'Search stock no., shape, colour…',
                   onChanged: (v) => setState(() => _query = v),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 if (catalog.isLoading && eligible.isEmpty)
                   const AtelierSkeletonList(count: 3, height: 64)
                 else if (catalog.errorMessage != null && eligible.isEmpty)
@@ -206,7 +206,7 @@ class _CreateAuctionSheetState extends ConsumerState<_CreateAuctionSheet> {
                 else
                   for (var i = 0; i < visible.length; i++)
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.only(bottom: 6),
                       child: Reveal(
                         key: ValueKey(visible[i].id),
                         index: i < 8 ? i : 0,
@@ -231,7 +231,7 @@ class _CreateAuctionSheetState extends ConsumerState<_CreateAuctionSheet> {
           ),
         ),
         Container(
-          padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
           decoration: BoxDecoration(
             color: p.raised,
             border: Border(top: BorderSide(color: p.hairline)),
@@ -246,7 +246,7 @@ class _CreateAuctionSheetState extends ConsumerState<_CreateAuctionSheet> {
                 child: _error == null
                     ? const SizedBox(width: double.infinity)
                     : Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.only(bottom: 8),
                         child: AtelierNotice(
                           text: _error!,
                           tone: AtelierTone.ruby,
@@ -454,7 +454,7 @@ class _StepLabel extends StatelessWidget {
           ),
           child: Text('$index', style: AtelierType.figure(p.gold, size: 11)),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         Text(label, style: AtelierType.title(p.ink, size: 15)),
       ],
     );
@@ -520,7 +520,7 @@ class _ProductRow extends StatelessWidget {
                 '${selected ? 'Deselect' : 'Select'} '
                 '${product.stockNumber}',
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
               child: Row(
                 children: [
                   AnimatedContainer(
@@ -547,7 +547,7 @@ class _ProductRow extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -584,7 +584,7 @@ class _ProductRow extends StatelessWidget {
             curve: AtelierMotion.emphasized,
             child: selected && bid != null && reserve != null
                 ? Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                    padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -605,7 +605,7 @@ class _ProductRow extends StatelessWidget {
                                 onChanged: (_) => onEdited(),
                               ),
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: AtelierTextField(
                                 controller: reserve!,

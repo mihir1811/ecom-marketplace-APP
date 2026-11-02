@@ -212,8 +212,8 @@ class _LiveSlideToBidState extends State<LiveSlideToBid>
                       Positioned.fill(
                         child: Padding(
                           padding: const EdgeInsets.only(
-                            left: _thumb + 16,
-                            right: 20,
+                            left: _thumb + 12,
+                            right: 14,
                           ),
                           child: Opacity(
                             opacity: working
@@ -271,7 +271,7 @@ class _Locked extends StatelessWidget {
       onTap: onTap,
       child: Container(
         height: 60,
-        padding: const EdgeInsets.fromLTRB(6, 6, 18, 6),
+        padding: const EdgeInsets.fromLTRB(5, 5, 12, 5),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(999),
           color: LiveStage.ink.withValues(alpha: 0.05),
@@ -292,7 +292,7 @@ class _Locked extends StatelessWidget {
                 color: LiveStage.inkMuted,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 text,
@@ -342,7 +342,7 @@ class _Label extends StatelessWidget {
           ),
         ),
         if (!onFill) ...[
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           Icon(
             Icons.keyboard_double_arrow_right_rounded,
             size: 18,

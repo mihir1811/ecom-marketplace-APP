@@ -168,8 +168,8 @@ class _LuxeDetailGalleryState extends State<LuxeDetailGallery> {
                   // Wraps rather than overflows on narrow pop-ups.
                   Expanded(
                     child: Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
+                      spacing: 6,
+                      runSpacing: 5,
                       children: [
                         if (videoUrl != null)
                           _GlassPill(
@@ -224,9 +224,9 @@ class _LuxeDetailGalleryState extends State<LuxeDetailGallery> {
                     height: 78,
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 2),
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 2),
                       itemCount: assets.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 8),
+                      separatorBuilder: (_, _) => const SizedBox(width: 6),
                       itemBuilder: (context, i) => _Thumb(
                         media: widget.media,
                         asset: assets[i],
@@ -396,7 +396,7 @@ class _Dots extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
       decoration: ShapeDecoration(
         color: Colors.black.withValues(alpha: 0.32),
         shape: const StadiumBorder(),
@@ -455,12 +455,12 @@ class _GlassPill extends StatelessWidget {
           onTap();
         },
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon, size: 16, color: fg),
-              const SizedBox(width: 6),
+              const SizedBox(width: 5),
               Flexible(
                 child: Text(
                   label,

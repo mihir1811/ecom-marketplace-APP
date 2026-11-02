@@ -37,7 +37,7 @@ class HomeGemStage extends StatelessWidget {
       onPressed: () => context.openRoute(route),
       style: TextButton.styleFrom(
         foregroundColor: HomeStage.ink,
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
         minimumSize: const Size(44, 44),
       ),
       child: Text(context.tr(key), style: HomeType.label(HomeStage.inkMuted)),
@@ -87,7 +87,7 @@ class HomeGemStage extends StatelessWidget {
                       context.tr(ExperienceL10n.stageHeadline),
                       style: HomeType.display(42, HomeStage.ink),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 300),
                       child: Text(
@@ -106,10 +106,10 @@ class HomeGemStage extends StatelessWidget {
               child: Column(
                 children: [
                   Container(width: 48, height: 1, color: HomeStage.glassBorder),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   Wrap(
                     alignment: WrapAlignment.center,
-                    spacing: 14,
+                    spacing: 10,
                     children: [
                       link(
                         EducationL10n.navEducation,

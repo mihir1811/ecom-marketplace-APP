@@ -54,7 +54,7 @@ class _JewelryHouseCollectionsState
       child: collections.when(
         loading: () => _Frame(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: width * 0.11),
+            padding: EdgeInsets.symmetric(horizontal: width * 0.1),
             child: LuxeSkeleton(
               width: double.infinity,
               height: cardHeight,
@@ -94,7 +94,7 @@ class _JewelryHouseCollectionsState
                         );
                       },
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
                         child: _CollectionCard(
                           index: i,
                           collection: items[i],
@@ -105,7 +105,7 @@ class _JewelryHouseCollectionsState
                   ),
                 ),
                 if (items.length > 1) ...[
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 12),
                   _Progress(pages: _pages, count: items.length, palette: p),
                 ],
               ],
@@ -132,7 +132,7 @@ class _Frame extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -140,7 +140,7 @@ class _Frame extends StatelessWidget {
                   context.tr(JewelryFlowL10n.houseCollections).toUpperCase(),
                   style: LuxeType.eyebrow(p.accent),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Text(
                   context.tr(JewelryFlowL10n.houseCollectionsTitle),
                   style: LuxeType.displayItalic(30, p.ink),
@@ -217,7 +217,7 @@ class _CollectionCard extends StatelessWidget {
               // A fine gold inner frame, like a vitrine.
               Positioned.fill(
                 child: Padding(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(8),
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(LuxeSpace.radius - 8),
@@ -251,7 +251,7 @@ class _CollectionCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: LuxeType.display(36, LuxeStage.ink),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Row(
                       children: [
                         Container(
@@ -259,12 +259,12 @@ class _CollectionCard extends StatelessWidget {
                           height: 0.8,
                           color: LuxeStage.gold,
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 8),
                         Text(
                           context.tr(JewelryFlowL10n.explore).toUpperCase(),
                           style: LuxeType.eyebrow(LuxeStage.gold),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 5),
                         Icon(
                           Icons.arrow_forward_rounded,
                           size: 14,
@@ -313,7 +313,7 @@ class _Progress extends StatelessWidget {
           return Row(
             children: [
               Text(_n(current + 1), style: LuxeType.figure(p.ink, size: 13)),
-              const SizedBox(width: 14),
+              const SizedBox(width: 10),
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, c) => Stack(
@@ -329,7 +329,7 @@ class _Progress extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 10),
               Text(_n(count), style: LuxeType.figure(p.inkFaint, size: 13)),
             ],
           );

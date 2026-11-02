@@ -122,7 +122,7 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
           ),
         ),
         if (snapshot != null) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Row(
             children: [
               Flexible(
@@ -135,7 +135,7 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
                 ),
               ),
               if (state.isLoading) ...[
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 SizedBox(
                   width: 11,
                   height: 11,
@@ -146,7 +146,7 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
                 ),
               ],
               if (_custom) ...[
-                const SizedBox(width: 6),
+                const SizedBox(width: 5),
                 InkWell(
                   onTap: _pickCustom,
                   borderRadius: BorderRadius.circular(6),
@@ -414,7 +414,7 @@ class _HeroHeadline extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label.toUpperCase(), style: AtelierType.overline(soft)),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         AnimatedSwitcher(
           duration: AtelierMotion.base,
           child: loading || kpi == null
@@ -439,11 +439,11 @@ class _HeroHeadline extends StatelessWidget {
                 ),
         ),
         if (kpi != null && kpi!.delta.isNotEmpty) ...[
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Row(
             children: [
               AtelierDelta(label: kpi!.delta, up: kpi!.deltaUp, onDark: true),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Text(
                 'vs previous period',
                 style: AtelierType.caption(soft, size: 11.5),
@@ -470,7 +470,7 @@ class _StatusBars extends StatelessWidget {
       children: [
         for (var i = 0; i < rows.length; i++)
           Padding(
-            padding: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.only(bottom: 10),
             child: Reveal(
               index: i,
               offset: 6,
@@ -487,7 +487,7 @@ class _StatusBars extends StatelessWidget {
                           shape: BoxShape.circle,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Expanded(
                         child: Text(
                           rows[i].label,
@@ -498,7 +498,7 @@ class _StatusBars extends StatelessWidget {
                         '${rows[i].count}',
                         style: AtelierType.figure(p.ink, size: 13),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 5),
                       SizedBox(
                         width: 38,
                         child: Text(
@@ -511,7 +511,7 @@ class _StatusBars extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   AtelierMeter(
                     value: max == 0 ? 0 : rows[i].count / max,
                     color: _statusColor(p, rows[i].label),
@@ -547,16 +547,16 @@ class _AnalyticsSkeleton extends StatelessWidget {
         Row(
           children: [
             for (var i = 0; i < 3; i++) ...[
-              if (i > 0) const SizedBox(width: 12),
+              if (i > 0) const SizedBox(width: 8),
               const Expanded(
                 child: SkeletonBox(height: 84, radius: AtelierRadius.lg),
               ),
             ],
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         const SkeletonBox(height: 320, radius: AtelierRadius.lg),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         const SkeletonBox(height: 220, radius: AtelierRadius.lg),
       ],
     );

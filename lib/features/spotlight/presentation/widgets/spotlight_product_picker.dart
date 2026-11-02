@@ -126,7 +126,7 @@ class _ProductPickerState extends ConsumerState<_ProductPicker> {
     final p = context.atelier;
     final items = _items;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -138,7 +138,7 @@ class _ProductPickerState extends ConsumerState<_ProductPicker> {
                 children: [
                   for (final c in widget.categories)
                     Padding(
-                      padding: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.only(right: 6),
                       child: AtelierChoiceChip(
                         label: spotlightCategoryName(c),
                         selected: c == _category,
@@ -152,7 +152,7 @@ class _ProductPickerState extends ConsumerState<_ProductPicker> {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
           ],
           AtelierSearchField(
             controller: _search,
@@ -162,16 +162,16 @@ class _ProductPickerState extends ConsumerState<_ProductPicker> {
               _debounce = Timer(const Duration(milliseconds: 350), _load);
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Flexible(
             child: items == null
                 ? const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 32),
+                    padding: EdgeInsets.symmetric(vertical: 20),
                     child: Center(child: CircularProgressIndicator()),
                   )
                 : items.isEmpty
                 ? Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     child: AtelierEmptyState(
                       compact: true,
                       icon: Icons.inventory_2_outlined,
@@ -239,7 +239,7 @@ class _ProductPickerState extends ConsumerState<_ProductPicker> {
                     },
                   ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           AtelierButton(
             label: widget.max == 1
                 ? 'Use this product'

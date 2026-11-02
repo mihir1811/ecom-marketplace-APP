@@ -62,7 +62,7 @@ class JewelryShowcaseStage extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 8, 16, 0),
+                        padding: const EdgeInsets.fromLTRB(14, 6, 12, 0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -71,7 +71,7 @@ class JewelryShowcaseStage extends ConsumerWidget {
                               height: 1,
                               color: LuxeStage.gold,
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 context
@@ -82,7 +82,7 @@ class JewelryShowcaseStage extends ConsumerWidget {
                                 style: LuxeType.eyebrow(LuxeStage.gold),
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 8),
                             JewelryStageChip(
                               label: context.tr(JewelryFlowL10n.showAllHouses),
                               trailingIcon: Icons.arrow_forward_rounded,
@@ -92,7 +92,7 @@ class JewelryShowcaseStage extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       _FeaturedRow(
                         houses: JewelryHouses.ranked(
                           all,
@@ -124,9 +124,9 @@ class _FeaturedRow extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         itemCount: houses.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 12),
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, i) => SizedBox(
           width: houses.length == 1 ? width - 32 : cardWidth,
           child: _FeaturedCard(
@@ -200,7 +200,7 @@ class _FeaturedCard extends StatelessWidget {
               left: 12,
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
+                  horizontal: 8,
                   vertical: 5,
                 ),
                 decoration: ShapeDecoration(
@@ -234,7 +234,7 @@ class _FeaturedCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   JewelryHouseLogo(house: house, radius: 20),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -293,22 +293,22 @@ class _StageSkeleton extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+          padding: const EdgeInsets.fromLTRB(14, 8, 14, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [block(120, 10)],
           ),
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 14),
         SizedBox(
           height: cardWidth * 0.82,
           child: ListView(
             scrollDirection: Axis.horizontal,
             physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             children: [
               block(cardWidth, cardWidth * 0.82, LuxeSpace.radius),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               block(cardWidth, cardWidth * 0.82, LuxeSpace.radius),
             ],
           ),

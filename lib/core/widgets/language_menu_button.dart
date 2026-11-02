@@ -84,7 +84,7 @@ class LanguageSettingsTile extends ConsumerWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(dialogContext.tr(CoreL10n.selectLanguage)),
-        contentPadding: const EdgeInsets.only(top: 12, bottom: 8),
+        contentPadding: const EdgeInsets.only(top: 8, bottom: 6),
         content: RadioGroup<Locale>(
           groupValue: selected,
           onChanged: (locale) {

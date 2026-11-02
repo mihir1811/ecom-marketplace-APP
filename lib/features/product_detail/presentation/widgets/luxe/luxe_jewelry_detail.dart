@@ -120,7 +120,7 @@ class _LuxeJewelryPurchasePanelState
     final hasOptions = j.variations.isNotEmpty;
 
     Widget label(String text) => Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Text(text.toUpperCase(), style: LuxeType.eyebrow(p.inkMuted)),
     );
 
@@ -153,8 +153,8 @@ class _LuxeJewelryPurchasePanelState
         );
       }
       return Wrap(
-        spacing: 8,
-        runSpacing: 8,
+        spacing: 6,
+        runSpacing: 6,
         children: [
           for (final o in v.options)
             IgnorePointer(
@@ -168,8 +168,8 @@ class _LuxeJewelryPurchasePanelState
                   isSelected: o == chosen,
                   onTap: () => n.select(v.name, o, j),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
+                    horizontal: 12,
+                    vertical: 8,
                   ),
                 ),
               ),
@@ -197,9 +197,9 @@ class _LuxeJewelryPurchasePanelState
             style: LuxeType.label(p.inkMuted, size: 12),
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: p.surface,
             borderRadius: BorderRadius.circular(LuxeSpace.radius),
@@ -213,21 +213,21 @@ class _LuxeJewelryPurchasePanelState
                   context.tr(JewelryFlowL10n.configureTitle),
                   style: LuxeType.display(26, p.ink),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 5),
                 Text(
                   context.tr(JewelryFlowL10n.configureIntro),
                   style: LuxeType.body(p.inkMuted, size: 13.5),
                 ),
                 for (final v in j.variations) ...[
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 14),
                   label(v.name),
                   options(v),
                 ],
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
               ],
               _StockNote(jewelry: j, sku: sku, hasDraft: draft != null),
               if (j.personalizationEnabled) ...[
-                const SizedBox(height: 20),
+                const SizedBox(height: 14),
                 _TextOption(
                   label: context.tr(JewelryMarketL10n.personalisation),
                   hint:
@@ -244,16 +244,16 @@ class _LuxeJewelryPurchasePanelState
                 ),
               ],
               for (final name in j.customOptions) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 _TextOption(
                   label: name,
                   value: draft?.customValues[name] ?? '',
                   onChanged: (v) => n.setCustomValue(name, v),
                 ),
               ],
-              const SizedBox(height: 20),
+              const SizedBox(height: 14),
               Divider(height: 1, color: p.hairline),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
@@ -357,7 +357,7 @@ class _StockNote extends StatelessWidget {
     return Row(
       children: [
         Icon(icon, size: 16, color: tone),
-        const SizedBox(width: 8),
+        const SizedBox(width: 6),
         Expanded(child: Text(text, style: LuxeType.label(tone, size: 13))),
       ],
     );
@@ -398,7 +398,7 @@ class _TextOptionState extends State<_TextOption> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.only(bottom: 6),
           child: Text(
             widget.label.toUpperCase(),
             style: LuxeType.eyebrow(p.inkMuted),
@@ -517,7 +517,7 @@ class _Details extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 18),
+        const SizedBox(height: 12),
         if (description != null && description.isNotEmpty)
           Text(description, style: LuxeType.body(p.inkMuted, size: 14.5))
         else if (!j.isFullRecord)
@@ -525,9 +525,9 @@ class _Details extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               LuxeSkeleton(height: 13),
-              SizedBox(height: 8),
+              SizedBox(height: 6),
               LuxeSkeleton(height: 13),
-              SizedBox(height: 8),
+              SizedBox(height: 6),
               LuxeSkeleton(width: 180, height: 13),
             ],
           ),
@@ -537,15 +537,15 @@ class _Details extends StatelessWidget {
             lines: info,
           ),
         if (j.tags.isNotEmpty) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Wrap(
-            spacing: 6,
-            runSpacing: 6,
+            spacing: 5,
+            runSpacing: 5,
             children: [
               for (final t in j.tags.take(13))
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
+                    horizontal: 8,
                     vertical: 5,
                   ),
                   decoration: ShapeDecoration(
@@ -557,7 +557,7 @@ class _Details extends StatelessWidget {
             ],
           ),
         ],
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
       ],
     );
   }
@@ -702,7 +702,7 @@ class _Specs extends StatelessWidget {
                 ),
             ],
           ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
       ],
     );
   }
@@ -790,7 +790,7 @@ class _Shipping extends StatelessWidget {
                 LuxeSpecLine(context.tr(JewelryMarketL10n.location), v),
             ],
           ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
       ],
     );
   }
@@ -810,7 +810,7 @@ class _Care extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 18),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -818,17 +818,17 @@ class _Care extends StatelessWidget {
             context.tr(JewelryFlowL10n.careTitle).toUpperCase(),
             style: LuxeType.eyebrow(p.accent),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           for (final tip in _tips)
             Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: 8),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
                     width: 22,
                     height: 22,
-                    margin: const EdgeInsets.only(right: 12, top: 1),
+                    margin: const EdgeInsets.only(right: 8, top: 1),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: p.positive.withValues(alpha: 0.1),
@@ -848,12 +848,12 @@ class _Care extends StatelessWidget {
                 ],
               ),
             ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             context.tr(JewelryFlowL10n.serviceTitle).toUpperCase(),
             style: LuxeType.eyebrow(p.accent),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             context.tr(JewelryFlowL10n.serviceBody),
             style: LuxeType.body(p.inkMuted, size: 14),
@@ -956,7 +956,7 @@ class LuxeJewelryPurchaseBar extends ConsumerWidget {
     final unit = jewelryPriceLabels(context, detail, draft);
     final total = jewelryPriceLabels(context, detail, draft, quantity: qty);
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
       decoration: BoxDecoration(
         color: p.surface,
         border: Border(top: BorderSide(color: p.hairline, width: 0.6)),
@@ -1002,7 +1002,7 @@ class LuxeJewelryPurchaseBar extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           Expanded(
             flex: 5,
             child: LuxeButton(

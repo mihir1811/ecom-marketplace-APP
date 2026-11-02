@@ -129,9 +129,9 @@ class SellerRail extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: extended ? 22 : 0),
+              padding: EdgeInsets.symmetric(horizontal: extended ? 14 : 0),
               child: Row(
                 mainAxisAlignment: extended
                     ? MainAxisAlignment.start
@@ -139,7 +139,7 @@ class SellerRail extends ConsumerWidget {
                 children: [
                   AtelierMonogram(name: company.isEmpty ? 'G W' : company),
                   if (extended) ...[
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,7 +159,7 @@ class SellerRail extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 18),
             for (var i = 0; i < items.length; i++)
               Reveal(
                 index: i,
@@ -191,7 +191,7 @@ class SellerRail extends ConsumerWidget {
                 onTap: () => openAppDrawer(context),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
           ],
         ),
       ),
@@ -223,7 +223,7 @@ class _RailItem extends StatelessWidget {
       color: selected ? p.gold : p.inkSoft,
     );
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       child: Tooltip(
         message: extended ? '' : destination.label,
         child: Pressable(
@@ -237,7 +237,7 @@ class _RailItem extends StatelessWidget {
             duration: AtelierMotion.base,
             curve: AtelierMotion.emphasized,
             height: 48,
-            padding: EdgeInsets.symmetric(horizontal: extended ? 14 : 0),
+            padding: EdgeInsets.symmetric(horizontal: extended ? 10 : 0),
             decoration: BoxDecoration(
               color: selected ? p.goldSoft : Colors.transparent,
               borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -260,7 +260,7 @@ class _RailItem extends StatelessWidget {
                   ],
                 ),
                 if (extended) ...[
-                  const SizedBox(width: 14),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       destination.label,

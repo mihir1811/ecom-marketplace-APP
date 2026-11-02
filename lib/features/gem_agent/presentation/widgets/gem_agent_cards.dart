@@ -20,7 +20,7 @@ class GemAgentCards extends StatelessWidget {
       children: [
         for (final card in cards)
           Padding(
-            padding: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.only(top: 6),
             child: _CardFrame(card: card),
           ),
       ],
@@ -39,7 +39,7 @@ class _CardFrame extends ConsumerWidget {
     final title = card.title;
     final action = card.action;
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 6),
       decoration: BoxDecoration(
         color: LuxeStage.glass,
         borderRadius: BorderRadius.circular(16),
@@ -53,7 +53,7 @@ class _CardFrame extends ConsumerWidget {
               title.toUpperCase(),
               style: LuxeType.eyebrow(LuxeStage.inkMuted),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
           ],
           switch (card) {
             AgentStatsCard(:final stats) => _Stats(stats: stats),
@@ -98,8 +98,8 @@ class _Stats extends StatelessWidget {
         final columns = constraints.maxWidth > 360 ? 3 : 2;
         final width = (constraints.maxWidth - 8 * (columns - 1)) / columns;
         return Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: 6,
+          runSpacing: 6,
           children: [
             for (final stat in stats)
               SizedBox(
@@ -205,7 +205,7 @@ class _RowTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       onTap: route == null ? null : () => onOpen(route),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.symmetric(vertical: 5),
         child: Row(
           children: [
             ClipRRect(
@@ -223,7 +223,7 @@ class _RowTile extends StatelessWidget {
                       ),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -245,7 +245,7 @@ class _RowTile extends StatelessWidget {
               ),
             ),
             if (trailing != null) ...[
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Text(trailing, style: LuxeType.figure(LuxeStage.ink, size: 13)),
             ],
           ],
@@ -294,7 +294,7 @@ class _Bars extends StatelessWidget {
               'Peak ${_format(peak)} · ${chart.labels[peakIndex]}',
               style: LuxeType.label(LuxeStage.inkMuted, size: 11),
             ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           SizedBox(
             height: _height,
             child: Row(

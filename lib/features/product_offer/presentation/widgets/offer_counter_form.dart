@@ -129,7 +129,7 @@ class _CounterFormState extends State<_CounterForm> {
             if (_error != null) setState(() => _error = null);
           },
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         AtelierTextField(
           controller: _message,
           label: 'Message (optional)',
@@ -137,10 +137,10 @@ class _CounterFormState extends State<_CounterForm> {
           textCapitalization: TextCapitalization.sentences,
         ),
         if (widget.note != null) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Text(widget.note!, style: AtelierType.caption(p.muted, size: 12)),
         ],
-        const SizedBox(height: 20),
+        const SizedBox(height: 14),
         AtelierButton(
           label: widget.submitLabel,
           icon: Icons.swap_horiz_rounded,
@@ -181,7 +181,7 @@ class OfferExchangeLine extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(Icons.swap_horiz_rounded, size: 15, color: p.gold),
-        const SizedBox(width: 6),
+        const SizedBox(width: 5),
         Expanded(
           child: Text(
             moves.join('  →  '),

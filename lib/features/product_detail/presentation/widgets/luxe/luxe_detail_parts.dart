@@ -100,7 +100,7 @@ class _LuxeDetailLayoutState extends State<LuxeDetailLayout> {
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 1180),
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(24, topInset, 24, 40),
+                        padding: EdgeInsets.fromLTRB(16, topInset, 16, 40),
                         child: Column(
                           children: [
                             Row(
@@ -119,7 +119,7 @@ class _LuxeDetailLayoutState extends State<LuxeDetailLayout> {
                                 Expanded(flex: 5, child: widget.summary),
                               ],
                             ),
-                            const SizedBox(height: 32),
+                            const SizedBox(height: 20),
                             widget.record,
                             ?widget.related?.call(0),
                           ],
@@ -132,11 +132,11 @@ class _LuxeDetailLayoutState extends State<LuxeDetailLayout> {
                   children: [
                     gallery,
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
+                      padding: const EdgeInsets.fromLTRB(14, 14, 14, 0),
                       child: widget.summary,
                     ),
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                      padding: const EdgeInsets.fromLTRB(14, 6, 14, 0),
                       child: widget.record,
                     ),
                     ?widget.related?.call(20),
@@ -220,7 +220,7 @@ class LuxeFloatingHeader extends StatelessWidget {
         final t = ((offset - solidAfter + 80) / 80).clamp(0.0, 1.0);
         final glass = t < 0.5;
         Widget bar = Container(
-          padding: EdgeInsets.fromLTRB(12, top + 8, 12, 8),
+          padding: EdgeInsets.fromLTRB(8, top + 6, 8, 6),
           decoration: BoxDecoration(
             color: p.canvas.withValues(alpha: 0.9 * t),
             border: Border(
@@ -239,7 +239,7 @@ class LuxeFloatingHeader extends StatelessWidget {
                 size: 42,
                 onPressed: () => context.goBack(),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Opacity(
                   opacity: t,
@@ -396,7 +396,7 @@ class LuxeDetailBadge extends StatelessWidget {
       ProductBadgeTone.neutral => (p.inkMuted, p.surfaceRaised),
     };
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: ShapeDecoration(color: bg, shape: const StadiumBorder()),
       child: Text(badge.label, style: LuxeType.label(fg, size: 11.5)),
     );
@@ -416,7 +416,7 @@ class LuxePriceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       decoration: BoxDecoration(
         color: p.surface,
         borderRadius: BorderRadius.circular(LuxeSpace.radius),
@@ -440,7 +440,7 @@ class LuxePriceCard extends StatelessWidget {
                   ),
                 ),
                 if (labels.saveAmount != null) ...[
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Flexible(
                     child: Text(
                       context.tr(DiamondFlowL10n.youSave, {
@@ -458,7 +458,7 @@ class LuxePriceCard extends StatelessWidget {
                 ],
               ],
             ),
-          if (labels.hasDiscount) const SizedBox(height: 6),
+          if (labels.hasDiscount) const SizedBox(height: 5),
           // The figure rolls in when it changes (e.g. a new variant).
           AnimatedSwitcher(
             duration: LuxeMotion.medium,
@@ -494,7 +494,7 @@ class LuxePriceCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(labels.unit!, style: LuxeType.label(p.inkMuted, size: 13)),
           ],
-          if (footer != null) ...[const SizedBox(height: 10), footer!],
+          if (footer != null) ...[const SizedBox(height: 8), footer!],
         ],
       ),
     );
@@ -517,7 +517,7 @@ class LuxeGlance extends StatelessWidget {
           context.tr(DiamondFlowL10n.atAGlance).toUpperCase(),
           style: LuxeType.eyebrow(p.inkMuted),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         LayoutBuilder(
           builder: (context, constraints) {
             final perRow = constraints.maxWidth > 420 ? 4 : 2;
@@ -530,7 +530,7 @@ class LuxeGlance extends StatelessWidget {
                 for (final h in highlights.take(4))
                   Container(
                     width: w,
-                    padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                    padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
                     decoration: BoxDecoration(
                       color: p.surfaceRaised,
                       borderRadius: BorderRadius.circular(
@@ -573,7 +573,7 @@ class LuxeCertificateCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: p.surface,
         borderRadius: BorderRadius.circular(LuxeSpace.radius),
@@ -597,7 +597,7 @@ class LuxeCertificateCard extends StatelessWidget {
                   size: 22,
                 ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -622,7 +622,7 @@ class LuxeCertificateCard extends StatelessWidget {
             ],
           ),
           if (cert.hasCertificateLink) ...[
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             LuxeButton(
               label: context.tr(DiamondFlowL10n.viewCertificate),
               variant: LuxeButtonVariant.secondary,
@@ -673,7 +673,7 @@ class LuxeSpecList extends StatelessWidget {
       children: [
         for (var i = 0; i < lines.length; i++)
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            padding: const EdgeInsets.symmetric(vertical: 8),
             decoration: BoxDecoration(
               border: i == lines.length - 1
                   ? null
@@ -693,7 +693,7 @@ class LuxeSpecList extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     lines[i].value,
@@ -724,7 +724,7 @@ class LuxeSpecGroup extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         Text(title.toUpperCase(), style: LuxeType.eyebrow(p.accent)),
         LuxeSpecList(lines: lines),
       ],
@@ -763,7 +763,7 @@ class _LuxeTabbedPanelState extends State<LuxeTabbedPanel> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(widget.title, style: LuxeType.display(28, p.ink)),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         if (tabs.length > 1)
           tabs.length <= 3
               ? LuxeSegmented<int>(
@@ -778,7 +778,7 @@ class _LuxeTabbedPanelState extends State<LuxeTabbedPanel> {
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: tabs.length,
-                    separatorBuilder: (_, _) => const SizedBox(width: 8),
+                    separatorBuilder: (_, _) => const SizedBox(width: 6),
                     itemBuilder: (context, i) => ChoiceChip(
                       label: Text(tabs[i]),
                       selected: i == index,
@@ -789,9 +789,9 @@ class _LuxeTabbedPanelState extends State<LuxeTabbedPanel> {
                     ),
                   ),
                 ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 5),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
             color: p.surface,
             borderRadius: BorderRadius.circular(LuxeSpace.radius),
@@ -838,7 +838,7 @@ class LuxeSpecTabs extends StatelessWidget {
       final tab = tabs[index];
       if (tab.isComment) {
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20),
+          padding: const EdgeInsets.symmetric(vertical: 14),
           child: Text(
             tab.commentBody ?? 'No Comment Available',
             style: LuxeType.body(p.inkMuted, size: 14),

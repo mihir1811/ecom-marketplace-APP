@@ -28,8 +28,8 @@ class _Frame extends StatelessWidget {
   Widget build(BuildContext context) {
     final v = Vitrine.of(context);
     return Container(
-      margin: const EdgeInsets.fromLTRB(10, 0, 10, 10),
-      padding: const EdgeInsets.fromLTRB(22, 10, 22, 16),
+      margin: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+      padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
       decoration: BoxDecoration(
         color: v.card,
         borderRadius: BorderRadius.circular(30),
@@ -51,7 +51,7 @@ class _Frame extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
             child,
           ],
         ),
@@ -118,7 +118,7 @@ Future<VitrinePieceAction?> showVitrinePieceSheet(
         Row(
           children: [
             VitrinePieceImage(item: item, size: 92, radius: 22),
-            const SizedBox(width: 18),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,7 +142,7 @@ Future<VitrinePieceAction?> showVitrinePieceSheet(
                     const SizedBox(height: 4),
                     Text(item.subtitle!, style: v.text(12.5, color: v.muted)),
                   ],
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(item.displayValues['price'] ?? '', style: v.figure(17)),
                 ],
               ),
@@ -150,7 +150,7 @@ Future<VitrinePieceAction?> showVitrinePieceSheet(
           ],
         ).enter(0),
         if (decisive > 0) ...[
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           Text(
             context.tr(AccountCommerceL10n.compareLeads, {
               'wins': wins,
@@ -159,9 +159,9 @@ Future<VitrinePieceAction?> showVitrinePieceSheet(
             style: v.eyebrow(color: v.gold),
           ).enter(1),
         ],
-        const SizedBox(height: 18),
+        const SizedBox(height: 12),
         for (var i = 0; i < actions.length; i++) ...[
-          if (i > 0) const SizedBox(height: 8),
+          if (i > 0) const SizedBox(height: 6),
           actions[i].enter(i + 2),
         ],
       ],
@@ -178,19 +178,19 @@ Future<bool> confirmVitrineClear(BuildContext context) async {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const Center(child: VitrineGem(size: 96, period: 10)).enter(0),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Text(
           context.tr(AccountCommerceL10n.compareClearTitle),
           textAlign: TextAlign.center,
           style: v.display(26),
         ).enter(1),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Text(
           context.tr(AccountCommerceL10n.compareClearBody),
           textAlign: TextAlign.center,
           style: v.text(13.5, color: v.muted, height: 1.5),
         ).enter(2),
-        const SizedBox(height: 22),
+        const SizedBox(height: 14),
         Row(
           children: [
             Expanded(
@@ -199,7 +199,7 @@ Future<bool> confirmVitrineClear(BuildContext context) async {
                 onTap: () => Navigator.of(context).pop(false),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Expanded(
               child: _PillButton(
                 label: context.tr(AccountCommerceL10n.compareClear),
@@ -249,7 +249,7 @@ class _ActionTile extends StatelessWidget {
           onTap();
         },
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Row(
             children: [
               Expanded(

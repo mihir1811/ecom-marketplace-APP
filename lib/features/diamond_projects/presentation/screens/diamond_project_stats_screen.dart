@@ -76,7 +76,7 @@ class _DiamondProjectStatsScreenState
             size: 40,
             onPressed: () => context.push(AppRouteNames.savedDiamondProjects),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           LuxeIconButton(
             icon: Icons.bookmark_add_outlined,
             tooltip: context.tr(CatalogL10n.saveNow),
@@ -133,7 +133,7 @@ class _DiamondProjectStatsScreenState
                 controller: _scroll,
                 slivers: [
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                    padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
                     sliver: SliverToBoxAdapter(
                       child: _reveal(
                         DiamondProjectHero(
@@ -147,7 +147,7 @@ class _DiamondProjectStatsScreenState
                     ),
                   ),
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 5),
                     sliver: SliverToBoxAdapter(
                       child: _reveal(DiamondProjectAverages(stats: stats), 1),
                     ),
@@ -155,7 +155,7 @@ class _DiamondProjectStatsScreenState
                   LuxePinnedBar(
                     extent: 64,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Center(
                         child: DiamondProjectTabBar(
                           selected: _tab,
@@ -165,7 +165,7 @@ class _DiamondProjectStatsScreenState
                     ),
                   ),
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 6, 16, 40),
+                    padding: const EdgeInsets.fromLTRB(12, 5, 12, 40),
                     sliver: SliverToBoxAdapter(
                       child: DiamondProjectTabView(
                         tab: _tab,

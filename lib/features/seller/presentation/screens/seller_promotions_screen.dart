@@ -204,7 +204,7 @@ class _SellerPromotionsScreenState
             child: state.isMutating || (state.isLoading && loaded)
                 ? Padding(
                     key: const ValueKey('busy'),
-                    padding: const EdgeInsets.only(top: 10),
+                    padding: const EdgeInsets.only(top: 8),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(2),
                       child: LinearProgressIndicator(
@@ -474,8 +474,8 @@ class _Ticket extends StatelessWidget {
                   width: _stub,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 16,
+                      horizontal: 8,
+                      vertical: 12,
                     ),
                     decoration: BoxDecoration(
                       gradient: dim
@@ -522,7 +522,7 @@ class _Ticket extends StatelessWidget {
                   child: CustomPaint(painter: _DashPainter(color: p.hairline)),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(_stub + 17, 14, 8, 14),
+                  padding: const EdgeInsets.fromLTRB(_stub + 12, 10, 6, 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -544,7 +544,7 @@ class _Ticket extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 5),
                       if (code != null)
                         _CodeChip(code: code!)
                       else
@@ -563,7 +563,7 @@ class _Ticket extends StatelessWidget {
                           style: AtelierType.caption(p.inkSoft, size: 12),
                         ),
                       ],
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       Row(
                         children: [
                           Icon(Icons.event_outlined, size: 13, color: p.muted),
@@ -584,7 +584,7 @@ class _Ticket extends StatelessWidget {
                         ],
                       ),
                       if (schedule.progress != null) ...[
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 5),
                         AtelierMeter(
                           value: schedule.progress!,
                           height: 4,
@@ -592,7 +592,7 @@ class _Ticket extends StatelessWidget {
                         ),
                       ],
                       if (code != null) ...[
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 8),
                         _Usage(used: usedCount ?? 0, max: maxUses),
                       ],
                     ],
@@ -635,7 +635,7 @@ class _CodeChip extends StatelessWidget {
               ).copyWith(letterSpacing: 2.6),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           Icon(Icons.copy_rounded, size: 15, color: p.gold),
         ],
       ),
@@ -661,7 +661,7 @@ class _Usage extends StatelessWidget {
           stroke: 3,
           color: limited && used >= max! ? p.ruby : p.gold,
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         Expanded(
           child: Text(
             limited
@@ -935,7 +935,7 @@ class _PromotionFormState extends ConsumerState<_PromotionForm> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         IgnorePointer(child: preview),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
         AtelierTextField(
           controller: _name,
           label: _isCode
@@ -952,7 +952,7 @@ class _PromotionFormState extends ConsumerState<_PromotionForm> {
           error: _nameError,
           onChanged: (_) => setState(() {}),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         AtelierTextField(
           controller: _desc,
           label: context.tr(RemainingL10n.description),
@@ -960,12 +960,12 @@ class _PromotionFormState extends ConsumerState<_PromotionForm> {
           maxLines: 2,
           onChanged: (_) => setState(() {}),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         Text(
           context.tr(RemainingL10n.discountType).toUpperCase(),
           style: AtelierType.overline(context.atelier.muted),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         AtelierSegmented<PromotionType>(
           expand: true,
           dense: true,
@@ -984,7 +984,7 @@ class _PromotionFormState extends ConsumerState<_PromotionForm> {
           selected: _type,
           onChanged: (t) => setState(() => _type = t),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1006,7 +1006,7 @@ class _PromotionFormState extends ConsumerState<_PromotionForm> {
               ),
             ),
             if (_isCode) ...[
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: AtelierTextField(
                   controller: _maxUses,
@@ -1021,7 +1021,7 @@ class _PromotionFormState extends ConsumerState<_PromotionForm> {
             ],
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
@@ -1032,7 +1032,7 @@ class _PromotionFormState extends ConsumerState<_PromotionForm> {
                 onTap: () => _pickDate(isStart: true),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               child: AtelierDateTile(
                 label: context.tr(RemainingL10n.endDate2),
@@ -1054,7 +1054,7 @@ class _PromotionFormState extends ConsumerState<_PromotionForm> {
           child: _serverError == null
               ? const SizedBox(width: double.infinity)
               : Padding(
-                  padding: const EdgeInsets.only(top: 16),
+                  padding: const EdgeInsets.only(top: 12),
                   child: AtelierNotice(
                     text: _serverError!,
                     tone: AtelierTone.ruby,
@@ -1062,7 +1062,7 @@ class _PromotionFormState extends ConsumerState<_PromotionForm> {
                   ),
                 ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
         AtelierButton(
           label: _isCode
               ? context.tr(RemainingL10n.savePromoCode)

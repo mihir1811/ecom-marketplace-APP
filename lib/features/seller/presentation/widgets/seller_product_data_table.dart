@@ -77,7 +77,7 @@ class _SellerProductDataTableState extends State<SellerProductDataTable> {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Container(
-          margin: EdgeInsets.fromLTRB(widget.gutter, 4, widget.gutter, 12),
+          margin: EdgeInsets.fromLTRB(widget.gutter, 4, widget.gutter, 8),
           decoration: BoxDecoration(
             color: p.surface,
             borderRadius: BorderRadius.circular(AtelierRadius.lg),

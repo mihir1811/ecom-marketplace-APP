@@ -104,7 +104,7 @@ class _BuyerOrderDetailScreenState
         loading: () => _DetailSkeleton(gutter: gutter),
         error: (e, _) => ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(gutter, 24, gutter, 32),
+          padding: EdgeInsets.fromLTRB(gutter, 16, gutter, 20),
           children: [
             AtelierErrorState(
               title: 'Order unavailable',
@@ -194,7 +194,7 @@ class _OrderDetailBody extends StatelessWidget {
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),
         ),
-        padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 40),
+        padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 40),
         child: MaisonCentered(
           maxWidth: 1120,
           child: LayoutBuilder(
@@ -267,7 +267,7 @@ class _DetailSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       physics: const NeverScrollableScrollPhysics(),
-      padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 32),
+      padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 20),
       children: const [
         MaisonCentered(
           maxWidth: 1120,
@@ -275,11 +275,11 @@ class _DetailSkeleton extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SkeletonBox(height: 260, radius: AtelierRadius.xl),
-              SizedBox(height: 16),
+              SizedBox(height: 12),
               AtelierSkeletonCard(height: 220),
-              SizedBox(height: 16),
+              SizedBox(height: 12),
               AtelierSkeletonCard(height: 140),
-              SizedBox(height: 16),
+              SizedBox(height: 12),
               AtelierSkeletonCard(height: 180),
             ],
           ),

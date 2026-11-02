@@ -24,7 +24,7 @@ class LiveChatFeed extends StatelessWidget {
       return Align(
         alignment: Alignment.bottomLeft,
         child: Padding(
-          padding: const EdgeInsets.only(bottom: 6),
+          padding: const EdgeInsets.only(bottom: 5),
           child: Text(
             'Say hello — the seller reads every comment.',
             style: LiveType.body(12.5, color: LiveStage.inkFaint),
@@ -49,7 +49,7 @@ class LiveChatFeed extends StatelessWidget {
           itemBuilder: (context, i) {
             final item = shown[shown.length - 1 - i];
             Widget line = Padding(
-              padding: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.only(bottom: 6),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: item.isMoment
@@ -110,7 +110,7 @@ class _Comment extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 6),
         Flexible(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,7 +132,7 @@ class _Comment extends StatelessWidget {
                     ),
                   ),
                   if (seller) ...[
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 5),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 5,
@@ -185,7 +185,7 @@ class _Moment extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(8, 6, 12, 6),
+      padding: const EdgeInsets.fromLTRB(6, 5, 8, 5),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(999),
@@ -207,7 +207,7 @@ class _Moment extends StatelessWidget {
               color: LiveStage.onChampagne,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           Flexible(
             child: Text(
               item.body,

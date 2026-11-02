@@ -234,7 +234,7 @@ class _BuyerRecentlyViewedScreenState
             ),
             slivers: [
               SliverPadding(
-                padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 10),
+                padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 8),
                 sliver: SliverToBoxAdapter(
                   child: MaisonCentered(
                     child: Column(
@@ -274,7 +274,7 @@ class _BuyerRecentlyViewedScreenState
                         selected: category,
                         onChanged: (c) => setState(() => _category = c),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       MaisonSearchRow(
                         controller: _search,
                         hint: 'Search pieces, grades or stock no.',
@@ -315,7 +315,7 @@ class _BuyerRecentlyViewedScreenState
     double gutter,
   ) {
     Widget boxed(Widget child) => SliverPadding(
-      padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 32),
+      padding: EdgeInsets.fromLTRB(gutter, 5, gutter, 20),
       sliver: SliverToBoxAdapter(child: MaisonCentered(child: child)),
     );
 
@@ -361,7 +361,7 @@ class _BuyerRecentlyViewedScreenState
     if (async.hasError && !async.isLoading) {
       slivers.add(
         SliverPadding(
-          padding: EdgeInsets.fromLTRB(side, 10, side, 0),
+          padding: EdgeInsets.fromLTRB(side, 8, side, 0),
           sliver: SliverToBoxAdapter(
             child: Reveal(
               child: AtelierNotice(
@@ -412,7 +412,7 @@ class _BuyerRecentlyViewedScreenState
         if (group.label.isNotEmpty) {
           slivers.add(
             SliverPadding(
-              padding: EdgeInsets.fromLTRB(side, 10, side, 0),
+              padding: EdgeInsets.fromLTRB(side, 8, side, 0),
               sliver: SliverToBoxAdapter(
                 child: MaisonGroupLabel(
                   label: group.label,
@@ -427,15 +427,15 @@ class _BuyerRecentlyViewedScreenState
           SliverPadding(
             padding: EdgeInsets.fromLTRB(
               side,
-              group.label.isEmpty ? 10 : 0,
+              group.label.isEmpty ? 8 : 0,
               side,
-              10,
+              8,
             ),
             sliver: _grid
                 ? _gridSliver(group.items, width, side, start)
                 : SliverList.separated(
                     itemCount: group.items.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 12),
+                    separatorBuilder: (_, _) => const SizedBox(height: 8),
                     itemBuilder: (context, i) {
                       final entry = group.items[i];
                       final n = start + i;
@@ -482,8 +482,8 @@ class _BuyerRecentlyViewedScreenState
     return SliverGrid.builder(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: grid.columns,
-        mainAxisSpacing: 14,
-        crossAxisSpacing: 14,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
         mainAxisExtent: grid.extent,
       ),
       itemCount: entries.length,
@@ -522,15 +522,15 @@ class _BuyerRecentlyViewedScreenState
         slivers: [
           const SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.only(bottom: 18),
+              padding: EdgeInsets.only(bottom: 12),
               child: SkeletonBox(height: 136, radius: AtelierRadius.xl),
             ),
           ),
           SliverGrid.builder(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: grid.columns,
-              mainAxisSpacing: 14,
-              crossAxisSpacing: 14,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
               mainAxisExtent: grid.extent,
             ),
             itemCount: grid.columns * 2,
@@ -564,7 +564,7 @@ class _TrailBar extends StatelessWidget {
             semanticLabel: context.tr(AccountCommerceL10n.clearRecentTitle),
             borderRadius: BorderRadius.circular(AtelierRadius.pill),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(AtelierRadius.pill),
                 border: Border.all(color: p.hairline),
@@ -573,7 +573,7 @@ class _TrailBar extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.delete_sweep_outlined, size: 15, color: p.muted),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 5),
                   Text(
                     'Clear history',
                     style: AtelierType.label(p.inkSoft, size: 12),
@@ -609,14 +609,14 @@ class _SkeletonTile extends StatelessWidget {
             child: SkeletonBox(height: double.infinity, radius: 0),
           ),
           Padding(
-            padding: EdgeInsets.all(14),
+            padding: EdgeInsets.all(10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SkeletonBox(width: 110, height: 12),
-                SizedBox(height: 8),
+                SizedBox(height: 6),
                 SkeletonBox(width: 70, height: 10),
-                SizedBox(height: 14),
+                SizedBox(height: 10),
                 SkeletonBox(width: 90, height: 16),
               ],
             ),

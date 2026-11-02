@@ -36,7 +36,7 @@ class CatalogAvailabilityFilter extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         FilterSectionHeader(title: context.tr(CatalogL10n.availability)),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         LuxeDropdownField<String>(
           value: value,
           items: [

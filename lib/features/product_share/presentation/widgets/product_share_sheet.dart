@@ -264,7 +264,7 @@ class _ProductShareSheetState extends ConsumerState<_ProductShareSheet> {
           const Divider(height: 24),
           if (_busy)
             const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
+              padding: EdgeInsets.symmetric(vertical: 16),
               child: Center(child: CircularProgressIndicator()),
             )
           else ...[

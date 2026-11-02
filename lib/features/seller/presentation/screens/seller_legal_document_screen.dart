@@ -164,7 +164,7 @@ class _SellerLegalDocumentScreenState
                           context.openRoute(AppRouteNames.sellerPolicies),
                     ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
             if (loading)
               const PolicyDocumentSkeleton()
             else if (failed)
@@ -178,10 +178,10 @@ class _SellerLegalDocumentScreenState
             else ...[
               if (doc!.sections.length > 3) ...[
                 PolicySectionRail(sections: doc.sections, onSelect: _jumpTo),
-                const SizedBox(height: 18),
+                const SizedBox(height: 12),
               ],
               PolicyDocumentBody(document: doc, sectionKeys: _sectionKeys),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               AtelierCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,17 +190,17 @@ class _SellerLegalDocumentScreenState
                       context.tr(RemainingL10n.needHelp),
                       style: AtelierType.title(p.ink),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Text(
                       context.tr(
                         RemainingL10n.forQuestionsAboutThisPolicyOrders,
                       ),
                       style: AtelierType.body(p.inkSoft, size: 14),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
+                      spacing: 8,
+                      runSpacing: 8,
                       children: [
                         AtelierButton(
                           label: context.tr(RemainingL10n.helpCenter2),

@@ -262,7 +262,7 @@ class _HomeHeroState extends State<HomeHero>
                     children: [
                       SizedBox(height: widget.topInset),
                       Expanded(child: _buildCosmos(context)),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 10),
                       AnimatedBuilder(
                         animation: _progress,
                         builder: (context, child) {
@@ -277,7 +277,7 @@ class _HomeHeroState extends State<HomeHero>
                         },
                         child: Padding(
                           padding: EdgeInsets.only(
-                            bottom: 24 + widget.bottomInset,
+                            bottom: 16 + widget.bottomInset,
                           ),
                           // Paid HOME_BANNER ads from the spotlight API;
                           // takes no space while none is live.
@@ -392,7 +392,7 @@ class _DragHint extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.touch_app_outlined, size: 14, color: HomeStage.inkMuted),
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           Text(
             context.tr(HomeL10n.dragHint),
             style: HomeType.label(HomeStage.inkMuted, size: 11.5),

@@ -88,17 +88,17 @@ class HomeSearchBrowse extends ConsumerWidget {
 
     return ListView(
       padding: EdgeInsets.fromLTRB(
-        16,
-        14,
-        16,
-        32 + MediaQuery.paddingOf(context).bottom,
+        12,
+        10,
+        12,
+        20 + MediaQuery.paddingOf(context).bottom,
       ),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       children: [
         arrive(3, _RecentSearchesCard(onSearch: onSearch)),
         arrive(5, _ShapesCard(onSearch: onSearch)),
         if (signedIn) arrive(6, _RecentCard(onOpenRoute: onOpenRoute)),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         arrive(7, const _NumberTip()),
       ],
     );
@@ -110,7 +110,7 @@ class _BrowseCard extends StatelessWidget {
     required this.eyebrow,
     required this.child,
     this.trailing,
-    this.padding = const EdgeInsets.fromLTRB(16, 16, 16, 10),
+    this.padding = const EdgeInsets.fromLTRB(12, 12, 12, 8),
   });
 
   final String eyebrow;
@@ -145,7 +145,7 @@ class _BrowseCard extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           child,
         ],
       ),
@@ -173,10 +173,10 @@ class _RecentSearchesCard extends ConsumerWidget {
       child: searches.isEmpty
           ? const SizedBox(width: double.infinity)
           : Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: 8),
               child: _BrowseCard(
                 eyebrow: context.tr(HomeL10n.recentSearchesEyebrow),
-                padding: const EdgeInsets.fromLTRB(16, 10, 6, 6),
+                padding: const EdgeInsets.fromLTRB(12, 8, 5, 5),
                 trailing: TextButton(
                   onPressed: () {
                     AppHaptics.light();
@@ -234,7 +234,7 @@ class _RecentSearchRow extends StatelessWidget {
         child: Row(
           children: [
             Icon(Icons.history_rounded, size: 19, color: palette.inkFaint),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 query,
@@ -272,14 +272,14 @@ class _ShapesCard extends StatelessWidget {
     const shapes = HomeContent.shapes;
     return _BrowseCard(
       eyebrow: context.tr(HomeL10n.searchShapesEyebrow),
-      padding: const EdgeInsets.fromLTRB(16, 16, 0, 14),
+      padding: const EdgeInsets.fromLTRB(12, 12, 0, 10),
       child: SizedBox(
         height: 86,
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
-          padding: const EdgeInsetsDirectional.only(end: 16),
+          padding: const EdgeInsetsDirectional.only(end: 12),
           itemCount: shapes.length,
-          separatorBuilder: (_, _) => const SizedBox(width: 6),
+          separatorBuilder: (_, _) => const SizedBox(width: 5),
           itemBuilder: (context, i) => InkWell(
             onTap: () => onSearch(shapes[i].name),
             borderRadius: BorderRadius.circular(HomeSpace.radiusSmall),
@@ -290,7 +290,7 @@ class _ShapesCard extends StatelessWidget {
                   Container(
                     width: 58,
                     height: 58,
-                    padding: const EdgeInsets.all(11),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: palette.canvas,
@@ -302,7 +302,7 @@ class _ShapesCard extends StatelessWidget {
                       cacheWidth: 120,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   Text(
                     shapes[i].name,
                     maxLines: 1,
@@ -344,10 +344,10 @@ class _RecentCard extends ConsumerWidget {
             ? const SizedBox(width: double.infinity)
             : Padding(
                 key: const ValueKey('recent'),
-                padding: const EdgeInsets.only(top: 12),
+                padding: const EdgeInsets.only(top: 8),
                 child: _BrowseCard(
                   eyebrow: context.tr(AccountCommerceL10n.recentlyViewed),
-                  padding: const EdgeInsets.fromLTRB(16, 10, 0, 14),
+                  padding: const EdgeInsets.fromLTRB(12, 8, 0, 10),
                   trailing: TextButton(
                     onPressed: () =>
                         onOpenRoute(AppRouteNames.buyerRecentlyViewed),
@@ -364,9 +364,9 @@ class _RecentCard extends ConsumerWidget {
                     height: _RecentTile.height(context),
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsetsDirectional.only(end: 16),
+                      padding: const EdgeInsetsDirectional.only(end: 12),
                       itemCount: visible.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 10),
+                      separatorBuilder: (_, _) => const SizedBox(width: 8),
                       itemBuilder: (context, i) =>
                           _RecentTile(entry: visible[i]),
                     ),
@@ -433,7 +433,7 @@ class _RecentTile extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 7),
+            const SizedBox(height: 6),
             Text(
               entry.listTitle,
               maxLines: 1,
@@ -461,7 +461,7 @@ class _NumberTip extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = HomePalette.of(context);
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: palette.accentSoft,
         borderRadius: BorderRadius.circular(HomeSpace.radius),
@@ -477,7 +477,7 @@ class _NumberTip extends StatelessWidget {
             ),
             child: Icon(Icons.tag_rounded, size: 20, color: palette.accent),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

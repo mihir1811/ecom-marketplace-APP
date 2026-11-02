@@ -82,7 +82,7 @@ class _NotFound extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.s16),
             Wrap(
-              spacing: 12,
+              spacing: 8,
               children: [
                 OutlinedButton(
                   onPressed: onRetry,
@@ -588,8 +588,8 @@ class _ShippingSectionState extends ConsumerState<_ShippingSection> {
                 ),
                 const SizedBox(height: AppSpacing.s8),
                 Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: 6,
+                  runSpacing: 6,
                   children: [
                     for (final s in options)
                       _StatusChip(
@@ -907,8 +907,8 @@ class _OrderHeroCard extends StatelessWidget {
                       ),
                       const SizedBox(height: AppSpacing.s12),
                       Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
+                        spacing: 6,
+                        runSpacing: 6,
                         children: [
                           _MetaChip(
                             icon: Icons.flag_outlined,
@@ -995,7 +995,7 @@ class _InfoTile extends StatelessWidget {
           Row(
             children: [
               Icon(icon, size: 16, color: AppColors.bronze),
-              const SizedBox(width: 6),
+              const SizedBox(width: 5),
               Expanded(
                 child: Text(
                   label,
@@ -1010,7 +1010,7 @@ class _InfoTile extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             value.isEmpty ? '—' : value,
             maxLines: 2,
@@ -1072,7 +1072,7 @@ class _DeliveryProgress extends StatelessWidget {
               ],
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1095,7 +1095,7 @@ class _DeliveryProgress extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (i < labels.length - 1) const SizedBox(width: 12),
+                if (i < labels.length - 1) const SizedBox(width: 8),
               ],
             ],
           ),
@@ -1132,7 +1132,7 @@ class _ProgressDot extends StatelessWidget {
           ? Icon(Icons.check, size: 14, color: AppColors.warmWhite)
           : index == currentIndex
           ? Container(
-              margin: const EdgeInsets.all(7),
+              margin: const EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: AppColors.warmWhite,
                 shape: BoxShape.circle,
@@ -1249,12 +1249,12 @@ class _StatusChip extends StatelessWidget {
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(icon, size: 14, color: ink),
-                const SizedBox(width: 6),
+                const SizedBox(width: 5),
                 Text(
                   label,
                   style: AppTypography.caption.copyWith(
@@ -1290,7 +1290,7 @@ class _MetaChip extends StatelessWidget {
     final bg = background ?? AppColors.surface(context);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(999),
@@ -1300,7 +1300,7 @@ class _MetaChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 14, color: fg),
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           Flexible(
             child: Text(
               label,
@@ -1398,7 +1398,7 @@ class _TimelineRow extends StatelessWidget {
                       height: 1.35,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   Text(
                     at,
                     style: AppTypography.caption.copyWith(

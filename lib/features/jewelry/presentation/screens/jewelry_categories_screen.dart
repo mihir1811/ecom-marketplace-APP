@@ -130,7 +130,7 @@ class _JewelryCategoriesScreenState
                   child: Stack(
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 30),
+                        padding: const EdgeInsets.only(bottom: 20),
                         child: JewelryShowcaseStage(
                           topInset: topInset,
                           onOpenHouse: (house) => context.push(
@@ -169,7 +169,7 @@ class _JewelryCategoriesScreenState
                     ],
                   ),
                 ),
-                const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                const SliverToBoxAdapter(child: SizedBox(height: 6)),
                 // Paid jewellery banner and Sponsored row, under the search.
                 const SliverToBoxAdapter(
                   child: SpotlightCategoryBlock(
@@ -208,7 +208,7 @@ class _JewelryCategoriesScreenState
     final categories = ref.watch(jewelleryCategoriesProvider);
     final heading = SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.only(top: 18),
+        padding: const EdgeInsets.only(top: 12),
         child: LuxeRowHeading(
           title: context.tr(JewelryFlowL10n.collectionsTitle),
           subtitle: context.tr(JewelryFlowL10n.collectionsSubtitle),
@@ -256,7 +256,7 @@ class _JewelryCategoriesScreenState
           }
           return [
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               sliver: SliverToBoxAdapter(
                 child: _CollectionGrid(
                   items: items,
@@ -282,7 +282,7 @@ class _CollectionGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const gap = 12.0;
+    const gap = 8.0;
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
@@ -450,7 +450,7 @@ class _CollectionSkeleton extends StatelessWidget {
     final w = MediaQuery.sizeOf(context).width - 32;
     final cell = (w - 12) / 2;
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       sliver: SliverToBoxAdapter(
         child: Column(
           children: [
@@ -459,7 +459,7 @@ class _CollectionSkeleton extends StatelessWidget {
               height: w * 0.72,
               radius: LuxeSpace.radius,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Row(
               children: [
                 LuxeSkeleton(
@@ -467,7 +467,7 @@ class _CollectionSkeleton extends StatelessWidget {
                   height: cell * 1.28,
                   radius: LuxeSpace.radius,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 LuxeSkeleton(
                   width: cell,
                   height: cell * 1.28,
@@ -546,7 +546,7 @@ class _Metals extends StatelessWidget {
               subtitle: context.tr(JewelryFlowL10n.metalsSubtitle),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               // Equal-height tiles, content pinned to the top so swatches
               // line up whether a label takes one line or two.
               child: IntrinsicHeight(
@@ -555,7 +555,7 @@ class _Metals extends StatelessWidget {
                   children: [
                     for (final (i, metal)
                         in MarketplaceEnums.quickMetals.indexed) ...[
-                      if (i > 0) const SizedBox(width: 10),
+                      if (i > 0) const SizedBox(width: 8),
                       Expanded(
                         child: _MetalTile(
                           metal: metal,
@@ -594,7 +594,7 @@ class _MetalTile extends StatelessWidget {
       semanticLabel: label,
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(8, 16, 8, 14),
+        padding: const EdgeInsets.fromLTRB(6, 12, 6, 10),
         decoration: BoxDecoration(
           color: p.surface,
           borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall + 4),
@@ -607,7 +607,7 @@ class _MetalTile extends StatelessWidget {
               label: MarketplaceEnums.swatchLabel(metal),
               size: 44,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Text(
               label,
               maxLines: 2,
@@ -639,8 +639,8 @@ class _PremiumStrip extends ConsumerWidget {
     // Deep midnight-slate band (no gold) so Premium reads as its own
     // section against the warm canvas.
     return Container(
-      margin: const EdgeInsets.only(top: 18),
-      padding: const EdgeInsets.fromLTRB(0, 20, 0, 22),
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.fromLTRB(0, 14, 0, 14),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,

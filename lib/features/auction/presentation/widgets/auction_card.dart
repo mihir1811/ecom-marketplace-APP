@@ -123,7 +123,7 @@ class _BidFigure extends StatelessWidget {
             ).copyWith(fontWeight: FontWeight.w600),
           ),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: 5),
         Text(
           highest == null ? 'opening' : 'current bid',
           maxLines: 1,
@@ -144,7 +144,7 @@ class _CountdownChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       decoration: ShapeDecoration(
         color: p.isDark ? const Color(0x99000000) : const Color(0xEBFFFFFF),
         shape: const StadiumBorder(),

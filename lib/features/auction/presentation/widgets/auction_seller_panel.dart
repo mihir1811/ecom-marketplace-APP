@@ -37,7 +37,7 @@ class AuctionSellerPanel extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(icon, size: 18, color: color ?? p.accent),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         Expanded(
           child: Text(text, style: LuxeType.label(p.inkMuted, size: 13.5)),
         ),
@@ -54,7 +54,7 @@ class AuctionSellerPanel extends ConsumerWidget {
               'to sell.',
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           LuxeButton(
             label: 'End now',
             icon: Icons.stop_circle_outlined,
@@ -95,7 +95,7 @@ class AuctionSellerPanel extends ConsumerWidget {
           const SizedBox(height: 4),
           if (outcome != null) note(outcome.icon, outcome.text),
           if (next != null) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 5),
             Text(
               '${hasDeclined ? 'Next bidder' : 'Highest bid'}: '
               '${next.buyerName ?? 'Bidder'} · ${auctionBidAmount(next.amount)}',
@@ -104,7 +104,7 @@ class AuctionSellerPanel extends ConsumerWidget {
               style: LuxeType.label(p.ink, size: 13),
             ),
           ],
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Row(
             children: [
               LuxeButton(
@@ -113,7 +113,7 @@ class AuctionSellerPanel extends ConsumerWidget {
                 onPressed: submitting ? null : actions.reject,
               ),
               if (next != null) ...[
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
                   child: LuxeButton(
                     label: hasDeclined
@@ -163,7 +163,7 @@ class AuctionSellerPanel extends ConsumerWidget {
             ).copyWith(fontWeight: FontWeight.w600),
           ),
           if (outcome != null) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 5),
             note(
               outcome.icon,
               outcome.text,

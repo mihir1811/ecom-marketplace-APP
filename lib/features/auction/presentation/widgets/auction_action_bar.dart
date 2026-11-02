@@ -88,7 +88,7 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
     Widget note(IconData icon, String text) => Row(
       children: [
         Icon(icon, size: 18, color: p.accent),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         Expanded(
           child: Text(text, style: LuxeType.label(p.inkMuted, size: 13.5)),
         ),
@@ -134,7 +134,7 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
           Row(
             children: [
               for (var i = 0; i < suggestions.length; i++) ...[
-                if (i > 0) const SizedBox(width: 8),
+                if (i > 0) const SizedBox(width: 6),
                 Expanded(
                   child: _SuggestionChip(
                     amount: auctionBidAmount(suggestions[i].amount),
@@ -153,7 +153,7 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
               ],
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
@@ -170,7 +170,7 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               LuxeButton(
                 label: 'Place bid',
                 icon: Icons.gavel_rounded,
@@ -204,7 +204,7 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
           child: AnimatedSize(
             duration: LuxeMotion.medium,
             curve: LuxeMotion.settle,
@@ -256,7 +256,7 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
           textBaseline: TextBaseline.alphabetic,
           children: [
             Text('Winning bid', style: LuxeType.label(p.inkMuted, size: 12.5)),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Text(
               auctionBidAmount(amount),
               style: LuxeType.figure(
@@ -279,7 +279,7 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
           'Checkout adds the usual charges (GST, fees, delivery).',
           style: LuxeType.label(p.inkFaint, size: 11.5),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Row(
           children: [
             LuxeButton(
@@ -287,7 +287,7 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
               variant: LuxeButtonVariant.secondary,
               onPressed: submitting ? null : _decline,
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Expanded(
               child: LuxeButton(
                 label: 'Go to checkout',
@@ -503,7 +503,7 @@ class _SuggestionChip extends StatelessWidget {
         child: AnimatedContainer(
           duration: LuxeMotion.medium,
           curve: LuxeMotion.settle,
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 6),
           decoration: BoxDecoration(
             color: selected ? p.ink : p.surfaceRaised,
             borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),

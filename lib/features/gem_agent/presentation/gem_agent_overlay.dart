@@ -97,8 +97,8 @@ class _SheetLayer extends ConsumerWidget {
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
           padding: EdgeInsets.only(
-            left: 12,
-            right: 12,
+            left: 8,
+            right: 8,
             bottom: (keyboard > 0 ? keyboard : safe) + 12,
           ),
           child: const Align(

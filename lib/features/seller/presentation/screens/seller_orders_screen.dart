@@ -159,7 +159,7 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 0),
+              padding: EdgeInsets.fromLTRB(gutter, 5, gutter, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -252,7 +252,7 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen>
                     alignment: Alignment.topCenter,
                     child: filtersShown
                         ? Padding(
-                            padding: const EdgeInsets.only(top: 10),
+                            padding: const EdgeInsets.only(top: 8),
                             child: _ActiveFilters(
                               filters: _filters,
                               showRefundStates: !inRefunds,
@@ -395,7 +395,7 @@ class _ActiveFilters extends StatelessWidget {
         children: [
           for (var i = 0; i < tags.length; i++)
             Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.only(right: 6),
               child: Reveal(index: i, horizontal: true, child: tags[i]),
             ),
           TextButton(
@@ -459,12 +459,12 @@ class _FilterSheetState extends State<_FilterSheet> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text('DATE', style: AtelierType.overline(p.muted)),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Pressable(
           onTap: _pickDates,
           semanticLabel: 'Choose dates',
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: p.sunken,
               borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -472,7 +472,7 @@ class _FilterSheetState extends State<_FilterSheet> {
             child: Row(
               children: [
                 Icon(Icons.date_range_rounded, size: 18, color: p.gold),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     _draft.hasDateRange
@@ -499,12 +499,12 @@ class _FilterSheetState extends State<_FilterSheet> {
           ),
         ),
         if (widget.paymentStatuses.isNotEmpty) ...[
-          const SizedBox(height: 22),
+          const SizedBox(height: 14),
           Text('PAYMENT STATUS', style: AtelierType.overline(p.muted)),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 6,
+            runSpacing: 6,
             children: [
               for (final status in widget.paymentStatuses)
                 AtelierChoiceChip(
@@ -522,12 +522,12 @@ class _FilterSheetState extends State<_FilterSheet> {
           ),
         ],
         if (widget.showRefundStates) ...[
-          const SizedBox(height: 22),
+          const SizedBox(height: 14),
           Text('REFUND STATUS', style: AtelierType.overline(p.muted)),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 6,
+            runSpacing: 6,
             children: [
               for (final state in SellerOrderRefundState.values)
                 AtelierChoiceChip(
@@ -542,7 +542,7 @@ class _FilterSheetState extends State<_FilterSheet> {
             ],
           ),
         ],
-        const SizedBox(height: 28),
+        const SizedBox(height: 18),
         Row(
           children: [
             Expanded(
@@ -555,7 +555,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               child: AtelierButton(
                 label: context.tr(RemainingL10n.apply),
@@ -595,7 +595,7 @@ class _CategoryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = context.atelier;
-    final padding = EdgeInsets.fromLTRB(gutter, 8, gutter, 32);
+    final padding = EdgeInsets.fromLTRB(gutter, 6, gutter, 20);
 
     Widget body;
     if (isLoading) {
@@ -657,7 +657,7 @@ class _CategoryList extends StatelessWidget {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: padding,
         itemCount: notices.length + entries.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 14),
+        separatorBuilder: (_, _) => const SizedBox(height: 10),
         itemBuilder: (context, index) {
           if (index < notices.length) return notices[index];
           final i = index - notices.length;
@@ -733,7 +733,7 @@ class _RefundCard extends ConsumerWidget {
         ),
         boxShadow: p.softShadow,
       ),
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -750,7 +750,7 @@ class _RefundCard extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -767,7 +767,7 @@ class _RefundCard extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           SellerOrderCustomerBlock(
             name: refund.user?.name.trim().isNotEmpty == true
                 ? refund.buyerLabel
@@ -775,10 +775,10 @@ class _RefundCard extends ConsumerWidget {
             email: linked?.customer?.email,
             phone: linked?.customer?.phone,
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           Wrap(
-            spacing: 24,
-            runSpacing: 12,
+            spacing: 16,
+            runSpacing: 8,
             children: [
               AtelierKeyValue(
                 label: context.tr(RemainingL10n.order),
@@ -823,9 +823,9 @@ class _RefundCard extends ConsumerWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: p.sunken,
               borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -837,18 +837,18 @@ class _RefundCard extends ConsumerWidget {
                   context.tr(RemainingL10n.buyerReason).toUpperCase(),
                   style: AtelierType.overline(p.muted),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 5),
                 Text(
                   refund.reason,
                   style: AtelierType.body(p.inkSoft, size: 13),
                 ),
                 if (refund.sellerNote != null) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Text(
                     context.tr(RemainingL10n.yourNote).toUpperCase(),
                     style: AtelierType.overline(p.muted),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   Text(
                     refund.sellerNote!,
                     style: AtelierType.body(p.inkSoft, size: 13),
@@ -858,7 +858,7 @@ class _RefundCard extends ConsumerWidget {
             ),
           ),
           if (refund.canSellerDecide) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
@@ -872,7 +872,7 @@ class _RefundCard extends ConsumerWidget {
                         : () => _rejectRefund(context, refund),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
                   child: AtelierButton(
                     label: context.tr(RemainingL10n.accept),

@@ -29,7 +29,7 @@ class FilterBooleanCheckbox extends StatelessWidget {
             onChanged(!value);
           },
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
+            padding: const EdgeInsets.symmetric(vertical: 5),
             child: Row(
               children: [
                 Expanded(

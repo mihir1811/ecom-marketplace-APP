@@ -199,25 +199,25 @@ class _CertificateError extends StatelessWidget {
     final p = LuxePalette.of(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.description_outlined, size: 48, color: p.inkMuted),
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             Text(
               context.tr(DiamondFlowL10n.certificateLoadFailed),
               textAlign: TextAlign.center,
               style: LuxeType.label(p.ink, size: 14),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
             LuxeButton(
               label: context.tr(CatalogL10n.tryAgain),
               icon: Icons.refresh_rounded,
               height: 44,
               onPressed: onRetry,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             LuxeButton(
               label: context.tr(DiamondFlowL10n.downloadCertificate),
               variant: LuxeButtonVariant.secondary,

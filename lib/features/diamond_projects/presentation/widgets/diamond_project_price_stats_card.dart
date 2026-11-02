@@ -47,10 +47,10 @@ class DiamondProjectPriceStatsCard extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: stats.outliers.isEmpty
                   ? p.surfaceRaised
@@ -69,14 +69,14 @@ class DiamondProjectPriceStatsCard extends StatelessWidget {
                       size: 16,
                       color: stats.outliers.isEmpty ? p.positive : p.caution,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Text(
                       context.tr(CatalogL10n.outliers),
                       style: LuxeType.label(p.ink, size: 13.5),
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 5),
                 Text(
                   context.tr(CatalogL10n.outliersSummary, {
                     'count': '${stats.outliers.length}',
@@ -88,10 +88,10 @@ class DiamondProjectPriceStatsCard extends StatelessWidget {
                   style: LuxeType.body(p.inkMuted, size: 12.5),
                 ),
                 if (stats.outliers.isNotEmpty) ...[
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   for (final outlier in stats.outliers.take(8))
                     Padding(
-                      padding: const EdgeInsets.only(top: 6),
+                      padding: const EdgeInsets.only(top: 5),
                       child: Row(
                         children: [
                           Expanded(
@@ -122,7 +122,7 @@ class DiamondProjectPriceStatsCard extends StatelessWidget {
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
+                              horizontal: 6,
                               vertical: 2,
                             ),
                             decoration: ShapeDecoration(
@@ -183,7 +183,7 @@ class _Stat extends StatelessWidget {
             p.inkMuted,
           ).copyWith(fontSize: 9.5, letterSpacing: 1.6),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 5),
         FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,

@@ -88,7 +88,7 @@ class LiveShowCard extends StatelessWidget {
                 child: Row(
                   children: [
                     LiveBadge(compact: !featured, solid: !featured),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 5),
                     LiveViewerPill(
                       label: liveCount(show.viewerCount),
                       compact: !featured,
@@ -111,7 +111,7 @@ class LiveShowCard extends StatelessWidget {
                           size: featured ? 26 : 18,
                           ring: featured,
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             show.seller.companyName,
@@ -135,7 +135,7 @@ class LiveShowCard extends StatelessWidget {
                     if (featured &&
                         description != null &&
                         description.isNotEmpty) ...[
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text(
                         description,
                         maxLines: 2,
@@ -144,11 +144,11 @@ class LiveShowCard extends StatelessWidget {
                       ),
                     ],
                     if (featured) ...[
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.fromLTRB(18, 11, 14, 11),
+                            padding: const EdgeInsets.fromLTRB(12, 8, 10, 8),
                             decoration: BoxDecoration(
                               gradient: LiveStage.champagneGradient,
                               borderRadius: BorderRadius.circular(999),
@@ -164,7 +164,7 @@ class LiveShowCard extends StatelessWidget {
                                     weight: FontWeight.w800,
                                   ),
                                 ),
-                                const SizedBox(width: 6),
+                                const SizedBox(width: 5),
                                 const Icon(
                                   Icons.arrow_forward_rounded,
                                   size: 17,
@@ -173,7 +173,7 @@ class LiveShowCard extends StatelessWidget {
                               ],
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 8),
                           if (!show.isStreaming)
                             Flexible(
                               child: Text(

@@ -89,10 +89,10 @@ class OrderJourneyPanel extends ConsumerWidget {
           if (multiSeller) ...[
             const AtelierHairline(vertical: 16),
             Text('SELLER CONFIRMATION', style: AtelierType.overline(p.muted)),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             for (final d in order.sellerDecisions)
               Padding(
-                padding: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
                   children: [
                     AtelierMonogram(
@@ -103,7 +103,7 @@ class OrderJourneyPanel extends ConsumerWidget {
                       ),
                       size: 30,
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         orderSellerName(order, d.sellerId, hint: d.sellerName),
@@ -211,10 +211,10 @@ class _StepRow extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 10),
           Expanded(
             child: Padding(
-              padding: EdgeInsets.only(top: 2, bottom: isLast ? 0 : 18),
+              padding: EdgeInsets.only(top: 2, bottom: isLast ? 0 : 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

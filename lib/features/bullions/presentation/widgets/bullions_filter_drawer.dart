@@ -291,7 +291,7 @@ class _BullionsFilterDrawerState extends ConsumerState<BullionsFilterDrawer>
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       for (var i = 0; i < children.length; i++) ...[
-        if (i > 0) const SizedBox(height: 22),
+        if (i > 0) const SizedBox(height: 14),
         children[i],
       ],
     ],

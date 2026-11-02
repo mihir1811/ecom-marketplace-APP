@@ -86,7 +86,7 @@ class FilterOriginDropdown extends StatelessWidget {
               resolvedTitle,
               style: AppTypography.label.copyWith(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             Tooltip(
               message: resolvedInfoText,
               triggerMode: TooltipTriggerMode.tap,
@@ -109,7 +109,7 @@ class FilterOriginDropdown extends StatelessWidget {
           onTap: () => _showCountryPicker(context, resolvedPickerTitle),
           child: Container(
             height: 48,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             decoration: BoxDecoration(
               border: Border.all(color: borderColor),
               borderRadius: BorderRadius.circular(AppSpacing.r8),
@@ -128,7 +128,7 @@ class FilterOriginDropdown extends StatelessWidget {
                             '',
                         style: const TextStyle(fontSize: 20),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                     ],
                     Text(
                       selectedOrigin ?? resolvedHint,
@@ -209,9 +209,9 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        top: 24,
-        left: 16,
-        right: 16,
+        top: 16,
+        left: 12,
+        right: 12,
         bottom:
             MediaQuery.viewInsetsOf(context).bottom +
             MediaQuery.paddingOf(context).bottom +
@@ -235,7 +235,7 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           TextField(
             autofocus: true,
             decoration: InputDecoration(
@@ -247,7 +247,7 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
             ),
             onChanged: _onSearchChanged,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           ConstrainedBox(
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.4,

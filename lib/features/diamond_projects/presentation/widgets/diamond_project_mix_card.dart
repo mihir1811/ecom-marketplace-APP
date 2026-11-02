@@ -64,7 +64,7 @@ class _DiamondProjectMixCardState extends State<DiamondProjectMixCard> {
                       });
                     },
                   ),
-                  if (i < widget.entries.length - 1) const SizedBox(height: 10),
+                  if (i < widget.entries.length - 1) const SizedBox(height: 8),
                 ],
               ],
             ),
@@ -143,7 +143,7 @@ class _MixRow extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               SizedBox(
                 width: 64,
                 child: Text.rich(

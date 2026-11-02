@@ -54,7 +54,7 @@ class JewelryOrderStatusPill extends StatelessWidget {
               ),
     };
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: ShapeDecoration(
         color: tone.withValues(alpha: 0.12),
         shape: const StadiumBorder(),

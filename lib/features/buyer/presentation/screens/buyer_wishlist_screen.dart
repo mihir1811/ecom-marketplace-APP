@@ -157,7 +157,7 @@ class _BuyerWishlistScreenState extends ConsumerState<BuyerWishlistScreen> {
             parent: BouncingScrollPhysics(),
           ),
           slivers: [
-            const SliverToBoxAdapter(child: SizedBox(height: 8)),
+            const SliverToBoxAdapter(child: SizedBox(height: 6)),
             if (items.isNotEmpty)
               MaisonPinnedBar(
                 height: 124,
@@ -185,7 +185,7 @@ class _BuyerWishlistScreenState extends ConsumerState<BuyerWishlistScreen> {
                       selected: category,
                       onChanged: (c) => setState(() => _category = c),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     MaisonSearchRow(
                       controller: _search,
                       hint: 'Search your saved pieces',
@@ -228,7 +228,7 @@ class _BuyerWishlistScreenState extends ConsumerState<BuyerWishlistScreen> {
     double gutter,
   ) {
     Widget boxed(Widget child) => SliverPadding(
-      padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 32),
+      padding: EdgeInsets.fromLTRB(gutter, 5, gutter, 20),
       sliver: SliverToBoxAdapter(child: MaisonCentered(child: child)),
     );
 
@@ -279,7 +279,7 @@ class _BuyerWishlistScreenState extends ConsumerState<BuyerWishlistScreen> {
     }
 
     final side = math.max(gutter, (width - 1040) / 2);
-    final padding = EdgeInsets.fromLTRB(side, 10, side, 36);
+    final padding = EdgeInsets.fromLTRB(side, 8, side, 36);
 
     if (!_grid) {
       return [
@@ -287,7 +287,7 @@ class _BuyerWishlistScreenState extends ConsumerState<BuyerWishlistScreen> {
           padding: padding,
           sliver: SliverList.separated(
             itemCount: visible.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            separatorBuilder: (_, _) => const SizedBox(height: 8),
             itemBuilder: (context, i) {
               final item = visible[i];
               return Reveal(
@@ -312,8 +312,8 @@ class _BuyerWishlistScreenState extends ConsumerState<BuyerWishlistScreen> {
         sliver: SliverGrid.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: grid.columns,
-            mainAxisSpacing: 14,
-            crossAxisSpacing: 14,
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
             mainAxisExtent: grid.extent,
           ),
           itemCount: visible.length,
@@ -351,12 +351,12 @@ class _BuyerWishlistScreenState extends ConsumerState<BuyerWishlistScreen> {
     final side = math.max(gutter, (width - 1040) / 2);
     final grid = _gridMetrics(width, side);
     return SliverPadding(
-      padding: EdgeInsets.fromLTRB(side, 10, side, 36),
+      padding: EdgeInsets.fromLTRB(side, 8, side, 36),
       sliver: SliverGrid.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: grid.columns,
-          mainAxisSpacing: 14,
-          crossAxisSpacing: 14,
+          mainAxisSpacing: 10,
+          crossAxisSpacing: 10,
           mainAxisExtent: grid.extent,
         ),
         itemCount: grid.columns * 2,
@@ -387,14 +387,14 @@ class _SkeletonTile extends StatelessWidget {
             child: SkeletonBox(height: double.infinity, radius: 0),
           ),
           Padding(
-            padding: EdgeInsets.all(14),
+            padding: EdgeInsets.all(10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SkeletonBox(width: 110, height: 12),
-                SizedBox(height: 8),
+                SizedBox(height: 6),
                 SkeletonBox(width: 70, height: 10),
-                SizedBox(height: 14),
+                SizedBox(height: 10),
                 SkeletonBox(width: 90, height: 16),
               ],
             ),

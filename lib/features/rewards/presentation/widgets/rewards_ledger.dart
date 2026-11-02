@@ -108,7 +108,7 @@ class RewardsLedger extends StatelessWidget {
         }
         rows.add(
           Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: 6),
             child: Reveal(
               key: ValueKey(t.id),
               index: i < 10 ? i : 0,
@@ -140,7 +140,7 @@ class RewardsLedger extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const AtelierSectionHeader(title: 'Points history'),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         AtelierSegmented<RewardsLedgerFilter>(
           expand: true,
           dense: true,
@@ -166,7 +166,7 @@ class RewardsLedger extends StatelessWidget {
           selected: filter,
           onChanged: onFilter,
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         AnimatedSwitcher(
           duration: AtelierMotion.base,
           child: KeyedSubtree(key: ValueKey(filter), child: body),
@@ -196,7 +196,7 @@ class _LedgerRow extends StatelessWidget {
       onTap: onTap,
       semanticLabel: '${t.label}, ${_signed(t)}',
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         decoration: BoxDecoration(
           color: p.surface,
           borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -214,7 +214,7 @@ class _LedgerRow extends StatelessWidget {
               ),
               child: Icon(rewardTxnIcon(t.type), size: 18, color: accent),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,7 +237,7 @@ class _LedgerRow extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -295,10 +295,10 @@ Future<void> showRewardTransactionSheet(
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Wrap(
-            spacing: 8,
-            runSpacing: 6,
+            spacing: 6,
+            runSpacing: 5,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               AtelierPill(
@@ -316,22 +316,22 @@ Future<void> showRewardTransactionSheet(
             ],
           ),
           if (t.amountInr != null && t.amountInr! > 0) ...[
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
             AtelierKeyValue(label: 'Value', value: maisonInr(t.amountInr!)),
           ],
           if (t.note != null) ...[
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
             AtelierKeyValue(label: 'Note', value: t.note!),
           ],
-          const SizedBox(height: 20),
+          const SizedBox(height: 14),
           for (var i = 0; i < refs.length; i++)
             Reveal(
               index: i + 1,
               offset: 8,
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: 6),
                 child: Container(
-                  padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
+                  padding: const EdgeInsets.fromLTRB(10, 8, 5, 8),
                   decoration: BoxDecoration(
                     color: p.sunken,
                     borderRadius: BorderRadius.circular(AtelierRadius.sm),
@@ -370,7 +370,7 @@ Future<void> showRewardTransactionSheet(
               ),
             ),
           if (orderId != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             AtelierButton(
               label: 'Open order ${maisonShortId(orderId)}',
               icon: Icons.local_mall_outlined,

@@ -35,20 +35,20 @@ class DiamondViewerErrorView extends StatelessWidget {
             color: LuxeStage.gold,
           ),
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 14),
         Text(
           'Unable to open 360° view',
           textAlign: TextAlign.center,
           style: LuxeType.display(26, LuxeStage.ink),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Text(
           message,
           textAlign: TextAlign.center,
           style: LuxeType.body(LuxeStage.inkMuted, size: 14),
         ),
         if (onRetry != null) ...[
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           LuxeButton(
             label: context.tr(CatalogL10n.tryAgain),
             icon: Icons.refresh_rounded,
@@ -68,7 +68,7 @@ class DiamondViewerErrorView extends StatelessWidget {
       color: LuxeStage.obsidian,
       child: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(28),
+          padding: const EdgeInsets.all(18),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 360),
             child: body,

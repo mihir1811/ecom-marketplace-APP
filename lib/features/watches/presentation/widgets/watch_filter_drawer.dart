@@ -323,7 +323,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer>
               WatchDialStyleIndexGrid(
                 selected: d.indexes,
                 onToggle: _n.toggleIndexes,
-                padding: const EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.only(top: 6),
               ),
             ],
           ),
@@ -476,7 +476,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const FilterSectionHeader(title: 'Brand'),
-            const SizedBox(height: 6),
+            const SizedBox(height: 5),
             Text(_lockedBrandName, style: LuxeType.display(22, p.ink)),
           ],
         )
@@ -523,7 +523,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer>
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         FilterSectionHeader(title: title),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         LuxeMultiSelectField(
           options: options,
           selected: picked,
@@ -548,7 +548,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer>
       children: [
         if (title != null) ...[
           FilterSectionHeader(title: title),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
         ],
         FilterChipScrollRow(
           children: [
@@ -568,7 +568,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer>
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       for (var i = 0; i < children.length; i++) ...[
-        if (i > 0) const SizedBox(height: 22),
+        if (i > 0) const SizedBox(height: 14),
         children[i],
       ],
     ],
@@ -611,7 +611,7 @@ class _WatchFilterDrawerState extends ConsumerState<WatchFilterDrawer>
           options: options,
           selected: selected,
           onToggle: onToggle,
-          padding: const EdgeInsets.only(top: 10),
+          padding: const EdgeInsets.only(top: 8),
         ),
       ],
     );

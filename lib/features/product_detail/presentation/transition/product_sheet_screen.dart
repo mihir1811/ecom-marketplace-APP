@@ -766,9 +766,9 @@ class _SheetPageState extends ConsumerState<_SheetPage> {
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.fromLTRB(
-                                    20,
-                                    22,
-                                    20,
+                                    14,
+                                    14,
+                                    14,
                                     0,
                                   ),
                                   child: s.summary,
@@ -776,9 +776,9 @@ class _SheetPageState extends ConsumerState<_SheetPage> {
                                 if (_recordBuilt) ...[
                                   Padding(
                                     padding: const EdgeInsets.fromLTRB(
-                                      20,
-                                      8,
-                                      20,
+                                      14,
+                                      6,
+                                      14,
                                       0,
                                     ),
                                     child: s.record,

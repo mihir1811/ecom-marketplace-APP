@@ -176,7 +176,7 @@ class _BuyerReviewsScreenState extends ConsumerState<BuyerReviewsScreen> {
           ),
           slivers: [
             SliverPadding(
-              padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 18),
+              padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 12),
               sliver: SliverToBoxAdapter(
                 child: MaisonCentered(
                   child: Column(
@@ -188,7 +188,7 @@ class _BuyerReviewsScreenState extends ConsumerState<BuyerReviewsScreen> {
                         look: GemLook.champagne,
                       ),
                       if (reviews.isNotEmpty) ...[
-                        const SizedBox(height: 22),
+                        const SizedBox(height: 14),
                         Reveal(
                           index: 3,
                           child: ReviewLedgerCard(
@@ -234,7 +234,7 @@ class _BuyerReviewsScreenState extends ConsumerState<BuyerReviewsScreen> {
                       selected: lens,
                       onChanged: (l) => setState(() => _lens = l),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     MaisonSearchRow(
                       controller: _search,
                       hint: 'Search seller, words or order no.',
@@ -250,7 +250,7 @@ class _BuyerReviewsScreenState extends ConsumerState<BuyerReviewsScreen> {
               visible: async.isLoading && reviews.isNotEmpty,
             ),
             SliverPadding(
-              padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 40),
+              padding: EdgeInsets.fromLTRB(gutter, 5, gutter, 40),
               sliver: SliverToBoxAdapter(
                 child: MaisonCentered(
                   maxWidth: 760,
@@ -279,9 +279,9 @@ class _BuyerReviewsScreenState extends ConsumerState<BuyerReviewsScreen> {
       return const Column(
         children: [
           SkeletonBox(height: 168, radius: AtelierRadius.lg),
-          SizedBox(height: 18),
+          SizedBox(height: 12),
           BuyerReviewSkeleton(),
-          SizedBox(height: 14),
+          SizedBox(height: 10),
           BuyerReviewSkeleton(),
         ],
       );
@@ -310,7 +310,7 @@ class _BuyerReviewsScreenState extends ConsumerState<BuyerReviewsScreen> {
     if (async.hasError && !async.isLoading) {
       children.add(
         Padding(
-          padding: const EdgeInsets.only(top: 4, bottom: 12),
+          padding: const EdgeInsets.only(top: 4, bottom: 8),
           child: AtelierNotice(
             text: 'Showing your last loaded reviews — $errorText',
             tone: AtelierTone.ruby,
@@ -329,7 +329,7 @@ class _BuyerReviewsScreenState extends ConsumerState<BuyerReviewsScreen> {
         child: _rating == null
             ? const SizedBox(width: double.infinity)
             : Padding(
-                padding: const EdgeInsets.only(top: 4, bottom: 6),
+                padding: const EdgeInsets.only(top: 4, bottom: 5),
                 child: _RatingFilterChip(
                   rating: _rating!,
                   count: visible.length,
@@ -376,11 +376,11 @@ class _BuyerReviewsScreenState extends ConsumerState<BuyerReviewsScreen> {
           );
         }
       } else if (i == 0) {
-        children.add(const SizedBox(height: 10));
+        children.add(const SizedBox(height: 8));
       }
       children.add(
         Padding(
-          padding: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.only(bottom: 10),
           child: Reveal(
             key: ValueKey('review-${review.id}'),
             index: i < 8 ? i : 0,
@@ -432,7 +432,7 @@ class _RatingFilterChip extends StatelessWidget {
             semanticLabel: 'Clear $rating star filter',
             borderRadius: BorderRadius.circular(AtelierRadius.pill),
             child: Container(
-              padding: const EdgeInsets.fromLTRB(12, 7, 8, 7),
+              padding: const EdgeInsets.fromLTRB(8, 6, 6, 6),
               decoration: BoxDecoration(
                 color: p.goldSoft,
                 borderRadius: BorderRadius.circular(AtelierRadius.pill),
@@ -442,7 +442,7 @@ class _RatingFilterChip extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   ReviewStars(rating: rating.toDouble(), size: 12),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Flexible(
                     child: Text(
                       '$count ${count == 1 ? 'review' : 'reviews'}',
@@ -451,7 +451,7 @@ class _RatingFilterChip extends StatelessWidget {
                       style: AtelierType.label(p.ink, size: 12),
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 5),
                   Icon(Icons.close_rounded, size: 15, color: p.inkSoft),
                 ],
               ),

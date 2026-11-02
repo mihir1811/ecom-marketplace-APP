@@ -556,7 +556,7 @@ class _OfferCard extends StatelessWidget {
     final canCounter = !offer.attemptsExhausted;
     final meta = [offer.productType, ..._metaParts(context, offer)];
     final buyer = offer.buyerName ?? offer.buyerEmail;
-    const gap = SizedBox(height: 8);
+    const gap = SizedBox(height: 6);
 
     return AtelierCard(
       onTap: onOpen,
@@ -569,7 +569,7 @@ class _OfferCard extends StatelessWidget {
           Row(
             children: [
               AtelierThumb(url: offer.imageUrl, size: 40),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -590,7 +590,7 @@ class _OfferCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               AtelierPill(
                 label: offer.displayStatusLabel,
                 tone: _toneFor(offer),
@@ -658,7 +658,7 @@ class _OfferCard extends StatelessWidget {
             curve: AtelierMotion.emphasized,
             child: pending
                 ? Padding(
-                    padding: const EdgeInsets.only(top: 10),
+                    padding: const EdgeInsets.only(top: 8),
                     child: Row(
                       children: [
                         Expanded(
@@ -669,7 +669,7 @@ class _OfferCard extends StatelessWidget {
                             onPressed: busy ? null : onDecline,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Expanded(
                           child: AtelierButton(
                             label: 'Counter',
@@ -679,7 +679,7 @@ class _OfferCard extends StatelessWidget {
                             onPressed: busy || !canCounter ? null : onCounter,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Expanded(
                           flex: 2,
                           child: AtelierButton(
@@ -735,7 +735,7 @@ class _PriceLine extends StatelessWidget {
           atelierMoney(offer.amount, decimals: 2),
           style: AtelierType.figure(p.ink, size: 16),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 6),
         if (list != null)
           Expanded(
             child: Text.rich(
@@ -821,7 +821,7 @@ class _PriceComparison extends StatelessWidget {
             ],
           ),
           if (ratio != null) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             AtelierMeter(
               value: ratio.clamp(0.0, 1.0).toDouble(),
               height: 5,
@@ -831,7 +831,7 @@ class _PriceComparison extends StatelessWidget {
                   ? p.gold
                   : p.amber,
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 5),
             Text(
               gap != null && gap > 0
                   ? '${(ratio * 100).toStringAsFixed(0)}% of list · '
@@ -855,7 +855,7 @@ class _Quote extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.atelier;
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
       decoration: BoxDecoration(
         border: Border(left: BorderSide(color: p.gold, width: 2)),
       ),
@@ -899,7 +899,7 @@ class _OfferDetail extends StatelessWidget {
         Row(
           children: [
             AtelierThumb(url: offer.imageUrl, size: 84),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -909,14 +909,14 @@ class _OfferDetail extends StatelessWidget {
                     tone: _toneFor(offer),
                   ),
                   if (meta.isNotEmpty) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Text(
                       meta.join(' · '),
                       style: AtelierType.caption(p.inkSoft, size: 12.5),
                     ),
                   ],
                   if (onViewProduct != null) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Pressable(
                       onTap: onViewProduct,
                       semanticLabel: 'View product',
@@ -945,37 +945,37 @@ class _OfferDetail extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 14),
         _PriceComparison(offer: offer),
         if (offer.history.isNotEmpty) ...[
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           OfferExchangeLine(offer: offer, asSeller: true),
         ],
         if (offer.isOpenCounter) ...[
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           _CounterWaiting(offer: offer),
         ],
         if (offer.isPayable) ...[
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           _PaymentWindow(offer: offer),
         ],
         if (offer.isAwaitingSeller && offerAttemptsCaption(offer) != null) ...[
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             offerAttemptsCaption(offer)!,
             style: AtelierType.caption(p.muted, size: 11.5),
           ),
         ],
         if (offer.message != null) ...[
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
           Text('MESSAGE', style: AtelierType.overline(p.muted)),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           _Quote(text: offer.message!),
         ],
-        const SizedBox(height: 20),
+        const SizedBox(height: 14),
         Wrap(
-          spacing: 24,
-          runSpacing: 16,
+          spacing: 16,
+          runSpacing: 12,
           children: [
             if (offer.buyerName != null)
               AtelierKeyValue(label: 'Buyer', value: offer.buyerName!),
@@ -1009,7 +1009,7 @@ class _OfferDetail extends StatelessWidget {
                         offer.productId,
                         style: AtelierType.figure(p.ink, size: 12.5),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 5),
                       Icon(Icons.copy_rounded, size: 13, color: p.gold),
                     ],
                   ),
@@ -1018,7 +1018,7 @@ class _OfferDetail extends StatelessWidget {
           ],
         ),
         if (onAccept != null || onDecline != null) ...[
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
@@ -1028,7 +1028,7 @@ class _OfferDetail extends StatelessWidget {
                   onPressed: onDecline,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: AtelierButton(
                   label: 'Counter',
@@ -1036,7 +1036,7 @@ class _OfferDetail extends StatelessWidget {
                   onPressed: onCounter,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 flex: 2,
                 child: AtelierButton(

@@ -66,7 +66,7 @@ class GemstoneCatalogModeControls extends ConsumerWidget {
             ),
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         Expanded(
           child: LuxeSegmented<String>(
             options: GemstoneFilterState.lotTypes,
@@ -106,7 +106,7 @@ class GemstoneTypeFilters extends ConsumerWidget {
           context.tr(GemstoneFlowL10n.popularGems).toUpperCase(),
           style: LuxeType.eyebrow(p.inkMuted),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         LuxeShapeDialPicker(
           shapes: [
             for (final name in kFeaturedGemstones)
@@ -123,7 +123,7 @@ class GemstoneTypeFilters extends ConsumerWidget {
         ),
         const FilterSectionDivider(),
         FilterSectionHeader(title: context.tr(CatalogL10n.gemstoneType)),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         LuxeMultiSelectField(
           options: GemstoneFilterState.allGemstoneTypes,
           selected: selected,
@@ -141,14 +141,14 @@ class GemstoneTypeFilters extends ConsumerWidget {
           title: context.tr(CatalogL10n.birthstones),
           infoText: context.tr(CatalogL10n.birthstonesHelp),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         GridView.count(
           crossAxisCount: 4,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           padding: EdgeInsets.zero,
-          mainAxisSpacing: 8,
-          crossAxisSpacing: 8,
+          mainAxisSpacing: 6,
+          crossAxisSpacing: 6,
           childAspectRatio: 1.5,
           children: [
             for (final entry in GemstoneFilterState.birthstones.entries)
@@ -341,7 +341,7 @@ class GemstoneGradingFilters extends ConsumerWidget {
           title: context.tr(CatalogL10n.treatments),
           infoText: 'Filter by enhancement processes applied to the gemstone.',
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         LuxeMultiSelectField(
           options: GemstoneFilterState.treatments,
           selected: state.selectedTreatments,
@@ -388,7 +388,7 @@ class GemstoneListingOptionsFilters extends ConsumerWidget {
         ),
         const FilterSectionDivider(),
         FilterSectionHeader(title: context.tr(CatalogL10n.availability)),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         LuxeMultiSelectField(
           options: GemstoneFilterState.availabilityOptions,
           selected: state.selectedAvailabilities,

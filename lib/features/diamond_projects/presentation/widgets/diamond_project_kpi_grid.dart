@@ -58,13 +58,13 @@ class DiamondProjectKpiGrid extends StatelessWidget {
     return Column(
       children: [
         for (var row = 0; row < rows; row++) ...[
-          if (row > 0) const SizedBox(height: 10),
+          if (row > 0) const SizedBox(height: 8),
           IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 for (var col = 0; col < 3; col++) ...[
-                  if (col > 0) const SizedBox(width: 10),
+                  if (col > 0) const SizedBox(width: 8),
                   Expanded(
                     child: row * 3 + col < tiles.length
                         ? _KpiCard(
@@ -99,7 +99,7 @@ class _KpiCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 14),
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 10),
       decoration: BoxDecoration(
         color: p.surface,
         borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall + 2),
@@ -110,7 +110,7 @@ class _KpiCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 16, color: p.accent),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,

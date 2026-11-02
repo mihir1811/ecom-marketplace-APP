@@ -81,13 +81,13 @@ class _LiveBidSheetState extends State<_LiveBidSheet> {
     final free = widget.freeToBid;
     final short = free != null && amount != null && amount > free;
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 6, 24, 20),
+      padding: const EdgeInsets.fromLTRB(16, 5, 16, 14),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            padding: const EdgeInsets.fromLTRB(8, 18, 8, 14),
+            padding: const EdgeInsets.fromLTRB(6, 12, 6, 10),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
               color: LiveStage.ink.withValues(alpha: 0.04),
@@ -100,7 +100,7 @@ class _LiveBidSheetState extends State<_LiveBidSheet> {
             child: Column(
               children: [
                 Text('ENTER AMOUNT', style: LiveType.eyebrow()),
-                const SizedBox(height: 6),
+                const SizedBox(height: 5),
                 Row(
                   children: [
                     _Step(
@@ -167,7 +167,7 @@ class _LiveBidSheetState extends State<_LiveBidSheet> {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Row(
             children: [
               for (final (i, (label, value)) in [
@@ -178,7 +178,7 @@ class _LiveBidSheetState extends State<_LiveBidSheet> {
                 if (widget.lot.bidStep.ceil() > 0)
                   ('+5 steps', _min + _step * 5),
               ].indexed) ...[
-                if (i > 0) const SizedBox(width: 8),
+                if (i > 0) const SizedBox(width: 6),
                 Expanded(
                   child: _Pick(
                     hint: label,
@@ -195,7 +195,7 @@ class _LiveBidSheetState extends State<_LiveBidSheet> {
             ],
           ),
           if (free != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Icon(
@@ -205,7 +205,7 @@ class _LiveBidSheetState extends State<_LiveBidSheet> {
                   size: 16,
                   color: short ? LiveStage.urgent : LiveStage.inkMuted,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     short
@@ -222,7 +222,7 @@ class _LiveBidSheetState extends State<_LiveBidSheet> {
               ],
             ),
           ],
-          const SizedBox(height: 20),
+          const SizedBox(height: 14),
           LiveButton(
             label: amount == null ? 'Set bid' : 'Set bid ${liveInr(amount)}',
             icon: Icons.check_rounded,
@@ -230,7 +230,7 @@ class _LiveBidSheetState extends State<_LiveBidSheet> {
                 ? () => Navigator.of(context).pop(amount)
                 : null,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             'You confirm by sliding. Bids are binding: the amount is held in '
             'your wallet while you lead, and a win pays automatically.',

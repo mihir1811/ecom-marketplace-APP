@@ -105,23 +105,23 @@ class LiveShowsScreen extends ConsumerWidget {
     }
     return [
       SliverPadding(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+        padding: const EdgeInsets.fromLTRB(12, 4, 12, 14),
         sliver: SliverToBoxAdapter(child: hero),
       ),
       if (rest.isNotEmpty) ...[
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+          padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
           sliver: SliverToBoxAdapter(
             child: Text('More shows', style: LiveType.label(15)),
           ),
         ),
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 120),
           sliver: SliverGrid(
             gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
               maxCrossAxisExtent: 240,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
               childAspectRatio: 9 / 14,
             ),
             delegate: SliverChildBuilderDelegate((context, i) {
@@ -159,7 +159,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.fromLTRB(8, top + 8, 16, 12),
+      padding: EdgeInsets.fromLTRB(6, top + 6, 12, 8),
       child: Row(
         children: [
           LiveIconButton(
@@ -168,7 +168,7 @@ class _Header extends StatelessWidget {
             size: 40,
             onTap: () => context.goBack(fallbackLocation: AppRouteNames.home),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               'Live shows',
@@ -187,7 +187,7 @@ class _Header extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const LiveBadge(compact: true),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Text(
                         '$count on air',
                         style: LiveType.label(13, weight: FontWeight.w600),
@@ -229,15 +229,15 @@ class _Skeleton extends StatelessWidget {
     return Semantics(
       label: 'Loading live shows',
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+        padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
         child: Column(
           children: [
             AspectRatio(aspectRatio: 4 / 5, child: block(30)),
-            const SizedBox(height: 28),
+            const SizedBox(height: 18),
             Row(
               children: [
                 Expanded(child: SizedBox(height: 250, child: block(22))),
-                const SizedBox(width: 14),
+                const SizedBox(width: 10),
                 Expanded(child: SizedBox(height: 250, child: block(22))),
               ],
             ),
@@ -275,20 +275,20 @@ class _EmptyOrErrorState extends State<_EmptyOrError> {
       mainAxisSize: MainAxisSize.min,
       children: [
         _Beacon(error: error != null),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         Text(
           error != null ? 'We lost the signal' : 'No live shows right now',
           textAlign: TextAlign.center,
           style: LiveType.label(17),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 5),
         Text(
           error ?? 'Pull down to refresh',
           textAlign: TextAlign.center,
           style: LiveType.body(13, color: LiveStage.inkFaint),
         ),
         if (error != null) ...[
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
           LiveButton(
             label: 'Try again',
             icon: Icons.refresh_rounded,
@@ -306,7 +306,7 @@ class _EmptyOrErrorState extends State<_EmptyOrError> {
           .moveY(begin: 16, end: 0, curve: LiveMotion.emphasized);
     }
     return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 0, 32, 96),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 96),
       child: Center(child: content),
     );
   }

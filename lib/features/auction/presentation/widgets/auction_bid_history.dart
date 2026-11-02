@@ -71,9 +71,9 @@ class _AuctionBidHistoryState extends State<AuctionBidHistory> {
               ),
           ],
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
             color: p.surface,
             borderRadius: BorderRadius.circular(LuxeSpace.radius),
@@ -81,11 +81,11 @@ class _AuctionBidHistoryState extends State<AuctionBidHistory> {
           ),
           child: bids.isEmpty
               ? Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 22),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                   child: Row(
                     children: [
                       Icon(Icons.gavel_rounded, size: 18, color: p.inkFaint),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 8),
                       Text(
                         'No bids yet — be the first.',
                         style: LuxeType.body(p.inkMuted, size: 14),
@@ -166,7 +166,7 @@ class _BidRow extends StatelessWidget {
               style: LuxeType.label(isHighest ? p.accent : p.inkMuted),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

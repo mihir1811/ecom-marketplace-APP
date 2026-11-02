@@ -38,9 +38,9 @@ class AuctionStandingStrip extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         itemCount: items.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 6),
         itemBuilder: (context, index) {
           final item = items[index];
           final selected = item.id == selectedId;
@@ -60,7 +60,7 @@ class AuctionStandingStrip extends StatelessWidget {
                 duration: LuxeMotion.medium,
                 curve: LuxeMotion.settle,
                 width: 116,
-                padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                 decoration: BoxDecoration(
                   color: selected ? p.ink : p.surface,
                   borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),

@@ -348,15 +348,15 @@ class MaisonGroupLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.atelier;
     return Padding(
-      padding: const EdgeInsets.only(top: 10, bottom: 12),
+      padding: const EdgeInsets.only(top: 8, bottom: 8),
       child: Row(
         children: [
           Text(label.toUpperCase(), style: AtelierType.overline(p.inkSoft)),
           if (count != null) ...[
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Text('$count', style: AtelierType.figure(p.muted, size: 11)),
           ],
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Expanded(
             child: Container(
               height: 1,
@@ -397,7 +397,7 @@ class MaisonListFooter extends StatelessWidget {
     if (loadingMore) {
       body = Padding(
         key: const ValueKey('loading'),
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(14),
         child: Center(
           child: SizedBox(
             width: 20,
@@ -409,7 +409,7 @@ class MaisonListFooter extends StatelessWidget {
     } else if (errorMessage != null && hasMore) {
       body = Padding(
         key: const ValueKey('error'),
-        padding: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.only(top: 6),
         child: AtelierNotice(
           text: errorMessage!,
           tone: AtelierTone.ruby,
@@ -432,14 +432,14 @@ class MaisonListFooter extends StatelessWidget {
     } else {
       body = Padding(
         key: const ValueKey('end'),
-        padding: const EdgeInsets.symmetric(vertical: 20),
+        padding: const EdgeInsets.symmetric(vertical: 14),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(width: 24, height: 1, color: p.hairline),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Icon(Icons.diamond_outlined, size: 12, color: p.gold),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Flexible(
               child: Text(
                 endLabel,
@@ -448,7 +448,7 @@ class MaisonListFooter extends StatelessWidget {
                 style: AtelierType.caption(p.muted, size: 11.5),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Container(width: 24, height: 1, color: p.hairline),
           ],
         ),
@@ -481,12 +481,12 @@ class MaisonEmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.atelier;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 12),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Reveal(child: MaisonLoupe(cut: cut, size: 120)),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           Reveal(
             index: 1,
             child: Text(
@@ -495,7 +495,7 @@ class MaisonEmptyState extends StatelessWidget {
               style: AtelierType.display(p.ink, size: 28),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Reveal(
             index: 2,
             child: ConstrainedBox(
@@ -508,7 +508,7 @@ class MaisonEmptyState extends StatelessWidget {
             ),
           ),
           if (actionLabel != null && onAction != null) ...[
-            const SizedBox(height: 22),
+            const SizedBox(height: 14),
             Reveal(
               index: 3,
               child: AtelierButton(
@@ -599,7 +599,7 @@ class _MaisonActionDialogState extends ConsumerState<MaisonActionDialog> {
               child: _error == null
                   ? const SizedBox(width: double.infinity)
                   : Padding(
-                      padding: const EdgeInsets.only(top: 12),
+                      padding: const EdgeInsets.only(top: 8),
                       child: AtelierNotice(
                         text: _error!,
                         tone: AtelierTone.ruby,
@@ -661,10 +661,10 @@ void showMaisonToast(
         elevation: 0,
         backgroundColor: Colors.transparent,
         padding: EdgeInsets.zero,
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        margin: const EdgeInsets.fromLTRB(12, 0, 12, 14),
         duration: const Duration(seconds: 5),
         content: Container(
-          padding: const EdgeInsets.fromLTRB(16, 6, 6, 6),
+          padding: const EdgeInsets.fromLTRB(12, 5, 5, 5),
           decoration: BoxDecoration(
             color: p.isDark ? p.raised : p.onyx,
             borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -676,7 +676,7 @@ void showMaisonToast(
           child: Row(
             children: [
               Icon(icon ?? Icons.auto_awesome_rounded, size: 18, color: accent),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   message,

@@ -73,10 +73,10 @@ class _JewelryInvoiceScreenState extends ConsumerState<JewelryInvoiceScreen> {
       appBar: LuxeTopBar(title: context.tr(JewelryMarketL10n.taxInvoice)),
       body: async.when(
         loading: () => ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           children: const [
             LuxeSkeleton(height: 140, radius: LuxeSpace.radius),
-            SizedBox(height: 12),
+            SizedBox(height: 8),
             LuxeSkeleton(height: 260, radius: LuxeSpace.radius),
           ],
         ),
@@ -90,7 +90,7 @@ class _JewelryInvoiceScreenState extends ConsumerState<JewelryInvoiceScreen> {
               ref.invalidate(jewelryInvoiceProvider(widget.orderId)),
         ),
         data: (inv) => ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+          padding: const EdgeInsets.fromLTRB(12, 6, 12, 20),
           children: [_InvoiceDocument(invoice: inv)],
         ),
       ),
@@ -99,7 +99,7 @@ class _JewelryInvoiceScreenState extends ConsumerState<JewelryInvoiceScreen> {
           : SafeArea(
               top: false,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
                 child: Builder(
                   builder: (buttonContext) => LuxeButton(
                     label: context.tr(JewelryMarketL10n.sharePdf),
@@ -185,7 +185,7 @@ class _InvoiceDocument extends StatelessWidget {
     };
 
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: p.surface,
         borderRadius: BorderRadius.circular(LuxeSpace.radius),
@@ -223,20 +223,20 @@ class _InvoiceDocument extends StatelessWidget {
             if (i.gstin != null) 'GSTIN ${i.gstin}',
             if (i.pan != null) 'PAN ${i.pan}',
           ]),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           block(context.tr(JewelryMarketL10n.invoiceBillTo), [
             inv.buyer.name,
             inv.buyer.email,
             inv.buyer.phone,
           ]),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           block(context.tr(JewelryMarketL10n.invoiceShipTo), [
             inv.shipTo.fullName,
             ...inv.shipTo.lines,
             inv.shipTo.phone,
           ]),
           if (supply.isNotEmpty) ...[
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             block(context.tr(JewelryMarketL10n.invoicePlaceOfSupply), [
               supply,
               supplyType,
@@ -262,7 +262,7 @@ class _InvoiceDocument extends StatelessWidget {
                 }),
                 style: body,
               ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
           ],
           sumRow(
             context.tr(JewelryMarketL10n.invoiceTaxable),
@@ -277,7 +277,7 @@ class _InvoiceDocument extends StatelessWidget {
             strong: true,
           ),
           if (inv.totals.inWords != null) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 5),
             Text(inv.totals.inWords!, style: muted),
           ],
           if (inv.refunds.isNotEmpty) ...[
@@ -302,7 +302,7 @@ class _InvoiceDocument extends StatelessWidget {
               ),
           ],
           if (i.footerNote != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Text(i.footerNote!, style: LuxeType.body(p.inkFaint, size: 11.5)),
           ],
         ],
@@ -334,7 +334,7 @@ class _InvoiceLineTile extends StatelessWidget {
               Expanded(
                 child: Text(l.title, style: LuxeType.label(p.ink, size: 14)),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Text(
                 rupees(l.total),
                 style: LuxeType.figure(

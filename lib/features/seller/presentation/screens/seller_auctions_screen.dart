@@ -674,7 +674,7 @@ class _AuctionCard extends StatelessWidget {
                 size: 40,
                 icon: Icons.gavel_rounded,
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -698,7 +698,7 @@ class _AuctionCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -719,7 +719,7 @@ class _AuctionCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
@@ -736,7 +736,7 @@ class _AuctionCard extends StatelessWidget {
                 auctionBidAmount(a.winningAmount ?? a.currentBid),
                 style: AtelierType.figure(p.ink, size: 16),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text.rich(
                   TextSpan(
@@ -764,11 +764,11 @@ class _AuctionCard extends StatelessWidget {
           ),
           if (a.winnerName != null &&
               a.winPayment != AuctionWinPayment.none) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 5),
             Row(
               children: [
                 Icon(Icons.emoji_events_outlined, size: 13, color: p.gold),
-                const SizedBox(width: 6),
+                const SizedBox(width: 5),
                 Expanded(
                   child: Text(
                     'Winner: ${a.winnerName}',
@@ -781,7 +781,7 @@ class _AuctionCard extends StatelessWidget {
             ),
           ],
           if (outcome case final line?) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 5),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -790,7 +790,7 @@ class _AuctionCard extends StatelessWidget {
                   size: 13,
                   color: line.done ? p.emerald : p.amber,
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 5),
                 Expanded(
                   child: Text(
                     line.text,
@@ -800,7 +800,7 @@ class _AuctionCard extends StatelessWidget {
               ],
             ),
           ],
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Row(
             children: [
               _BidsToggle(
@@ -808,7 +808,7 @@ class _AuctionCard extends StatelessWidget {
                 count: bidCount,
                 onTap: onToggleBids,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   when ?? '',
@@ -866,7 +866,7 @@ class _AuctionCard extends StatelessWidget {
             alignment: Alignment.topCenter,
             child: expanded
                 ? Padding(
-                    padding: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.only(top: 6),
                     child: _BidLadder(
                       bids: bids,
                       loading: loadingBids,
@@ -909,7 +909,7 @@ class _BidsToggle extends StatelessWidget {
       borderRadius: BorderRadius.circular(AtelierRadius.pill),
       child: Container(
         height: 30,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
           color: expanded ? p.goldSoft : Colors.transparent,
           borderRadius: BorderRadius.circular(AtelierRadius.pill),
@@ -967,11 +967,11 @@ class _BidLadder extends StatelessWidget {
         children: [
           for (var i = 0; i < 3; i++)
             const Padding(
-              padding: EdgeInsets.only(bottom: 8),
+              padding: EdgeInsets.only(bottom: 6),
               child: Row(
                 children: [
                   SkeletonBox(width: 22, height: 22, radius: 11),
-                  SizedBox(width: 10),
+                  SizedBox(width: 8),
                   Expanded(child: SkeletonBox(height: 12)),
                   SizedBox(width: 30),
                   SkeletonBox(width: 60, height: 12),
@@ -1014,8 +1014,8 @@ class _BidLadder extends StatelessWidget {
               offset: 6,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
+                  horizontal: 8,
+                  vertical: 5,
                 ),
                 child: Row(
                   children: [
@@ -1041,7 +1041,7 @@ class _BidLadder extends StatelessWidget {
                               style: AtelierType.figure(p.inkSoft, size: 10.5),
                             ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1066,7 +1066,7 @@ class _BidLadder extends StatelessWidget {
                         tone: AtelierTone.ruby,
                         dense: true,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                     ],
                     Text(
                       auctionBidAmount(list[i].amount),
@@ -1078,7 +1078,7 @@ class _BidLadder extends StatelessWidget {
                     if (canSelect &&
                         list[i].id.isNotEmpty &&
                         !declinedIds.contains(list[i].buyerId)) ...[
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       AtelierButton(
                         label: 'Accept',
                         compact: true,

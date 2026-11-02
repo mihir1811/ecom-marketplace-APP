@@ -114,7 +114,7 @@ class _ReferencesViewState extends ConsumerState<ReferencesView> {
     if (profile == null && state.isLoading) {
       children = const [
         SkeletonBox(height: 90, radius: AtelierRadius.md),
-        SizedBox(height: 8),
+        SizedBox(height: 6),
         AtelierSkeletonList(count: 4, height: 44),
       ];
     } else if (profile == null) {
@@ -136,15 +136,15 @@ class _ReferencesViewState extends ConsumerState<ReferencesView> {
             actionLabel: context.tr(RemainingL10n.retry),
             onAction: _refresh,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
         ],
         RefInviteBar(profile: profile),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         RefSponsorRow(
           profile: profile,
           onOpen: () => showRefSponsorSheet(context),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         AtelierSegmented<RefTab>(
           expand: true,
           dense: true,
@@ -170,7 +170,7 @@ class _ReferencesViewState extends ConsumerState<ReferencesView> {
             _tab = t;
           }),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         switch (_tab) {
           RefTab.accepted => RefList(
             empty: context.tr(RemainingL10n.noAcceptedReferences),
@@ -222,7 +222,7 @@ class RefList extends StatelessWidget {
     final p = context.atelier;
     if (children.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         child: Text(
           empty,
           textAlign: TextAlign.center,
@@ -231,7 +231,7 @@ class RefList extends StatelessWidget {
       );
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         color: p.surface,
         borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -281,7 +281,7 @@ class RefInviteBar extends StatelessWidget {
     final code = profile.referralCode.trim();
     final canShare = code.isNotEmpty || profile.shareRegisterUrl.isNotEmpty;
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 6, 4, 6),
+      padding: const EdgeInsets.fromLTRB(8, 5, 4, 5),
       decoration: BoxDecoration(
         color: p.surface,
         borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -361,12 +361,12 @@ class _CopyText extends StatelessWidget {
               if (context.mounted) showAtelierToast(context, '$label copied');
             },
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(0, 4, 8, 4),
+        padding: const EdgeInsets.fromLTRB(0, 4, 6, 4),
         child: Row(
           children: [
             if (icon != null) ...[
               Icon(icon, size: 14, color: p.muted),
-              const SizedBox(width: 6),
+              const SizedBox(width: 5),
             ],
             Flexible(
               child: Text(
@@ -377,7 +377,7 @@ class _CopyText extends StatelessWidget {
               ),
             ),
             if (v.isNotEmpty) ...[
-              const SizedBox(width: 6),
+              const SizedBox(width: 5),
               Icon(Icons.copy_rounded, size: 13, color: p.gold),
             ],
           ],
@@ -403,7 +403,7 @@ class RefSponsorRow extends StatelessWidget {
       onTap: onOpen,
       borderRadius: BorderRadius.circular(AtelierRadius.md),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+        padding: const EdgeInsets.fromLTRB(8, 8, 6, 8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AtelierRadius.md),
           border: Border.all(color: p.hairline),
@@ -433,7 +433,7 @@ class RefSponsorRow extends StatelessWidget {
               ),
             ),
             if (active != null) ...[
-              const SizedBox(width: 6),
+              const SizedBox(width: 5),
               Text(
                 active.status.label,
                 style: AtelierType.label(
@@ -472,7 +472,7 @@ class RefPersonRow extends StatelessWidget {
         .where((e) => e.isNotEmpty)
         .join(' · ');
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 7),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
           Expanded(
@@ -496,7 +496,7 @@ class RefPersonRow extends StatelessWidget {
             ),
           ),
           if (showStatus) ...[
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Text(
               request.status.label,
               style: AtelierType.label(
@@ -676,7 +676,7 @@ class _RefEarningsState extends State<RefEarnings> {
           onChanged: _onRange,
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
+          padding: const EdgeInsets.symmetric(vertical: 5),
           child: Text.rich(
             TextSpan(
               children: [
@@ -702,7 +702,7 @@ class _RefEarningsState extends State<RefEarnings> {
         if (all.isNotEmpty)
           if (widget.loadingMore)
             Padding(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(8),
               child: Center(
                 child: SizedBox(
                   width: 18,
@@ -752,7 +752,7 @@ class RefEarningRow extends StatelessWidget {
       for (final item in purchase.items) item.lineLabel,
     ].join(' · ');
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 7),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -779,7 +779,7 @@ class RefEarningRow extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           Text(
             purchase.signedAmountLabel,
             style: AtelierType.label(reversed ? p.ruby : p.emerald, size: 13),
@@ -882,7 +882,7 @@ class _SponsorSheetBodyState extends ConsumerState<_SponsorSheetBody> {
             },
             onSubmitted: (_) => _submit(),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           AtelierButton(
             label: context.tr(RemainingL10n.request),
             compact: true,
@@ -892,7 +892,7 @@ class _SponsorSheetBodyState extends ConsumerState<_SponsorSheetBody> {
           ),
         ],
         if (history.isNotEmpty) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Text(
             '${context.tr(RemainingL10n.requestHistory)} (${history.length})',
             style: AtelierType.caption(p.muted, size: 12),
@@ -905,7 +905,7 @@ class _SponsorSheetBodyState extends ConsumerState<_SponsorSheetBody> {
             ],
           ),
         ],
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
       ],
     );
   }

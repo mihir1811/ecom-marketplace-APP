@@ -95,7 +95,7 @@ class _SellerDashboardDiamondProjectsSectionState
     return AtelierCard(
       // Tighter than the default card: the hero inside is already a framed
       // surface, so a wide gutter only wastes width on phones.
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -131,13 +131,13 @@ class _SellerDashboardDiamondProjectsSectionState
                   const Row(
                     children: [
                       Expanded(child: SkeletonBox(height: 72)),
-                      SizedBox(width: 10),
+                      SizedBox(width: 8),
                       Expanded(child: SkeletonBox(height: 72)),
-                      SizedBox(width: 10),
+                      SizedBox(width: 8),
                       Expanded(child: SkeletonBox(height: 72)),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   const SkeletonBox(height: 160),
                 ] else if (hasData) ...[
                   const SizedBox(height: AtelierSpace.s16),
@@ -266,7 +266,7 @@ class _ProjectSummary extends StatelessWidget {
       ),
     );
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
       decoration: BoxDecoration(
         color: p.sunken,
         borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -284,7 +284,7 @@ class _ProjectSummary extends StatelessWidget {
               figure(money(stats.avgPpc), r'Avg $/ct'),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           Text(
             'Avg ${stats.avgCarat.toStringAsFixed(2)} ct · '
             'Avg ${money(stats.avgPrice)}',
@@ -387,11 +387,11 @@ class _SellerDiamondProjectFilterDialogState
                 // Header: title left, Clear top-right so the footer only
                 // carries Cancel / Apply.
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 10, 6, 4),
+                  padding: const EdgeInsets.fromLTRB(12, 8, 5, 4),
                   child: Row(
                     children: [
                       Icon(Icons.tune_rounded, size: 18, color: p.gold),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Expanded(
                         child: Text(
                           context.tr(CatalogL10n.filtersToOpenDiamondProject),
@@ -405,7 +405,7 @@ class _SellerDiamondProjectFilterDialogState
                         style: TextButton.styleFrom(
                           foregroundColor: p.gold,
                           minimumSize: const Size(0, 32),
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                         child: Text(
@@ -419,7 +419,7 @@ class _SellerDiamondProjectFilterDialogState
                 Divider(height: 1, thickness: 1, color: p.hairline),
                 Flexible(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
                     child: wide
                         ? Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -437,7 +437,7 @@ class _SellerDiamondProjectFilterDialogState
                 ),
                 Divider(height: 1, thickness: 1, color: p.hairline),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+                  padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
                   child: Row(
                     children: [
                       Expanded(
@@ -502,8 +502,8 @@ class _ChipSection extends StatelessWidget {
         children: [
           _FilterLabel(text: title),
           Wrap(
-            spacing: 6,
-            runSpacing: 6,
+            spacing: 5,
+            runSpacing: 5,
             children: [
               for (final o in options)
                 _MiniChip(
@@ -543,7 +543,7 @@ class _MiniChip extends StatelessWidget {
         duration: AtelierMotion.base,
         curve: AtelierMotion.emphasized,
         constraints: const BoxConstraints(minWidth: 32),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
         decoration: BoxDecoration(
           color: selected ? p.goldSoft : p.surface,
           borderRadius: BorderRadius.circular(AtelierRadius.pill),
@@ -674,7 +674,7 @@ class _SellerDiamondProjectFiltersRight extends StatelessWidget {
           onMinChanged: (v) => notifier.updateCaratRange(v, state.maxCarat),
           onMaxChanged: (v) => notifier.updateCaratRange(state.minCarat, v),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 5),
         _CompactRangeRow(
           title: context.tr(CatalogL10n.ratio),
           min: state.minRatio,
@@ -697,7 +697,7 @@ class _SellerDiamondProjectFiltersRight extends StatelessWidget {
           onMinChanged: (v) => notifier.updateLengthRange(v, state.maxLength),
           onMaxChanged: (v) => notifier.updateLengthRange(state.minLength, v),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 5),
         _CompactRangeRow(
           title: context.tr(CatalogL10n.width),
           min: state.minWidth,
@@ -707,7 +707,7 @@ class _SellerDiamondProjectFiltersRight extends StatelessWidget {
           onMinChanged: (v) => notifier.updateWidthRange(v, state.maxWidth),
           onMaxChanged: (v) => notifier.updateWidthRange(state.minWidth, v),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 5),
         _CompactRangeRow(
           title: context.tr(CatalogL10n.height),
           min: state.minHeight,
@@ -730,7 +730,7 @@ class _FilterLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.only(bottom: 5),
       child: Text(
         text.toUpperCase(),
         style: AtelierType.overline(context.atelier.muted),
@@ -837,7 +837,7 @@ class _CompactRangeRowState extends State<_CompactRangeRow> {
         borderRadius: BorderRadius.circular(AtelierRadius.sm),
         borderSide: BorderSide(color: p.gold),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
     );
   }
 
@@ -869,7 +869,7 @@ class _CompactRangeRowState extends State<_CompactRangeRow> {
             onEditingComplete: () => _commitMin(_minCtrl.text),
           ),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: 5),
         Expanded(
           child: TextField(
             controller: _maxCtrl,

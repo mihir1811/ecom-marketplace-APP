@@ -44,7 +44,7 @@ class RewardsBalanceCard extends StatelessWidget {
           );
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AtelierRadius.lg),
         gradient: LinearGradient(
@@ -83,7 +83,7 @@ class RewardsBalanceCard extends StatelessWidget {
                               weight: FontWeight.w500,
                             ),
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 5),
                           Text(
                             rewards.balance == 1 ? 'pt' : 'pts',
                             style: AtelierType.label(p.gold, size: 13),
@@ -100,17 +100,17 @@ class RewardsBalanceCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (status != null) ...[const SizedBox(width: 10), status],
+              if (status != null) ...[const SizedBox(width: 8), status],
             ],
           ),
           if (club.hasClubs) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             _ClubLine(status: club, soft: soft),
           ],
           if (settings.enabled) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Container(height: 1, color: p.onOnyx.withValues(alpha: 0.1)),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Text(
               'Earn 1 pt per '
               '${atelierMoney(settings.earnRupeesPerPoint, symbol: '₹')}'
@@ -156,7 +156,7 @@ class _ClubLine extends StatelessWidget {
               size: 15,
               color: current == null ? soft : accent,
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             Expanded(
               child: Text(
                 '${current == null ? 'No club yet' : '${current.name} club'}'
@@ -166,11 +166,11 @@ class _ClubLine extends StatelessWidget {
                 style: AtelierType.label(p.onOnyx, size: 12.5),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Text(trailing, style: AtelierType.caption(soft, size: 11.5)),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         _ClubLadder(status: status, soft: soft),
       ],
     );
@@ -222,7 +222,7 @@ class _ClubLadder extends StatelessWidget {
                         valueColor: AlwaysStoppedAnimation(color),
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 5),
                     Row(
                       children: [
                         Container(
@@ -288,7 +288,7 @@ class _StatusPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       constraints: const BoxConstraints(maxWidth: 150),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AtelierRadius.pill),
         border: Border.all(color: color.withValues(alpha: 0.5)),

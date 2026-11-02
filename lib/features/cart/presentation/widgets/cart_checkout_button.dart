@@ -250,7 +250,7 @@ class CartCheckoutBar extends ConsumerWidget {
     // both, frosted under the card.
     const radius = BorderRadius.all(Radius.circular(LuxeSpace.radius));
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: radius,
@@ -274,7 +274,7 @@ class CartCheckoutBar extends ConsumerWidget {
                 border: Border.all(color: p.hairline),
               ),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -360,7 +360,7 @@ class CartCheckoutBar extends ConsumerWidget {
                         ),
                       ),
                     ],
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     LuxeButton(
                       label: label,
                       expand: true,
@@ -401,7 +401,7 @@ class CartPaymentOptions extends ConsumerWidget {
     return CartSectionCard(
       title: context.tr(ExperienceL10n.cartPaymentOptions),
       icon: Icons.tune_rounded,
-      padding: const EdgeInsets.fromLTRB(18, 16, 10, 6),
+      padding: const EdgeInsets.fromLTRB(12, 12, 8, 5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

@@ -169,7 +169,7 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen>
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
+                  padding: const EdgeInsets.fromLTRB(12, 5, 12, 10),
                   child: LuxeSearchField(
                     controller: _searchController,
                     hintText: context.tr(CatalogL10n.searchWatches),
@@ -182,7 +182,7 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen>
                   topSpacing: 0,
                 ),
                 const WatchCategoryChips(),
-                const SizedBox(height: 22),
+                const SizedBox(height: 14),
                 const WatchBrandCarousel(),
                 WatchActiveFilterPills(
                   provider: watchFilterProvider,

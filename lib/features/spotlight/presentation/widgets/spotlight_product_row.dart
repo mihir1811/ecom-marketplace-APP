@@ -78,7 +78,7 @@ class _SpotlightProductStripState
     extends ConsumerState<_SpotlightProductStrip> {
   late final SpotlightVisit _ownVisit = SpotlightVisit();
 
-  static const _gap = 12.0;
+  static const _gap = 8.0;
 
   @override
   Widget build(BuildContext context) {
@@ -106,12 +106,12 @@ class _SpotlightProductStripState
                     style: LuxeType.display(22, p.ink),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 const SpotlightTag(),
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           LayoutBuilder(
             builder: (context, constraints) {
               final cardWidth = ((constraints.maxWidth - gutter - _gap * 2) /
@@ -207,7 +207,7 @@ class SpotlightProductCard extends StatelessWidget {
                         left: 7,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 7,
+                            horizontal: 6,
                             vertical: 3,
                           ),
                           decoration: ShapeDecoration(
@@ -226,7 +226,7 @@ class SpotlightProductCard extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 9, 12, 12),
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -254,7 +254,7 @@ class SpotlightProductCard extends StatelessWidget {
                     style: LuxeType.label(p.inkFaint, size: 11),
                   ),
                 ],
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Text(
                   price == null
                       ? context.tr(SpotlightL10n.priceOnRequest)

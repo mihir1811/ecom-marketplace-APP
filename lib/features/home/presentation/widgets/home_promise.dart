@@ -32,7 +32,7 @@ class HomePromise extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           HomeSectionHeading(title: context.tr(HomeL10n.promiseTitle)),
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
           for (var i = 0; i < pillars.length; i++)
             ScrollReveal.builder(
               delay: HomeMotion.stagger * i,
@@ -82,7 +82,7 @@ class _Pillar extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 22),
+              padding: const EdgeInsets.symmetric(vertical: 14),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -94,7 +94,7 @@ class _Pillar extends StatelessWidget {
                       color: palette.accent,
                     ),
                   ),
-                  const SizedBox(width: 18),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Opacity(
                       opacity: text,
@@ -107,7 +107,7 @@ class _Pillar extends StatelessWidget {
                               title,
                               style: HomeType.display(24, palette.ink),
                             ),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 5),
                             Text(
                               body,
                               style: HomeType.body(palette.inkMuted, size: 14),

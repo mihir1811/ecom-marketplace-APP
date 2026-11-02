@@ -143,8 +143,8 @@ class AtelierNotice extends StatelessWidget {
     final c = p.tone(tone);
     return Container(
       padding: dense
-          ? const EdgeInsets.symmetric(horizontal: 8, vertical: 6)
-          : const EdgeInsets.fromLTRB(14, 12, 10, 12),
+          ? const EdgeInsets.symmetric(horizontal: 6, vertical: 5)
+          : const EdgeInsets.fromLTRB(10, 8, 8, 8),
       decoration: BoxDecoration(
         color: c.withValues(alpha: p.isDark ? 0.12 : 0.06),
         borderRadius: BorderRadius.circular(
@@ -234,10 +234,10 @@ class AtelierSkeletonCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SkeletonBox(width: 140, height: 13),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 const SkeletonBox(height: 10),
                 if (height >= 100) ...const [
-                  SizedBox(height: 8),
+                  SizedBox(height: 6),
                   SkeletonBox(width: 180, height: 10),
                 ],
               ],
@@ -294,10 +294,10 @@ void showAtelierToastOn(
         elevation: 0,
         backgroundColor: Colors.transparent,
         padding: EdgeInsets.zero,
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        margin: const EdgeInsets.fromLTRB(12, 0, 12, 14),
         duration: const Duration(seconds: 4),
         content: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
             color: p.isDark ? p.raised : p.onyx,
             borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -309,7 +309,7 @@ void showAtelierToastOn(
           child: Row(
             children: [
               Icon(glyph, size: 18, color: accent),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   message,
@@ -371,7 +371,7 @@ Future<T?> showAtelierSheet<T>({
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
                       Center(
                         child: Container(
                           width: 36,
@@ -384,7 +384,7 @@ Future<T?> showAtelierSheet<T>({
                       ),
                       if (title != null)
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 18, 24, 4),
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -409,10 +409,10 @@ Future<T?> showAtelierSheet<T>({
                         child: scrollable
                             ? SingleChildScrollView(
                                 padding: const EdgeInsets.fromLTRB(
-                                  24,
                                   16,
-                                  24,
-                                  24,
+                                  12,
+                                  16,
+                                  16,
                                 ),
                                 child: body,
                               )
@@ -447,7 +447,7 @@ Future<T?> showAtelierDialog<T>({
       return Theme(
         data: theme,
         child: SafeArea(
-          minimum: const EdgeInsets.all(16),
+          minimum: const EdgeInsets.all(12),
           child: AppKeyboardInset(child: Center(child: builder(dialogContext))),
         ),
       );
@@ -511,29 +511,29 @@ class AtelierDialogFrame extends StatelessWidget {
             boxShadow: p.floatShadow,
           ),
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (icon != null) ...[
                   AtelierIconBadge(icon: icon!, tone: tone, size: 44),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                 ],
                 Text(title, style: AtelierType.display(p.ink, size: 26)),
                 if (message != null) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     message!,
                     style: AtelierType.body(p.inkSoft, size: 13.5),
                   ),
                 ],
-                if (content != null) ...[const SizedBox(height: 16), content!],
-                const SizedBox(height: 22),
+                if (content != null) ...[const SizedBox(height: 12), content!],
+                const SizedBox(height: 14),
                 Row(
                   children: [
                     for (var i = 0; i < actions.length; i++) ...[
-                      if (i > 0) const SizedBox(width: 10),
+                      if (i > 0) const SizedBox(width: 8),
                       Expanded(child: actions[i]),
                     ],
                   ],
@@ -590,10 +590,10 @@ Future<T?> showAtelierOptions<T>({
                 onTap: () => Navigator.of(context).pop(options[i].value),
                 semanticLabel: options[i].label,
                 child: Container(
-                  margin: const EdgeInsets.only(bottom: 6),
+                  margin: const EdgeInsets.only(bottom: 5),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 14,
+                    horizontal: 10,
+                    vertical: 10,
                   ),
                   decoration: BoxDecoration(
                     color: options[i].selected
@@ -609,7 +609,7 @@ Future<T?> showAtelierOptions<T>({
                           size: 19,
                           color: options[i].destructive ? p.ruby : p.inkSoft,
                         ),
-                        const SizedBox(width: 14),
+                        const SizedBox(width: 10),
                       ],
                       Expanded(
                         child: Column(

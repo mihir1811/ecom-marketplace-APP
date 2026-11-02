@@ -76,7 +76,7 @@ class _CategoryTile extends StatelessWidget {
         child: AnimatedContainer(
           duration: AtelierMotion.base,
           curve: AtelierMotion.emphasized,
-          padding: const EdgeInsets.fromLTRB(10, 18, 10, 14),
+          padding: const EdgeInsets.fromLTRB(8, 12, 8, 10),
           decoration: BoxDecoration(
             color: selected ? p.goldSoft : p.surface,
             borderRadius: BorderRadius.circular(AtelierRadius.md),

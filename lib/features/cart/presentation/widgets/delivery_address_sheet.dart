@@ -95,7 +95,7 @@ class _DeliveryAddressSheetState extends State<_DeliveryAddressSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(child: a),
-        const SizedBox(width: 12),
+        const SizedBox(width: 8),
         Expanded(child: b),
       ],
     );
@@ -155,7 +155,7 @@ class _DeliveryAddressSheetState extends State<_DeliveryAddressSheet> {
             context.tr(AccountCommerceL10n.addressLabel),
             icon: Icons.bookmark_border_rounded,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           LuxeButton(
             label: widget.initial?.id != null
                 ? context.tr(AccountCommerceL10n.updateAddress)
@@ -178,7 +178,7 @@ class _DeliveryAddressSheetState extends State<_DeliveryAddressSheet> {
     IconData? icon,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 8),
       child: TextFormField(
         controller: controller,
         keyboardType: keyboard,

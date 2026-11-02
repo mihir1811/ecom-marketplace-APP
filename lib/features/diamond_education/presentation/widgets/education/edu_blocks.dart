@@ -26,14 +26,14 @@ class EduSectionHeader extends StatelessWidget {
       children: [
         if (eyebrow != null) ...[
           Text(eyebrow!, style: LuxeType.eyebrow(p.accent)),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
         ],
         Semantics(
           header: true,
           child: Text(title, style: LuxeType.display(30, p.ink)),
         ),
         if (body != null) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Text(body!, style: LuxeType.body(p.inkMuted)),
         ],
       ],
@@ -45,7 +45,7 @@ class EduSectionHeader extends StatelessWidget {
 class EduCard extends StatelessWidget {
   const EduCard({
     required this.child,
-    this.padding = const EdgeInsets.all(18),
+    this.padding = const EdgeInsets.all(12),
     super.key,
   });
 
@@ -97,7 +97,7 @@ class EduPoint extends StatelessWidget {
               ),
               child: Icon(icon, size: 18, color: p.accent),
             ),
-        const SizedBox(width: 14),
+        const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

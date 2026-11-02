@@ -86,7 +86,7 @@ class _BuyerPoliciesHubScreenState extends State<BuyerPoliciesHubScreen> {
             physics: const AlwaysScrollableScrollPhysics(
               parent: BouncingScrollPhysics(),
             ),
-            padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 48),
+            padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 48),
             children: [
               MaisonCentered(
                 maxWidth: 720,
@@ -98,7 +98,7 @@ class _BuyerPoliciesHubScreenState extends State<BuyerPoliciesHubScreen> {
                       cut: GemCut.asscher,
                       look: GemLook.ice,
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     reveal(
                       Text(
                         context.tr(
@@ -107,7 +107,7 @@ class _BuyerPoliciesHubScreenState extends State<BuyerPoliciesHubScreen> {
                         style: AtelierType.body(p.inkSoft, size: 15),
                       ),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 12),
                     reveal(
                       AtelierSearchField(
                         controller: _searchCtrl,
@@ -115,7 +115,7 @@ class _BuyerPoliciesHubScreenState extends State<BuyerPoliciesHubScreen> {
                         onChanged: (v) => setState(() => _query = v),
                       ),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 12),
                     if (loading)
                       reveal(const PolicyDocumentSkeleton())
                     else if (failed)
@@ -139,8 +139,8 @@ class _BuyerPoliciesHubScreenState extends State<BuyerPoliciesHubScreen> {
                     else ...[
                       reveal(
                         Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
+                          spacing: 8,
+                          runSpacing: 8,
                           children: [
                             AtelierButton(
                               label: context.tr(
@@ -164,7 +164,7 @@ class _BuyerPoliciesHubScreenState extends State<BuyerPoliciesHubScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 12),
                       for (final policy in visible) ...[
                         reveal(
                           AtelierCard(
@@ -180,7 +180,7 @@ class _BuyerPoliciesHubScreenState extends State<BuyerPoliciesHubScreen> {
                                 AtelierIconBadge(
                                   icon: policyIconFor(policy.id),
                                 ),
-                                const SizedBox(width: 14),
+                                const SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -214,10 +214,10 @@ class _BuyerPoliciesHubScreenState extends State<BuyerPoliciesHubScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 8),
                       ],
                     ],
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     const MaisonListFooter(
                       loadingMore: false,
                       hasMore: false,

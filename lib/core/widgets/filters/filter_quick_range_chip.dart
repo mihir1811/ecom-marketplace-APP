@@ -32,7 +32,7 @@ class FilterQuickRangeChip extends StatelessWidget {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
         decoration: BoxDecoration(
           color: isSelected ? fill : AppColors.card(context),
           borderRadius: BorderRadius.circular(luxe ? 100 : AppSpacing.r8),

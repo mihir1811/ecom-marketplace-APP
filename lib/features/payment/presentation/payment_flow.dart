@@ -170,12 +170,12 @@ class _ConfirmPurchaseDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 420),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 12, 16),
+          padding: const EdgeInsets.fromLTRB(14, 8, 8, 12),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -198,7 +198,7 @@ class _ConfirmPurchaseDialog extends StatelessWidget {
                 ],
               ),
               Padding(
-                padding: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.only(right: 6),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -328,12 +328,12 @@ class _PaymentProgressDialogState extends ConsumerState<PaymentProgressDialog>
     return PopScope(
       canPop: false,
       child: Dialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 320),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 32, 24, 28),
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 18),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -412,14 +412,14 @@ class PaymentResultDialog extends StatelessWidget {
     final color = success ? AppColors.success : AppColors.error;
     final text = message?.trim();
     return Dialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 420),
         child: Stack(
           children: [
             SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 32, 20, 16),
+              padding: const EdgeInsets.fromLTRB(14, 20, 14, 12),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,

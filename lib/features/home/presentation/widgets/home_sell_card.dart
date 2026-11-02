@@ -25,7 +25,7 @@ class HomeSellCard extends StatelessWidget {
     final title = context.tr(RemainingL10n.sellOnGemWorld);
 
     Widget card = Container(
-      padding: const EdgeInsets.fromLTRB(22, 24, 18, 22),
+      padding: const EdgeInsets.fromLTRB(14, 16, 12, 14),
       decoration: BoxDecoration(
         color: palette.accentSoft,
         borderRadius: BorderRadius.circular(HomeSpace.radius),
@@ -38,7 +38,7 @@ class HomeSellCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: HomeType.display(30, palette.ink)),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Text(
                   context.tr(
                     isAuthenticatedIndividual
@@ -50,7 +50,7 @@ class HomeSellCard extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 10),
           Container(
             width: 48,
             height: 48,

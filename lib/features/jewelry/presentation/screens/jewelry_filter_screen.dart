@@ -155,7 +155,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 LuxeSkeleton(width: 140, height: 14),
-                SizedBox(height: 12),
+                SizedBox(height: 8),
                 LuxeSkeleton(height: 40, radius: 20),
               ],
             );
@@ -275,7 +275,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen>
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         FilterSectionHeader(title: context.tr(CatalogL10n.metal)),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         LuxeMetalSwatchPicker(
           options: [for (final m in options) MarketplaceEnums.swatchLabel(m)],
           selected: {for (final m in d.metals) MarketplaceEnums.swatchLabel(m)},
@@ -308,7 +308,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen>
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         FilterSectionHeader(title: context.tr(JewelryMarketL10n.availability)),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         LuxeSegmented<String?>(
           options: const [
             null,
@@ -326,7 +326,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen>
           onChanged: _n.setAvailability,
         ),
         if (d.tag != null) ...[
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Align(
             alignment: Alignment.centerLeft,
             child: InputChip(
@@ -362,7 +362,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen>
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       for (var i = 0; i < children.length; i++) ...[
-        if (i > 0) const SizedBox(height: 22),
+        if (i > 0) const SizedBox(height: 14),
         children[i],
       ],
     ],

@@ -35,7 +35,7 @@ Future<String?> confirmDeleteAccount(BuildContext context) async {
                       color: AppColors.textSecondary(context),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   TextField(
                     controller: passwordController,
                     obscureText: obscure,

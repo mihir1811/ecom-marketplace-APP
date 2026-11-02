@@ -100,8 +100,8 @@ class _PoliciesHubScreenState extends State<PoliciesHubScreen> {
                 cut: GemCut.asscher,
                 look: GemLook.ice,
                 action: Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
                     AtelierButton(
                       label: context.tr(AccountCommerceL10n.privacyPolicy),
@@ -121,18 +121,18 @@ class _PoliciesHubScreenState extends State<PoliciesHubScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Text(
                 context.tr(RemainingL10n.readTheTermsAndCategoryPolicies),
                 style: AtelierType.body(p.inkSoft, size: 15),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               AtelierSearchField(
                 controller: _searchCtrl,
                 hint: 'Search policies',
                 onChanged: (v) => setState(() => _query = v),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 12),
               if (loading)
                 const PolicyDocumentSkeleton()
               else if (failed)
@@ -162,7 +162,7 @@ class _PoliciesHubScreenState extends State<PoliciesHubScreen> {
                       child: Row(
                         children: [
                           AtelierIconBadge(icon: policyIconFor(policy.id)),
-                          const SizedBox(width: 14),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,7 +186,7 @@ class _PoliciesHubScreenState extends State<PoliciesHubScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                 ],
             ],
           );

@@ -52,14 +52,14 @@ class _EduFourCsOverviewState extends State<EduFourCsOverview> {
               title: context.tr(EducationL10n.c4Title),
               body: context.tr(EducationL10n.c4Body),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
             LayoutBuilder(
               builder: (context, c) {
                 final cols = c.maxWidth >= 560 ? 4 : 2;
                 final w = (c.maxWidth - 12 * (cols - 1)) / cols;
                 return Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
                     for (final (i, (icon, title, lead)) in items.indexed)
                       SizedBox(
@@ -129,14 +129,14 @@ class _CCard extends StatelessWidget {
         child: InkWell(
           onTap: selected ? null : onTap,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(icon, color: p.accent, size: 22),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Text(title, style: LuxeType.display(22, p.ink)),
-                const SizedBox(height: 6),
+                const SizedBox(height: 5),
                 Text(lead, style: LuxeType.body(p.inkMuted, size: 12.5)),
               ],
             ),
@@ -160,12 +160,12 @@ class EduCutSection extends StatelessWidget {
           title: context.tr(EducationL10n.cut),
           body: context.tr(EducationL10n.cutLead),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Text(
           context.tr(EducationL10n.cutBody),
           style: LuxeType.body(p.inkMuted, size: 14),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 14),
         EduCard(
           child: Row(
             children: [
@@ -175,7 +175,7 @@ class EduCutSection extends StatelessWidget {
                   label: context.tr(EducationL10n.cutShallow),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Expanded(
                 child: LightPathDiagram(
                   pavilionAngle: 40.8,
@@ -183,7 +183,7 @@ class EduCutSection extends StatelessWidget {
                   highlight: true,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Expanded(
                 child: LightPathDiagram(
                   pavilionAngle: 45.5,
@@ -193,34 +193,34 @@ class EduCutSection extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 14),
         EduPoint(
           icon: Icons.wb_sunny_outlined,
           title: context.tr(EducationL10n.brightness),
           body: context.tr(EducationL10n.brightnessBody),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         EduPoint(
           icon: Icons.local_fire_department_outlined,
           title: context.tr(EducationL10n.fire),
           body: context.tr(EducationL10n.fireBody),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         EduPoint(
           icon: Icons.auto_awesome_outlined,
           title: context.tr(EducationL10n.sparkle),
           body: context.tr(EducationL10n.sparkleBody),
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 14),
         EduSubhead(context.tr(EducationL10n.cutGrades)),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         for (final g in CutGrade.values) ...[
           _GradeRow(
             grade: context.cutName(g),
             body: context.cutBody(g),
             level: 1 - g.index / (CutGrade.values.length - 1),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
         ],
       ],
     );
@@ -249,7 +249,7 @@ class _GradeRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(grade, style: LuxeType.label(p.ink, size: 13.5)),
-              const SizedBox(height: 6),
+              const SizedBox(height: 5),
               ClipRRect(
                 borderRadius: BorderRadius.circular(2),
                 child: LinearProgressIndicator(
@@ -262,7 +262,7 @@ class _GradeRow extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(width: 14),
+        const SizedBox(width: 10),
         Expanded(child: Text(body, style: LuxeType.body(p.inkMuted, size: 13))),
       ],
     );
@@ -282,12 +282,12 @@ class EduColorSection extends StatelessWidget {
           title: context.tr(EducationL10n.color),
           body: context.tr(EducationL10n.colorLead),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Text(
           context.tr(EducationL10n.colorBody),
           style: LuxeType.body(p.inkMuted, size: 14),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 14),
         ExcludeSemantics(
           child: Row(
             children: [
@@ -312,7 +312,7 @@ class EduColorSection extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 12),
         for (final g in ColorGroup.values) ...[
           EduPoint(
             leading: _GradeChip(
@@ -326,7 +326,7 @@ class EduColorSection extends StatelessWidget {
             title: context.colorGroupName(g),
             body: context.colorGroupBody(g),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
         ],
         const SizedBox(height: 4),
         EduCard(
@@ -339,7 +339,7 @@ class EduColorSection extends StatelessWidget {
                 FancyColor.green,
               ])
                 Padding(
-                  padding: const EdgeInsets.only(right: 6),
+                  padding: const EdgeInsets.only(right: 5),
                   child: Icon(
                     Icons.diamond,
                     size: 22,
@@ -351,7 +351,7 @@ class EduColorSection extends StatelessWidget {
                     ),
                   ),
                 ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   context.tr(EducationL10n.colorFancyBody),
@@ -377,7 +377,7 @@ class _GradeChip extends StatelessWidget {
     final p = LuxePalette.of(context);
     return Container(
       width: 64,
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: color ?? p.accentSoft,
@@ -425,17 +425,17 @@ class EduClaritySection extends StatelessWidget {
           title: context.tr(EducationL10n.clarity),
           body: context.tr(EducationL10n.clarityLead),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Text(
           context.tr(EducationL10n.clarityBody),
           style: LuxeType.body(p.inkMuted, size: 14),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 12),
         for (final (label, grade) in groups) ...[
           Row(
             children: [
               _GradeChip(text: label),
-              const SizedBox(width: 14),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   context.clarityBody(grade),
@@ -444,11 +444,11 @@ class EduClaritySection extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
         ],
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         EduSubhead(context.tr(EducationL10n.characteristics)),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         for (final (icon, key) in traits) ...[
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -457,7 +457,7 @@ class EduClaritySection extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 3),
                 child: Icon(icon, size: 14, color: p.accent),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   context.tr(key),
@@ -466,7 +466,7 @@ class EduClaritySection extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
         ],
       ],
     );
@@ -497,12 +497,12 @@ class EduCaratSection extends StatelessWidget {
           title: context.tr(EducationL10n.carat),
           body: context.tr(EducationL10n.caratLead),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Text(
           context.tr(EducationL10n.caratBody),
           style: LuxeType.body(p.inkMuted, size: 14),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 14),
         EduCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -511,15 +511,15 @@ class EduCaratSection extends StatelessWidget {
                 context.tr(EducationL10n.caratChart),
                 style: LuxeType.label(p.ink, size: 13.5),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               LayoutBuilder(
                 builder: (context, c) {
                   // One scale for every stone so sizes compare truly;
                   // narrow screens wrap onto a second row.
                   final pxPerMm = (c.maxWidth / 62).clamp(4.5, 9.0);
                   return Wrap(
-                    spacing: 14,
-                    runSpacing: 16,
+                    spacing: 10,
+                    runSpacing: 12,
                     alignment: WrapAlignment.spaceAround,
                     crossAxisAlignment: WrapCrossAlignment.end,
                     children: [
@@ -541,7 +541,7 @@ class EduCaratSection extends StatelessWidget {
                                 border: Border.all(color: p.accent),
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 6),
                             Text(
                               '${ct % 1 == 0 ? ct.toStringAsFixed(0) : ct} ct',
                               style: LuxeType.figure(p.ink, size: 11),
@@ -559,7 +559,7 @@ class EduCaratSection extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         EduPoint(
           icon: Icons.lightbulb_outline,
           title: context.tr(EducationL10n.caratWeight),

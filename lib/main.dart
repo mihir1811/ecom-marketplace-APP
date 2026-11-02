@@ -28,7 +28,7 @@ void main() {
             body: SafeArea(
               child: Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(24.0),
+                  padding: const EdgeInsets.all(16.0),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -37,7 +37,7 @@ void main() {
                         color: AppColors.error,
                         size: 48,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       Text(
                         context.tr(CoreL10n.somethingWentWrong),
                         style: const TextStyle(
@@ -45,7 +45,7 @@ void main() {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text(
                         context.tr(CoreL10n.unexpectedError),
                         textAlign: TextAlign.center,

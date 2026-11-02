@@ -48,7 +48,7 @@ class JewelryBagScreen extends ConsumerWidget {
         actions: [
           if (signedIn)
             Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.only(right: 6),
               child: LuxeIconButton(
                 icon: Icons.receipt_long_outlined,
                 tooltip: context.tr(JewelryMarketL10n.ordersTitle),
@@ -70,7 +70,7 @@ class JewelryBagScreen extends ConsumerWidget {
               color: p.accent,
               onRefresh: () => ref.refresh(jewelryBagQuoteProvider.future),
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                padding: const EdgeInsets.fromLTRB(12, 6, 12, 16),
                 children: [
                   if (quoteAsync.hasError)
                     _Banner(
@@ -105,8 +105,8 @@ class _Banner extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.fromLTRB(10, 8, 5, 8),
       decoration: BoxDecoration(
         color: p.caution.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
@@ -115,7 +115,7 @@ class _Banner extends StatelessWidget {
       child: Row(
         children: [
           Icon(Icons.cloud_off_rounded, size: 18, color: p.caution),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Expanded(child: Text(text, style: LuxeType.label(p.ink, size: 13))),
           TextButton(
             onPressed: onRetry,
@@ -155,8 +155,8 @@ class _BagLineCard extends ConsumerWidget {
         .join(' · ');
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: p.surface,
         borderRadius: BorderRadius.circular(LuxeSpace.radius),
@@ -194,7 +194,7 @@ class _BagLineCard extends ConsumerWidget {
                         : AppNetworkImage(url: image, memCacheWidth: 264),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,7 +228,7 @@ class _BagLineCard extends ConsumerWidget {
                           style: LuxeType.body(p.inkMuted, size: 12.5),
                         ),
                       ],
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       if (pricing && q == null)
                         const LuxeSkeleton(width: 80, height: 16)
                       else if (unit != null)
@@ -246,11 +246,11 @@ class _BagLineCard extends ConsumerWidget {
             ),
           ),
           if (problem != null) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Icon(Icons.error_outline_rounded, size: 16, color: p.caution),
-                const SizedBox(width: 6),
+                const SizedBox(width: 5),
                 Expanded(
                   child: Text(
                     problem,
@@ -260,7 +260,7 @@ class _BagLineCard extends ConsumerWidget {
               ],
             ),
           ],
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Row(
             children: [
               TextButton.icon(
@@ -327,7 +327,7 @@ class _Summary extends StatelessWidget {
       ),
     );
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: p.surface,
         borderRadius: BorderRadius.circular(LuxeSpace.radius),
@@ -337,9 +337,9 @@ class _Summary extends StatelessWidget {
           ? const Column(
               children: [
                 LuxeSkeleton(height: 14),
-                SizedBox(height: 10),
+                SizedBox(height: 8),
                 LuxeSkeleton(height: 14),
-                SizedBox(height: 10),
+                SizedBox(height: 8),
                 LuxeSkeleton(height: 18),
               ],
             )
@@ -361,7 +361,7 @@ class _Summary extends StatelessWidget {
                   rupees(q.total),
                   strong: true,
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 5),
                 Text(
                   context.tr(
                     q.ready
@@ -406,7 +406,7 @@ class _CheckoutBar extends ConsumerWidget {
     return SafeArea(
       top: false,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
         decoration: BoxDecoration(
           color: p.surface,
           border: Border(top: BorderSide(color: p.hairline, width: 0.6)),
@@ -436,7 +436,7 @@ class _CheckoutBar extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Expanded(
               flex: 5,
               child: LuxeButton(

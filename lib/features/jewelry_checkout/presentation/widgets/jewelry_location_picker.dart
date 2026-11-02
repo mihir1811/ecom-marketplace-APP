@@ -73,7 +73,7 @@ class _LocationListState extends State<_LocationList> {
               hintText: context.tr(CatalogL10n.search),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
         ],
         Flexible(
           child: ListView.builder(
@@ -151,7 +151,7 @@ class JewelryPickerField extends StatelessWidget {
             errorText: field.errorText,
             suffixIcon: loading
                 ? const Padding(
-                    padding: EdgeInsets.all(14),
+                    padding: EdgeInsets.all(10),
                     child: SizedBox.square(
                       dimension: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),

@@ -80,7 +80,7 @@ class _CartPromoSectionState extends ConsumerState<CartPromoSection> {
 
     if (promo.applied) {
       return CartSectionCard(
-        padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+        padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
         child: Row(
           children: [
             Container(
@@ -92,7 +92,7 @@ class _CartPromoSectionState extends ConsumerState<CartPromoSection> {
               ),
               child: Icon(Icons.local_offer_rounded, size: 16, color: p.positive),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 context.tr(ExperienceL10n.cartPromoApplied, {
@@ -124,11 +124,11 @@ class _CartPromoSectionState extends ConsumerState<CartPromoSection> {
               setState(() => _expanded = !_expanded);
             },
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
+              padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
               child: Row(
                 children: [
                   Icon(Icons.local_offer_outlined, size: 18, color: p.accent),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       context.tr(ExperienceL10n.cartHavePromo),
@@ -152,7 +152,7 @@ class _CartPromoSectionState extends ConsumerState<CartPromoSection> {
             child: !_expanded
                 ? const SizedBox(width: double.infinity)
                 : Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
                     child: Row(
                       children: [
                         Expanded(
@@ -172,7 +172,7 @@ class _CartPromoSectionState extends ConsumerState<CartPromoSection> {
                             },
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 8),
                         LuxeButton(
                           label: context.tr(ExperienceL10n.cartApply),
                           height: 46,

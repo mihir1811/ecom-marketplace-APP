@@ -53,7 +53,7 @@ ThemeData authThemeData(ThemeData base, AuthPalette p) {
       hoverColor: p.surfaceFocus,
       contentPadding: const EdgeInsets.symmetric(
         horizontal: AuthSpace.s20,
-        vertical: 18,
+        vertical: 12,
       ),
       border: border(p.hairline),
       enabledBorder: border(p.hairline),

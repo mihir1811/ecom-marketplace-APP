@@ -24,7 +24,7 @@ class AuctionBidPanel extends StatelessWidget {
     final bidCount = a.bids.length;
 
     Widget pill(String text, Color tone, IconData icon) => Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: ShapeDecoration(
         color: tone.withValues(alpha: 0.1),
         shape: const StadiumBorder(),
@@ -40,7 +40,7 @@ class AuctionBidPanel extends StatelessWidget {
     );
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
       decoration: BoxDecoration(
         color: p.surface,
         borderRadius: BorderRadius.circular(LuxeSpace.radius),
@@ -59,12 +59,12 @@ class AuctionBidPanel extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Text(
             (highest == null ? 'Opening bid' : 'Current bid').toUpperCase(),
             style: LuxeType.eyebrow(p.inkMuted),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           TweenAnimationBuilder<double>(
             // Rolls up to each new bid as it arrives over the socket.
             tween: Tween(end: highest ?? a.minimumBid),
@@ -92,9 +92,9 @@ class AuctionBidPanel extends StatelessWidget {
             ),
           ],
           if (deadline != null) ...[
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
               decoration: BoxDecoration(
                 color: p.surfaceRaised,
                 borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
@@ -108,7 +108,7 @@ class AuctionBidPanel extends StatelessWidget {
                     size: 20,
                     color: p.accent,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,10 +136,10 @@ class AuctionBidPanel extends StatelessWidget {
               ),
             ),
           ],
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 6,
+            runSpacing: 6,
             children: [
               if (a.isReserveMet)
                 pill('Reserve met', p.positive, Icons.check_circle_outline)

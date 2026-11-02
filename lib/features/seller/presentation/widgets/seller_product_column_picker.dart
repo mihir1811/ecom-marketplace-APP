@@ -61,7 +61,7 @@ class _SellerProductColumnPickerPanelState
           hint: context.tr(RemainingL10n.search),
           onChanged: (v) => setState(() => _query = v.trim()),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Row(
           children: [
             Text(
@@ -88,10 +88,10 @@ class _SellerProductColumnPickerPanelState
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: 6,
+          runSpacing: 6,
           children: [
             for (var i = 0; i < items.length; i++)
               Reveal(

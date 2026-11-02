@@ -21,8 +21,8 @@ class VitrineColumns {
   final int count;
   final double width;
 
-  static const pad = 16.0;
-  static const gap = 8.0;
+  static const pad = 12.0;
+  static const gap = 6.0;
 
   double get column => (width - 2 * pad - gap * (count - 1)) / count;
 
@@ -139,7 +139,7 @@ class VitrineRailDelegate extends SliverPersistentHeaderDelegate {
                   SizedBox(
                     height: _band,
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 6, 16, 10),
+                      padding: const EdgeInsets.fromLTRB(12, 5, 12, 8),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [_AddChip(onTap: onAdd)],
@@ -516,7 +516,7 @@ class _Draggable extends StatelessWidget {
                       size: imageSize * 1.06,
                       ring: true,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Text(
                       item.title,
                       maxLines: 1,
@@ -563,7 +563,7 @@ class _AddChip extends StatelessWidget {
           onTap();
         },
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [

@@ -125,7 +125,7 @@ class _ModeSegment extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(icon, size: 16, color: color),
-                const SizedBox(width: 6),
+                const SizedBox(width: 5),
                 AnimatedDefaultTextStyle(
                   duration: HomeMotion.medium,
                   style: HomeType.label(color),
@@ -180,14 +180,14 @@ class HomeAiModeSuggestions extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = HomePalette.of(context);
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 32),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 20),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       children: [
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const _GemAiMark(),
-            const SizedBox(width: 14),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -196,7 +196,7 @@ class HomeAiModeSuggestions extends StatelessWidget {
                     context.tr(HomeL10n.aiModeEyebrow).toUpperCase(),
                     style: HomeType.eyebrow(palette.accent),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   Text(
                     context.tr(HomeL10n.aiModeBody),
                     style: HomeType.body(palette.inkMuted, size: 14),
@@ -206,12 +206,12 @@ class HomeAiModeSuggestions extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 26),
+        const SizedBox(height: 18),
         Text(
           context.tr(ExperienceL10n.aiTryAsking).toUpperCase(),
           style: HomeType.eyebrow(palette.inkMuted),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         for (var i = 0; i < _prompts.length; i++)
           _maybeAnimate(
             _AiPromptRow(
@@ -284,7 +284,7 @@ class _AiPromptRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(color: palette.hairline, width: 0.8),
@@ -293,7 +293,7 @@ class _AiPromptRow extends StatelessWidget {
         child: Row(
           children: [
             Icon(icon, size: 20, color: palette.accent),
-            const SizedBox(width: 14),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -311,7 +311,7 @@ class _AiPromptRow extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Icon(Icons.north_east_rounded, size: 18, color: palette.accent),
           ],
         ),

@@ -106,13 +106,13 @@ class _CartScreenState extends ConsumerState<CartScreen> {
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.fromLTRB(
               LuxeSpace.gutter - 4,
-              8,
+              6,
               LuxeSpace.gutter - 4,
-              28 + MediaQuery.paddingOf(context).bottom,
+              18 + MediaQuery.paddingOf(context).bottom,
             ),
             children: [
               const CartItemsSection(),
-              const SizedBox(height: 6),
+              const SizedBox(height: 5),
               ..._staggered(const [
                 CartAddressSection(),
                 CartPromoSection(),
@@ -150,7 +150,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     return [
       for (var i = 0; i < sections.length; i++)
         Padding(
-          padding: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.only(bottom: 8),
           child: still
               ? sections[i]
               : sections[i]
@@ -175,8 +175,8 @@ class _CartSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     Widget card() => Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: p.surface,
         borderRadius: BorderRadius.circular(LuxeSpace.radius),
@@ -185,15 +185,15 @@ class _CartSkeleton extends StatelessWidget {
       child: const Row(
         children: [
           LuxeSkeleton(width: 92, height: 92, radius: 14),
-          SizedBox(width: 14),
+          SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 LuxeSkeleton(height: 16),
-                SizedBox(height: 8),
+                SizedBox(height: 6),
                 LuxeSkeleton(width: 110, height: 12),
-                SizedBox(height: 22),
+                SizedBox(height: 14),
                 LuxeSkeleton(width: 80, height: 16),
               ],
             ),
@@ -203,12 +203,12 @@ class _CartSkeleton extends StatelessWidget {
     );
     return ListView(
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 12),
       children: [
         card(),
         card(),
         const LuxeSkeleton(height: 96, radius: LuxeSpace.radius),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         const LuxeSkeleton(height: 180, radius: LuxeSpace.radius),
       ],
     );
@@ -223,7 +223,7 @@ class _CartEmptyState extends StatelessWidget {
     final p = LuxePalette.of(context);
     Widget view = Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -244,19 +244,19 @@ class _CartEmptyState extends StatelessWidget {
                 interactive: true,
               ),
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 18),
             Text(
               context.tr(AccountCommerceL10n.cartEmpty),
               textAlign: TextAlign.center,
               style: LuxeType.display(30, p.ink),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Text(
               context.tr(ExperienceL10n.cartEmptyBody),
               textAlign: TextAlign.center,
               style: LuxeType.body(p.inkMuted, size: 14),
             ),
-            const SizedBox(height: 26),
+            const SizedBox(height: 18),
             LuxeButton(
               label: context.tr(AccountCommerceL10n.continueShopping),
               trailingIcon: Icons.arrow_forward_rounded,

@@ -34,13 +34,13 @@ class JewelryStyleChips extends ConsumerWidget {
       curve: LuxeMotion.settle,
       child: live.when(
         loading: () => const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.symmetric(horizontal: 12),
           child: Row(
             children: [
               LuxeSkeleton(width: 86, height: 40, radius: 20),
-              SizedBox(width: 8),
+              SizedBox(width: 6),
               LuxeSkeleton(width: 110, height: 40, radius: 20),
-              SizedBox(width: 8),
+              SizedBox(width: 6),
               LuxeSkeleton(width: 74, height: 40, radius: 20),
             ],
           ),

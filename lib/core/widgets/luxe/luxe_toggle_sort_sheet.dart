@@ -87,7 +87,7 @@ class _ToggleSortBodyState<T> extends State<_ToggleSortBody<T>> {
       children: [
         for (final field in widget.fields)
           Padding(
-            padding: const EdgeInsets.only(bottom: 6),
+            padding: const EdgeInsets.only(bottom: 5),
             child: _row(p, field),
           ),
       ],
@@ -106,7 +106,7 @@ class _ToggleSortBodyState<T> extends State<_ToggleSortBody<T>> {
         borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
         onTap: () => _tap(field),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 10, 10, 10),
+          padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
           child: SizedBox(
             height: 32,
             child: Row(
@@ -125,7 +125,7 @@ class _ToggleSortBodyState<T> extends State<_ToggleSortBody<T>> {
                 if (field.toggles)
                   AnimatedContainer(
                     duration: LuxeMotion.fast,
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     decoration: ShapeDecoration(
                       color: active ? p.ink : Colors.transparent,
                       shape: StadiumBorder(

@@ -133,7 +133,7 @@ class SellerOrderDecisionButtons extends ConsumerWidget {
                 : () => confirmRejectSellerOrder(context, ref, order),
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         Expanded(
           child: AtelierButton(
             label: busy ? 'Updating…' : 'Accept Order',
@@ -308,7 +308,7 @@ class _SellerActionConfirmDialogState
                     child: _error == null
                         ? const SizedBox(width: double.infinity)
                         : Padding(
-                            padding: const EdgeInsets.only(top: 12),
+                            padding: const EdgeInsets.only(top: 8),
                             child: AtelierNotice(
                               text: _error!,
                               tone: AtelierTone.ruby,
@@ -348,7 +348,7 @@ class _OrderSummaryLine extends StatelessWidget {
     final p = context.atelier;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: p.sunken,
         borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -356,7 +356,7 @@ class _OrderSummaryLine extends StatelessWidget {
       child: Row(
         children: [
           AtelierMonogram(name: order.customerLabel, size: 34),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -436,18 +436,18 @@ class _RejectOrderDialogState extends State<_RejectOrderDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _OrderSummaryLine(order: widget.order),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             'The customer is refunded to their GemWorld wallet. This cannot '
             'be undone.',
             style: AtelierType.caption(p.muted),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
           Text('REASON', style: AtelierType.overline(p.muted)),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 6,
+            runSpacing: 6,
             children: [
               for (final option in _rejectReasons)
                 AtelierChoiceChip(
@@ -462,7 +462,7 @@ class _RejectOrderDialogState extends State<_RejectOrderDialog> {
             curve: AtelierMotion.emphasized,
             child: _reason == 'Other'
                 ? Padding(
-                    padding: const EdgeInsets.only(top: 12),
+                    padding: const EdgeInsets.only(top: 8),
                     child: AtelierTextArea(
                       controller: _otherCtrl,
                       label: 'Describe the reason',
@@ -473,7 +473,7 @@ class _RejectOrderDialogState extends State<_RejectOrderDialog> {
                   )
                 : const SizedBox(width: double.infinity),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           AtelierTextArea(
             controller: _noteCtrl,
             label: 'Note to customer (optional)',

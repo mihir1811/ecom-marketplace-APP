@@ -39,23 +39,23 @@ class DiamondViewerLoadingView extends StatelessWidget {
       color: LuxeStage.obsidian,
       child: Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               gem,
-              const SizedBox(height: 26),
+              const SizedBox(height: 18),
               Text(
                 'PREPARING 360° VIEW',
                 style: LuxeType.eyebrow(LuxeStage.gold),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
                 'Loading every facet in high resolution…',
                 textAlign: TextAlign.center,
                 style: LuxeType.body(LuxeStage.inkMuted, size: 13.5),
               ),
-              const SizedBox(height: 22),
+              const SizedBox(height: 14),
               SizedBox(
                 width: 180,
                 child: ClipRRect(

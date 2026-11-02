@@ -48,7 +48,7 @@ class RewardsClubCard extends StatelessWidget {
                   color: current == null ? p.muted : accent,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,16 +75,16 @@ class RewardsClubCard extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
           _ClubTrack(status: status, showBonus: showBonus),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           Text(
             next == null
                 ? "You're in the top club"
                 : '${rewardPointsLabel(toNext < 0 ? 0 : toNext)} to ${next.name}',
             style: AtelierType.label(p.inkSoft, size: 12.5),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             'Clubs go by lifetime points. Spending never lowers them.',
             style: AtelierType.caption(p.muted, size: 11.5),
@@ -238,7 +238,7 @@ class _ClubTrack extends StatelessWidget {
               border: Border.all(color: color, width: 2),
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           Text(
             title,
             maxLines: 1,
@@ -269,7 +269,7 @@ class _Pill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(AtelierRadius.pill),

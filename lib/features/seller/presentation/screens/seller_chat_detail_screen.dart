@@ -273,7 +273,7 @@ class _SellerChatDetailScreenState
 
     final entries = _buildEntries(state).reversed.toList();
     final width = MediaQuery.sizeOf(context).width;
-    final gutter = width >= 720 ? 28.0 : 14.0;
+    final gutter = width >= 720 ? 28.0 : 10.0;
 
     return ListView.builder(
       controller: _scrollCtrl,
@@ -282,7 +282,7 @@ class _SellerChatDetailScreenState
       physics: const AlwaysScrollableScrollPhysics(
         parent: BouncingScrollPhysics(),
       ),
-      padding: EdgeInsets.fromLTRB(gutter, 12, gutter, 16),
+      padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 12),
       itemCount: entries.length,
       itemBuilder: (context, index) {
         final entry = entries[index];
@@ -430,7 +430,7 @@ class _ThreadHeader extends StatelessWidget {
     final p = context.atelier;
     final ctx = contextData;
     final width = MediaQuery.sizeOf(context).width;
-    final gutter = width >= 720 ? 28.0 : 16.0;
+    final gutter = width >= 720 ? 28.0 : 12.0;
     final link = peerAvatar.trim();
     final monogram = AtelierMonogram(name: peerName, size: 42);
 
@@ -439,7 +439,7 @@ class _ThreadHeader extends StatelessWidget {
         color: p.canvas,
         border: Border(bottom: BorderSide(color: p.hairline)),
       ),
-      padding: EdgeInsets.fromLTRB(gutter, 10, gutter, 12),
+      padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -456,7 +456,7 @@ class _ThreadHeader extends StatelessWidget {
                         error: monogram,
                       ),
                     ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -490,7 +490,7 @@ class _ThreadHeader extends StatelessWidget {
             child: ctx == null
                 ? const SizedBox(width: double.infinity)
                 : Padding(
-                    padding: const EdgeInsets.only(top: 12),
+                    padding: const EdgeInsets.only(top: 8),
                     child: Reveal(child: _PieceStrip(contextData: ctx)),
                   ),
           ),
@@ -516,7 +516,7 @@ class _PieceStrip extends ConsumerWidget {
       semanticLabel: 'Piece details, ${contextData.productName}',
       borderRadius: BorderRadius.circular(AtelierRadius.md),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(8, 8, 14, 8),
+        padding: const EdgeInsets.fromLTRB(6, 6, 10, 6),
         decoration: BoxDecoration(
           color: p.surface,
           borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -526,7 +526,7 @@ class _PieceStrip extends ConsumerWidget {
         child: Row(
           children: [
             AtelierThumb(url: contextData.primaryImage, size: 46),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -551,7 +551,7 @@ class _PieceStrip extends ConsumerWidget {
                         ),
                         if (price != null)
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 5),
                             child: Text(
                               '·',
                               style: AtelierType.caption(p.muted),
@@ -568,7 +568,7 @@ class _PieceStrip extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Icon(Icons.chevron_right_rounded, size: 20, color: p.muted),
           ],
         ),
@@ -641,14 +641,14 @@ class _MessageBubble extends StatelessWidget {
     );
 
     return Padding(
-      padding: EdgeInsets.only(top: groupStart ? 10 : 2),
+      padding: EdgeInsets.only(top: groupStart ? 8 : 2),
       child: Align(
         alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxWidth),
           child: Container(
             padding: imageUrl == null
-                ? const EdgeInsets.fromLTRB(14, 10, 12, 8)
+                ? const EdgeInsets.fromLTRB(10, 8, 8, 6)
                 : const EdgeInsets.all(4),
             decoration: BoxDecoration(
               color: bg,
@@ -670,11 +670,11 @@ class _MessageBubble extends StatelessWidget {
                   Padding(
                     padding: imageUrl == null
                         ? EdgeInsets.zero
-                        : const EdgeInsets.fromLTRB(10, 8, 8, 4),
+                        : const EdgeInsets.fromLTRB(8, 6, 6, 4),
                     child: Wrap(
                       alignment: WrapAlignment.end,
                       crossAxisAlignment: WrapCrossAlignment.end,
-                      spacing: 10,
+                      spacing: 8,
                       runSpacing: 2,
                       children: [
                         SelectableText(
@@ -743,7 +743,7 @@ class _ChatImage extends StatelessWidget {
                     bottom: 8,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
+                        horizontal: 6,
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
@@ -929,7 +929,7 @@ class _PendingImageBubble extends StatelessWidget {
     final value = progress;
     final determinate = value != null && value > 0 && value < 1;
     return Padding(
-      padding: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.only(top: 8),
       child: Align(
         alignment: Alignment.centerRight,
         child: Semantics(
@@ -994,12 +994,12 @@ class _DayDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.atelier;
     return Padding(
-      padding: const EdgeInsets.only(top: 22, bottom: 8),
+      padding: const EdgeInsets.only(top: 14, bottom: 6),
       child: Row(
         children: [
           Expanded(child: Container(height: 1, color: p.hairline)),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Text(
               _label(context, date).toUpperCase(),
               style: AtelierType.overline(p.muted),
@@ -1054,11 +1054,11 @@ class _ThreadSkeleton extends StatelessWidget {
     return ListView(
       reverse: true,
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
       children: [
         for (final (mine, w, h) in rows)
           Padding(
-            padding: const EdgeInsets.only(top: 10),
+            padding: const EdgeInsets.only(top: 8),
             child: Align(
               alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
               child: SkeletonBox(width: w, height: h, radius: 18),
@@ -1206,7 +1206,7 @@ class _ComposerState extends State<_Composer> {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: EdgeInsets.fromLTRB(gutter, 10, gutter, 12),
+          padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 8),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1218,7 +1218,7 @@ class _ComposerState extends State<_Composer> {
                 child: widget.sendError == null
                     ? const SizedBox(width: double.infinity)
                     : Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.only(bottom: 8),
                         child: AtelierNotice(
                           text: widget.sendError!,
                           tone: AtelierTone.ruby,
@@ -1233,7 +1233,7 @@ class _ComposerState extends State<_Composer> {
                 child: !widget.showSuggestions
                     ? const SizedBox(width: double.infinity)
                     : Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.only(bottom: 8),
                         child: SizedBox(
                           height: 34,
                           child: ListView.separated(
@@ -1241,7 +1241,7 @@ class _ComposerState extends State<_Composer> {
                             physics: const BouncingScrollPhysics(),
                             itemCount: _Composer._suggestions.length,
                             separatorBuilder: (_, _) =>
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 6),
                             itemBuilder: (context, i) {
                               final text = _Composer._suggestions[i];
                               return Reveal(
@@ -1256,7 +1256,7 @@ class _ComposerState extends State<_Composer> {
                                   ),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
-                                      horizontal: 14,
+                                      horizontal: 10,
                                     ),
                                     alignment: Alignment.center,
                                     decoration: BoxDecoration(
@@ -1292,13 +1292,13 @@ class _ComposerState extends State<_Composer> {
                     filled: true,
                     size: 48,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: AnimatedContainer(
                       duration: AtelierMotion.base,
                       curve: AtelierMotion.emphasized,
                       constraints: const BoxConstraints(minHeight: 48),
-                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
                         color: focused ? p.surface : p.sunken,
                         borderRadius: BorderRadius.circular(24),
@@ -1319,9 +1319,9 @@ class _ComposerState extends State<_Composer> {
                         textCapitalization: TextCapitalization.sentences,
                         textInputAction: TextInputAction.send,
                         scrollPadding: const EdgeInsets.fromLTRB(
-                          20,
-                          20,
-                          20,
+                          14,
+                          14,
+                          14,
                           80,
                         ),
                         onSubmitted: (_) => widget.onSend(),
@@ -1334,7 +1334,7 @@ class _ComposerState extends State<_Composer> {
                           enabledBorder: InputBorder.none,
                           focusedBorder: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(
-                            vertical: 14,
+                            vertical: 10,
                           ),
                           hintText: context.tr(RemainingL10n.writeMessage),
                           hintStyle: AtelierType.body(p.muted, size: 14.5),
@@ -1342,7 +1342,7 @@ class _ComposerState extends State<_Composer> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   _SendButton(
                     enabled: canSend,
                     sending: widget.isSending,

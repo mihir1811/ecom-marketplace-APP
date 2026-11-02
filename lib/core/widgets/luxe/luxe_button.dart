@@ -81,7 +81,7 @@ class _LuxeButtonState extends State<LuxeButton> {
               children: [
                 if (widget.icon != null) ...[
                   Icon(widget.icon, size: 18, color: text),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                 ],
                 Flexible(
                   child: Text(
@@ -92,10 +92,10 @@ class _LuxeButtonState extends State<LuxeButton> {
                   ),
                 ),
                 if (widget.badge != null && widget.badge! > 0) ...[
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Container(
                     constraints: const BoxConstraints(minWidth: 20),
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 5),
                     height: 20,
                     alignment: Alignment.center,
                     decoration: ShapeDecoration(
@@ -116,7 +116,7 @@ class _LuxeButtonState extends State<LuxeButton> {
                   ),
                 ],
                 if (widget.trailingIcon != null) ...[
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Icon(widget.trailingIcon, size: 18, color: text),
                 ],
               ],
@@ -147,7 +147,7 @@ class _LuxeButtonState extends State<LuxeButton> {
             curve: LuxeMotion.settle,
             height: widget.height,
             width: widget.expand ? double.infinity : null,
-            padding: const EdgeInsets.symmetric(horizontal: 22),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
             alignment: Alignment.center,
             decoration: ShapeDecoration(
               color: fill,

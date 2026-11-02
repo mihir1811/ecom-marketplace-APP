@@ -41,7 +41,7 @@ class AtelierPage extends StatelessWidget {
       // Pages under the floating dock end their scroll clear of it.
       padding: EdgeInsets.fromLTRB(
         gutter,
-        8,
+        6,
         gutter,
         48 + MediaQuery.paddingOf(context).bottom,
       ),
@@ -125,7 +125,7 @@ class AtelierHero extends StatelessWidget {
                   ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                   child: footer,
                 ),
               ),
@@ -176,7 +176,7 @@ class AtelierHeroStats extends StatelessWidget {
               for (var i = 0; i < stats.length; i++) ...[
                 if (i > 0)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: VerticalDivider(width: 1, thickness: 1, color: rule),
                   ),
                 Expanded(
@@ -219,7 +219,7 @@ class _HeroStatCell extends StatelessWidget {
           children: [
             if (s.tone != null) ...[
               _Breathing(color: p.tone(s.tone!), size: 6),
-              const SizedBox(width: 6),
+              const SizedBox(width: 5),
             ],
             Flexible(
               child: FittedBox(
@@ -352,8 +352,8 @@ class AtelierStatTile extends StatelessWidget {
       duration: AtelierMotion.base,
       curve: AtelierMotion.emphasized,
       padding: dense
-          ? const EdgeInsets.fromLTRB(12, 10, 10, 10)
-          : const EdgeInsets.fromLTRB(16, 14, 14, 14),
+          ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
+          : const EdgeInsets.fromLTRB(12, 10, 10, 10),
       decoration: BoxDecoration(
         color: selected ? p.goldSoft : p.surface,
         borderRadius: BorderRadius.circular(AtelierRadius.lg),
@@ -371,7 +371,7 @@ class AtelierStatTile extends StatelessWidget {
             children: [
               if (icon != null) ...[
                 Icon(icon, size: 15, color: accent),
-                const SizedBox(width: 6),
+                const SizedBox(width: 5),
               ],
               Expanded(
                 child: Text(
@@ -509,7 +509,7 @@ class AtelierDelta extends StatelessWidget {
     final p = context.atelier;
     final c = up ? p.emerald : p.ruby;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
         color: c.withValues(alpha: onDark ? 0.2 : (p.isDark ? 0.16 : 0.09)),
         borderRadius: BorderRadius.circular(AtelierRadius.pill),
@@ -615,13 +615,13 @@ class _AtelierTextFieldState extends State<AtelierTextField> {
           widget.label.toUpperCase(),
           style: AtelierType.overline(focused ? p.gold : p.muted),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         AnimatedContainer(
           duration: AtelierMotion.base,
           curve: AtelierMotion.emphasized,
           padding: EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: widget.maxLines > 1 ? 12 : 0,
+            horizontal: 12,
+            vertical: widget.maxLines > 1 ? 8 : 0,
           ),
           constraints: const BoxConstraints(minHeight: 50),
           decoration: BoxDecoration(
@@ -637,7 +637,7 @@ class _AtelierTextFieldState extends State<AtelierTextField> {
                   widget.prefixText!,
                   style: AtelierType.label(p.muted, size: 14),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
               ],
               Expanded(
                 child: TextField(
@@ -663,7 +663,7 @@ class _AtelierTextFieldState extends State<AtelierTextField> {
                     focusedBorder: InputBorder.none,
                     disabledBorder: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(
-                      vertical: widget.maxLines > 1 ? 2 : 15,
+                      vertical: widget.maxLines > 1 ? 2 : 10,
                     ),
                     hintText: widget.hint,
                     hintMaxLines: widget.maxLines > 1 ? widget.maxLines : 1,
@@ -672,7 +672,7 @@ class _AtelierTextFieldState extends State<AtelierTextField> {
                 ),
               ),
               if (widget.suffixText != null) ...[
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Text(
                   widget.suffixText!,
                   style: AtelierType.label(p.muted, size: 14),
@@ -703,7 +703,7 @@ class AtelierFieldError extends StatelessWidget {
       child: error == null
           ? const SizedBox(width: double.infinity)
           : Padding(
-              padding: const EdgeInsets.only(top: 7, left: 4),
+              padding: const EdgeInsets.only(top: 6, left: 4),
               child: Row(
                 children: [
                   Icon(Icons.error_outline_rounded, size: 13, color: p.ruby),
@@ -748,7 +748,7 @@ class AtelierDateTile extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(label.toUpperCase(), style: AtelierType.overline(p.muted)),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Pressable(
           onTap: onTap,
           semanticLabel: '$label ${value ?? placeholder}',
@@ -756,7 +756,7 @@ class AtelierDateTile extends StatelessWidget {
           child: AnimatedContainer(
             duration: AtelierMotion.base,
             height: 50,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
               color: p.sunken,
               borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -770,7 +770,7 @@ class AtelierDateTile extends StatelessWidget {
             child: Row(
               children: [
                 Icon(icon, size: 15, color: empty ? p.muted : p.gold),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     value ?? placeholder,
@@ -1187,7 +1187,7 @@ class _ChartTip extends StatelessWidget {
       width: w,
       child: IgnorePointer(
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           decoration: BoxDecoration(
             color: p.isDark ? p.raised : p.onyx,
             borderRadius: BorderRadius.circular(AtelierRadius.sm),
@@ -1465,7 +1465,7 @@ class _AtelierDonutState extends State<AtelierDonut> {
             child: AnimatedContainer(
               duration: AtelierMotion.base,
               margin: const EdgeInsets.only(bottom: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               decoration: BoxDecoration(
                 color: i == focus ? p.sunken : Colors.transparent,
                 borderRadius: BorderRadius.circular(AtelierRadius.sm),
@@ -1480,7 +1480,7 @@ class _AtelierDonutState extends State<AtelierDonut> {
                       shape: BoxShape.circle,
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       widget.slices[i].label,
@@ -1508,7 +1508,7 @@ class _AtelierDonutState extends State<AtelierDonut> {
           child: Stack(alignment: Alignment.center, children: [ring, center]),
         );
         if (c.maxWidth < 420) {
-          return Column(children: [chart, const SizedBox(height: 16), legend]);
+          return Column(children: [chart, const SizedBox(height: 12), legend]);
         }
         return Row(
           children: [
@@ -1623,7 +1623,7 @@ class AtelierPanel extends StatelessWidget {
                         overline!.toUpperCase(),
                         style: AtelierType.overline(p.gold),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 5),
                     ],
                     Text(title, style: AtelierType.display(p.ink, size: 22)),
                     if (subtitle != null) ...[
@@ -1636,7 +1636,7 @@ class AtelierPanel extends StatelessWidget {
                   ],
                 ),
               ),
-              if (trailing != null) ...[const SizedBox(width: 12), trailing!],
+              if (trailing != null) ...[const SizedBox(width: 8), trailing!],
             ],
           ),
           const SizedBox(height: AtelierSpace.s20),

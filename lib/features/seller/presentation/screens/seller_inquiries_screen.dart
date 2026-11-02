@@ -170,7 +170,7 @@ class _SellerInquiriesScreenState extends ConsumerState<SellerInquiriesScreen> {
         children: [
           for (var i = 0; i < items.length; i++)
             Padding(
-              padding: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.only(bottom: 8),
               child: Reveal(
                 key: ValueKey('${_category.name}-${items[i].id}'),
                 index: i < 8 ? i : 0,
@@ -211,7 +211,7 @@ class _SellerInquiriesScreenState extends ConsumerState<SellerInquiriesScreen> {
             ref.read(inquiryListProvider(_category).notifier).refresh(),
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 40),
+          padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 40),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 920),
@@ -255,13 +255,13 @@ class _InquiryCard extends StatelessWidget {
       onTap: onTap,
       semanticLabel:
           '${inquiry.category.label} inquiry $shortId, ${inquiry.summary}',
-      padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
+      padding: const EdgeInsets.fromLTRB(12, 12, 8, 12),
       borderColor: replied ? p.gold.withValues(alpha: 0.4) : null,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AtelierIconBadge(icon: _iconFor(inquiry.category), tone: tone),
-          const SizedBox(width: 14),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,7 +279,7 @@ class _InquiryCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 5),
                 Text(
                   inquiry.buyerName,
                   maxLines: 1,
@@ -293,7 +293,7 @@ class _InquiryCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: AtelierType.body(p.inkSoft, size: 13),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     AtelierPill(

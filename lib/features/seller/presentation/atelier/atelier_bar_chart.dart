@@ -433,7 +433,7 @@ class _Tooltip extends StatelessWidget {
             ),
           ),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             decoration: BoxDecoration(
               color: p.isDark ? p.raised : p.onyx,
               borderRadius: BorderRadius.circular(AtelierRadius.sm),

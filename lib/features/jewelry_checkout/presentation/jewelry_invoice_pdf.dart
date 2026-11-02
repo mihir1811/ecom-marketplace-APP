@@ -115,7 +115,7 @@ Future<Uint8List> buildJewelryInvoicePdf(MarketplaceInvoice inv) {
             ),
           ],
         ),
-        pw.SizedBox(height: 18),
+        pw.SizedBox(height: 12),
         pw.Row(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
@@ -141,7 +141,7 @@ Future<Uint8List> buildJewelryInvoicePdf(MarketplaceInvoice inv) {
             ),
           ],
         ),
-        pw.SizedBox(height: 16),
+        pw.SizedBox(height: 12),
         pw.TableHelper.fromTextArray(
           border: const pw.TableBorder(
             horizontalInside: pw.BorderSide(color: line, width: 0.5),
@@ -205,7 +205,7 @@ Future<Uint8List> buildJewelryInvoicePdf(MarketplaceInvoice inv) {
               ],
           ],
         ),
-        pw.SizedBox(height: 12),
+        pw.SizedBox(height: 8),
         pw.Row(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
@@ -244,11 +244,11 @@ Future<Uint8List> buildJewelryInvoicePdf(MarketplaceInvoice inv) {
           ],
         ),
         if (inv.totals.inWords != null) ...[
-          pw.SizedBox(height: 8),
+          pw.SizedBox(height: 6),
           pw.Text(_t(inv.totals.inWords!), style: body),
         ],
         if (inv.refunds.isNotEmpty) ...[
-          pw.SizedBox(height: 16),
+          pw.SizedBox(height: 12),
           pw.Text('REFUNDS', style: small),
           pw.SizedBox(height: 3),
           for (final r in inv.refunds)
@@ -265,7 +265,7 @@ Future<Uint8List> buildJewelryInvoicePdf(MarketplaceInvoice inv) {
           ),
         ],
         if (i.footerNote != null) ...[
-          pw.SizedBox(height: 20),
+          pw.SizedBox(height: 14),
           pw.Text(_t(i.footerNote!), style: small),
         ],
       ],

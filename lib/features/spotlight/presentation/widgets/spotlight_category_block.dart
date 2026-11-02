@@ -73,7 +73,7 @@ class _SpotlightCategoryBlockState extends State<SpotlightCategoryBlock> {
             visit: _visit,
             padding: EdgeInsets.only(
               top: widget.topSpacing,
-              bottom: widget.bottomSpacing + 6,
+              bottom: widget.bottomSpacing + 5,
             ),
           ),
       ],

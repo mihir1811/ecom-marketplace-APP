@@ -108,7 +108,7 @@ class _DiamondInsightStripState extends ConsumerState<DiamondInsightStrip>
     final canSelectAll = settled && total > 0 && picks < total;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: SizedBox(
         height: kDiamondInsightStripHeight,
         child: Column(
@@ -179,7 +179,7 @@ class _DiamondInsightStripState extends ConsumerState<DiamondInsightStrip>
     ];
     return [
       for (var i = 0; i < items.length; i++) ...[
-        if (i > 0) const SizedBox(width: 6),
+        if (i > 0) const SizedBox(width: 5),
         Expanded(
           child: _StatCard(
             child: FittedBox(
@@ -236,7 +236,7 @@ class _StatCard extends StatelessWidget {
     final p = LuxePalette.of(context);
     return Container(
       height: _kCardHeight,
-      padding: const EdgeInsets.symmetric(horizontal: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 5),
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: p.surface.withValues(alpha: 0.72),
@@ -436,7 +436,7 @@ class _DiamondAnalyticsLinkState extends ConsumerState<DiamondAnalyticsLink>
             customBorder: const StadiumBorder(),
             onTap: busy ? null : _open,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 9, 10, 9),
+              padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [

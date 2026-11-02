@@ -123,7 +123,7 @@ class _RecentPieceCardState extends ConsumerState<RecentPieceCard> {
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -157,7 +157,7 @@ class _RecentPieceCardState extends ConsumerState<RecentPieceCard> {
                           ),
                         ),
                         if (entry.viewedWhen.isNotEmpty) ...[
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 5),
                           Text(
                             entry.viewedWhen,
                             maxLines: 1,
@@ -187,7 +187,7 @@ class _RecentPieceCardState extends ConsumerState<RecentPieceCard> {
       semanticLabel: _semantics,
       borderRadius: BorderRadius.circular(AtelierRadius.lg),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: p.surface,
           borderRadius: BorderRadius.circular(AtelierRadius.lg),
@@ -214,7 +214,7 @@ class _RecentPieceCardState extends ConsumerState<RecentPieceCard> {
                 ),
               ),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,9 +231,9 @@ class _RecentPieceCardState extends ConsumerState<RecentPieceCard> {
                         ),
                       ),
                       if (availability != RecentAvailability.unknown) ...[
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Padding(
-                          padding: const EdgeInsets.only(top: 6),
+                          padding: const EdgeInsets.only(top: 5),
                           child: Tooltip(
                             message: availability.label(
                               context,
@@ -254,7 +254,7 @@ class _RecentPieceCardState extends ConsumerState<RecentPieceCard> {
                       style: AtelierType.caption(p.muted, size: 11.5),
                     ),
                   ],
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
@@ -269,7 +269,7 @@ class _RecentPieceCardState extends ConsumerState<RecentPieceCard> {
                         ),
                       ),
                       if (when.isNotEmpty) ...[
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Text(
                           when,
                           maxLines: 1,
@@ -281,7 +281,7 @@ class _RecentPieceCardState extends ConsumerState<RecentPieceCard> {
                 ],
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             _SaveButton(entry: entry, onSurface: true),
           ],
         ),

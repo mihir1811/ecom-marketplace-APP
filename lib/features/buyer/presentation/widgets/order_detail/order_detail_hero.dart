@@ -81,16 +81,16 @@ class OrderDetailHero extends ConsumerWidget {
                 ),
                 Padding(
                   padding: EdgeInsets.fromLTRB(
-                    wide ? 28 : 20,
-                    wide ? 26 : 20,
-                    wide ? 28 : 20,
-                    wide ? 24 : 18,
+                    wide ? 18 : 14,
+                    wide ? 18 : 14,
+                    wide ? 18 : 14,
+                    wide ? 16 : 12,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Reveal(child: _OrderNumber(orderId: order.id)),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 10),
                       Reveal(
                         index: 1,
                         child: Padding(
@@ -98,7 +98,7 @@ class OrderDetailHero extends ConsumerWidget {
                           child: Row(
                             children: [
                               AtelierPulseDot(tone: tone, size: 8),
-                              const SizedBox(width: 10),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   lifecycle.headline,
@@ -114,7 +114,7 @@ class OrderDetailHero extends ConsumerWidget {
                         ),
                       ),
                       if (lifecycle.message != null) ...[
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         Reveal(
                           index: 2,
                           child: Padding(
@@ -126,7 +126,7 @@ class OrderDetailHero extends ConsumerWidget {
                           ),
                         ),
                       ],
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 14),
                       Reveal(
                         index: 3,
                         child: Row(
@@ -195,7 +195,7 @@ class OrderDetailHero extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 12),
                       Reveal(
                         index: 4,
                         child: Container(
@@ -203,12 +203,12 @@ class OrderDetailHero extends ConsumerWidget {
                           color: p.onOnyx.withValues(alpha: 0.1),
                         ),
                       ),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 10),
                       Reveal(
                         index: 5,
                         child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
+                          spacing: 6,
+                          runSpacing: 6,
                           children: [
                             _HeroChip(
                               icon: Icons.local_shipping_outlined,
@@ -270,12 +270,12 @@ class _OrderNumber extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text('ORDER', style: AtelierType.overline(p.gold)),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Text(
             maisonShortId(orderId),
             style: AtelierType.figure(p.onOnyx, size: 13),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           Icon(Icons.copy_rounded, size: 13, color: soft),
         ],
       ),
@@ -302,7 +302,7 @@ class _HeroChip extends StatelessWidget {
       semanticLabel: label,
       borderRadius: BorderRadius.circular(AtelierRadius.pill),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: p.onOnyx.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(AtelierRadius.pill),
@@ -312,7 +312,7 @@ class _HeroChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 15, color: p.gold),
-            const SizedBox(width: 7),
+            const SizedBox(width: 6),
             Text(label, style: AtelierType.label(p.onOnyx, size: 12.5)),
           ],
         ),

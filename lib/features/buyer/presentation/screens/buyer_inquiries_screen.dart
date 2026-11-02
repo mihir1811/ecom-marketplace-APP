@@ -131,7 +131,7 @@ class _BuyerInquiriesScreenState extends ConsumerState<BuyerInquiriesScreen> {
                 parent: BouncingScrollPhysics(),
               ),
               slivers: [
-                const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                const SliverToBoxAdapter(child: SizedBox(height: 6)),
                 MaisonPinnedBar(
                   height: 178,
                   gutter: gutter,
@@ -144,7 +144,7 @@ class _BuyerInquiriesScreenState extends ConsumerState<BuyerInquiriesScreen> {
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
                           itemCount: InquiryCategory.values.length,
-                          separatorBuilder: (_, _) => const SizedBox(width: 8),
+                          separatorBuilder: (_, _) => const SizedBox(width: 6),
                           itemBuilder: (context, index) {
                             final c = InquiryCategory.values[index];
                             return AtelierChoiceChip(
@@ -159,7 +159,7 @@ class _BuyerInquiriesScreenState extends ConsumerState<BuyerInquiriesScreen> {
                           },
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
                       AtelierSegmented<_Reply>(
                         dense: true,
                         segments: [
@@ -173,7 +173,7 @@ class _BuyerInquiriesScreenState extends ConsumerState<BuyerInquiriesScreen> {
                         selected: _reply,
                         onChanged: (r) => setState(() => _reply = r),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
                       MaisonSearchRow(
                         controller: _search,
                         hint: 'Search your inquiries',
@@ -192,7 +192,7 @@ class _BuyerInquiriesScreenState extends ConsumerState<BuyerInquiriesScreen> {
                   visible: state.isLoading && items.isNotEmpty,
                 ),
                 SliverPadding(
-                  padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 32),
+                  padding: EdgeInsets.fromLTRB(gutter, 5, gutter, 20),
                   sliver: _body(context, state, visible),
                 ),
               ],
@@ -256,7 +256,7 @@ class _BuyerInquiriesScreenState extends ConsumerState<BuyerInquiriesScreen> {
     final rows = <Widget>[
       for (var i = 0; i < visible.length; i++)
         Padding(
-          padding: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.only(bottom: 10),
           child: Reveal(
             key: ValueKey(visible[i].id),
             index: i < 8 ? i : 0,
@@ -304,7 +304,7 @@ class _InquiryCard extends StatelessWidget {
           '/buyer/inquiries/${inquiry.category.name}/${inquiry.id}',
         ),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
+          padding: const EdgeInsets.fromLTRB(12, 12, 10, 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -314,7 +314,7 @@ class _InquiryCard extends StatelessWidget {
                     icon: _categoryIcon(inquiry.category),
                     tone: AtelierTone.neutral,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -333,7 +333,7 @@ class _InquiryCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   AtelierPill(
                     label: replied ? 'Replied' : 'Awaiting reply',
                     tone: tone,
@@ -343,14 +343,14 @@ class _InquiryCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 10),
               Text(
                 inquiry.summary,
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 style: AtelierType.body(p.ink, size: 14),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   Text(

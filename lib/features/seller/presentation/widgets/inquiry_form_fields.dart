@@ -30,7 +30,7 @@ InputDecoration inquiryInputDecoration(BuildContext context, [String? hint]) {
     focusedBorder: border(p.gold, 1.4),
     errorBorder: border(p.ruby),
     focusedErrorBorder: border(p.ruby, 1.4),
-    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
   );
 }
 
@@ -197,7 +197,7 @@ class InquirySectionCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: AtelierSpace.s16),
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 6),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 5),
       decoration: BoxDecoration(
         color: p.surface,
         borderRadius: BorderRadius.circular(AtelierRadius.lg),
@@ -280,7 +280,7 @@ class InquiryTextField extends StatelessWidget {
         onChanged: onChanged,
         style: inquiryInputStyle(context),
         cursorColor: context.atelier.gold,
-        scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
+        scrollPadding: const EdgeInsets.fromLTRB(14, 14, 14, 80),
         decoration: inquiryInputDecoration(context, placeholder),
       ),
     );
@@ -460,7 +460,7 @@ class _InquiryDropdownFieldState extends State<InquiryDropdownField> {
               onChanged: widget.onChanged,
               style: inquiryInputStyle(context),
               cursorColor: p.gold,
-              scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
+              scrollPadding: const EdgeInsets.fromLTRB(14, 14, 14, 80),
               decoration: inquiryInputDecoration(
                 context,
                 'Specify ${widget.label}',
@@ -517,8 +517,8 @@ class InquirySegmentedField extends StatelessWidget {
                     duration: AtelierMotion.base,
                     curve: AtelierMotion.emphasized,
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 8,
+                      horizontal: 6,
+                      vertical: 6,
                     ),
                     decoration: BoxDecoration(
                       color: value == option.value ? thumb : null,
@@ -581,7 +581,7 @@ class InquiryCheckboxField extends StatelessWidget {
           child: AnimatedContainer(
             duration: AtelierMotion.base,
             curve: AtelierMotion.emphasized,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             decoration: BoxDecoration(
               color: value ? p.goldSoft : _fieldFill(p),
               borderRadius: BorderRadius.circular(AtelierRadius.sm),
@@ -706,7 +706,7 @@ class InquiryUploadTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(AtelierRadius.sm),
         child: Container(
           constraints: const BoxConstraints(minHeight: 58),
-          padding: const EdgeInsets.fromLTRB(10, 10, 8, 10),
+          padding: const EdgeInsets.fromLTRB(8, 8, 6, 8),
           decoration: BoxDecoration(
             color: active ? p.goldSoft : _fieldFill(p),
             borderRadius: BorderRadius.circular(AtelierRadius.sm),
@@ -752,7 +752,7 @@ class InquiryUploadTile extends StatelessWidget {
               ),
               if (trailing != null)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
                   child: Text(
                     trailing!,
                     style: AtelierType.figure(p.muted, size: 12),
@@ -894,9 +894,9 @@ class InquiryImagePickerField extends StatelessWidget {
               height: 94,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.only(top: 6, right: 6),
+                padding: const EdgeInsets.only(top: 5, right: 5),
                 itemCount: images.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 10),
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
                 itemBuilder: (context, index) {
                   return Stack(
                     clipBehavior: Clip.none,
@@ -1084,14 +1084,14 @@ class InquiryImageGallery extends StatelessWidget {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: images.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 8),
+            separatorBuilder: (_, _) => const SizedBox(width: 6),
             itemBuilder: (context, index) {
               return GestureDetector(
                 onTap: () {
                   showAppDialog<void>(
                     context: context,
                     builder: (ctx) => Dialog(
-                      insetPadding: const EdgeInsets.all(24),
+                      insetPadding: const EdgeInsets.all(16),
                       child: InteractiveViewer(
                         child: Image.memory(images[index], fit: BoxFit.contain),
                       ),

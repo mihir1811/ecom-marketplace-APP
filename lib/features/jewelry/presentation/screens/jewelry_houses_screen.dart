@@ -90,10 +90,10 @@ class _JewelryHousesScreenState extends ConsumerState<JewelryHousesScreen> {
                   ),
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(
-                      12,
-                      MediaQuery.paddingOf(context).top + 8,
-                      12,
                       8,
+                      MediaQuery.paddingOf(context).top + 8,
+                      8,
+                      6,
                     ),
                     child: Row(
                       children: [
@@ -106,7 +106,7 @@ class _JewelryHousesScreenState extends ConsumerState<JewelryHousesScreen> {
                           size: 42,
                           onPressed: () => context.goBack(),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             context.tr(JewelryFlowL10n.allHouses),
@@ -188,9 +188,9 @@ class _JewelryHousesScreenState extends ConsumerState<JewelryHousesScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -207,7 +207,7 @@ class _JewelryHousesScreenState extends ConsumerState<JewelryHousesScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               JewelryStageChipRow(
                 children: [
                   for (final sort in _HouseSort.values)
@@ -224,15 +224,15 @@ class _JewelryHousesScreenState extends ConsumerState<JewelryHousesScreen> {
                 ],
               ),
               if (cities.length > 1 || breakupApplies) ...[
-                const SizedBox(height: 18),
+                const SizedBox(height: 12),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
                   child: Text(
                     context.tr(JewelryFlowL10n.filterBy).toUpperCase(),
                     style: LuxeType.eyebrow(LuxeStage.gold),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 JewelryStageChipRow(
                   children: [
                     if (filtering)
@@ -262,7 +262,7 @@ class _JewelryHousesScreenState extends ConsumerState<JewelryHousesScreen> {
                   ],
                 ),
               ],
-              const SizedBox(height: 18),
+              const SizedBox(height: 12),
             ],
           ),
         ),
@@ -278,14 +278,14 @@ class _JewelryHousesScreenState extends ConsumerState<JewelryHousesScreen> {
         else
           SliverPadding(
             padding: EdgeInsets.fromLTRB(
-              16,
+              12,
               0,
-              16,
+              12,
               MediaQuery.paddingOf(context).bottom + 32,
             ),
             sliver: SliverList.separated(
               itemCount: visible.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
+              separatorBuilder: (_, _) => const SizedBox(height: 8),
               itemBuilder: (context, i) => JewelryHouseRow(
                 key: ValueKey(visible[i].id),
                 house: visible[i],
@@ -314,19 +314,19 @@ class _ListSkeleton extends StatelessWidget {
 
     final skeleton = ListView(
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 12),
       children: [
         Row(
           children: [
             for (var i = 0; i < 3; i++) ...[
-              if (i > 0) const SizedBox(width: 8),
+              if (i > 0) const SizedBox(width: 6),
               block(92, 36, 18),
             ],
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
         for (var i = 0; i < 6; i++) ...[
-          if (i > 0) const SizedBox(height: 10),
+          if (i > 0) const SizedBox(height: 8),
           block(double.infinity, 76, LuxeSpace.radiusSmall + 4),
         ],
       ],

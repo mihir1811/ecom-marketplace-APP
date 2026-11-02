@@ -79,7 +79,7 @@ class _LuxeShapePickerState extends State<LuxeShapePicker> {
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
               itemCount: widget.shapes.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              separatorBuilder: (_, _) => const SizedBox(width: 6),
               itemBuilder: (context, i) => tile(widget.shapes[i], 84),
             ),
           ),
@@ -90,7 +90,7 @@ class _LuxeShapePickerState extends State<LuxeShapePicker> {
             iconBuilder: widget.iconBuilder,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 5),
         Align(
           alignment: Alignment.centerRight,
           child: TextButton.icon(
@@ -207,7 +207,7 @@ class _ShapeTile extends StatelessWidget {
           curve: LuxeMotion.settle,
           width: width,
           height: 104,
-          padding: const EdgeInsets.fromLTRB(6, 10, 6, 8),
+          padding: const EdgeInsets.fromLTRB(5, 8, 5, 6),
           decoration: BoxDecoration(
             color: selected ? p.surface : p.surfaceRaised,
             borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall + 2),
@@ -251,7 +251,7 @@ class _ShapeTile extends StatelessWidget {
                             ),
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   Text(
                     shape.label,
                     textAlign: TextAlign.center,

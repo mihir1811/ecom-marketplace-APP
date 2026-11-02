@@ -260,7 +260,7 @@ class _JewelryHouseCollectionScreenState
                     child: bar(floating: false),
                   ),
                 ),
-                const SliverToBoxAdapter(child: SizedBox(height: 6)),
+                const SliverToBoxAdapter(child: SizedBox(height: 5)),
                 ..._pieces(context, pieces),
                 SliverToBoxAdapter(
                   child: SizedBox(
@@ -427,7 +427,7 @@ class _CollectionHero extends StatelessWidget {
                   Row(
                     children: [
                       JewelryHouseLogo(house: house, radius: 13),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 8),
                       Flexible(
                         child: Text(
                           house.name.toUpperCase(),
@@ -438,14 +438,14 @@ class _CollectionHero extends StatelessWidget {
                       ),
                     ],
                   ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 10),
                 Text(
                   name,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: LuxeType.display(46, LuxeStage.ink),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Row(
                   children: [
                     Flexible(
@@ -457,9 +457,9 @@ class _CollectionHero extends StatelessWidget {
                       ),
                     ),
                     if (total != null) ...[
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
                       Container(width: 18, height: 0.8, color: LuxeStage.gold),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
                       Text(
                         context.tr(JewelryFlowL10n.results, {'count': total}),
                         style: LuxeType.label(LuxeStage.gold, size: 12),
@@ -526,7 +526,7 @@ class _CollectionBar extends StatelessWidget {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
                 itemCount: tabs.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 26),
                 itemBuilder: (context, i) {
@@ -608,7 +608,7 @@ class _StyleTab extends StatelessWidget {
                 style: LuxeType.display(17, selected ? p.ink : p.inkFaint),
                 child: Text(label, textAlign: TextAlign.center),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               AnimatedContainer(
                 duration: LuxeMotion.medium,
                 curve: LuxeMotion.settle,

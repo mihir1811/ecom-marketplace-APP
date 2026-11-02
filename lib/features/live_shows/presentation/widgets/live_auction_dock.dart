@@ -358,7 +358,7 @@ class _Idle extends StatelessWidget {
     final me = state.me;
     final browsable = state.upNext.isNotEmpty || state.results.isNotEmpty;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 10, 12, 8),
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 6),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -370,7 +370,7 @@ class _Idle extends StatelessWidget {
             child: Row(
               children: [
                 LiveThumb(url: next?.image ?? last?.image, size: 44),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -408,7 +408,7 @@ class _Idle extends StatelessWidget {
             ),
           ),
           if (signedIn && me != null && !me.isSeller) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             _AccountStrip(showId: showId, me: me),
           ],
         ],
@@ -465,7 +465,7 @@ class _Expanded extends ConsumerWidget {
     ].join(' · ');
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 6),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -487,7 +487,7 @@ class _Expanded extends ConsumerWidget {
                   stroke: 2.2,
                   child: LiveThumb(url: lot.image, size: 40, radius: 12),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -552,7 +552,7 @@ class _Expanded extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -578,7 +578,7 @@ class _Expanded extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           // One gesture: custom amount, or slide at the next minimum.
           _Controls(
             showId: showId,
@@ -592,7 +592,7 @@ class _Expanded extends ConsumerWidget {
             onBid: onBid,
           ),
           if (signedIn && me != null && !me.isSeller) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             _AccountStrip(showId: showId, me: me),
           ],
         ],
@@ -688,7 +688,7 @@ class _Controls extends ConsumerWidget {
           short: shortfall > 0,
           onTap: onEditAmount,
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 6),
         Expanded(
           child: LiveSlideToBid(
             key: ValueKey('slide-${lot.id}'),
@@ -797,7 +797,7 @@ class _Collapsed extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         onTap: onExpand,
         child: Padding(
-          padding: const EdgeInsets.all(7),
+          padding: const EdgeInsets.all(6),
           child: Row(
             children: [
               LiveCountdownRing(
@@ -809,7 +809,7 @@ class _Collapsed extends StatelessWidget {
                 stroke: 2,
                 child: LiveThumb(url: lot.image, size: 34, radius: 10),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -859,9 +859,9 @@ class _Collapsed extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 5),
               LiveCountdown(endsAt: lot.endsAt, serverNow: state.serverNow),
-              const SizedBox(width: 6),
+              const SizedBox(width: 5),
               // Opens the full bar: a bid is always confirmed by sliding.
               if (canBid)
                 Flexible(
@@ -870,8 +870,8 @@ class _Collapsed extends StatelessWidget {
                     semanticLabel: 'Bid ${liveInr(amount)}',
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 13,
-                        vertical: 10,
+                        horizontal: 10,
+                        vertical: 8,
                       ),
                       decoration: BoxDecoration(
                         gradient: LiveStage.champagneGradient,
@@ -998,11 +998,11 @@ class _StripHalf extends StatelessWidget {
       semanticLabel: semanticLabel,
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Row(
           children: [
             Icon(icon, size: 14, color: warn ? accent : LiveStage.inkFaint),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             Expanded(
               child: Text(
                 text,
@@ -1044,7 +1044,7 @@ class _Banner extends StatelessWidget {
     final still = MediaQuery.disableAnimationsOf(context);
     Widget banner = Container(
       height: 52,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: color.withValues(alpha: strong ? 0.12 : 0.07),
         borderRadius: BorderRadius.circular(999),
@@ -1054,7 +1054,7 @@ class _Banner extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(icon, size: 18, color: color),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Flexible(
             child: Text(
               text,

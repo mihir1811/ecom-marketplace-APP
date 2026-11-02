@@ -102,7 +102,7 @@ class LuxePurchaseBar extends ConsumerWidget {
         !state.showOffer || MediaQuery.sizeOf(context).width >= 440;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
       decoration: BoxDecoration(
         color: p.surface,
         border: Border(top: BorderSide(color: p.hairline, width: 0.6)),
@@ -156,7 +156,7 @@ class LuxePurchaseBar extends ConsumerWidget {
               ),
             ),
           if (state.showOffer) ...[
-            if (showPrice) const SizedBox(width: 8),
+            if (showPrice) const SizedBox(width: 6),
             Expanded(
               flex: 4,
               child: OfferCountdown(
@@ -199,7 +199,7 @@ class LuxePurchaseBar extends ConsumerWidget {
               ),
             ),
           ],
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           Expanded(
             flex: 5,
             child: LuxeButton(
@@ -296,7 +296,7 @@ class _OfferFormState extends State<_OfferForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           TextFormField(
             controller: _amount,
             autofocus: true,
@@ -326,7 +326,7 @@ class _OfferFormState extends State<_OfferForm> {
             },
             onFieldSubmitted: (_) => _submit(),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           TextFormField(
             controller: _message,
             maxLines: 3,
@@ -336,13 +336,13 @@ class _OfferFormState extends State<_OfferForm> {
             ),
           ),
           if (widget.attemptsNote != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text(
               widget.attemptsNote!,
               style: LuxeType.label(p.inkMuted, size: 12),
             ),
           ],
-          const SizedBox(height: 22),
+          const SizedBox(height: 14),
           LuxeButton(
             label: context.tr(CatalogL10n.submitOffer),
             expand: true,

@@ -147,7 +147,7 @@ class _BuyerRefundsScreenState extends ConsumerState<BuyerRefundsScreen> {
             ),
             slivers: [
               SliverPadding(
-                padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 18),
+                padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 12),
                 sliver: SliverToBoxAdapter(
                   child: MaisonCentered(
                     child: Column(
@@ -182,7 +182,7 @@ class _BuyerRefundsScreenState extends ConsumerState<BuyerRefundsScreen> {
                       selected: _filter,
                       onChanged: _setFilter,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     MaisonSearchRow(
                       controller: _search,
                       hint: 'Search seller, order or reason',
@@ -198,7 +198,7 @@ class _BuyerRefundsScreenState extends ConsumerState<BuyerRefundsScreen> {
                 visible: state.isLoading && items.isNotEmpty,
               ),
               SliverPadding(
-                padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 32),
+                padding: EdgeInsets.fromLTRB(gutter, 5, gutter, 20),
                 sliver: _body(context, state, visible),
               ),
             ],
@@ -271,7 +271,7 @@ class _BuyerRefundsScreenState extends ConsumerState<BuyerRefundsScreen> {
       }
       rows.add(
         Padding(
-          padding: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.only(bottom: 10),
           child: Reveal(
             key: ValueKey(refund.id),
             index: i < 8 ? i : 0,

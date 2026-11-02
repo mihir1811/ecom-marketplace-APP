@@ -259,7 +259,7 @@ class _RuleChip extends StatelessWidget {
     return AnimatedContainer(
       duration: AuthMotion.base,
       curve: AuthMotion.ease,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
         color: met ? p.successSoft : Colors.transparent,
         borderRadius: BorderRadius.circular(AuthSpace.rPill),
@@ -488,7 +488,7 @@ class _Chip<T> extends StatelessWidget {
           duration: AuthMotion.base,
           curve: AuthMotion.ease,
           constraints: const BoxConstraints(minHeight: 44),
-          padding: const EdgeInsets.symmetric(horizontal: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           decoration: BoxDecoration(
             color: selected ? p.accentSoft : p.surface,
             borderRadius: BorderRadius.circular(AuthSpace.rPill),
@@ -590,7 +590,7 @@ class AuthCheckbox extends StatelessWidget {
             const SizedBox(width: AuthSpace.s4),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(top: 11),
+                padding: const EdgeInsets.only(top: 8),
                 child: child,
               ),
             ),

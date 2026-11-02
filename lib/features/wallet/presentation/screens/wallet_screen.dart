@@ -62,7 +62,7 @@ class _WalletBodyState extends ConsumerState<WalletScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SkeletonBox(height: 130, radius: AtelierRadius.lg),
-          SizedBox(height: 20),
+          SizedBox(height: 14),
           AtelierSkeletonList(count: 4, height: 72),
         ],
       ),
@@ -157,7 +157,7 @@ class _WalletBodyState extends ConsumerState<WalletScreen> {
           physics: const AlwaysScrollableScrollPhysics(
             parent: BouncingScrollPhysics(),
           ),
-          padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 40),
+          padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 40),
           child: MaisonCentered(maxWidth: 1200, child: content),
         ),
       ),

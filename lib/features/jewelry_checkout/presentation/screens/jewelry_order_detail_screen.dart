@@ -64,10 +64,10 @@ class JewelryOrderDetailScreen extends ConsumerWidget {
       body: orderAsync.when(
         skipLoadingOnRefresh: true,
         loading: () => ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           children: const [
             LuxeSkeleton(height: 120, radius: LuxeSpace.radius),
-            SizedBox(height: 12),
+            SizedBox(height: 8),
             LuxeSkeleton(height: 220, radius: LuxeSpace.radius),
           ],
         ),
@@ -97,26 +97,26 @@ class JewelryOrderDetailScreen extends ConsumerWidget {
           color: p.accent,
           onRefresh: () => ref.refresh(jewelryOrderProvider(orderId).future),
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+            padding: const EdgeInsets.fromLTRB(12, 6, 12, 20),
             children: [
               _Header(order: order),
               if (order.isPendingPayment) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 _PayNow(order: order),
               ],
               for (final shipment in order.shipments) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 _ShipmentCard(shipment: shipment),
               ],
-              const SizedBox(height: 20),
+              const SizedBox(height: 14),
               Text(
                 context.tr(JewelryMarketL10n.pieces),
                 style: LuxeType.display(22, p.ink),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               for (final item in order.items)
                 _ItemCard(order: order, item: item),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               _Totals(order: order),
             ],
           ),
@@ -135,7 +135,7 @@ class _Card extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: p.surface,
         borderRadius: BorderRadius.circular(LuxeSpace.radius),
@@ -169,7 +169,7 @@ class _Header extends StatelessWidget {
               JewelryOrderStatusPill(order: order),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             context.tr(JewelryMarketL10n.placedOn, {
               'date': dateTimeLabel(context, order.createdAt),
@@ -227,7 +227,7 @@ class _PayNow extends ConsumerWidget {
           Row(
             children: [
               Icon(Icons.schedule_rounded, color: p.caution, size: 18),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   context.tr(JewelryMarketL10n.paymentPendingBody),
@@ -236,7 +236,7 @@ class _PayNow extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
@@ -250,7 +250,7 @@ class _PayNow extends ConsumerWidget {
                       : () => ref.invalidate(jewelryOrderProvider(order.id)),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: LuxeButton(
                   label: context.tr(JewelryMarketL10n.payNow, {
@@ -295,7 +295,7 @@ class _ShipmentCard extends StatelessWidget {
           Row(
             children: [
               Icon(Icons.storefront_outlined, size: 18, color: p.accent),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(s.shopName, style: LuxeType.label(p.ink, size: 15)),
               ),
@@ -309,7 +309,7 @@ class _ShipmentCard extends StatelessWidget {
             ],
           ),
           if (!cancelled && reached >= 0) ...[
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
@@ -321,7 +321,7 @@ class _ShipmentCard extends StatelessWidget {
             ),
           ],
           if (s.expectedDeliveryAt != null) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Text(
               context.tr(JewelryMarketL10n.expectedBy, {
                 'date': calendarDateLabel(context, s.expectedDeliveryAt),
@@ -331,7 +331,7 @@ class _ShipmentCard extends StatelessWidget {
           ],
           if (courier && (s.courierName != null || s.trackingNumber != null))
             Padding(
-              padding: const EdgeInsets.only(top: 6),
+              padding: const EdgeInsets.only(top: 5),
               child: Text(
                 [?s.courierName, ?s.trackingNumber].join(' · '),
                 style: LuxeType.label(p.ink, size: 13),
@@ -339,7 +339,7 @@ class _ShipmentCard extends StatelessWidget {
             ),
           if (s.shippingMethod == 'SELLER_DELIVERY')
             Padding(
-              padding: const EdgeInsets.only(top: 6),
+              padding: const EdgeInsets.only(top: 5),
               child: Text(
                 context.tr(JewelryMarketL10n.sellerDelivers),
                 style: LuxeType.body(p.inkMuted, size: 13),
@@ -347,10 +347,10 @@ class _ShipmentCard extends StatelessWidget {
             ),
           if ((courier && trackingUrl != null && trackingUrl.hasScheme) ||
               s.sellerPhone != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: 6,
+              runSpacing: 6,
               children: [
                 if (courier && trackingUrl != null && trackingUrl.hasScheme)
                   OutlinedButton.icon(
@@ -373,9 +373,9 @@ class _ShipmentCard extends StatelessWidget {
             ),
           ],
           if (s.updates.isNotEmpty) ...[
-            const SizedBox(height: 14),
-            Divider(height: 1, color: p.hairline),
             const SizedBox(height: 10),
+            Divider(height: 1, color: p.hairline),
+            const SizedBox(height: 8),
             for (final u in s.updates) _UpdateRow(update: u),
           ],
         ],
@@ -394,14 +394,14 @@ class _UpdateRow extends StatelessWidget {
     final p = LuxePalette.of(context);
     final u = update;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             width: 8,
             height: 8,
-            margin: const EdgeInsets.only(top: 6, right: 10),
+            margin: const EdgeInsets.only(top: 5, right: 8),
             decoration: BoxDecoration(shape: BoxShape.circle, color: p.accent),
           ),
           Expanded(
@@ -417,9 +417,9 @@ class _UpdateRow extends StatelessWidget {
                 if (u.location != null)
                   Text(u.location!, style: LuxeType.body(p.inkFaint, size: 12)),
                 if (u.imageUrls.isNotEmpty) ...[
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   Wrap(
-                    spacing: 6,
+                    spacing: 5,
                     children: [
                       for (final url in u.imageUrls.take(4))
                         ClipRRect(
@@ -502,8 +502,8 @@ class _ItemCard extends ConsumerWidget {
       _ => null,
     };
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: p.surface,
         borderRadius: BorderRadius.circular(LuxeSpace.radius),
@@ -532,7 +532,7 @@ class _ItemCard extends ConsumerWidget {
                         : AppNetworkImage(url: i.imageUrl!, memCacheWidth: 216),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -557,7 +557,7 @@ class _ItemCard extends ConsumerWidget {
                           custom,
                           style: LuxeType.body(p.inkMuted, size: 12.5),
                         ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 5),
                       Row(
                         children: [
                           Expanded(
@@ -579,7 +579,7 @@ class _ItemCard extends ConsumerWidget {
             ),
           ),
           if (refund != null && i.refundAmount != null) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Text(
               context.tr(refund, {'amount': rupees(i.refundAmount!)}),
               style: LuxeType.label(
@@ -589,7 +589,7 @@ class _ItemCard extends ConsumerWidget {
             ),
           ],
           if (i.canCancel) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
@@ -658,7 +658,7 @@ class _CancelFormState extends State<_CancelForm> {
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         TextField(
           controller: _note,
           maxLength: 300,
@@ -668,7 +668,7 @@ class _CancelFormState extends State<_CancelForm> {
             labelText: context.tr(CatalogL10n.messageOptional),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         LuxeButton(
           label: context.tr(JewelryMarketL10n.cancelPiece),
           expand: true,
@@ -739,7 +739,7 @@ class _Totals extends StatelessWidget {
               tone: p.positive,
             ),
           if (order.canShowInvoice) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             OutlinedButton.icon(
               onPressed: () =>
                   context.push(AppRouteNames.jewelryOrderInvoicePath(order.id)),
@@ -754,18 +754,18 @@ class _Totals extends StatelessWidget {
             ),
           ],
           if (a != null) ...[
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             Text(
               context.tr(JewelryMarketL10n.deliverTo).toUpperCase(),
               style: LuxeType.eyebrow(p.inkMuted),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 5),
             Text(a.fullName, style: LuxeType.label(p.ink, size: 14)),
             Text(a.summaryLine, style: LuxeType.body(p.inkMuted, size: 13)),
             Text(a.phone, style: LuxeType.body(p.inkMuted, size: 13)),
           ],
           if (order.buyerNote != null) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Text(
               '“${order.buyerNote!}”',
               style: LuxeType.body(p.inkMuted, size: 13),

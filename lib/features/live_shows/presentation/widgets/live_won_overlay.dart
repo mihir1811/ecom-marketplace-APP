@@ -59,7 +59,7 @@ class LiveWonOverlay extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         hero,
-        const SizedBox(height: 26),
+        const SizedBox(height: 18),
         enter(
           Text(
             'SOLD TO YOU',
@@ -67,9 +67,9 @@ class LiveWonOverlay extends StatelessWidget {
           ),
           0,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         enter(Text("It's yours.", style: LiveType.display(52)), 1),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         enter(
           Text(
             lot.title,
@@ -80,7 +80,7 @@ class LiveWonOverlay extends StatelessWidget {
           ),
           2,
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 5),
         enter(
           ShaderMask(
             blendMode: BlendMode.srcIn,
@@ -92,7 +92,7 @@ class LiveWonOverlay extends StatelessWidget {
           ),
           3,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         enter(
           Text(
             'Paid from your wallet. The seller ships it to your delivery address.',
@@ -101,7 +101,7 @@ class LiveWonOverlay extends StatelessWidget {
           ),
           4,
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 18),
         enter(
           AnimatedSwitcher(
             duration: LiveMotion.base,
@@ -115,7 +115,7 @@ class LiveWonOverlay extends StatelessWidget {
           ),
           5,
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         enter(
           LiveButton(
             label: 'Keep watching',
@@ -158,7 +158,7 @@ class LiveWonOverlay extends StatelessWidget {
               SafeArea(
                 child: Center(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: GestureDetector(onTap: () {}, child: content),
                   ),
                 ),

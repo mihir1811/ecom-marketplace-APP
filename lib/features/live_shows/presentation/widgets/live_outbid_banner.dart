@@ -24,7 +24,7 @@ class LiveOutbidBanner extends StatelessWidget {
     return Semantics(
       liveRegion: true,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
+        padding: const EdgeInsets.fromLTRB(8, 5, 8, 0),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
           child: Container(
@@ -39,7 +39,7 @@ class LiveOutbidBanner extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 12, 6, 12),
+                  padding: const EdgeInsets.fromLTRB(10, 8, 5, 8),
                   child: Row(
                     children: [
                       Container(
@@ -55,7 +55,7 @@ class LiveOutbidBanner extends StatelessWidget {
                           size: 20,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

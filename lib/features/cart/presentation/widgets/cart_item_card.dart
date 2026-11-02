@@ -108,7 +108,7 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
         child: InkWell(
           onTap: _opening ? null : _openProduct,
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(8),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -117,7 +117,7 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                   opening: _opening,
                   dimmed: !available,
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,7 +150,7 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                             height: 34,
                             child: _removing
                                 ? Padding(
-                                    padding: const EdgeInsets.all(9),
+                                    padding: const EdgeInsets.all(8),
                                     child: CircularProgressIndicator(
                                       strokeWidth: 1.6,
                                       color: p.inkMuted,
@@ -193,7 +193,7 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                         ),
                       ],
                       if (item.isAuctionWin && item.auctionPayBy != null) ...[
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 5),
                         Row(
                           children: [
                             Icon(
@@ -215,10 +215,10 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                         ),
                       ],
                       if (!available) ...[
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
+                            horizontal: 6,
                             vertical: 3,
                           ),
                           decoration: ShapeDecoration(
@@ -231,7 +231,7 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                           ),
                         ),
                       ],
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [

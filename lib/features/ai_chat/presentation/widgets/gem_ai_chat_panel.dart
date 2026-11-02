@@ -110,7 +110,7 @@ class _GemAiChatPanelState extends ConsumerState<GemAiChatPanel> {
         child: AnimatedPadding(
           duration: const Duration(milliseconds: 160),
           curve: Curves.easeOut,
-          padding: EdgeInsets.fromLTRB(10, 10, 10, bottomGap),
+          padding: EdgeInsets.fromLTRB(8, 8, 8, bottomGap),
           child: Container(
             width: panelWidth,
             height: panelHeight,
@@ -277,7 +277,7 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+      padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: p.hairline)),
       ),
@@ -296,7 +296,7 @@ class _Header extends StatelessWidget {
             alignment: Alignment.center,
             child: const GemView(size: 34, spin: 0.6, tilt: 0.5),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -318,7 +318,7 @@ class _Header extends StatelessWidget {
                         color: p.positive,
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 5),
                     Flexible(
                       child: Text(
                         context.tr(ExperienceL10n.aiAdvisor),
@@ -337,7 +337,7 @@ class _Header extends StatelessWidget {
             isOpen: languageMenuOpen,
             onPressed: onToggleLanguageMenu,
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           LuxeIconButton(
             icon: Icons.history_rounded,
             tooltip: context.tr(ExperienceL10n.aiHistory),
@@ -345,14 +345,14 @@ class _Header extends StatelessWidget {
             size: 36,
             onPressed: onHistory,
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           LuxeIconButton(
             icon: Icons.edit_square,
             tooltip: context.tr(ExperienceL10n.aiNewChat),
             size: 36,
             onPressed: onNewChat,
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           LuxeIconButton(
             icon: Icons.close_rounded,
             tooltip: context.tr(ExperienceL10n.aiClose),
@@ -388,7 +388,7 @@ class _LanguagePill extends StatelessWidget {
           customBorder: const StadiumBorder(),
           onTap: onPressed,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(10, 7, 6, 7),
+            padding: const EdgeInsets.fromLTRB(8, 6, 5, 6),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -440,13 +440,13 @@ class _LanguageMenuPanel extends StatelessWidget {
               ),
             ],
           ),
-          padding: const EdgeInsets.all(6),
+          padding: const EdgeInsets.all(5),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 10, 6),
+                padding: const EdgeInsets.fromLTRB(8, 6, 8, 5),
                 child: Text(
                   context.tr(ExperienceL10n.aiLanguage).toUpperCase(),
                   style: LuxeType.eyebrow(p.inkFaint).copyWith(fontSize: 9.5),
@@ -461,8 +461,8 @@ class _LanguageMenuPanel extends StatelessWidget {
                     onTap: () => onSelect(l),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 11,
+                        horizontal: 8,
+                        vertical: 8,
                       ),
                       child: Row(
                         children: [
@@ -476,7 +476,7 @@ class _LanguageMenuPanel extends StatelessWidget {
                             l.apiValue.toUpperCase(),
                             style: LuxeType.label(p.inkFaint, size: 11),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           SizedBox(
                             width: 18,
                             child: l == language
@@ -516,8 +516,8 @@ class _ErrorBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 10, 12, 0),
-      padding: const EdgeInsets.fromLTRB(14, 6, 4, 6),
+      margin: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+      padding: const EdgeInsets.fromLTRB(10, 5, 4, 5),
       decoration: BoxDecoration(
         color: p.caution.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14),
@@ -526,7 +526,7 @@ class _ErrorBanner extends StatelessWidget {
       child: Row(
         children: [
           Icon(Icons.error_outline_rounded, color: p.caution, size: 18),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               message,
@@ -571,7 +571,7 @@ class _MessagesView extends StatelessWidget {
 
     return ListView.builder(
       controller: scrollController,
-      padding: const EdgeInsets.fromLTRB(14, 16, 14, 8),
+      padding: const EdgeInsets.fromLTRB(10, 12, 10, 6),
       itemCount: messages.length + (isSending ? 1 : 0),
       itemBuilder: (context, index) {
         if (index >= messages.length) return const _TypingBubble();
@@ -629,7 +629,7 @@ class _EmptyState extends StatelessWidget {
     final still = MediaQuery.disableAnimationsOf(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -652,7 +652,7 @@ class _EmptyState extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
           Center(
             child: Text(
               context.tr(ExperienceL10n.aiGreeting),
@@ -660,7 +660,7 @@ class _EmptyState extends StatelessWidget {
               style: LuxeType.display(28, p.ink),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Center(
             child: Text(
               context.tr(RemainingL10n.askForDiamondsMeleeGemstonesJewelleryOr),
@@ -668,16 +668,16 @@ class _EmptyState extends StatelessWidget {
               style: LuxeType.body(p.inkMuted, size: 13),
             ),
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: 14),
           Text(
             context.tr(ExperienceL10n.aiTryAsking).toUpperCase(),
             style: LuxeType.eyebrow(p.accent).copyWith(fontSize: 10),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           for (var i = 0; i < prompts.length; i++)
             _reveal(
               Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: 6),
                 child: _PromptTile(
                   icon: prompts[i].$1,
                   text: prompts[i].$2,
@@ -729,11 +729,11 @@ class _PromptTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+          padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
           child: Row(
             children: [
               Icon(icon, size: 18, color: p.accent),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(text, style: LuxeType.label(p.ink, size: 13.5)),
               ),
@@ -754,12 +754,12 @@ class _ConversationSkeleton extends StatelessWidget {
     Widget line(double w, {bool right = false}) => Align(
       alignment: right ? Alignment.centerRight : Alignment.centerLeft,
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.only(bottom: 10),
         child: LuxeSkeleton(width: w, height: 44, radius: 18),
       ),
     );
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       child: Column(
         children: [
           line(180, right: true),
@@ -783,8 +783,8 @@ class _TypingBubble extends StatelessWidget {
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: p.surfaceRaised,
           borderRadius: const BorderRadius.only(
@@ -798,7 +798,7 @@ class _TypingBubble extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             for (var i = 0; i < 3; i++) _dot(p.accent, i, still),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Text(
               context.tr(RemainingL10n.gemAiIsSearching),
               style: LuxeType.label(p.inkMuted, size: 12.5),
@@ -854,7 +854,7 @@ class _MessageBubble extends StatelessWidget {
     const r = Radius.circular(20);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Column(
         crossAxisAlignment: isUser
             ? CrossAxisAlignment.end
@@ -869,7 +869,7 @@ class _MessageBubble extends StatelessWidget {
                     : double.infinity,
               ),
               child: Container(
-                padding: const EdgeInsets.fromLTRB(15, 12, 15, 12),
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                 decoration: BoxDecoration(
                   color: isUser ? p.ink : p.surfaceRaised,
                   borderRadius: BorderRadius.only(
@@ -903,7 +903,7 @@ class _MessageBubble extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                     ],
                     SelectableText(
                       message.content,
@@ -952,7 +952,7 @@ class _HistoryView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(12, 12, 16, 8),
+          padding: const EdgeInsets.fromLTRB(8, 8, 12, 6),
           child: Row(
             children: [
               LuxeIconButton(
@@ -961,7 +961,7 @@ class _HistoryView extends StatelessWidget {
                 size: 36,
                 onPressed: onBack,
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -989,11 +989,11 @@ class _HistoryView extends StatelessWidget {
         Expanded(
           child: loading
               ? ListView(
-                  padding: const EdgeInsets.fromLTRB(14, 4, 14, 20),
+                  padding: const EdgeInsets.fromLTRB(10, 4, 10, 14),
                   children: [
                     for (var i = 0; i < 4; i++)
                       const Padding(
-                        padding: EdgeInsets.only(bottom: 10),
+                        padding: EdgeInsets.only(bottom: 8),
                         child: LuxeSkeleton(height: 86, radius: 18),
                       ),
                   ],
@@ -1005,9 +1005,9 @@ class _HistoryView extends StatelessWidget {
                   message: context.tr(RemainingL10n.savedChatsEmptyBody),
                 )
               : ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(14, 4, 14, 20),
+                  padding: const EdgeInsets.fromLTRB(10, 4, 10, 14),
                   itemCount: sessions.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 10),
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
                   itemBuilder: (context, index) => _HistorySessionCard(
                     session: sessions[index],
                     onOpen: onOpen,
@@ -1049,7 +1049,7 @@ class _HistorySessionCard extends StatelessWidget {
       child: InkWell(
         onTap: () => onOpen(session.sessionId),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+          padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
           child: Row(
             children: [
               Container(
@@ -1065,7 +1065,7 @@ class _HistorySessionCard extends StatelessWidget {
                   color: p.accent,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1083,7 +1083,7 @@ class _HistorySessionCard extends StatelessWidget {
                         if (session.messageCount > 0)
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 7,
+                              horizontal: 6,
                               vertical: 2,
                             ),
                             decoration: ShapeDecoration(
@@ -1105,7 +1105,7 @@ class _HistorySessionCard extends StatelessWidget {
                       style: LuxeType.body(p.inkMuted, size: 12.5),
                     ),
                     if (when != null) ...[
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 5),
                       Text(
                         when,
                         style: LuxeType.label(p.inkFaint, size: 11),
@@ -1179,7 +1179,7 @@ class _Composer extends StatelessWidget {
     );
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
       decoration: BoxDecoration(
         color: p.surface,
         border: Border(top: BorderSide(color: p.hairline)),
@@ -1190,9 +1190,9 @@ class _Composer extends StatelessWidget {
         children: [
           if (pendingImageName != null)
             Padding(
-              padding: const EdgeInsets.only(bottom: 8, left: 4),
+              padding: const EdgeInsets.only(bottom: 6, left: 4),
               child: Container(
-                padding: const EdgeInsets.fromLTRB(10, 4, 2, 4),
+                padding: const EdgeInsets.fromLTRB(8, 4, 2, 4),
                 decoration: ShapeDecoration(
                   color: p.accentSoft,
                   shape: const StadiumBorder(),
@@ -1201,7 +1201,7 @@ class _Composer extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.image_outlined, size: 15, color: p.accent),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 5),
                     ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 200),
                       child: Text(
@@ -1236,7 +1236,7 @@ class _Composer extends StatelessWidget {
                 size: 46,
                 onPressed: enabled ? onAttach : null,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Expanded(
                 child: TextField(
                   controller: controller,
@@ -1244,7 +1244,7 @@ class _Composer extends StatelessWidget {
                   minLines: 1,
                   maxLines: 4,
                   textInputAction: TextInputAction.send,
-                  scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
+                  scrollPadding: const EdgeInsets.fromLTRB(14, 14, 14, 80),
                   cursorColor: p.accent,
                   style: LuxeType.body(p.ink, size: 14.5),
                   onSubmitted: (_) {
@@ -1257,8 +1257,8 @@ class _Composer extends StatelessWidget {
                     fillColor: p.surfaceRaised,
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 13,
+                      horizontal: 12,
+                      vertical: 10,
                     ),
                     border: border(Colors.transparent),
                     enabledBorder: border(Colors.transparent),
@@ -1267,7 +1267,7 @@ class _Composer extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Semantics(
                 button: true,
                 label: context.tr(ExperienceL10n.aiSend),

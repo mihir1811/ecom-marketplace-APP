@@ -36,10 +36,10 @@ class JewelryOrdersScreen extends ConsumerWidget {
       appBar: LuxeTopBar(title: context.tr(JewelryMarketL10n.ordersTitle)),
       body: orders.when(
         loading: () => ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           children: const [
             LuxeSkeleton(height: 104, radius: LuxeSpace.radius),
-            SizedBox(height: 12),
+            SizedBox(height: 8),
             LuxeSkeleton(height: 104, radius: LuxeSpace.radius),
           ],
         ),
@@ -63,9 +63,9 @@ class JewelryOrdersScreen extends ConsumerWidget {
                 color: p.accent,
                 onRefresh: () => ref.refresh(jewelryOrdersProvider.future),
                 child: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  padding: const EdgeInsets.fromLTRB(12, 6, 12, 16),
                   itemCount: items.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
                   itemBuilder: (context, i) => _OrderCard(order: items[i]),
                 ),
               ),
@@ -89,7 +89,7 @@ class _OrderCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(LuxeSpace.radius),
       onTap: () => context.push(AppRouteNames.jewelryOrderDetailPath(order.id)),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: p.surface,
           borderRadius: BorderRadius.circular(LuxeSpace.radius),
@@ -109,7 +109,7 @@ class _OrderCard extends StatelessWidget {
                     : AppNetworkImage(url: image, memCacheWidth: 216),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,7 +125,7 @@ class _OrderCard extends StatelessWidget {
                       JewelryOrderStatusPill(order: order),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   Text(
                     more > 0
                         ? context.tr(JewelryMarketL10n.andMore, {
@@ -137,7 +137,7 @@ class _OrderCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: LuxeType.label(p.ink, size: 14),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   Row(
                     children: [
                       Expanded(

@@ -34,7 +34,7 @@ class FilterSectionHeader extends StatelessWidget {
           ),
         ),
         if (infoText != null) ...[
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           FilterInfoTooltip(message: infoText!, diagram: infoDiagram),
         ],
       ],

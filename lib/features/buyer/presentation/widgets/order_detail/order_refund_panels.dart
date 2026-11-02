@@ -130,10 +130,10 @@ class _RefundRequestDialogState extends State<_RefundRequestDialog> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text('QUICK REASONS', style: AtelierType.overline(p.muted)),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Wrap(
-            spacing: 6,
-            runSpacing: 6,
+            spacing: 5,
+            runSpacing: 5,
             children: [
               for (final q in _quick)
                 AtelierChoiceChip(
@@ -148,7 +148,7 @@ class _RefundRequestDialogState extends State<_RefundRequestDialog> {
                 ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           AtelierTextField(
             controller: _reason,
             label: context.tr(AccountCommerceL10n.reason),
@@ -159,7 +159,7 @@ class _RefundRequestDialogState extends State<_RefundRequestDialog> {
             onChanged: (_) => setState(() {}),
           ),
           if (reason.isEmpty) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 5),
             Text(
               context.tr(AccountCommerceL10n.refundReasonRequired),
               style: AtelierType.caption(p.muted, size: 11.5),
@@ -318,7 +318,7 @@ class _SellerRefundRow extends StatelessWidget {
     return Row(
       children: [
         AtelierMonogram(name: sellerName, size: 34),
-        const SizedBox(width: 12),
+        const SizedBox(width: 8),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -341,7 +341,7 @@ class _SellerRefundRow extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         if (current != null)
           AtelierPill(
             label: buyerRefundLabel(current.status),
@@ -391,7 +391,7 @@ class OrderRejectionPanel extends ConsumerWidget {
                 tone: AtelierTone.ruby,
                 size: 42,
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -409,14 +409,14 @@ class OrderRejectionPanel extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           for (final decision in rejected) ...[
             _RejectedSeller(
               order: order,
               decision: decision,
               refundsAsync: refundsAsync,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
           ],
           const AtelierHairline(vertical: 8),
           OrderFeedbackForm(orderId: order.id),
@@ -450,7 +450,7 @@ class _RejectedSeller extends ConsumerWidget {
     );
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: p.ruby.withValues(alpha: p.isDark ? 0.08 : 0.04),
         borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -462,7 +462,7 @@ class _RejectedSeller extends ConsumerWidget {
           Row(
             children: [
               AtelierMonogram(name: name, size: 30),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   '$name declined the order',
@@ -472,11 +472,11 @@ class _RejectedSeller extends ConsumerWidget {
             ],
           ),
           if (decision.reason != null) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             AtelierKeyValue(label: 'Reason', value: decision.reason!),
           ],
           if (decision.sellerNote != null) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               '“${decision.sellerNote}”',
               style: AtelierType.body(
@@ -485,7 +485,7 @@ class _RejectedSeller extends ConsumerWidget {
               ).copyWith(fontStyle: FontStyle.italic),
             ),
           ],
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           if (refunded)
             AtelierNotice(
               text: 'Refunded to your GemWorld wallet.',
@@ -552,7 +552,7 @@ class _RejectedSeller extends ConsumerWidget {
                       '${lastRejected.sellerNote}',
             tone: AtelierTone.ruby,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
         ],
         AtelierButton(
           label: 'Request refund',
@@ -651,12 +651,12 @@ class _OrderFeedbackFormState extends ConsumerState<OrderFeedbackForm> {
         children: [
           for (final f in submitted)
             Padding(
-              padding: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.only(bottom: 6),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(Icons.check_circle_rounded, size: 17, color: p.emerald),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -692,7 +692,7 @@ class _OrderFeedbackFormState extends ConsumerState<OrderFeedbackForm> {
               _error = null;
             }),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           AtelierTextField(
             controller: _controller,
             label: 'Message',
@@ -706,7 +706,7 @@ class _OrderFeedbackFormState extends ConsumerState<OrderFeedbackForm> {
               if (_error != null) setState(() => _error = null);
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerRight,
             child: AtelierButton(
@@ -730,7 +730,7 @@ class _OrderFeedbackFormState extends ConsumerState<OrderFeedbackForm> {
           'Tell us how this was handled. Our team reads every message.',
           style: AtelierType.caption(p.muted, size: 12),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         AnimatedSwitcher(duration: AtelierMotion.base, child: body),
       ],
     );
@@ -805,7 +805,7 @@ class StarPicker extends StatelessWidget {
               ),
             ),
           ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 6),
         Flexible(
           child: AnimatedSwitcher(
             duration: AtelierMotion.base,

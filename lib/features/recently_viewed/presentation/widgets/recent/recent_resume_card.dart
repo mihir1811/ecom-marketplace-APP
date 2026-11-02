@@ -84,7 +84,7 @@ class _RecentResumeCardState extends ConsumerState<RecentResumeCard> {
           child: Stack(
             children: [
               Padding(
-                padding: EdgeInsets.all(wide ? 16 : 12),
+                padding: EdgeInsets.all(wide ? 12 : 8),
                 child: Row(
                   children: [
                     ClipRRect(
@@ -130,7 +130,7 @@ class _RecentResumeCardState extends ConsumerState<RecentResumeCard> {
                             overflow: TextOverflow.ellipsis,
                             style: AtelierType.overline(p.gold),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 5),
                           Text(
                             entry.displayTitle,
                             maxLines: 2,
@@ -187,7 +187,7 @@ class _RecentResumeCardState extends ConsumerState<RecentResumeCard> {
                                   ],
                                 ),
                               ),
-                              const SizedBox(width: 10),
+                              const SizedBox(width: 8),
                               _ResumeArrow(wide: wide),
                             ],
                           ),

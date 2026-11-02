@@ -273,7 +273,7 @@ class _Face extends StatelessWidget {
                     key: ValueKey(count),
                     constraints: const BoxConstraints(minWidth: 20),
                     height: 20,
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 5),
                     alignment: Alignment.center,
                     decoration: ShapeDecoration(
                       color: over ? p.caution : p.accent,
@@ -432,8 +432,8 @@ class _HintPill extends StatelessWidget {
                 shadowColor: Colors.black.withValues(alpha: 0.3),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 9,
+                    horizontal: 10,
+                    vertical: 8,
                   ),
                   child: Text(
                     text,

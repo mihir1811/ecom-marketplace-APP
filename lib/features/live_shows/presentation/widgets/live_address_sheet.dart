@@ -28,7 +28,7 @@ Future<LiveAddressPick?> showLiveAddressPicker(
     builder: (context) {
       final still = MediaQuery.disableAnimationsOf(context);
       return SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
+        padding: const EdgeInsets.fromLTRB(12, 5, 12, 12),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -53,9 +53,9 @@ Future<LiveAddressPick?> showLiveAddressPicker(
                   return tile;
                 },
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
             ],
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             LiveButton(
               label: 'Add a new address',
               icon: Icons.add_location_alt_outlined,
@@ -92,7 +92,7 @@ class _AddressTile extends StatelessWidget {
         onTap: onTap,
         child: AnimatedContainer(
           duration: LiveMotion.quick,
-          padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+          padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             color: selected
@@ -125,7 +125,7 @@ class _AddressTile extends StatelessWidget {
                       )
                     : null,
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

@@ -151,7 +151,7 @@ class _ToggleBar extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color: AppColors.bg(context),
           borderRadius: BorderRadius.circular(AppSpacing.r8),
@@ -168,7 +168,7 @@ class _ToggleBar extends StatelessWidget {
                 fontSize: fontSize,
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             Icon(icon, color: AppColors.bronze, size: fontSize + 3),
           ],
         ),

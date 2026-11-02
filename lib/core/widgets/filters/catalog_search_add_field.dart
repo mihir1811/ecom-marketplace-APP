@@ -161,7 +161,7 @@ class _CatalogSearchAddFieldState extends State<CatalogSearchAddField> {
                       minWidth: 32,
                       minHeight: 32,
                     ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 6),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(4),
                     ),
@@ -300,7 +300,7 @@ class _GroupLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.only(bottom: 5),
       child: Text(
         text.toUpperCase(),
         style: AppTypography.caption.copyWith(

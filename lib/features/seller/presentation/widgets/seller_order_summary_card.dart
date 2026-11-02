@@ -58,7 +58,7 @@ class SellerOrderSummaryCard extends StatelessWidget {
                 decoration: BoxDecoration(gradient: p.goldGradient),
               ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -84,7 +84,7 @@ class SellerOrderSummaryCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
                       ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 220),
                         child: Column(
@@ -117,17 +117,17 @@ class SellerOrderSummaryCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 10),
                   SellerOrderCustomerBlock(
                     name: order.customerLabel,
                     email: order.customer?.email,
                     phone: order.customer?.phone,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
+                      horizontal: 8,
+                      vertical: 8,
                     ),
                     decoration: BoxDecoration(
                       color: p.sunken,
@@ -136,7 +136,7 @@ class SellerOrderSummaryCard extends StatelessWidget {
                     child: Row(
                       children: [
                         Icon(Icons.diamond_outlined, size: 15, color: p.gold),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             order.productSummary,
@@ -153,10 +153,10 @@ class SellerOrderSummaryCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
+                    spacing: 5,
+                    runSpacing: 5,
                     children: [
                       SellerOrderStatusBadge(order: order),
                       if ((order.paymentStatus ?? '').isNotEmpty)
@@ -179,7 +179,7 @@ class SellerOrderSummaryCard extends StatelessWidget {
                     ],
                   ),
                   if (order.status == SellerOrderStatus.accepted) ...[
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Pressable(
                       onTap: onTap,
                       semanticLabel: 'Next: update shipping',
@@ -190,7 +190,7 @@ class SellerOrderSummaryCard extends StatelessWidget {
                             size: 17,
                             color: p.gold,
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           Text(
                             'Next: update shipping',
                             style: AtelierType.label(p.gold, size: 13),
@@ -206,7 +206,7 @@ class SellerOrderSummaryCard extends StatelessWidget {
                     ),
                   ],
                   if (pending) ...[
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 10),
                     SellerOrderDecisionButtons(order: order, compact: true),
                   ],
                 ],

@@ -88,7 +88,7 @@ class BuyerAboutScreen extends StatelessWidget {
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),
         ),
-        padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 48),
+        padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 48),
         children: [
           MaisonCentered(
             maxWidth: 820,
@@ -100,7 +100,7 @@ class BuyerAboutScreen extends StatelessWidget {
                   cut: GemCut.oval,
                   look: GemLook.champagne,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 reveal(
                   Text(
                     context.tr(
@@ -109,7 +109,7 @@ class BuyerAboutScreen extends StatelessWidget {
                     style: AtelierType.body(p.inkSoft, size: 15.5),
                   ),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 18),
                 reveal(
                   MaisonGroupLabel(
                     label: context.tr(RemainingL10n.ourStory),
@@ -121,14 +121,14 @@ class BuyerAboutScreen extends StatelessWidget {
                     style: AtelierType.display(p.ink, size: wide ? 28 : 24),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 reveal(
                   Text(
                     context.tr(RemainingL10n.gemworldWasBuiltOnASimple),
                     style: AtelierType.body(p.inkSoft, size: 15),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 reveal(
                   MaisonGroupLabel(
                     label: context.tr(RemainingL10n.ourPromise),
@@ -140,7 +140,7 @@ class BuyerAboutScreen extends StatelessWidget {
                     style: AtelierType.display(p.ink, size: wide ? 28 : 24),
                   ),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 10),
                 for (final item in promises) ...[
                   reveal(
                     AtelierCard(
@@ -148,7 +148,7 @@ class BuyerAboutScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           AtelierIconBadge(icon: item.$1),
-                          const SizedBox(width: 14),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,9 +172,9 @@ class BuyerAboutScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                 ],
-                const SizedBox(height: 14),
+                const SizedBox(height: 10),
                 reveal(
                   MaisonGroupLabel(
                     label: context.tr(RemainingL10n.whatWeDo),
@@ -186,7 +186,7 @@ class BuyerAboutScreen extends StatelessWidget {
                     style: AtelierType.display(p.ink, size: wide ? 28 : 24),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 reveal(
                   Text(
                     context.tr(
@@ -195,18 +195,18 @@ class BuyerAboutScreen extends StatelessWidget {
                     style: AtelierType.body(p.inkSoft, size: 15),
                   ),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 10),
                 reveal(
                   Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                    spacing: 6,
+                    runSpacing: 6,
                     children: [
                       for (final label in categories)
                         AtelierPill(label: label, tone: AtelierTone.gold),
                     ],
                   ),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 18),
                 reveal(
                   MaisonGroupLabel(
                     label: context.tr(RemainingL10n.ourValues),
@@ -230,12 +230,12 @@ class BuyerAboutScreen extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     AtelierIconBadge(icon: v.$1),
-                                    const SizedBox(height: 12),
+                                    const SizedBox(height: 8),
                                     Text(
                                       v.$2,
                                       style: AtelierType.title(p.ink),
                                     ),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 6),
                                     Text(
                                       v.$3,
                                       style: AtelierType.body(
@@ -252,7 +252,7 @@ class BuyerAboutScreen extends StatelessWidget {
                     );
                   },
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 reveal(
                   AtelierCard(
                     child: Column(
@@ -263,7 +263,7 @@ class BuyerAboutScreen extends StatelessWidget {
                             const AtelierIconBadge(
                               icon: Icons.shopping_bag_outlined,
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 context.tr(RemainingL10n.forBuyers),
@@ -272,22 +272,22 @@ class BuyerAboutScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 10),
                         for (final bullet in buyerBullets)
                           Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.only(bottom: 6),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Padding(
-                                  padding: const EdgeInsets.only(top: 7),
+                                  padding: const EdgeInsets.only(top: 6),
                                   child: Icon(
                                     Icons.circle,
                                     size: 6,
                                     color: p.gold,
                                   ),
                                 ),
-                                const SizedBox(width: 10),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     bullet,
@@ -304,7 +304,7 @@ class BuyerAboutScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 reveal(
                   AtelierCard(
                     color: p.isDark ? p.surface : const Color(0xFF16140F),
@@ -319,7 +319,7 @@ class BuyerAboutScreen extends StatelessWidget {
                             size: 17,
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 8),
                         Text(
                           context.tr(RemainingL10n.highValueTradeDemandsMoreThan),
                           style: AtelierType.body(
@@ -333,7 +333,7 @@ class BuyerAboutScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 reveal(
                   AtelierCard(
                     child: Column(
@@ -343,7 +343,7 @@ class BuyerAboutScreen extends StatelessWidget {
                           context.tr(RemainingL10n.getInTouch),
                           style: AtelierType.title(p.ink),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         Text(
                           context.tr(
                             RemainingL10n
@@ -351,15 +351,15 @@ class BuyerAboutScreen extends StatelessWidget {
                           ),
                           style: AtelierType.body(p.inkSoft, size: 14),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         Text(
                           context.tr(RemainingL10n.supportGemworldCom),
                           style: AtelierType.label(p.gold),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                         Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
+                          spacing: 8,
+                          runSpacing: 8,
                           children: [
                             AtelierButton(
                               label: context.tr(RemainingL10n.helpCenter),
@@ -382,7 +382,7 @@ class BuyerAboutScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 12),
                 const MaisonListFooter(
                   loadingMore: false,
                   hasMore: false,

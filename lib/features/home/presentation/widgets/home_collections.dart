@@ -16,7 +16,7 @@ class HomeCollections extends StatelessWidget {
   /// Space above the heading.
   final double topSpacing;
 
-  static const _gap = 10.0;
+  static const _gap = 8.0;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,7 @@ class HomeCollections extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           HomeSectionHeading(title: context.tr(HomeL10n.collectionsTitle)),
-          const SizedBox(height: 26),
+          const SizedBox(height: 18),
           LayoutBuilder(
             builder: (context, constraints) {
               final w = constraints.maxWidth;

@@ -63,7 +63,7 @@ class ProductDetailActionBar extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             TextField(
               controller: messageCtrl,
               decoration: InputDecoration(

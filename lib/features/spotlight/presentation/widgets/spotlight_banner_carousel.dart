@@ -138,7 +138,7 @@ class _SpotlightBannerCarouselState
             ),
           ),
           if (banners.length > 1) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -257,7 +257,7 @@ class _BannerFace extends StatelessWidget {
                           ).copyWith(height: 1.1),
                         ),
                         if (subtitle != null && subtitle.isNotEmpty) ...[
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 5),
                           Text(
                             subtitle,
                             maxLines: tablet ? 2 : 1,
@@ -268,7 +268,7 @@ class _BannerFace extends StatelessWidget {
                             ),
                           ),
                         ],
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 8),
                         _ActionChip(label: actionLabel, onTap: onTap),
                       ],
                     ),
@@ -292,7 +292,7 @@ class _ActionChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: const ShapeDecoration(
           color: Colors.white,
           shape: StadiumBorder(),

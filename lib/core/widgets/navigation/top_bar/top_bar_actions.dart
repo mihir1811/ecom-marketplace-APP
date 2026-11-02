@@ -222,7 +222,7 @@ class TopBarActions extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         for (var i = 0; i < children.length; i++) ...[
-          if (i > 0 && look == TopBarActionLook.luxe) const SizedBox(width: 6),
+          if (i > 0 && look == TopBarActionLook.luxe) const SizedBox(width: 5),
           children[i],
         ],
       ],

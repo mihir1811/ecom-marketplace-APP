@@ -30,7 +30,7 @@ class SpotlightTag extends StatelessWidget {
       final blue = SpotlightColors.blue(context);
       return Container(
         // Fits the card's one-line meta row without changing its height.
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
         decoration: ShapeDecoration(
           color: blue.withValues(alpha: p.isDark ? 0.18 : 0.1),
           shape: StadiumBorder(side: BorderSide(color: blue)),
@@ -50,7 +50,7 @@ class SpotlightTag extends StatelessWidget {
       label: label,
       excludeSemantics: true,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
         decoration: BoxDecoration(
           color: onImage ? const Color(0x66000000) : p.surfaceRaised,
           borderRadius: BorderRadius.circular(6),

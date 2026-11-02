@@ -106,7 +106,7 @@ class AtelierPill extends StatelessWidget {
     final fg = filled ? (p.isDark ? p.canvas : Colors.white) : c;
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: dense ? 8 : 10,
+        horizontal: dense ? 6 : 8,
         vertical: dense ? 3 : 5,
       ),
       decoration: BoxDecoration(
@@ -126,7 +126,7 @@ class AtelierPill extends StatelessWidget {
               height: 5,
               decoration: BoxDecoration(color: fg, shape: BoxShape.circle),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
           ],
           Flexible(
             child: Text(
@@ -253,7 +253,7 @@ class AtelierButton extends StatelessWidget {
       child: Container(
         height: height,
         width: expand ? double.infinity : null,
-        padding: EdgeInsets.symmetric(horizontal: compact ? 14 : 22),
+        padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 14),
         decoration: BoxDecoration(
           color: bg,
           gradient: gradient,
@@ -557,7 +557,7 @@ class _AtelierSegmentedState<T> extends State<AtelierSegmented<T>> {
                 duration: AtelierMotion.base,
                 curve: AtelierMotion.emphasized,
                 padding: EdgeInsets.symmetric(
-                  horizontal: widget.dense ? 12 : 16,
+                  horizontal: widget.dense ? 8 : 12,
                 ),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
@@ -642,7 +642,7 @@ class _SegmentContent<T> extends StatelessWidget {
       children: [
         if (segment.icon != null) ...[
           Icon(segment.icon, size: dense ? 14 : 16, color: color),
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
         ],
         Flexible(
           child: Text(
@@ -653,12 +653,12 @@ class _SegmentContent<T> extends StatelessWidget {
           ),
         ),
         if (count != null) ...[
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           AnimatedSwitcher(
             duration: AtelierMotion.base,
             child: Container(
               key: ValueKey(count),
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
               decoration: BoxDecoration(
                 color: countInverted
                     ? p.canvas.withValues(alpha: 0.16)
@@ -734,13 +734,13 @@ class _AtelierSearchFieldState extends State<AtelierSearchField> {
       ),
       child: Row(
         children: [
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Icon(
             Icons.search_rounded,
             size: 19,
             color: focused ? p.gold : p.muted,
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Expanded(
             child: TextField(
               controller: widget.controller,
@@ -807,7 +807,7 @@ class AtelierChoiceChip extends StatelessWidget {
       child: AnimatedContainer(
         duration: AtelierMotion.base,
         curve: AtelierMotion.emphasized,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: selected ? p.goldSoft : p.surface,
           borderRadius: BorderRadius.circular(AtelierRadius.pill),
@@ -824,12 +824,12 @@ class AtelierChoiceChip extends StatelessWidget {
               curve: AtelierMotion.emphasized,
               child: selected
                   ? Padding(
-                      padding: const EdgeInsets.only(right: 6),
+                      padding: const EdgeInsets.only(right: 5),
                       child: Icon(Icons.check_rounded, size: 14, color: p.gold),
                     )
                   : (icon != null
                         ? Padding(
-                            padding: const EdgeInsets.only(right: 6),
+                            padding: const EdgeInsets.only(right: 5),
                             child: Icon(icon, size: 14, color: p.inkSoft),
                           )
                         : const SizedBox.shrink()),
@@ -864,7 +864,7 @@ class AtelierFilterTag extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.atelier;
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 6, 6, 6),
+      padding: const EdgeInsets.fromLTRB(8, 5, 5, 5),
       decoration: BoxDecoration(
         color: p.goldSoft,
         borderRadius: BorderRadius.circular(AtelierRadius.pill),

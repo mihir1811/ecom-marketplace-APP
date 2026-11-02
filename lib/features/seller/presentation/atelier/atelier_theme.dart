@@ -16,22 +16,22 @@ abstract final class AtelierSpace {
   static const s2 = 2.0;
   static const s4 = 4.0;
   static const s6 = 6.0;
-  static const s8 = 8.0;
-  static const s10 = 10.0;
-  static const s12 = 12.0;
-  static const s16 = 16.0;
-  static const s20 = 20.0;
-  static const s24 = 24.0;
-  static const s32 = 32.0;
-  static const s40 = 40.0;
-  static const s48 = 48.0;
+  static const s8 = 6.0;
+  static const s10 = 8.0;
+  static const s12 = 8.0;
+  static const s16 = 12.0;
+  static const s20 = 14.0;
+  static const s24 = 16.0;
+  static const s32 = 20.0;
+  static const s40 = 24.0;
+  static const s48 = 28.0;
 
   /// Horizontal page gutter that grows with the viewport.
   static double gutter(double width) => width >= 1200
       ? 40
       : width >= 720
       ? 28
-      : 18;
+      : 14;
 }
 
 /// Corner radii.

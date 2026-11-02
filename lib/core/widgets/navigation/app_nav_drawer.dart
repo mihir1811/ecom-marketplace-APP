@@ -104,7 +104,7 @@ class AppNavDrawer extends ConsumerWidget {
             AppDrawerReveal(
               index: 0,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(22, 18, 6, 14),
+                padding: const EdgeInsets.fromLTRB(14, 12, 5, 10),
                 child: Row(
                   children: [
                     if (hasImage)
@@ -115,7 +115,7 @@ class AppNavDrawer extends ConsumerWidget {
                       )
                     else
                       AtelierMonogram(name: displayName, size: 44),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,13 +148,13 @@ class AppNavDrawer extends ConsumerWidget {
             AppDrawerReveal(
               index: 1,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 12, 14),
+                padding: const EdgeInsets.fromLTRB(12, 0, 8, 10),
                 child: WorkspaceSwitcher(current: workspace),
               ),
             ),
             if (showPendingNotice)
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
                 child: AtelierPill(
                   label: context.tr(NavL10n.pendingLocked),
                   tone: AtelierTone.amber,
@@ -164,14 +164,14 @@ class AppNavDrawer extends ConsumerWidget {
             const AtelierHairline(),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+                padding: const EdgeInsets.fromLTRB(6, 0, 6, 8),
                 children: [
                   for (final group in groups)
                     if (group.items.isNotEmpty) ...[
                       AppDrawerReveal(
                         index: index++,
                         child: Padding(
-                          padding: const EdgeInsets.fromLTRB(12, 16, 12, 8),
+                          padding: const EdgeInsets.fromLTRB(8, 12, 8, 6),
                           child: Text(
                             group.title.toUpperCase(),
                             style: AtelierType.overline(p.muted),
@@ -195,7 +195,7 @@ class AppNavDrawer extends ConsumerWidget {
             AppDrawerReveal(
               index: index,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+                padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
                 child: Row(
                   children: [
                     Expanded(
@@ -207,7 +207,7 @@ class AppNavDrawer extends ConsumerWidget {
                         onPressed: () => _go(context, AppRouteNames.home),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: AtelierButton(
                         label: context.tr(AccountCommerceL10n.signOut),
@@ -274,7 +274,7 @@ class _NavTile extends StatelessWidget {
           duration: AtelierMotion.base,
           curve: AtelierMotion.emphasized,
           margin: const EdgeInsets.symmetric(vertical: 1),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           decoration: BoxDecoration(
             color: selected ? p.goldSoft : Colors.transparent,
             borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -285,14 +285,14 @@ class _NavTile extends StatelessWidget {
                 duration: AtelierMotion.base,
                 width: 3,
                 height: 18,
-                margin: const EdgeInsets.only(right: 12),
+                margin: const EdgeInsets.only(right: 8),
                 decoration: BoxDecoration(
                   color: selected ? p.gold : Colors.transparent,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
               Icon(item.icon, size: 20, color: selected ? p.gold : p.inkSoft),
-              const SizedBox(width: 14),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   item.label,

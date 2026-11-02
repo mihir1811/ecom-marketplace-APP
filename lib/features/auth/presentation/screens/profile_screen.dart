@@ -640,7 +640,7 @@ class _IdentityHero extends StatelessWidget {
               value: facts.completeness,
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -655,7 +655,7 @@ class _IdentityHero extends StatelessWidget {
                         style: AtelierType.title(p.ink, size: 18),
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 5),
                     Tooltip(
                       message: profile.isVerified
                           ? context.tr(RemainingL10n.verified)
@@ -990,7 +990,7 @@ class _FieldCell extends StatelessWidget {
       return ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 44),
         child: Padding(
-          padding: EdgeInsets.fromLTRB(14, 6, actions.isEmpty ? 14 : 6, 6),
+          padding: EdgeInsets.fromLTRB(10, 5, actions.isEmpty ? 10 : 5, 5),
           // Label hugs the left, value + actions hug the right; free space
           // sits between them so every value lines up on the right edge.
           child: Row(
@@ -1001,7 +1001,7 @@ class _FieldCell extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(field.icon, size: 13, color: p.gold),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Flexible(
                       child: Text(
                         field.label.toUpperCase(),
@@ -1013,7 +1013,7 @@ class _FieldCell extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Flexible(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -1031,7 +1031,7 @@ class _FieldCell extends StatelessWidget {
     }
     final cell = Container(
       constraints: const BoxConstraints(minHeight: 74),
-      padding: const EdgeInsets.fromLTRB(14, 12, 6, 12),
+      padding: const EdgeInsets.fromLTRB(10, 8, 5, 8),
       decoration: BoxDecoration(
         color: p.sunken.withValues(alpha: p.isDark ? 0.7 : 0.55),
         borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -1046,7 +1046,7 @@ class _FieldCell extends StatelessWidget {
                 Row(
                   children: [
                     Icon(field.icon, size: 13, color: p.gold),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 5),
                     Flexible(
                       child: Text(
                         field.label.toUpperCase(),
@@ -1057,7 +1057,7 @@ class _FieldCell extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 valueWidget,
               ],
             ),
@@ -1133,8 +1133,8 @@ class _MissingPanel extends StatelessWidget {
         ),
       ),
       child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
+        spacing: 6,
+        runSpacing: 6,
         children: [
           for (var i = 0; i < missing.length; i++)
             Reveal(
@@ -1233,7 +1233,7 @@ class _CompanyPanel extends StatelessWidget {
                         context.tr(AccountCommerceL10n.company).toUpperCase(),
                         style: AtelierType.overline(p.gold),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 5),
                       Text(
                         company ?? notProvided,
                         maxLines: 2,
@@ -1256,10 +1256,10 @@ class _CompanyPanel extends StatelessWidget {
           ),
           const AtelierHairline(),
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 14, 20, 16),
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
             child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: 6,
+              runSpacing: 6,
               children: [
                 AtelierPill(
                   label: 'Logo · ${logo == null ? notProvided : onFile}',
@@ -1315,7 +1315,7 @@ class _PayoutCard extends StatelessWidget {
         child: TiltSurface(
           maxTilt: 0.1,
           child: Container(
-            padding: const EdgeInsets.all(22),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AtelierRadius.lg),
               gradient: LinearGradient(
@@ -1360,7 +1360,7 @@ class _PayoutCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 10),
                     Container(
                       width: 38,
                       height: 28,
@@ -1385,7 +1385,7 @@ class _PayoutCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 10),
                     Row(
                       children: [
                         Expanded(
@@ -1463,7 +1463,7 @@ class _DangerZone extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('DANGER ZONE', style: AtelierType.overline(p.ruby)),
-        const SizedBox(height: 6),
+        const SizedBox(height: 5),
         Text(
           context.tr(RemainingL10n.deleteAccount),
           style: AtelierType.title(p.ink),
@@ -1492,13 +1492,13 @@ class _DangerZone extends StatelessWidget {
             ? Row(
                 children: [
                   Expanded(child: text),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   button,
                 ],
               )
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [text, const SizedBox(height: 16), button],
+                children: [text, const SizedBox(height: 12), button],
               ),
       ),
     );
@@ -1590,12 +1590,12 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
               passwordLabel.toUpperCase(),
               style: AtelierType.overline(focused ? p.gold : p.muted),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             AnimatedContainer(
               duration: AtelierMotion.base,
               curve: AtelierMotion.emphasized,
               height: 50,
-              padding: const EdgeInsets.only(left: 16, right: 4),
+              padding: const EdgeInsets.only(left: 12, right: 4),
               decoration: BoxDecoration(
                 color: focused ? p.surface : p.sunken,
                 borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -1604,7 +1604,7 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
               child: Row(
                 children: [
                   Icon(Icons.lock_outline_rounded, size: 16, color: p.muted),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
                       controller: _password,

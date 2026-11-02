@@ -230,8 +230,8 @@ class _BrandMasthead extends StatelessWidget {
     final monogram = Text(initial, style: LuxeType.display(44, p.accent));
     Widget plate = Container(
       height: 112,
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 6),
-      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 22),
+      margin: const EdgeInsets.fromLTRB(12, 6, 12, 5),
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
       decoration: BoxDecoration(
         color: p.surface,
         borderRadius: BorderRadius.circular(LuxeSpace.radius),

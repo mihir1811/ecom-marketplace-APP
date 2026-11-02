@@ -300,13 +300,13 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
       body: Form(
         key: _form,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          padding: const EdgeInsets.fromLTRB(12, 6, 12, 16),
           children: [
             Text(
               context.tr(JewelryMarketL10n.deliverTo),
               style: LuxeType.display(26, p.ink),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             TextFormField(
               controller: _name,
               textCapitalization: TextCapitalization.words,
@@ -314,7 +314,7 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
               decoration: field(context.tr(JewelryMarketL10n.fullName)),
               validator: (v) => required(v, 2, 100),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             TextFormField(
               controller: _phone,
               keyboardType: TextInputType.phone,
@@ -330,14 +330,14 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
                     : context.tr(JewelryMarketL10n.phoneInvalid);
               },
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             TextFormField(
               controller: _line1,
               autofillHints: const [AutofillHints.streetAddressLine1],
               decoration: field(context.tr(JewelryMarketL10n.addressLine1)),
               validator: (v) => required(v, 3, 200),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             TextFormField(
               controller: _line2,
               autofillHints: const [AutofillHints.streetAddressLine2],
@@ -346,7 +346,7 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
                   ? context.tr(JewelryMarketL10n.fieldTooLong, {'max': 200})
                   : null,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             JewelryPickerField(
               label: context.tr(JewelryMarketL10n.country),
               value: countryName,
@@ -356,7 +356,7 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
                   ? null
                   : context.tr(JewelryMarketL10n.chooseCountry),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             if (states.isNotEmpty)
               JewelryPickerField(
                 label: context.tr(JewelryMarketL10n.state),
@@ -372,7 +372,7 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
                 decoration: field(context.tr(JewelryMarketL10n.state)),
                 validator: stateCheck,
               ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             if (pickCity)
               JewelryPickerField(
                 label: context.tr(JewelryMarketL10n.city),
@@ -388,7 +388,7 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
                 decoration: field(context.tr(JewelryMarketL10n.city)),
                 validator: (v) => required(v, 2, 80),
               ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             TextFormField(
               key: ValueKey('postal-$_india'),
               controller: _pin,
@@ -415,7 +415,7 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
               ),
               validator: postalCheck,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             TextFormField(
               controller: _note,
               maxLines: 3,
@@ -423,9 +423,9 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
               maxLength: 500,
               decoration: field(context.tr(JewelryMarketL10n.orderNote)),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: p.surface,
                 borderRadius: BorderRadius.circular(LuxeSpace.radius),
@@ -458,7 +458,7 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
                       strong: true,
                     ),
                   ],
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     context.tr(
                       ready
@@ -479,7 +479,7 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
       bottomNavigationBar: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
           child: LuxeButton(
             label: quote == null
                 ? context.tr(JewelryMarketL10n.pay)

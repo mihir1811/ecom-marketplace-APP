@@ -91,18 +91,18 @@ class _DiamondProjectScatterCardState extends State<DiamondProjectScatterCard> {
               },
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Row(
             children: [
               _LegendDot(color: pointColor),
-              const SizedBox(width: 6),
+              const SizedBox(width: 5),
               Text(
                 context.tr(CatalogL10n.stock),
                 style: LuxeType.label(p.inkMuted, size: 11.5),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               _LegendDot(color: p.caution),
-              const SizedBox(width: 6),
+              const SizedBox(width: 5),
               Flexible(
                 child: Text(
                   context.tr(CatalogL10n.ppcOutliers, {

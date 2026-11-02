@@ -92,7 +92,7 @@ class AuthErrorBanner extends StatelessWidget {
                   liveRegion: true,
                   container: true,
                   child: Container(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 6, 12),
+                    padding: const EdgeInsets.fromLTRB(12, 8, 5, 8),
                     decoration: BoxDecoration(
                       color: p.dangerSoft,
                       borderRadius: BorderRadius.circular(AuthSpace.rField),
@@ -560,8 +560,8 @@ class _ToastHostState extends State<_ToastHost>
                   color: Colors.transparent,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 14,
+                      horizontal: 12,
+                      vertical: 10,
                     ),
                     decoration: BoxDecoration(
                       color: p.isDark

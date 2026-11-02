@@ -16,7 +16,7 @@ class PolicyEffectiveChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.atelier;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
         color: p.sunken,
         borderRadius: BorderRadius.circular(AtelierRadius.pill),
@@ -49,14 +49,14 @@ class PolicySectionRail extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: sections.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 6),
         itemBuilder: (context, i) {
           final s = sections[i];
           return Pressable(
             onTap: () => onSelect(i),
             scale: 0.97,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               decoration: BoxDecoration(
                 color: p.surface,
                 borderRadius: BorderRadius.circular(AtelierRadius.pill),
@@ -96,8 +96,8 @@ class PolicySectionCard extends StatelessWidget {
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           initiallyExpanded: initiallyExpanded,
-          tilePadding: const EdgeInsets.fromLTRB(18, 4, 12, 4),
-          childrenPadding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+          tilePadding: const EdgeInsets.fromLTRB(12, 4, 8, 4),
+          childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
           iconColor: p.gold,
           collapsedIconColor: p.muted,
           title: Text(
@@ -106,22 +106,22 @@ class PolicySectionCard extends StatelessWidget {
           ),
           children: [
             for (var i = 0; i < section.paragraphs.length; i++) ...[
-              if (i > 0) const SizedBox(height: 10),
+              if (i > 0) const SizedBox(height: 8),
               Text(
                 section.paragraphs[i],
                 style: AtelierType.body(p.inkSoft, size: 14.5),
               ),
             ],
             if (section.bullets.isNotEmpty) ...[
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               for (final bullet in section.bullets)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
+                  padding: const EdgeInsets.only(bottom: 5),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(top: 7),
+                        padding: const EdgeInsets.only(top: 6),
                         child: Container(
                           width: 5,
                           height: 5,
@@ -131,7 +131,7 @@ class PolicySectionCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           bullet,
@@ -143,7 +143,7 @@ class PolicySectionCard extends StatelessWidget {
                 ),
             ],
             if (section.closing != null) ...[
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Text(
                 section.closing!,
                 style: AtelierType.body(p.inkSoft, size: 14.5),
@@ -176,16 +176,16 @@ class PolicyDocumentSkeleton extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         bar(w: 120, h: 12),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         bar(w: 240, h: 28),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         bar(w: 160, h: 22),
-        const SizedBox(height: 20),
+        const SizedBox(height: 14),
         bar(h: 56),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         for (var i = 0; i < 4; i++) ...[
           bar(h: 72),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
         ],
       ],
     );
@@ -215,20 +215,20 @@ class PolicyDocumentBody extends StatelessWidget {
           document.eyebrow.toUpperCase(),
           style: AtelierType.overline(p.gold),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Text(document.title, style: AtelierType.display(p.ink, size: 32)),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         PolicyEffectiveChip(date: document.effectiveDate),
-        const SizedBox(height: 18),
+        const SizedBox(height: 12),
         Text(document.intro, style: AtelierType.body(p.inkSoft, size: 15)),
         if (document.secondaryIntro != null) ...[
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             document.secondaryIntro!,
             style: AtelierType.body(p.inkSoft, size: 15),
           ),
         ],
-        const SizedBox(height: 22),
+        const SizedBox(height: 14),
         for (var i = 0; i < document.sections.length; i++) ...[
           KeyedSubtree(
             key: i < sectionKeys.length ? sectionKeys[i] : null,
@@ -240,7 +240,7 @@ class PolicyDocumentBody extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
         ],
       ],
     );

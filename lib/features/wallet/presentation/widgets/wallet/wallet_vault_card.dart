@@ -51,7 +51,7 @@ class WalletVaultCard extends StatelessWidget {
         'amount': maisonInr(wallet.balance),
       }),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AtelierRadius.lg),
           gradient: LinearGradient(
@@ -75,7 +75,7 @@ class WalletVaultCard extends StatelessWidget {
                     style: AtelierType.overline(soft),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Text(
                   '•••• ${tail.toUpperCase()}  ·  ${wallet.currency}',
                   style: AtelierType.figure(soft, size: 11.5),
@@ -97,11 +97,11 @@ class WalletVaultCard extends StatelessWidget {
               ),
             ),
             if (actions.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   for (var i = 0; i < actions.length; i++) ...[
-                    if (i > 0) const SizedBox(width: 8),
+                    if (i > 0) const SizedBox(width: 6),
                     Expanded(child: _ActionButton(action: actions[i])),
                   ],
                 ],
@@ -130,7 +130,7 @@ class _ActionButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(AtelierRadius.pill),
       child: Container(
         height: 40,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AtelierRadius.pill),
           gradient: primary ? p.goldGradient : null,
@@ -142,7 +142,7 @@ class _ActionButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(action.icon, size: 17, color: fg),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             Flexible(
               child: Text(
                 action.label,

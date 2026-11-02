@@ -120,7 +120,7 @@ class _BuyerOrdersScreenState extends ConsumerState<BuyerOrdersScreen> {
               parent: BouncingScrollPhysics(),
             ),
             slivers: [
-              const SliverToBoxAdapter(child: SizedBox(height: 8)),
+              const SliverToBoxAdapter(child: SizedBox(height: 6)),
               MaisonPinnedBar(
                 height: 124,
                 gutter: gutter,
@@ -141,7 +141,7 @@ class _BuyerOrdersScreenState extends ConsumerState<BuyerOrdersScreen> {
                       selected: _filter,
                       onChanged: _setFilter,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     MaisonSearchRow(
                       controller: _search,
                       hint: 'Search piece, seller or order no.',
@@ -157,7 +157,7 @@ class _BuyerOrdersScreenState extends ConsumerState<BuyerOrdersScreen> {
                 visible: state.isLoading && orders.isNotEmpty,
               ),
               SliverPadding(
-                padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 32),
+                padding: EdgeInsets.fromLTRB(gutter, 5, gutter, 20),
                 sliver: _OrdersBody(
                   state: state,
                   orders: orders,
@@ -258,7 +258,7 @@ class _OrdersBody extends StatelessWidget {
       }
       rows.add(
         Padding(
-          padding: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.only(bottom: 10),
           child: Reveal(
             key: ValueKey(order.id),
             index: i < 8 ? i : 0,

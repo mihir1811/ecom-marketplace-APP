@@ -20,7 +20,7 @@ class SellerProductCardsView extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.onQuickView,
-    this.padding = const EdgeInsets.all(16),
+    this.padding = const EdgeInsets.all(12),
     super.key,
   });
 
@@ -185,8 +185,8 @@ class _ProductCard extends StatelessWidget {
                     bottom: 10,
                     right: 10,
                     child: Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
+                      spacing: 5,
+                      runSpacing: 5,
                       children: [
                         if (product.isOnAuction)
                           AtelierPill(
@@ -217,7 +217,7 @@ class _ProductCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -234,7 +234,7 @@ class _ProductCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: AtelierType.caption(p.muted, size: 11.5),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   Row(
                     children: [
                       Expanded(
@@ -278,7 +278,7 @@ class _ProductThumb extends StatelessWidget {
       ),
       child: url != null
           ? Padding(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(8),
               child: AppNetworkImage(
                 url: url,
                 fit: BoxFit.contain,
@@ -362,7 +362,7 @@ Future<void> showSellerProductQuickView(
                       children: [
                         for (final url in images)
                           Padding(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(12),
                             child: AppNetworkImage(
                               url: url,
                               fit: BoxFit.contain,
@@ -374,14 +374,14 @@ Future<void> showSellerProductQuickView(
             ),
           ),
           if (images.length > 1) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               '${images.length} images · swipe to browse',
               textAlign: TextAlign.center,
               style: AtelierType.caption(p.muted, size: 11),
             ),
           ],
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -399,7 +399,7 @@ Future<void> showSellerProductQuickView(
                 ),
               ),
               Wrap(
-                spacing: 6,
+                spacing: 5,
                 children: [
                   AtelierPill(
                     label: product.isNatural
@@ -421,15 +421,15 @@ Future<void> showSellerProductQuickView(
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
           if (keyFields.isNotEmpty)
             LayoutBuilder(
               builder: (context, constraints) {
                 final columns = constraints.maxWidth >= 480 ? 3 : 2;
                 final w = (constraints.maxWidth - 12 * (columns - 1)) / columns;
                 return Wrap(
-                  spacing: 12,
-                  runSpacing: 16,
+                  spacing: 8,
+                  runSpacing: 12,
                   children: [
                     for (final (label, value) in keyFields)
                       SizedBox(
@@ -441,7 +441,7 @@ Future<void> showSellerProductQuickView(
               },
             ),
           if (otherFields.isNotEmpty) ...[
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
             Theme(
               data: Theme.of(
                 sheetContext,
@@ -457,7 +457,7 @@ Future<void> showSellerProductQuickView(
                 children: [
                   for (final (label, value) in otherFields)
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 7),
+                      padding: const EdgeInsets.symmetric(vertical: 6),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -481,7 +481,7 @@ Future<void> showSellerProductQuickView(
               ),
             ),
           ],
-          const SizedBox(height: 22),
+          const SizedBox(height: 14),
           Row(
             children: [
               if (onDelete != null)
@@ -496,7 +496,7 @@ Future<void> showSellerProductQuickView(
                     },
                   ),
                 ),
-              if (onDelete != null && onEdit != null) const SizedBox(width: 10),
+              if (onDelete != null && onEdit != null) const SizedBox(width: 8),
               if (onEdit != null)
                 Expanded(
                   child: AtelierButton(

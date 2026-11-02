@@ -113,9 +113,9 @@ class _SavedDiamondProjectsScreenState
             child: ListView.separated(
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+              padding: const EdgeInsets.fromLTRB(12, 6, 12, 20),
               itemCount: state.items.length + (state.isLoadingMore ? 1 : 0),
-              separatorBuilder: (_, _) => const SizedBox(height: 12),
+              separatorBuilder: (_, _) => const SizedBox(height: 8),
               itemBuilder: (context, index) {
                 if (index >= state.items.length) {
                   return const LuxeSkeleton(height: 128, radius: 22);
@@ -268,7 +268,7 @@ class _ProjectTile extends StatelessWidget {
       child: InkWell(
         onTap: opening ? null : onOpen,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(18, 16, 8, 16),
+          padding: const EdgeInsets.fromLTRB(12, 12, 6, 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -288,7 +288,7 @@ class _ProjectTile extends StatelessWidget {
                       color: p.accent,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -309,7 +309,7 @@ class _ProjectTile extends StatelessWidget {
                   ),
                   if (opening)
                     Padding(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(8),
                       child: SizedBox(
                         width: 18,
                         height: 18,
@@ -331,9 +331,9 @@ class _ProjectTile extends StatelessWidget {
                     ),
                 ],
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 10),
               Padding(
-                padding: const EdgeInsets.only(right: 10),
+                padding: const EdgeInsets.only(right: 8),
                 child: Row(
                   children: [
                     stat(
@@ -372,11 +372,11 @@ class _ArchiveSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 12),
       children: [
         for (var i = 0; i < 4; i++)
           const Padding(
-            padding: EdgeInsets.only(bottom: 12),
+            padding: EdgeInsets.only(bottom: 8),
             child: LuxeSkeleton(height: 128, radius: 22),
           ),
       ],

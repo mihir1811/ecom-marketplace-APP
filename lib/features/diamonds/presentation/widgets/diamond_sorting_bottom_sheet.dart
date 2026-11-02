@@ -228,22 +228,22 @@ class _DiamondSortingBottomSheetState
               Expanded(
                 child: ListView(
                   controller: scroll,
-                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+                  padding: const EdgeInsets.fromLTRB(14, 4, 14, 16),
                   children: [
                     _sectionLabel(p, context.tr(CatalogL10n.sortQuickPicks)),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     _quickPickRow(p),
                     if (_order.isNotEmpty) ...[
-                      const SizedBox(height: 22),
+                      const SizedBox(height: 14),
                       _orderList(p),
                     ],
                     if (_available.isNotEmpty) ...[
-                      const SizedBox(height: 26),
+                      const SizedBox(height: 18),
                       _sectionLabel(p, context.tr(CatalogL10n.sortAddCriteria)),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
                       for (final def in _available)
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.only(bottom: 6),
                           child: _AddFieldTile(
                             def: def,
                             nth: _order.length + 1,
@@ -264,7 +264,7 @@ class _DiamondSortingBottomSheetState
 
   Widget _handle(LuxePalette p) => Center(
     child: Container(
-      margin: const EdgeInsets.only(top: 10, bottom: 4),
+      margin: const EdgeInsets.only(top: 8, bottom: 4),
       width: 40,
       height: 4,
       decoration: BoxDecoration(
@@ -276,7 +276,7 @@ class _DiamondSortingBottomSheetState
 
   Widget _header(LuxePalette p) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 12, 12),
+      padding: const EdgeInsets.fromLTRB(14, 6, 8, 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -288,7 +288,7 @@ class _DiamondSortingBottomSheetState
                   context.tr(CatalogL10n.sorting).toUpperCase(),
                   style: LuxeType.eyebrow(p.accent),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 5),
                 Text(
                   context.tr(CatalogL10n.sortTitle),
                   style: LuxeType.display(28, p.ink),
@@ -322,7 +322,7 @@ class _DiamondSortingBottomSheetState
         children: [
           for (final q in _quickPicks)
             Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.only(right: 6),
               child: _QuickPickChip(
                 label: context.tr(q.labelKey),
                 icon: q.icon,
@@ -364,7 +364,7 @@ class _DiamondSortingBottomSheetState
         final c = _order[i];
         return Padding(
           key: ValueKey(c.fieldKey),
-          padding: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.only(bottom: 8),
           child: _SortRow(
             index: i,
             count: _order.length,
@@ -381,10 +381,10 @@ class _DiamondSortingBottomSheetState
   Widget _footer(LuxePalette p) {
     return Container(
       padding: EdgeInsets.fromLTRB(
-        20,
-        12,
-        20,
-        12 + MediaQuery.paddingOf(context).bottom,
+        14,
+        8,
+        14,
+        8 + MediaQuery.paddingOf(context).bottom,
       ),
       decoration: BoxDecoration(
         color: p.canvas,
@@ -398,14 +398,14 @@ class _DiamondSortingBottomSheetState
               style: TextButton.styleFrom(
                 foregroundColor: p.inkMuted,
                 minimumSize: const Size(0, 52),
-                padding: const EdgeInsets.symmetric(horizontal: 14),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
               ),
               child: Text(
                 context.tr(CatalogL10n.sortClear),
                 style: LuxeType.label(p.inkMuted, size: 13.5),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
           ],
           Expanded(
             child: FilledButton(
@@ -428,10 +428,10 @@ class _DiamondSortingBottomSheetState
                     ),
                   ),
                   if (_order.isNotEmpty) ...[
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 7,
+                        horizontal: 6,
                         vertical: 1,
                       ),
                       decoration: ShapeDecoration(
@@ -444,7 +444,7 @@ class _DiamondSortingBottomSheetState
                       ),
                     ),
                   ],
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   const Icon(Icons.arrow_forward_rounded, size: 18),
                 ],
               ),
@@ -486,12 +486,12 @@ class _QuickPickChip extends StatelessWidget {
           customBorder: const StadiumBorder(),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(active ? Icons.check_rounded : icon, size: 16, color: fg),
-                const SizedBox(width: 6),
+                const SizedBox(width: 5),
                 Text(label, style: LuxeType.label(fg, size: 13)),
               ],
             ),
@@ -549,16 +549,16 @@ class _SortRow extends StatelessWidget {
               width: first ? 1.4 : 1,
             ),
           ),
-          padding: const EdgeInsets.fromLTRB(12, 12, 4, 12),
+          padding: const EdgeInsets.fromLTRB(8, 8, 4, 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
                 children: [
                   _PriorityBadge(n: index + 1, primary: first),
-                  const SizedBox(width: 12),
-                  Icon(_fieldIcon(criteria.fieldKey), size: 18, color: p.ink),
                   const SizedBox(width: 8),
+                  Icon(_fieldIcon(criteria.fieldKey), size: 18, color: p.ink),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -592,8 +592,8 @@ class _SortRow extends StatelessWidget {
                     index: index,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 8,
+                        horizontal: 6,
+                        vertical: 6,
                       ),
                       child: Icon(
                         Icons.drag_indicator_rounded,
@@ -603,9 +603,9 @@ class _SortRow extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Padding(
-                padding: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.only(right: 6),
                 child: _DirectionSwitch(
                   fieldKey: criteria.fieldKey,
                   value: criteria.direction,
@@ -682,7 +682,7 @@ class _DirectionSwitch extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(icon, size: 15, color: on ? p.canvas : p.inkMuted),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 5),
                   Flexible(
                     child: Text(
                       _directionLabel(context, fieldKey, d),
@@ -742,7 +742,7 @@ class _AddFieldTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           child: Row(
             children: [
               Container(
@@ -754,7 +754,7 @@ class _AddFieldTile extends StatelessWidget {
                 ),
                 child: Icon(_fieldIcon(def.key), size: 18, color: p.ink),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -772,8 +772,8 @@ class _AddFieldTile extends StatelessWidget {
               ),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
+                  horizontal: 8,
+                  vertical: 5,
                 ),
                 decoration: ShapeDecoration(
                   color: p.accentSoft,

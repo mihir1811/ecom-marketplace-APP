@@ -129,7 +129,7 @@ class _JewelryPremiumScreenState extends ConsumerState<JewelryPremiumScreen> {
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                padding: const EdgeInsets.fromLTRB(12, 6, 12, 4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -137,7 +137,7 @@ class _JewelryPremiumScreenState extends ConsumerState<JewelryPremiumScreen> {
                       context.tr(JewelryMarketL10n.premium).toUpperCase(),
                       style: LuxeType.eyebrow(p.accent),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 5),
                     Text(
                       context.tr(JewelryMarketL10n.premiumSegment),
                       style: LuxeType.display(30, p.ink),
@@ -161,8 +161,8 @@ class _JewelryPremiumScreenState extends ConsumerState<JewelryPremiumScreen> {
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
+                    horizontal: 12,
+                    vertical: 6,
                   ),
                   children: [
                     if (categories.length >= 2) ...[
@@ -172,21 +172,21 @@ class _JewelryPremiumScreenState extends ConsumerState<JewelryPremiumScreen> {
                         onSelected: (_) => _selectCategory(null),
                       ),
                       for (final c in categories) ...[
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         ChoiceChip(
                           label: Text('${c.name} (${c.count})'),
                           selected: _category == c.slug,
                           onSelected: (_) => _selectCategory(c.slug),
                         ),
                       ],
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
                     ],
                     ActionChip(
                       avatar: const Icon(Icons.swap_vert_rounded, size: 18),
                       label: Text(context.tr(JewelryFlowL10n.sortTitle)),
                       onPressed: _openSort,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     ActionChip(
                       avatar: Icon(
                         _viewMode == LuxeViewMode.grid

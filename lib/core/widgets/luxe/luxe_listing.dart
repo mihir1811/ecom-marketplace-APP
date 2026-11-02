@@ -126,7 +126,7 @@ class LuxeListingToolbar extends StatelessWidget {
   Widget build(BuildContext context) {
     final extra = this.extra;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: Row(
         children: [
           LuxeToolbarPill(
@@ -135,7 +135,7 @@ class LuxeListingToolbar extends StatelessWidget {
             badge: activeFilters,
             onTap: onFilters,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           Expanded(
             child: Align(
               alignment: Alignment.centerLeft,
@@ -147,9 +147,9 @@ class LuxeListingToolbar extends StatelessWidget {
             ),
           ),
           if (extra != null) ...[
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             extra,
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             LuxeViewFlip(
               viewMode: viewMode,
               onChanged: onViewMode,
@@ -157,7 +157,7 @@ class LuxeListingToolbar extends StatelessWidget {
               listLabel: listLabel,
             ),
           ] else ...[
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             LuxeViewToggle(
               viewMode: viewMode,
               onChanged: onViewMode,
@@ -293,12 +293,12 @@ class LuxeToolbarPill extends StatelessWidget {
           onTap();
         },
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon, size: 16, color: p.ink),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Flexible(
                 child: Text(
                   label,
@@ -314,8 +314,8 @@ class LuxeToolbarPill extends StatelessWidget {
                 child: badge > 0
                     ? Container(
                         key: ValueKey(badge),
-                        margin: const EdgeInsets.only(left: 6),
-                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        margin: const EdgeInsets.only(left: 5),
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
                         height: 18,
                         alignment: Alignment.center,
                         decoration: ShapeDecoration(
@@ -355,12 +355,12 @@ class LuxeActiveFilterPills extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
-    if (labels.isEmpty) return const SizedBox(height: 6);
+    if (labels.isEmpty) return const SizedBox(height: 5);
     return SizedBox(
       height: 48,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+        padding: const EdgeInsets.fromLTRB(12, 6, 12, 4),
         children: [
           for (final label in labels) ...[
             Material(
@@ -371,14 +371,14 @@ class LuxeActiveFilterPills extends StatelessWidget {
                 onTap: onEdit,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+                    horizontal: 8,
+                    vertical: 5,
                   ),
                   child: Text(label, style: LuxeType.label(p.ink, size: 12)),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
           ],
           TextButton.icon(
             onPressed: () {
@@ -477,7 +477,7 @@ class LuxeLoadingMore extends StatelessWidget {
           height: 16,
           child: CircularProgressIndicator(strokeWidth: 1.8, color: p.accent),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 8),
         Text(label, style: LuxeType.label(p.inkMuted, size: 12.5)),
       ],
     );
@@ -579,14 +579,14 @@ class LuxeListingSkeletons extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(9, 12, 9, 9),
+              padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   block(cell * 0.65, 16),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   block(cell * 0.45, 11),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 10),
                   block(cell * 0.5, 14),
                 ],
               ),
@@ -598,19 +598,19 @@ class LuxeListingSkeletons extends StatelessWidget {
     const thumb = LuxeProductListCard.thumbSize;
     final listCard = frame(
       Padding(
-        padding: const EdgeInsets.all(6),
+        padding: const EdgeInsets.all(5),
         child: Row(
           children: [
             block(thumb, thumb, LuxeSpace.radius - 6),
-            const SizedBox(width: 14),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   block(140, 16),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   block(100, 11),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 14),
                   block(90, 14),
                 ],
               ),
@@ -629,7 +629,7 @@ class LuxeListingSkeletons extends StatelessWidget {
         1;
     final skeletonCard = LuxeSkeleton(child: grid ? gridCard : listCard);
     return SliverPadding(
-      padding: EdgeInsets.fromLTRB(padding, 6, padding, 24),
+      padding: EdgeInsets.fromLTRB(padding, 5, padding, 16),
       sliver: grid
           ? SliverGrid.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -669,7 +669,7 @@ Future<T?> showLuxeChoiceSheet<T>(
         children: [
           for (final o in options)
             Padding(
-              padding: const EdgeInsets.only(bottom: 6),
+              padding: const EdgeInsets.only(bottom: 5),
               child: Material(
                 color: o == current ? p.accentSoft : Colors.transparent,
                 borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
@@ -681,8 +681,8 @@ Future<T?> showLuxeChoiceSheet<T>(
                   },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
+                      horizontal: 12,
+                      vertical: 10,
                     ),
                     child: Row(
                       children: [
@@ -719,8 +719,8 @@ Future<T?> showLuxeChoiceSheet<T>(
 
 /// Grid / list spacing shared by every luxe results screen.
 abstract final class LuxeListingMetrics {
-  static const gap = 12.0;
-  static const pad = 16.0;
+  static const gap = 8.0;
+  static const pad = 12.0;
 
   /// Row stride of [LuxeProductListCard] including the gap.
   static const listStride = LuxeProductListCard.thumbSize + 12 + gap;
@@ -858,7 +858,7 @@ List<Widget> luxeResultSlivers<T>({
 
   return [
     SliverPadding(
-      padding: const EdgeInsets.fromLTRB(pad, 6, pad, 0),
+      padding: const EdgeInsets.fromLTRB(pad, 5, pad, 0),
       sliver: grid
           ? SliverGrid.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -878,7 +878,7 @@ List<Widget> luxeResultSlivers<T>({
     ),
     SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 96),
+        padding: const EdgeInsets.fromLTRB(12, 14, 12, 96),
         child: isLoadingMore
             ? LuxeLoadingMore(label: loadingMoreLabel)
             : const SizedBox.shrink(),
@@ -995,7 +995,7 @@ class _LuxeSearchFieldState extends State<LuxeSearchField> {
       onChanged: widget.onChanged,
       onSubmitted: widget.onSubmitted,
       textInputAction: TextInputAction.search,
-      scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
+      scrollPadding: const EdgeInsets.fromLTRB(14, 14, 14, 120),
       style: LuxeType.body(p.ink, size: 14.5),
       decoration: InputDecoration(
         hintText: widget.hintText,
@@ -1070,9 +1070,9 @@ class LuxeQuickChips<T> extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         itemCount: chips.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 6),
         itemBuilder: (context, i) {
           final chip = chips[i];
           final selected = isSelected(chip.value);
@@ -1089,7 +1089,7 @@ class LuxeQuickChips<T> extends StatelessWidget {
               child: AnimatedContainer(
                 duration: LuxeMotion.medium,
                 curve: LuxeMotion.settle,
-                padding: EdgeInsets.symmetric(horizontal: dense ? 12 : 16),
+                padding: EdgeInsets.symmetric(horizontal: dense ? 8 : 12),
                 alignment: Alignment.center,
                 decoration: ShapeDecoration(
                   color: selected ? p.ink : p.surface,
@@ -1102,7 +1102,7 @@ class LuxeQuickChips<T> extends StatelessWidget {
                   children: [
                     if (chip.leading != null) ...[
                       chip.leading!,
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                     ] else if (chip.tone != null) ...[
                       Container(
                         width: 8,
@@ -1112,7 +1112,7 @@ class LuxeQuickChips<T> extends StatelessWidget {
                           color: chip.tone,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                     ],
                     Text(
                       chip.label,
@@ -1162,7 +1162,7 @@ class LuxeRowHeading extends StatelessWidget {
     final subtitleTone = subtitleColor ?? p.inkMuted;
     final actionTone = actionColor ?? p.accent;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 8, 10),
+      padding: const EdgeInsets.fromLTRB(14, 0, 6, 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [

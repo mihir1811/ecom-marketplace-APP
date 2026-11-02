@@ -71,12 +71,12 @@ class _SpotlightFeaturedSellersState
                     Flexible(
                       child: Text(title, style: LuxeType.display(22, p.ink)),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     tag,
                   ],
                 ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           LayoutBuilder(
             builder: (context, constraints) {
               final width = ((constraints.maxWidth - gutter - 24) / 1.6).clamp(
@@ -98,7 +98,7 @@ class _SpotlightFeaturedSellersState
                   scrollDirection: Axis.horizontal,
                   padding: EdgeInsets.symmetric(horizontal: gutter),
                   itemCount: sellers.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 12),
+                  separatorBuilder: (_, _) => const SizedBox(width: 8),
                   itemBuilder: (context, i) {
                     final ad = sellers[i];
                     return SizedBox(
@@ -186,7 +186,7 @@ class SpotlightSellerCard extends StatelessWidget {
             },
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+            padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -196,14 +196,14 @@ class SpotlightSellerCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: LuxeType.display(17, p.ink).copyWith(height: 1.1),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 5),
                 Text(
                   (tagline == null || tagline.isEmpty) ? ' ' : tagline,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: LuxeType.label(p.inkMuted, size: 12.5),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Row(
                   children: [
                     if (place != null) ...[
@@ -223,7 +223,7 @@ class SpotlightSellerCard extends StatelessWidget {
                       ),
                     ],
                     if (place != null && seller.showsRating)
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 8),
                     if (seller.showsRating) SellerRating(seller: seller),
                     if (place == null && !seller.showsRating)
                       Text(' ', style: LuxeType.label(p.inkFaint, size: 11.5)),

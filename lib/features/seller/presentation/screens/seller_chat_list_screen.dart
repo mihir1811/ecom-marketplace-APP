@@ -295,7 +295,7 @@ class _Inbox extends StatelessWidget {
 
   List<Widget> _content(BuildContext context, double gutter, bool firstLoad) {
     Widget boxed(Widget child) => SliverPadding(
-      padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 48),
+      padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 48),
       sliver: SliverToBoxAdapter(child: child),
     );
 
@@ -356,7 +356,7 @@ class _Inbox extends StatelessWidget {
     return [
       if (state.errorMessage != null)
         SliverPadding(
-          padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 0),
+          padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 0),
           sliver: SliverToBoxAdapter(
             child: AtelierNotice(
               text: state.errorMessage!,
@@ -369,7 +369,7 @@ class _Inbox extends StatelessWidget {
         ),
       for (var g = 0; g < groups.length; g++) ...[
         SliverPadding(
-          padding: EdgeInsets.fromLTRB(gutter + 4, 18, gutter, 10),
+          padding: EdgeInsets.fromLTRB(gutter + 4, 12, gutter, 8),
           sliver: SliverToBoxAdapter(
             child: Text(
               groups[g].label.toUpperCase(),
@@ -464,7 +464,7 @@ class _ControlsHeader extends SliverPersistentHeaderDelegate {
       child: Stack(
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(gutter, 16, gutter, 14),
+            padding: EdgeInsets.fromLTRB(gutter, 12, gutter, 10),
             child: child,
           ),
           Positioned(
@@ -594,12 +594,12 @@ class _ThreadRowState extends State<_ThreadRow> {
           duration: AtelierMotion.base,
           curve: AtelierMotion.emphasized,
           color: bg,
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _PeerAvatar(name: t.peerName, url: t.peerAvatar, ring: unread),
-              const SizedBox(width: 14),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -620,7 +620,7 @@ class _ThreadRowState extends State<_ThreadRow> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Text(
                           _relativeTime(context, t.lastMessageAt),
                           style: AtelierType.caption(
@@ -645,7 +645,7 @@ class _ThreadRowState extends State<_ThreadRow> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 5),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
@@ -667,7 +667,7 @@ class _ThreadRowState extends State<_ThreadRow> {
                           ),
                         ),
                         if (unread) ...[
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 8),
                           CountBubble(count: t.unreadCount),
                         ],
                       ],
@@ -749,13 +749,13 @@ class _ConversationPlaceholder extends StatelessWidget {
                   ),
                   const SizedBox(height: AtelierSpace.s24),
                   Text('CORRESPONDENCE', style: AtelierType.overline(p.gold)),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   Text(
                     'Choose a conversation',
                     textAlign: TextAlign.center,
                     style: AtelierType.display(p.ink, size: 30),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 340),
                     child: Text(

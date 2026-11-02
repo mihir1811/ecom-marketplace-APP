@@ -62,7 +62,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
       physics: const AlwaysScrollableScrollPhysics(
         parent: BouncingScrollPhysics(),
       ),
-      padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 48),
+      padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 48),
       children: [
         MaisonCentered(
           maxWidth: 720,
@@ -74,7 +74,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
                 cut: GemCut.cushion,
                 look: GemLook.ice,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               reveal(
                 SettingsIdentityCard(
                   displayName: name,
@@ -90,7 +90,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               reveal(MaisonGroupLabel(label: context.tr(CoreL10n.appearance))),
               reveal(
                 SettingsThemeChooser(
@@ -101,12 +101,12 @@ class BuyerSettingsScreen extends ConsumerWidget {
                   },
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
                 context.tr(CoreL10n.paletteDescription),
                 style: AtelierType.caption(p.muted, size: 11.5),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               reveal(MaisonGroupLabel(label: context.tr(CoreL10n.language))),
               reveal(
                 SettingsLanguageChooser(
@@ -117,7 +117,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
                   },
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               reveal(MaisonGroupLabel(label: context.tr(CoreL10n.account))),
               reveal(
                 SettingsGroup(
@@ -147,7 +147,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               reveal(const MaisonGroupLabel(label: 'About')),
               reveal(
                 SettingsGroup(
@@ -199,7 +199,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               reveal(const MaisonGroupLabel(label: 'Session')),
               reveal(
                 SettingsGroup(
@@ -224,7 +224,7 @@ class BuyerSettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 12),
               const MaisonListFooter(
                 loadingMore: false,
                 hasMore: false,

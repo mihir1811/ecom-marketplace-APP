@@ -389,7 +389,7 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen>
             ),
             slivers: [
               SliverPadding(
-                padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 18),
+                padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 12),
                 sliver: SliverToBoxAdapter(
                   child: MaisonCentered(
                     child: Column(
@@ -421,7 +421,7 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen>
                 visible: state.isLoading && items.isNotEmpty,
               ),
               SliverPadding(
-                padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 32),
+                padding: EdgeInsets.fromLTRB(gutter, 5, gutter, 20),
                 sliver: _body(context, state),
               ),
             ],
@@ -482,7 +482,7 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen>
       }
       rows.add(
         Padding(
-          padding: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.only(bottom: 10),
           child: Reveal(
             key: ValueKey(offer.id),
             index: i < 8 ? i : 0,
@@ -555,7 +555,7 @@ class BuyerOfferCard extends StatelessWidget {
       onTap: onOpen,
       semanticLabel: 'Offer on ${offer.displayTitle}',
       borderColor: payable || counter ? p.gold.withValues(alpha: 0.5) : null,
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -563,7 +563,7 @@ class BuyerOfferCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               AtelierThumb(url: offer.imageUrl, size: 64),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -574,7 +574,7 @@ class BuyerOfferCard extends StatelessWidget {
                       icon: buyerOfferIcon(offer),
                       dense: true,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Text(
                       offer.displayTitle,
                       maxLines: 2,
@@ -591,7 +591,7 @@ class BuyerOfferCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -612,13 +612,13 @@ class BuyerOfferCard extends StatelessWidget {
             ],
           ),
           if (offer.history.isNotEmpty) ...[
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             OfferExchangeLine(offer: offer, asSeller: false),
           ],
           if (offer.message != null) ...[
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             Container(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+              padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
               decoration: BoxDecoration(
                 border: Border(left: BorderSide(color: p.gold, width: 2)),
               ),
@@ -633,10 +633,10 @@ class BuyerOfferCard extends StatelessWidget {
               ),
             ),
           ],
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           Wrap(
-            spacing: 24,
-            runSpacing: 12,
+            spacing: 16,
+            runSpacing: 8,
             children: [
               AtelierKeyValue(
                 label: 'Made',
@@ -657,7 +657,7 @@ class BuyerOfferCard extends StatelessWidget {
             ],
           ),
           if (offer.isAwaitingSeller) ...[
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             Text(
               'The seller has 24 hours to answer. Offers they don’t answer '
               'expire.',
@@ -666,7 +666,7 @@ class BuyerOfferCard extends StatelessWidget {
           ],
           if (counter)
             Padding(
-              padding: const EdgeInsets.only(top: 16),
+              padding: const EdgeInsets.only(top: 12),
               child: OfferCountdown(
                 expiresAt: offer.answerExpiresAt,
                 onExpired: onExpired,
@@ -682,7 +682,7 @@ class BuyerOfferCard extends StatelessWidget {
                       expand: true,
                       onPressed: onAnswer,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Text(
                       [
                         '${formatOfferTimeLeft(left)} left to accept, '
@@ -697,7 +697,7 @@ class BuyerOfferCard extends StatelessWidget {
               ),
             ),
           if (offer.isWithGemworld) ...[
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             const AtelierNotice(
               text:
                   'GemWorld is arranging your payment. The stone stays held '
@@ -712,7 +712,7 @@ class BuyerOfferCard extends StatelessWidget {
             curve: AtelierMotion.emphasized,
             child: payable
                 ? Padding(
-                    padding: const EdgeInsets.only(top: 16),
+                    padding: const EdgeInsets.only(top: 12),
                     child: OfferCountdown(
                       expiresAt: offer.paymentExpiresAt,
                       onExpired: onExpired,
@@ -727,7 +727,7 @@ class BuyerOfferCard extends StatelessWidget {
                             expand: true,
                             onPressed: onPay,
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 6),
                           Text(
                             '${formatOfferTimeLeft(left)} left to pay at '
                             'your offer price. The stone is held for you '

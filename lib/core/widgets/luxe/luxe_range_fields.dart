@@ -86,7 +86,7 @@ class _LuxeRangeFieldsState extends State<LuxeRangeFields> {
         inputFormatters: [
           FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
         ],
-        scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
+        scrollPadding: const EdgeInsets.fromLTRB(14, 14, 14, 120),
         style: LuxeType.figure(p.ink, size: 14.5),
         decoration: InputDecoration(
           isDense: true,
@@ -105,14 +105,14 @@ class _LuxeRangeFieldsState extends State<LuxeRangeFields> {
       children: [
         if (widget.title != null) ...[
           Text(widget.title!, style: LuxeType.label(p.inkMuted, size: 12.5)),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
         ],
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(child: field(_min, widget.minLabel, widget.minHint)),
             Padding(
-              padding: const EdgeInsets.fromLTRB(10, 14, 10, 0),
+              padding: const EdgeInsets.fromLTRB(8, 10, 8, 0),
               child: Text('–', style: LuxeType.label(p.inkFaint)),
             ),
             Expanded(

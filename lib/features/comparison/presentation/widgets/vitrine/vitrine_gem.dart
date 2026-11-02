@@ -220,7 +220,7 @@ class VitrinePieceImage extends StatelessWidget {
     }
     if (url.startsWith('public/') || url.startsWith('assets/')) {
       return Padding(
-        padding: EdgeInsets.all(size * 0.14),
+        padding: EdgeInsets.all(size * 0.1),
         child: Image.asset(
           url,
           fit: BoxFit.contain,

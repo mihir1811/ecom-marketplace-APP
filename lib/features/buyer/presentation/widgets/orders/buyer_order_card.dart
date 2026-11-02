@@ -83,12 +83,12 @@ class BuyerOrderCard extends StatelessWidget {
                 decoration: BoxDecoration(gradient: p.goldGradient),
               ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AtelierThumb(url: order.imageUrl, size: 68),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,7 +99,7 @@ class BuyerOrderCard extends StatelessWidget {
                               maisonShortId(order.id),
                               style: AtelierType.figure(p.muted, size: 11.5),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 6),
                             if (order.createdAt != null)
                               Expanded(
                                 child: Tooltip(
@@ -140,11 +140,11 @@ class BuyerOrderCard extends StatelessWidget {
             ),
             Container(
               height: 1,
-              margin: const EdgeInsets.symmetric(horizontal: 16),
+              margin: const EdgeInsets.symmetric(horizontal: 12),
               color: p.hairline,
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -158,7 +158,7 @@ class BuyerOrderCard extends StatelessWidget {
                           icon: buyerStageIcon(stage),
                         ),
                         if (order.isLiveAuction) ...[
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 5),
                           const AtelierPill(
                             label: 'Purchased in live auction',
                             tone: AtelierTone.gold,
@@ -166,7 +166,7 @@ class BuyerOrderCard extends StatelessWidget {
                             dense: true,
                           ),
                         ],
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         Row(
                           children: [
                             Flexible(
@@ -188,7 +188,7 @@ class BuyerOrderCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 150),
                     child: FittedBox(

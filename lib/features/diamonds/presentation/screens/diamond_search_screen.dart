@@ -195,7 +195,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
             topSpacing: 8,
             bottomSpacing: 10,
           ),
-          SponsoredDiamondsStrip(padding: EdgeInsets.only(top: 6, bottom: 10)),
+          SponsoredDiamondsStrip(padding: EdgeInsets.only(top: 5, bottom: 8)),
         ],
       ),
       controls: DiamondCatalogModeControls(
@@ -340,7 +340,7 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
                   title: context.tr(CatalogL10n.originCountry),
                   infoText: context.tr(CatalogL10n.diamondOriginCountryHelp),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 LuxeMultiSelectField(
                   options: DiamondFilterState.countries,
                   selected: state.selectedOrigins,

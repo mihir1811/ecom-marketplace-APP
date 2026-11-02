@@ -18,7 +18,7 @@ class JewelryBagBanner extends ConsumerWidget {
     if (count == 0) return const SizedBox.shrink();
     final p = LuxePalette.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+      padding: const EdgeInsets.fromLTRB(8, 6, 8, 4),
       child: Material(
         color: p.accent.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
@@ -26,11 +26,11 @@ class JewelryBagBanner extends ConsumerWidget {
           borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
           onTap: () => context.push(AppRouteNames.jewelryBag),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+            padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
             child: Row(
               children: [
                 Icon(Icons.shopping_bag_outlined, color: p.accent, size: 20),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     context.tr(JewelryMarketL10n.bagBanner, {'count': count}),

@@ -77,7 +77,7 @@ Future<T?> showLiveSheet<T>(
                 children: [
                   Center(
                     child: Container(
-                      margin: const EdgeInsets.only(top: 10, bottom: 14),
+                      margin: const EdgeInsets.only(top: 8, bottom: 10),
                       width: 38,
                       height: 4,
                       decoration: BoxDecoration(
@@ -87,7 +87,7 @@ Future<T?> showLiveSheet<T>(
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 16, 0),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 12, 0),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -118,7 +118,7 @@ Future<T?> showLiveSheet<T>(
                       ],
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 10),
                   Flexible(
                     child: Padding(
                       padding: EdgeInsets.only(bottom: inset > 0 ? 0 : safe),

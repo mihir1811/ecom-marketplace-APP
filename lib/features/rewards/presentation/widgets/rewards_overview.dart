@@ -33,7 +33,7 @@ class RewardsUnlockCard extends StatelessWidget {
                 ),
                 child: Icon(Icons.lock_open_rounded, size: 18, color: p.gold),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,9 +52,9 @@ class RewardsUnlockCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           AtelierMeter(value: progress, color: p.gold),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Row(
             children: [
               Text(

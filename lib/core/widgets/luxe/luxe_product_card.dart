@@ -117,7 +117,7 @@ class LuxeProductGridCard extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 9, 14, 14),
+            padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -127,7 +127,7 @@ class LuxeProductGridCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: LuxeType.display(19, p.ink).copyWith(height: 1.1),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 5),
                 Text(
                   subtitle,
                   maxLines: 1,
@@ -141,11 +141,11 @@ class LuxeProductGridCard extends StatelessWidget {
                   Row(
                     children: [
                       metaLeading!,
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 5),
                       Expanded(child: metaText),
                     ],
                   ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 price,
               ],
             ),
@@ -206,7 +206,7 @@ class LuxeProductListCard extends StatelessWidget {
       highlighted: highlighted,
       outlineColor: outlineColor,
       child: Padding(
-        padding: const EdgeInsets.all(6),
+        padding: const EdgeInsets.all(5),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -227,10 +227,10 @@ class LuxeProductListCard extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 10),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(top: 6, right: 4),
+                padding: const EdgeInsets.only(top: 5, right: 4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -261,7 +261,7 @@ class LuxeProductListCard extends StatelessWidget {
                         children: [
                           if (detailLeading != null) ...[
                             detailLeading!,
-                            const SizedBox(width: 6),
+                            const SizedBox(width: 5),
                           ],
                           Expanded(
                             child: Text(
@@ -274,7 +274,7 @@ class LuxeProductListCard extends StatelessWidget {
                         ],
                       ),
                     ],
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     Row(
                       children: [
                         Expanded(child: price),
@@ -474,7 +474,7 @@ class LuxePriceRow extends StatelessWidget {
           ),
         ),
         if (showList && list != null) ...[
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           Flexible(
             child: Text(
               '$symbol${formatGroupedWhole(list)}',
@@ -489,9 +489,9 @@ class LuxePriceRow extends StatelessWidget {
           ),
         ],
         if (discountPercent != null) ...[
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
             decoration: ShapeDecoration(
               color: p.caution.withValues(alpha: 0.12),
               shape: const StadiumBorder(),

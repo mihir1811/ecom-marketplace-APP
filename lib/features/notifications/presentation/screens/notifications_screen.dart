@@ -159,7 +159,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 0),
+              padding: EdgeInsets.fromLTRB(gutter, 5, gutter, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -240,7 +240,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     final p = context.atelier;
     if (state.isLoading && state.items.isEmpty) {
       return ListView(
-        padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 24),
+        padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 16),
         children: const [AtelierSkeletonList(count: 6, height: 84)],
       );
     }
@@ -286,7 +286,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       if (bucket != last) {
         rows.add(
           Padding(
-            padding: EdgeInsets.only(top: last == null ? 4 : 18, bottom: 8),
+            padding: EdgeInsets.only(top: last == null ? 4 : 12, bottom: 6),
             child: Text(
               bucket.toUpperCase(),
               style: AtelierType.overline(p.muted),
@@ -297,7 +297,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       }
       rows.add(
         Padding(
-          padding: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.only(bottom: 6),
           child: Reveal(
             key: ValueKey(item.id),
             index: i < 10 ? i : 0,
@@ -315,7 +315,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     if (state.isLoadingMore) {
       rows.add(
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           child: Center(
             child: SizedBox(
               width: 20,
@@ -334,7 +334,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       child: ListView(
         controller: _scroll,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(gutter, 4, gutter, 32),
+        padding: EdgeInsets.fromLTRB(gutter, 4, gutter, 20),
         children: rows,
       ),
     );
@@ -362,7 +362,7 @@ class _DismissibleTile extends StatelessWidget {
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 22),
+        padding: const EdgeInsets.only(right: 14),
         decoration: BoxDecoration(
           color: p.ruby,
           borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -377,7 +377,7 @@ class _DismissibleTile extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            SizedBox(width: 8),
+            SizedBox(width: 6),
             Icon(Icons.delete_outline_rounded, color: Colors.white),
           ],
         ),
@@ -417,7 +417,7 @@ class _NotificationCard extends StatelessWidget {
           : '$title. ${item.body}',
       child: AnimatedContainer(
         duration: AtelierMotion.base,
-        padding: const EdgeInsets.fromLTRB(14, 14, 4, 14),
+        padding: const EdgeInsets.fromLTRB(10, 10, 4, 10),
         decoration: BoxDecoration(
           color: unread ? p.raised : p.surface,
           borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -466,7 +466,7 @@ class _NotificationCard extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -485,7 +485,7 @@ class _NotificationCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Text(
                         formatNotificationTime(item.createdAt),
                         style: AtelierType.caption(

@@ -124,7 +124,7 @@ class _WalletTopUpSheetState extends ConsumerState<WalletTopUpSheet> {
       children: [
         AnimatedContainer(
           duration: AtelierMotion.base,
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
           decoration: BoxDecoration(
             color: p.sunken,
             borderRadius: BorderRadius.circular(AtelierRadius.lg),
@@ -142,11 +142,11 @@ class _WalletTopUpSheetState extends ConsumerState<WalletTopUpSheet> {
                 context.tr(RemainingL10n.amountInr).toUpperCase(),
                 style: AtelierType.overline(p.muted),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 5),
               Row(
                 children: [
                   Text('₹', style: AtelierType.display(p.gold, size: 44)),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
                       controller: _controller,
@@ -181,7 +181,7 @@ class _WalletTopUpSheetState extends ConsumerState<WalletTopUpSheet> {
                 ],
               ),
               if (balance != null) ...[
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 AnimatedSwitcher(
                   duration: AtelierMotion.base,
                   child: Row(
@@ -194,7 +194,7 @@ class _WalletTopUpSheetState extends ConsumerState<WalletTopUpSheet> {
                         size: 14,
                         color: amount > 0 ? p.emerald : p.muted,
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 5),
                       Flexible(
                         child: Text(
                           amount > 0
@@ -214,10 +214,10 @@ class _WalletTopUpSheetState extends ConsumerState<WalletTopUpSheet> {
           ),
         ),
         AtelierFieldError(error: _error),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: 6,
+          runSpacing: 6,
           children: [
             for (final preset in _presets)
               AtelierChoiceChip(
@@ -232,12 +232,12 @@ class _WalletTopUpSheetState extends ConsumerState<WalletTopUpSheet> {
           curve: AtelierMotion.emphasized,
           child: busy
               ? Padding(
-                  padding: const EdgeInsets.only(top: 22),
+                  padding: const EdgeInsets.only(top: 14),
                   child: _Phases(phase: topUp.phase),
                 )
               : const SizedBox(width: double.infinity),
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 14),
         AtelierButton(
           label: amount > 0
               ? 'Add ${maisonInr(amount).replaceAll('.00', '')}'
@@ -248,12 +248,12 @@ class _WalletTopUpSheetState extends ConsumerState<WalletTopUpSheet> {
           expand: true,
           onPressed: busy ? null : _submit,
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.verified_user_outlined, size: 13, color: p.muted),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             Text(
               'Secured by Razorpay · Funds arrive instantly',
               style: AtelierType.caption(p.muted, size: 11.5),
@@ -285,11 +285,11 @@ class _Phases extends StatelessWidget {
           if (i > 0)
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 18),
+                padding: const EdgeInsets.only(bottom: 12),
                 child: AnimatedContainer(
                   duration: AtelierMotion.slow,
                   height: 1.5,
-                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  margin: const EdgeInsets.symmetric(horizontal: 6),
                   color: i <= current ? p.gold : p.hairline,
                 ),
               ),
@@ -314,7 +314,7 @@ class _Phases extends StatelessWidget {
                     ? Icon(Icons.check_rounded, size: 13, color: p.onGold)
                     : i == current
                     ? Padding(
-                        padding: const EdgeInsets.all(6),
+                        padding: const EdgeInsets.all(5),
                         child: CircularProgressIndicator(
                           strokeWidth: 1.6,
                           color: p.gold,
@@ -322,7 +322,7 @@ class _Phases extends StatelessWidget {
                       )
                     : null,
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 5),
               Text(
                 steps[i].$2,
                 style: AtelierType.caption(

@@ -24,6 +24,8 @@ abstract final class SpotlightL10n {
   static const bullion = 'spotlight.bullion';
   static const advertising = 'spotlight.advertising';
   static const seeAll = 'spotlight.seeAll';
+  static const viewAll = 'spotlight.viewAll';
+  static const piecesCount = 'spotlight.piecesCount';
 }
 
 const spotlightMessages = <String, LocalizedMessage>{
@@ -131,5 +133,15 @@ const spotlightMessages = <String, LocalizedMessage>{
     english: 'See all',
     hindi: 'सभी देखें',
     gujarati: 'બધું જુઓ',
+  ),
+  SpotlightL10n.viewAll: LocalizedMessage(
+    english: 'View all',
+    hindi: 'सभी देखें',
+    gujarati: 'બધું જુઓ',
+  ),
+  SpotlightL10n.piecesCount: LocalizedMessage(
+    english: '{count} pieces',
+    hindi: '{count} वस्तुएँ',
+    gujarati: '{count} વસ્તુઓ',
   ),
 };

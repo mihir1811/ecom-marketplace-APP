@@ -97,7 +97,7 @@ class SpotlightShopScreen extends ConsumerWidget {
               loading: () => [
                 const SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(16, 28, 16, 0),
+                    padding: EdgeInsets.fromLTRB(12, 18, 12, 0),
                     child: LuxeSkeleton(height: 260),
                   ),
                 ),
@@ -127,7 +127,18 @@ class SpotlightShopScreen extends ConsumerWidget {
                     ]
                   : [
                       for (final s in list)
-                        SliverToBoxAdapter(child: _ShopSectionRow(section: s)),
+                        SliverToBoxAdapter(
+                          child: _ShopSectionRow(
+                            section: s,
+                            onViewAll: () => context.push(
+                              AppRouteNames.sellerShopSectionPath(
+                                sellerId,
+                                s.segment.slug,
+                              ),
+                              extra: name,
+                            ),
+                          ),
+                        ),
                     ],
             ),
             SliverToBoxAdapter(
@@ -151,7 +162,7 @@ class _ShopHeader extends StatelessWidget {
     final tagline = seller.tagline?.trim();
     final place = seller.place;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -187,18 +198,18 @@ class _ShopHeader extends StatelessWidget {
               );
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           if (seller.name.isNotEmpty)
             Text(seller.name, style: LuxeType.display(30, p.ink)),
           if (tagline != null && tagline.isNotEmpty) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 5),
             Text(tagline, style: LuxeType.body(p.inkMuted, size: 14.5)),
           ],
           if (place != null || seller.showsRating) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Wrap(
-              spacing: 14,
-              runSpacing: 6,
+              spacing: 10,
+              runSpacing: 5,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 if (place != null)
@@ -233,18 +244,18 @@ class _HouseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+      padding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
       child: LuxeCardFrame(
         onTap: () => context.push(
           AppRouteNames.jewelryHousePath(house.slug),
           extra: house,
         ),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(10),
           child: Row(
             children: [
               Icon(Icons.auto_awesome_outlined, color: p.accent),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -277,74 +288,102 @@ class _HouseCard extends StatelessWidget {
   }
 }
 
-/// Heading with the section's count, then a horizontal strip of pieces.
+/// Heading key for a shop section.
+String spotlightShopSectionTitleKey(ProductSegment s) => switch (s) {
+  ProductSegment.naturalDiamond => SpotlightL10n.naturalDiamonds,
+  ProductSegment.labGrownDiamond => SpotlightL10n.labGrownDiamonds,
+  ProductSegment.gemstone => SpotlightL10n.gemstones,
+  ProductSegment.jewelry => SpotlightL10n.jewelleryHouse,
+  ProductSegment.watch => SpotlightL10n.watches,
+  ProductSegment.bullion => SpotlightL10n.bullion,
+};
+
+/// Text block height of [SpotlightShopProductCard] below its square image.
+double spotlightShopCardTextExtent(TextScaler scaler) =>
+    12 +
+    scaler.scale(15 * 1.1) +
+    4 +
+    scaler.scale(12 * 1.25) +
+    10 +
+    scaler.scale(14 * 1.2) +
+    14;
+
+/// Heading with View all, then a horizontal strip of pieces.
 class _ShopSectionRow extends StatelessWidget {
-  const _ShopSectionRow({required this.section});
+  const _ShopSectionRow({required this.section, required this.onViewAll});
 
   final SpotlightShopSection section;
 
-  static String _titleKey(ProductSegment s) => switch (s) {
-    ProductSegment.naturalDiamond => SpotlightL10n.naturalDiamonds,
-    ProductSegment.labGrownDiamond => SpotlightL10n.labGrownDiamonds,
-    ProductSegment.gemstone => SpotlightL10n.gemstones,
-    ProductSegment.jewelry => SpotlightL10n.jewelleryHouse,
-    ProductSegment.watch => SpotlightL10n.watches,
-    ProductSegment.bullion => SpotlightL10n.bullion,
-  };
+  /// Opens every piece of this section in a full grid.
+  final VoidCallback onViewAll;
 
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
-    final scaler = MediaQuery.textScalerOf(context);
     final width = ((MediaQuery.sizeOf(context).width - 16 - 24) / 2.3).clamp(
       140.0,
       210.0,
     );
-    final textBlock =
-        12 +
-        scaler.scale(15 * 1.1) +
-        4 +
-        scaler.scale(12 * 1.25) +
-        10 +
-        scaler.scale(14 * 1.2) +
-        14;
+    final textBlock = spotlightShopCardTextExtent(
+      MediaQuery.textScalerOf(context),
+    );
     return Padding(
-      padding: const EdgeInsets.only(top: 32),
+      padding: const EdgeInsets.only(top: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.only(left: 8, right: 4),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
               children: [
                 Expanded(
                   child: Text(
-                    context.tr(_titleKey(section.segment)),
+                    context.tr(spotlightShopSectionTitleKey(section.segment)),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: LuxeType.display(22, p.ink),
                   ),
                 ),
-                Text(
-                  '${section.totalCount}',
-                  style: LuxeType.figure(p.inkMuted, size: 13),
+                TextButton(
+                  onPressed: onViewAll,
+                  style: TextButton.styleFrom(
+                    foregroundColor: p.accent,
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    minimumSize: const Size(48, 40),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${context.tr(SpotlightL10n.viewAll)} '
+                        '(${section.totalCount})',
+                        style: LuxeType.label(p.accent),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.arrow_forward_rounded,
+                        size: 16,
+                        color: p.accent,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 4),
           SizedBox(
             height: width + textBlock,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               itemCount: section.items.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 12),
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
               itemBuilder: (context, i) {
                 final d = section.items[i];
                 return SizedBox(
                   width: width,
-                  child: _ShopProductCard(
+                  child: SpotlightShopProductCard(
                     detail: d,
                     onTap: () => openProductDetail(context, d),
                   ),
@@ -358,8 +397,14 @@ class _ShopSectionRow extends StatelessWidget {
   }
 }
 
-class _ShopProductCard extends StatelessWidget {
-  const _ShopProductCard({required this.detail, required this.onTap});
+/// One piece in a seller's shop: photo (or shape drawing), title, grades
+/// and price.
+class SpotlightShopProductCard extends StatelessWidget {
+  const SpotlightShopProductCard({
+    required this.detail,
+    required this.onTap,
+    super.key,
+  });
 
   final ProductDetail detail;
   final VoidCallback onTap;
@@ -399,7 +444,7 @@ class _ShopProductCard extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 7, 12, 12),
+            padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -416,7 +461,7 @@ class _ShopProductCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: LuxeType.label(p.inkMuted, size: 12),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Text(
                   detail.price.display,
                   maxLines: 1,

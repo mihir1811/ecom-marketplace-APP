@@ -29,7 +29,7 @@ class HomeLiveShows extends ConsumerWidget {
         0,
       ),
       child: Container(
-        padding: const EdgeInsets.only(top: 20, bottom: 18),
+        padding: const EdgeInsets.only(top: 14, bottom: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(30),
           gradient: const LinearGradient(
@@ -45,7 +45,7 @@ class HomeLiveShows extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -56,14 +56,14 @@ class HomeLiveShows extends ConsumerWidget {
                         Row(
                           children: [
                             const LiveBadge(compact: true),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 6),
                             Text(
                               '$count ON AIR',
                               style: LiveType.eyebrow(size: 9.5),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         Text('Live now', style: LiveType.display(30)),
                       ],
                     ),
@@ -72,14 +72,14 @@ class HomeLiveShows extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             SizedBox(
               height: 252,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
                 itemCount: count.clamp(0, 10),
-                separatorBuilder: (_, _) => const SizedBox(width: 12),
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
                 itemBuilder: (context, i) {
                   Widget card = SizedBox(
                     width: 164,
@@ -119,7 +119,7 @@ class _OffAirEntry extends StatelessWidget {
         semanticLabel: 'Live shows',
         onTap: () => context.openRoute(AppRouteNames.liveShows),
         child: Container(
-          padding: const EdgeInsets.fromLTRB(20, 18, 16, 18),
+          padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(30),
             gradient: const LinearGradient(
@@ -138,13 +138,13 @@ class _OffAirEntry extends StatelessWidget {
                 size: 26,
                 color: LiveStage.champagne,
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('LIVE SHOWS', style: LiveType.eyebrow(size: 9.5)),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 5),
                     Text(
                       'Watch sellers live and bid in real time',
                       style: LiveType.body(13.5, color: LiveStage.inkMuted),
@@ -152,7 +152,7 @@ class _OffAirEntry extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               const Icon(
                 Icons.arrow_forward_rounded,
                 size: 18,
@@ -175,7 +175,7 @@ class _SeeAll extends StatelessWidget {
       semanticLabel: 'See all live shows',
       onTap: () => context.openRoute(AppRouteNames.liveShows),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 8, 10, 8),
+        padding: const EdgeInsets.fromLTRB(10, 6, 8, 6),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(999),
           border: Border.all(color: LiveStage.hairlineStrong),

@@ -21,7 +21,7 @@ class LuxeDropdownField<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: AppColors.card(context),
         border: Border.all(color: AppColors.border(context)),

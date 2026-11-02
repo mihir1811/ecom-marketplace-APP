@@ -135,7 +135,7 @@ class DiamondInquiryForm extends StatelessWidget {
                 InquiryHelperText(
                   context.tr(RemainingL10n.selectEitherTotalCaratOrTotalPieces),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 if (_measureCarat)
                   InquiryPairFields(
                     left: InquiryTextField(
@@ -404,7 +404,7 @@ class DiamondInquiryForm extends StatelessWidget {
 
   Widget _colorHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
           InquiryFieldLabel(context.tr(RemainingL10n.color)),

@@ -106,7 +106,7 @@ class _SectionTopBarBody extends ConsumerWidget {
         onPressed: () => context.openRoute(AppRouteNames.login),
         style: TextButton.styleFrom(
           foregroundColor: p.ink,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
           minimumSize: const Size(0, 40),
         ),
         child: Text(
@@ -135,7 +135,7 @@ class _SectionTopBarBody extends ConsumerWidget {
               data: IconThemeData(color: p.ink, size: 22),
               child: Row(
                 children: [
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 5),
                   leading,
                   const SizedBox(width: 4),
                   if (spec.search)
@@ -150,7 +150,7 @@ class _SectionTopBarBody extends ConsumerWidget {
                     look: TopBarActionLook.plain,
                     includeSearch: false,
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 5),
                 ],
               ),
             ),
@@ -186,11 +186,11 @@ class _SearchEntry extends StatelessWidget {
           child: SizedBox(
             height: 40,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(
                 children: [
                   Icon(Icons.search_rounded, size: 18, color: p.inkFaint),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       hint,

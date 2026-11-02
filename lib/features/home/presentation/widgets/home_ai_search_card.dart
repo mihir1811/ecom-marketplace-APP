@@ -68,14 +68,14 @@ class _HomeAiSearchCardState extends State<HomeAiSearchCard>
                   ],
                 ),
               ),
-              padding: const EdgeInsets.fromLTRB(22, 24, 22, 22),
+              padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
                       _Orb(animation: _edge),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           context.tr(HomeL10n.aiSearchTitle),
@@ -84,14 +84,14 @@ class _HomeAiSearchCardState extends State<HomeAiSearchCard>
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   Text(
                     context.tr(HomeL10n.aiSearchBody),
                     style: HomeType.body(HomeStage.inkMuted, size: 14),
                   ),
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 14),
                   const _TypewriterField(),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       Flexible(
@@ -102,7 +102,7 @@ class _HomeAiSearchCardState extends State<HomeAiSearchCard>
                           style: HomeType.label(HomeStage.gold, size: 14),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Icon(
                         Icons.arrow_forward_rounded,
                         size: 18,
@@ -272,7 +272,7 @@ class _TypewriterFieldState extends State<_TypewriterField> {
         _static || (DateTime.now().millisecondsSinceEpoch ~/ 500).isEven;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: HomeStage.glass,
         borderRadius: BorderRadius.circular(HomeSpace.radiusSmall),
@@ -305,7 +305,7 @@ class _TypewriterFieldState extends State<_TypewriterField> {
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Icon(Icons.arrow_upward_rounded, size: 18, color: HomeStage.inkMuted),
         ],
       ),

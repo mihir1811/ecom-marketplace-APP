@@ -137,7 +137,7 @@ class ReviewLedgerCard extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text('YOUR AVERAGE', style: AtelierType.overline(p.muted)),
-        const SizedBox(height: 6),
+        const SizedBox(height: 5),
         FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
@@ -159,9 +159,9 @@ class ReviewLedgerCard extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 5),
         ReviewStars(rating: average, size: 17, delay: 200.ms),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Text(
           '${reviewRatingWord(average)} · $total '
           '${total == 1 ? 'review' : 'reviews'}',
@@ -191,7 +191,7 @@ class ReviewLedgerCard extends StatelessWidget {
     );
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 18, 16, 16),
+      padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
       decoration: BoxDecoration(
         color: p.surface,
         borderRadius: BorderRadius.circular(AtelierRadius.lg),
@@ -203,7 +203,7 @@ class ReviewLedgerCard extends StatelessWidget {
           if (constraints.maxWidth < 300) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [summary, const SizedBox(height: 16), bars],
+              children: [summary, const SizedBox(height: 12), bars],
             );
           }
           return Row(
@@ -217,7 +217,7 @@ class ReviewLedgerCard extends StatelessWidget {
               Container(
                 width: 1,
                 height: 120,
-                margin: const EdgeInsets.symmetric(horizontal: 18),
+                margin: const EdgeInsets.symmetric(horizontal: 12),
                 color: p.hairline,
               ),
               Expanded(child: bars),
@@ -287,7 +287,7 @@ class _DistributionBar extends StatelessWidget {
           child: AnimatedContainer(
             duration: AtelierMotion.base,
             curve: AtelierMotion.emphasized,
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
             decoration: BoxDecoration(
               color: selected ? p.goldSoft : Colors.transparent,
               borderRadius: BorderRadius.circular(AtelierRadius.xs),
@@ -302,7 +302,7 @@ class _DistributionBar extends StatelessWidget {
                   ),
                 ),
                 Icon(Icons.star_rounded, size: 12, color: p.gold),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Expanded(
                   child: Container(
                     height: 6,
@@ -313,7 +313,7 @@ class _DistributionBar extends StatelessWidget {
                     child: fill,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 SizedBox(
                   width: 22,
                   child: Text(

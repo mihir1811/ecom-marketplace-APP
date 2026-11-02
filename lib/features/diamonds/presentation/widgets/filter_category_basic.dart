@@ -459,7 +459,7 @@ class ClarityCardsSection extends ConsumerWidget {
                   foregroundColor: AppColors.bronze,
                   side: BorderSide(color: AppColors.border(context)),
                   visualDensity: VisualDensity.compact,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppSpacing.r8),
                   ),
@@ -555,7 +555,7 @@ class _ClarityCard extends StatelessWidget {
             onToggleGroup();
           },
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(8, 12, 8, 10),
+            padding: const EdgeInsets.fromLTRB(6, 8, 6, 8),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -571,11 +571,11 @@ class _ClarityCard extends StatelessWidget {
                         const SizedBox.square(dimension: 96),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     for (var i = 0; i < group.grades.length; i++) ...[
-                      if (i > 0) const SizedBox(width: 6),
+                      if (i > 0) const SizedBox(width: 5),
                       Expanded(
                         child: _ClarityGradePill(
                           grade: group.grades[i],
@@ -671,7 +671,7 @@ class FinishPresetsSection extends ConsumerWidget {
               context.tr(CatalogL10n.finishQuickSelect),
               style: AppTypography.label.copyWith(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             Tooltip(
               message:
                   "Quickly select combined grades for Cut, Polish, and Symmetry.",
@@ -948,7 +948,7 @@ class _CompactPresetChip extends StatelessWidget {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 6),
         decoration: BoxDecoration(
           color: isActive
               ? AppColors.selectedFill(context)
@@ -1116,7 +1116,7 @@ class _SelectionSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.surface(context),
         borderRadius: BorderRadius.circular(AppSpacing.r8),

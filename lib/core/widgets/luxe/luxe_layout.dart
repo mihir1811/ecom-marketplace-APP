@@ -172,7 +172,7 @@ class LuxeSectionState extends State<LuxeSection> {
             ),
             child: Icon(widget.icon, size: 18, color: p.accent),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
         ],
         Expanded(
           child: Column(
@@ -195,9 +195,9 @@ class LuxeSectionState extends State<LuxeSection> {
                     child: widget.activeCount > 0
                         ? Container(
                             key: ValueKey(widget.activeCount),
-                            margin: const EdgeInsets.only(left: 8),
+                            margin: const EdgeInsets.only(left: 6),
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 7,
+                              horizontal: 6,
                               vertical: 2,
                             ),
                             decoration: ShapeDecoration(
@@ -248,7 +248,7 @@ class LuxeSectionState extends State<LuxeSection> {
     );
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
+      margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: p.surface,
         borderRadius: BorderRadius.circular(LuxeSpace.radius),
@@ -269,7 +269,7 @@ class LuxeSectionState extends State<LuxeSection> {
                     }
                   : null,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
+                padding: const EdgeInsets.fromLTRB(12, 12, 10, 12),
                 child: header,
               ),
             ),
@@ -280,7 +280,7 @@ class LuxeSectionState extends State<LuxeSection> {
             alignment: Alignment.topCenter,
             child: _expanded
                 ? Padding(
-                    padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
                     child: widget.child,
                   )
                 : const SizedBox(width: double.infinity),
@@ -336,7 +336,7 @@ class LuxeTopBar extends StatelessWidget implements PreferredSizeWidget {
           height: 64,
           child: Row(
             children: [
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               if (showBack)
                 LuxeIconButton(
                   icon: Icons.arrow_back_rounded,
@@ -344,7 +344,7 @@ class LuxeTopBar extends StatelessWidget implements PreferredSizeWidget {
                   size: 40,
                   onPressed: onBack ?? () => context.goBack(),
                 ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -364,7 +364,7 @@ class LuxeTopBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ),
               ...actions,
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
             ],
           ),
         ),

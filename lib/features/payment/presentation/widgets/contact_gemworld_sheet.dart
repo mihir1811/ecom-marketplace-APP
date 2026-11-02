@@ -76,7 +76,7 @@ class _ContactGemworldFormState extends ConsumerState<_ContactGemworldForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           TextFormField(
             controller: _phone,
             autofocus: true,
@@ -87,7 +87,7 @@ class _ContactGemworldFormState extends ConsumerState<_ContactGemworldForm> {
                 ? 'Enter a valid phone number.'
                 : null,
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           TextFormField(
             controller: _note,
             maxLines: 3,
@@ -95,10 +95,10 @@ class _ContactGemworldFormState extends ConsumerState<_ContactGemworldForm> {
             decoration: const InputDecoration(labelText: 'Note (optional)'),
           ),
           if (_error != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text(_error!, style: LuxeType.label(p.caution, size: 12.5)),
           ],
-          const SizedBox(height: 22),
+          const SizedBox(height: 14),
           LuxeButton(
             label: 'Send to GemWorld',
             expand: true,

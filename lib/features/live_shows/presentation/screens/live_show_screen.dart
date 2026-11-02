@@ -251,7 +251,7 @@ class _LiveShowScreenState extends ConsumerState<LiveShowScreen> {
             // dozen lines, so small screens never overflow.
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 12, 0),
+                padding: const EdgeInsets.fromLTRB(12, 0, 8, 0),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -288,7 +288,7 @@ class _LiveShowScreenState extends ConsumerState<LiveShowScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     Flexible(
                       flex: 0,
                       child: FittedBox(
@@ -307,21 +307,21 @@ class _LiveShowScreenState extends ConsumerState<LiveShowScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             // Hidden, not removed, under the keyboard: the bid number pad
             // raises it and must hand its amount back.
             _HideUnderKeyboard(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: LiveAuctionDock(
                   showId: widget.showId,
                   onOpenLineup: _openLineup,
                 ),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 6),
               child: Consumer(
                 builder: (context, ref, _) => LiveCommentBar(
                   signedIn: signedIn,
@@ -636,7 +636,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
+      padding: const EdgeInsets.fromLTRB(8, 5, 8, 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -648,12 +648,12 @@ class _Header extends StatelessWidget {
                 size: 40,
                 onTap: onBack,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Expanded(
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Container(
-                    padding: const EdgeInsets.fromLTRB(4, 4, 14, 4),
+                    padding: const EdgeInsets.fromLTRB(4, 4, 10, 4),
                     decoration: BoxDecoration(
                       color: LiveStage.glass,
                       borderRadius: BorderRadius.circular(999),
@@ -668,7 +668,7 @@ class _Header extends StatelessWidget {
                           size: 32,
                           ring: !show.hasEnded,
                         ),
-                        const SizedBox(width: 9),
+                        const SizedBox(width: 8),
                         Flexible(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -712,7 +712,7 @@ class _Header extends StatelessWidget {
                                           size: 9,
                                         ).copyWith(letterSpacing: 1.2),
                                       ),
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: 6),
                                       Icon(
                                         Icons.visibility_outlined,
                                         size: 11,
@@ -741,7 +741,7 @@ class _Header extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               if (canMute)
                 LiveIconButton(
                   icon: muted
@@ -755,7 +755,7 @@ class _Header extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(6, 10, 56, 0),
+            padding: const EdgeInsets.fromLTRB(5, 8, 56, 0),
             child: Text(
               show.title,
               maxLines: 1,
@@ -820,7 +820,7 @@ class _Rail extends ConsumerWidget {
           ),
           'Lineup',
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         item(
           LiveIconButton(
             icon: commentsOn
@@ -892,7 +892,7 @@ class _Waiting extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           Text(
             "Waiting for the seller's video",
             style: LiveType.display(22).copyWith(
@@ -942,7 +942,7 @@ class _EndedPanel extends StatelessWidget {
               .moveY(begin: 14, end: 0, curve: LiveMotion.emphasized);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 28),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -963,7 +963,7 @@ class _EndedPanel extends StatelessWidget {
             ),
             0,
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
           enter(
             Text(
               'The show has ended',
@@ -972,7 +972,7 @@ class _EndedPanel extends StatelessWidget {
             ),
             1,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           enter(
             Text(
               summary.isEmpty
@@ -983,7 +983,7 @@ class _EndedPanel extends StatelessWidget {
             ),
             2,
           ),
-          const SizedBox(height: 26),
+          const SizedBox(height: 18),
           if (results.isNotEmpty) ...[
             enter(
               LiveButton(
@@ -993,7 +993,7 @@ class _EndedPanel extends StatelessWidget {
               ),
               3,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
           ],
           enter(
             LiveButton(
@@ -1064,9 +1064,9 @@ class _Joining extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               ring,
-              const SizedBox(height: 22),
+              const SizedBox(height: 14),
               Text('Joining the show', style: LiveType.display(26)),
-              const SizedBox(height: 6),
+              const SizedBox(height: 5),
               Text(
                 'Connecting you to the seller…',
                 style: LiveType.body(13, color: LiveStage.inkMuted),
@@ -1076,7 +1076,7 @@ class _Joining extends StatelessWidget {
         ),
         SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(10, 6, 10, 0),
+            padding: const EdgeInsets.fromLTRB(8, 5, 8, 0),
             child: Align(
               alignment: Alignment.topLeft,
               child: LiveIconButton(
@@ -1127,21 +1127,21 @@ class _Unavailable extends StatelessWidget {
             size: 26,
           ),
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 14),
         Text(
           'Show unavailable',
           textAlign: TextAlign.center,
           style: LiveType.display(32),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Text(message, textAlign: TextAlign.center, style: LiveType.body(14)),
-        const SizedBox(height: 26),
+        const SizedBox(height: 18),
         LiveButton(
           label: 'Try again',
           icon: Icons.refresh_rounded,
           onTap: () => unawaited(onRetry()),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         LiveButton(
           label: 'Browse live shows',
           kind: LiveButtonKind.secondary,
@@ -1161,13 +1161,13 @@ class _Unavailable extends StatelessWidget {
         const LiveAurora(),
         Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: content,
           ),
         ),
         SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(10, 6, 10, 0),
+            padding: const EdgeInsets.fromLTRB(8, 5, 8, 0),
             child: Align(
               alignment: Alignment.topLeft,
               child: LiveIconButton(

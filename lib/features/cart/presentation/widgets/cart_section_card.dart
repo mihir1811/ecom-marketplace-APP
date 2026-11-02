@@ -13,7 +13,7 @@ class CartSectionCard extends StatelessWidget {
     this.title,
     this.icon,
     this.trailing,
-    this.padding = const EdgeInsets.fromLTRB(18, 16, 18, 18),
+    this.padding = const EdgeInsets.fromLTRB(12, 12, 12, 12),
   });
 
   final Widget child;
@@ -43,7 +43,7 @@ class CartSectionCard extends StatelessWidget {
                     children: [
                       if (icon != null) ...[
                         Icon(icon, size: 16, color: p.accent),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                       ],
                       Expanded(
                         child: Text(
@@ -58,7 +58,7 @@ class CartSectionCard extends StatelessWidget {
                       ?trailing,
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   child,
                 ],
               ),

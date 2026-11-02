@@ -137,7 +137,7 @@ class _MetricTile extends StatelessWidget {
           duration: AtelierMotion.slow,
           curve: AtelierMotion.emphasized,
           height: 104,
-          padding: const EdgeInsets.fromLTRB(12, 11, 12, 11),
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
           decoration: BoxDecoration(
             color: selected ? p.raised : p.surface,
             borderRadius: BorderRadius.circular(AtelierRadius.lg),
@@ -167,7 +167,7 @@ class _MetricTile extends StatelessWidget {
                     tone: style.tone,
                     size: 26,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       card.title,
@@ -263,7 +263,7 @@ class DashboardPerformanceCard extends StatelessWidget {
         params.customEnd != null;
 
     return AtelierCard(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -274,7 +274,7 @@ class DashboardPerformanceCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('PERFORMANCE', style: AtelierType.overline(p.gold)),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 5),
                     AnimatedSwitcher(
                       duration: AtelierMotion.base,
                       child: Text(
@@ -324,7 +324,7 @@ class DashboardPerformanceCard extends StatelessWidget {
             alignment: Alignment.topLeft,
             child: hasCustomDates
                 ? Padding(
-                    padding: const EdgeInsets.only(top: 10),
+                    padding: const EdgeInsets.only(top: 8),
                     child: Pressable(
                       onTap: onEditCustomRange,
                       semanticLabel: 'Change custom dates',
@@ -332,13 +332,13 @@ class DashboardPerformanceCard extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.event_rounded, size: 14, color: p.gold),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 5),
                           Text(
                             '${dashboardDate(params.customStart!)}  →  '
                             '${dashboardDate(params.customEnd!)}',
                             style: AtelierType.figure(p.inkSoft, size: 12),
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 5),
                           Icon(Icons.edit_outlined, size: 13, color: p.muted),
                         ],
                       ),
@@ -390,7 +390,7 @@ class DashboardPerformanceCard extends StatelessWidget {
             ],
           ),
           if (metric == DashboardMetric.inventoryValue) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 5),
             Text(
               context.tr(RemainingL10n.inventorySnapshotNote),
               style: AtelierType.caption(p.muted, size: 11.5),
@@ -455,7 +455,7 @@ Future<(DateTime, DateTime)?> pickDashboardCustomRange(
                   value: start,
                   onTap: pickStart,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 _DateField(
                   label: context.tr(RemainingL10n.endDate),
                   value: end,
@@ -501,7 +501,7 @@ class _DateField extends StatelessWidget {
       onTap: onTap,
       semanticLabel: label,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: p.sunken,
           borderRadius: BorderRadius.circular(AtelierRadius.md),

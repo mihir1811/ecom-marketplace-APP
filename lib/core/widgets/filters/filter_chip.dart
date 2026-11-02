@@ -55,7 +55,7 @@ class FilterChipWidget extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         padding:
-            padding ?? const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            padding ?? const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         alignment: centerLabel ? Alignment.center : null,
         decoration: BoxDecoration(
           color: isSelected ? fill : defaultUnselectedBg,

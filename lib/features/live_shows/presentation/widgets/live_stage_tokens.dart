@@ -188,7 +188,7 @@ class LiveBadge extends StatelessWidget {
       excludeSemantics: true,
       child: Container(
         padding: EdgeInsets.symmetric(
-          horizontal: compact ? 7 : 9,
+          horizontal: compact ? 6 : 8,
           vertical: compact ? 3.5 : 5,
         ),
         decoration: BoxDecoration(
@@ -262,7 +262,7 @@ class LiveViewerPill extends StatelessWidget {
       excludeSemantics: true,
       child: Container(
         padding: EdgeInsets.symmetric(
-          horizontal: compact ? 7 : 9,
+          horizontal: compact ? 6 : 8,
           vertical: compact ? 3.5 : 5,
         ),
         decoration: BoxDecoration(
@@ -527,7 +527,7 @@ class LiveButton extends StatelessWidget {
           )
         else if (icon != null)
           Icon(icon, size: 18, color: fg),
-        if (busy || icon != null) const SizedBox(width: 8),
+        if (busy || icon != null) const SizedBox(width: 6),
         Flexible(
           child: Text(
             label,
@@ -547,7 +547,7 @@ class LiveButton extends StatelessWidget {
         child: Container(
           height: height,
           width: expand ? double.infinity : null,
-          padding: const EdgeInsets.symmetric(horizontal: 22),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),

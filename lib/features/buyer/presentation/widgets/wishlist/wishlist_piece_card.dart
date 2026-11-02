@@ -122,7 +122,7 @@ class _WishlistPieceCardState extends ConsumerState<WishlistPieceCard> {
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -176,7 +176,7 @@ class _WishlistPieceCardState extends ConsumerState<WishlistPieceCard> {
       semanticLabel: '${item.title}, ${item.priceLabel}',
       borderRadius: BorderRadius.circular(AtelierRadius.lg),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: p.surface,
           borderRadius: BorderRadius.circular(AtelierRadius.lg),
@@ -199,7 +199,7 @@ class _WishlistPieceCardState extends ConsumerState<WishlistPieceCard> {
                 ),
               ),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,7 +224,7 @@ class _WishlistPieceCardState extends ConsumerState<WishlistPieceCard> {
                       style: AtelierType.caption(p.muted, size: 11.5),
                     ),
                   ],
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   Text(
                     item.priceLabel,
                     maxLines: 1,
@@ -234,7 +234,7 @@ class _WishlistPieceCardState extends ConsumerState<WishlistPieceCard> {
                 ],
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             _HeartButton(onTap: widget.onRemove, onSurface: true),
           ],
         ),

@@ -84,7 +84,7 @@ class _OrderReviewPanelState extends ConsumerState<OrderReviewPanel> {
         children: [
           for (final review in reviews) ...[
             _ReviewCard(review: review),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
           ],
           if (!_isPaid && targets.isNotEmpty)
             const AtelierNotice(
@@ -99,7 +99,7 @@ class _OrderReviewPanelState extends ConsumerState<OrderReviewPanel> {
             ),
           if (_isPaid)
             for (var i = 0; i < pending.length; i++) ...[
-              if (i > 0 || reviews.isNotEmpty) const SizedBox(height: 6),
+              if (i > 0 || reviews.isNotEmpty) const SizedBox(height: 5),
               _ReviewForm(
                 key: ValueKey('review-${pending[i].sellerId}'),
                 orderId: widget.order.id,
@@ -212,7 +212,7 @@ class _ReviewFormState extends ConsumerState<_ReviewForm> {
   Widget build(BuildContext context) {
     final p = context.atelier;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: p.sunken,
         borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -223,7 +223,7 @@ class _ReviewFormState extends ConsumerState<_ReviewForm> {
           Row(
             children: [
               AtelierMonogram(name: widget.sellerName, size: 32),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Rate ${widget.sellerName}',
@@ -234,7 +234,7 @@ class _ReviewFormState extends ConsumerState<_ReviewForm> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           StarPicker(
             rating: _rating,
             enabled: !_submitting,
@@ -250,7 +250,7 @@ class _ReviewFormState extends ConsumerState<_ReviewForm> {
             child: _rating == 0
                 ? const SizedBox(width: double.infinity)
                 : Padding(
-                    padding: const EdgeInsets.only(top: 14),
+                    padding: const EdgeInsets.only(top: 10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -263,7 +263,7 @@ class _ReviewFormState extends ConsumerState<_ReviewForm> {
                             LengthLimitingTextInputFormatter(120),
                           ],
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 8),
                         AtelierTextField(
                           controller: _comment,
                           label: context.tr(RemainingL10n.reviewOptional),
@@ -280,7 +280,7 @@ class _ReviewFormState extends ConsumerState<_ReviewForm> {
                   ),
           ),
           AtelierFieldError(error: _error),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           AtelierButton(
             label: context.tr(AccountCommerceL10n.submitReviewFor, {
               'seller': widget.sellerName,
@@ -314,7 +314,7 @@ class _ReviewCard extends ConsumerWidget {
     final seller = review.sellerName?.trim();
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: p.sunken,
         borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -325,7 +325,7 @@ class _ReviewCard extends ConsumerWidget {
           Row(
             children: [
               StarRow(rating: review.rating),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   [
@@ -345,7 +345,7 @@ class _ReviewCard extends ConsumerWidget {
             ],
           ),
           if (review.title != null && review.title!.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(review.title!, style: AtelierType.title(p.ink, size: 14)),
           ],
           if (review.comment != null && review.comment!.isNotEmpty) ...[
@@ -353,9 +353,9 @@ class _ReviewCard extends ConsumerWidget {
             Text(review.comment!, style: AtelierType.body(p.inkSoft, size: 13)),
           ],
           if (review.sellerReply != null && review.sellerReply!.isNotEmpty) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+              padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
               decoration: BoxDecoration(
                 color: p.surface,
                 borderRadius: BorderRadius.circular(AtelierRadius.sm),

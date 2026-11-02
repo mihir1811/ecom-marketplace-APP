@@ -278,7 +278,7 @@ class _HeaderActionsState extends ConsumerState<_HeaderActions> {
             loading: _openingChat,
             onPressed: _openChat,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
         ],
         LuxeIconButton(
           icon: Icons.ios_share_rounded,
@@ -287,7 +287,7 @@ class _HeaderActionsState extends ConsumerState<_HeaderActions> {
           size: 42,
           onPressed: _share,
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 6),
         LuxeIconButton(
           icon: saved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
           tooltip: context.tr(HomeL10n.wishlist),
@@ -319,19 +319,19 @@ class _Summary extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         enter(LuxeDetailEyebrow(detail: detail), 0),
-        const SizedBox(height: 8),
-        enter(Text(detail.title, style: LuxeType.display(36, p.ink)), 1),
         const SizedBox(height: 6),
+        enter(Text(detail.title, style: LuxeType.display(36, p.ink)), 1),
+        const SizedBox(height: 5),
         enter(
           Text(detail.subtitle, style: LuxeType.body(p.inkMuted, size: 15)),
           2,
         ),
         if (detail.badges.isNotEmpty) ...[
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           enter(
             Wrap(
-              spacing: 6,
-              runSpacing: 6,
+              spacing: 5,
+              runSpacing: 5,
               children: [
                 for (final b in detail.badges) LuxeDetailBadge(badge: b),
               ],
@@ -339,20 +339,20 @@ class _Summary extends StatelessWidget {
             3,
           ),
         ],
-        const SizedBox(height: 20),
+        const SizedBox(height: 14),
         if (detail.jewelryDetail != null) ...[
           // Jewelry is priced per chosen variant, so the card lives with
           // the configurator.
           enter(LuxeJewelryPurchasePanel(detail: detail), 4),
-          const SizedBox(height: 26),
+          const SizedBox(height: 18),
           enter(LuxeJewelryGlance(detail: detail), 5),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
         ] else ...[
           enter(LuxePriceCard(labels: labels), 4),
-          const SizedBox(height: 26),
+          const SizedBox(height: 18),
           if (detail.highlights.isNotEmpty) ...[
             enter(LuxeGlance(highlights: detail.highlights), 5),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
           ],
         ],
         if (detail.certification != null &&
@@ -403,7 +403,7 @@ class _Record extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (specs?.meleeQty != null) ...[
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           ProductMeleeQtySelector(
             productId: detail.id,
             qty: specs!.meleeQty!,
@@ -412,15 +412,15 @@ class _Record extends StatelessWidget {
           ),
         ],
         if (detail.jewelryDetail != null) ...[
-          const SizedBox(height: 32),
+          const SizedBox(height: 20),
           ScrollReveal(child: LuxeJewelryRecord(detail: detail)),
         ] else if (specs != null && specs.tabs.isNotEmpty) ...[
-          const SizedBox(height: 32),
+          const SizedBox(height: 20),
           ScrollReveal(child: LuxeSpecTabs(specs: specs)),
         ],
         if (detail.listingSeller != null &&
             detail.listingSeller!.hasAnyData) ...[
-          const SizedBox(height: 28),
+          const SizedBox(height: 18),
           ScrollReveal(
             child: ProductDetailSellerPanel(
               seller: detail.listingSeller!,
@@ -431,12 +431,12 @@ class _Record extends StatelessWidget {
           ),
         ],
         if (detail.note != null) ...[
-          const SizedBox(height: 20),
+          const SizedBox(height: 14),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(Icons.info_outline_rounded, size: 16, color: p.inkFaint),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   detail.note!,

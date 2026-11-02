@@ -97,7 +97,7 @@ class _DiamondViewerScreenState extends State<DiamondViewerScreen> {
         body: Column(
           children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(12, top + 8, 12, 10),
+              padding: EdgeInsets.fromLTRB(8, top + 6, 8, 8),
               child: Row(
                 children: [
                   LuxeIconButton(
@@ -107,7 +107,7 @@ class _DiamondViewerScreenState extends State<DiamondViewerScreen> {
                     size: 42,
                     onPressed: () => context.goBack(),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,7 +136,7 @@ class _DiamondViewerScreenState extends State<DiamondViewerScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   LuxeIconButton(
                     icon: Icons.refresh_rounded,
                     tooltip: context.tr(CatalogL10n.tryAgain),
@@ -187,14 +187,14 @@ class _GestureHints extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, size: 16, color: LuxeStage.gold),
-        const SizedBox(width: 6),
+        const SizedBox(width: 5),
         Text(label, style: LuxeType.label(LuxeStage.ink, size: 12)),
       ],
     );
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -202,11 +202,11 @@ class _GestureHints extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 hint(Icons.swipe_rounded, 'Drag to rotate'),
-                const SizedBox(width: 22),
+                const SizedBox(width: 14),
                 hint(Icons.pinch_rounded, 'Pinch to zoom'),
               ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 5),
             Text(
               text,
               textAlign: TextAlign.center,

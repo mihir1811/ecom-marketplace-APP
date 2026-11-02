@@ -80,7 +80,7 @@ class _LiveCommentBarState extends State<LiveCommentBar> {
               size: 17,
               color: LiveStage.inkFaint,
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 'The seller has turned off chat for you.',
@@ -116,7 +116,7 @@ class _LiveCommentBarState extends State<LiveCommentBar> {
     } else {
       field = _Pill(
         focused: _focus.hasFocus,
-        padding: const EdgeInsets.only(left: 18, right: 5),
+        padding: const EdgeInsets.only(left: 12, right: 5),
         child: Row(
           children: [
             Expanded(
@@ -168,7 +168,7 @@ class _LiveCommentBarState extends State<LiveCommentBar> {
                         ),
                         child: _sending
                             ? const Padding(
-                                padding: EdgeInsets.all(10),
+                                padding: EdgeInsets.all(8),
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   color: LiveStage.onChampagne,
@@ -200,7 +200,7 @@ class _LiveCommentBarState extends State<LiveCommentBar> {
           child: _error == null
               ? const SizedBox(width: double.infinity)
               : Padding(
-                  padding: const EdgeInsets.only(left: 18, bottom: 6),
+                  padding: const EdgeInsets.only(left: 12, bottom: 5),
                   child: Row(
                     children: [
                       const Icon(
@@ -208,7 +208,7 @@ class _LiveCommentBarState extends State<LiveCommentBar> {
                         size: 14,
                         color: LiveStage.urgent,
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 5),
                       Expanded(
                         child: Text(
                           _error!,
@@ -222,7 +222,7 @@ class _LiveCommentBarState extends State<LiveCommentBar> {
         Row(
           children: [
             Expanded(child: field),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             _HeartButton(
               onTap: widget.signedIn ? widget.onHeart : widget.onSignIn,
             ),
@@ -236,7 +236,7 @@ class _LiveCommentBarState extends State<LiveCommentBar> {
 class _Pill extends StatelessWidget {
   const _Pill({
     required this.child,
-    this.padding = const EdgeInsets.symmetric(horizontal: 18),
+    this.padding = const EdgeInsets.symmetric(horizontal: 12),
     this.focused = false,
   });
 

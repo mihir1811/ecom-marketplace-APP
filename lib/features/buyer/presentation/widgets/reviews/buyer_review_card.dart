@@ -76,11 +76,11 @@ class _BuyerReviewCardState extends State<BuyerReviewCard> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
               child: Row(
                 children: [
                   _SellerSeal(name: _seller, logo: review.sellerLogo),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,7 +104,7 @@ class _BuyerReviewCardState extends State<BuyerReviewCard> {
                     ),
                   ),
                   if (!review.isVisible) ...[
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     const Tooltip(
                       message: 'Hidden from the public seller page',
                       child: AtelierPill(
@@ -119,11 +119,11 @@ class _BuyerReviewCardState extends State<BuyerReviewCard> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
               child: Row(
                 children: [
                   ReviewStars(rating: review.rating.toDouble(), size: 17),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Flexible(
                     child: Text(
                       reviewRatingWord(review.rating),
@@ -137,7 +137,7 @@ class _BuyerReviewCardState extends State<BuyerReviewCard> {
             ),
             if (title != null && title.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
                 child: Text(
                   '“$title”',
                   maxLines: 3,
@@ -151,7 +151,7 @@ class _BuyerReviewCardState extends State<BuyerReviewCard> {
               ),
             if (comment != null && comment.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.fromLTRB(18, 8, 18, 0),
+                padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
                 child: _ExpandableText(
                   text: comment,
                   expanded: _expanded,
@@ -160,31 +160,31 @@ class _BuyerReviewCardState extends State<BuyerReviewCard> {
               ),
             if (review.imageUrls.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.only(top: 14),
+                padding: const EdgeInsets.only(top: 10),
                 child: _PhotoStrip(urls: review.imageUrls),
               ),
             if (reply != null && reply.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
                 child: _SellerReply(
                   seller: _seller,
                   reply: reply,
                   repliedAt: review.repliedAt,
                 ),
               ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             Container(height: 1, color: p.hairline),
             Padding(
-              padding: const EdgeInsets.fromLTRB(18, 10, 12, 10),
+              padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
               child: Row(
                 children: [
                   Icon(Icons.receipt_long_outlined, size: 15, color: p.muted),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 5),
                   Text(
                     'Order',
                     style: AtelierType.caption(p.muted, size: 11.5),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 5),
                   Flexible(
                     child: Text(
                       maisonShortId(review.orderId),
@@ -351,9 +351,9 @@ class _PhotoStrip extends StatelessWidget {
       height: 72,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 18),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         itemCount: urls.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 6),
         itemBuilder: (context, i) => Reveal(
           index: i,
           horizontal: true,
@@ -410,7 +410,7 @@ class _SellerReply extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.atelier;
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
       decoration: BoxDecoration(
         color: p.sunken.withValues(alpha: p.isDark ? 0.7 : 0.55),
         borderRadius: BorderRadius.circular(AtelierRadius.md),
@@ -422,7 +422,7 @@ class _SellerReply extends StatelessWidget {
           Row(
             children: [
               Icon(Icons.reply_rounded, size: 14, color: p.gold),
-              const SizedBox(width: 6),
+              const SizedBox(width: 5),
               Expanded(
                 child: Text(
                   'REPLY FROM ${seller.toUpperCase()}',
@@ -432,7 +432,7 @@ class _SellerReply extends StatelessWidget {
                 ),
               ),
               if (repliedAt != null) ...[
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Text(
                   maisonRelative(repliedAt),
                   style: AtelierType.caption(p.muted, size: 10.5),
@@ -440,7 +440,7 @@ class _SellerReply extends StatelessWidget {
               ],
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           Text(reply, style: AtelierType.body(p.ink, size: 13)),
         ],
       ),
@@ -599,7 +599,7 @@ class BuyerReviewSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.atelier;
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: p.surface,
         borderRadius: BorderRadius.circular(AtelierRadius.lg),
@@ -611,26 +611,26 @@ class BuyerReviewSkeleton extends StatelessWidget {
           Row(
             children: [
               SkeletonBox(width: 44, height: 44, radius: 22),
-              SizedBox(width: 12),
+              SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SkeletonBox(width: 150, height: 13),
-                    SizedBox(height: 8),
+                    SizedBox(height: 6),
                     SkeletonBox(width: 90, height: 10),
                   ],
                 ),
               ),
             ],
           ),
-          SizedBox(height: 16),
-          SkeletonBox(width: 110, height: 14),
           SizedBox(height: 12),
+          SkeletonBox(width: 110, height: 14),
+          SizedBox(height: 8),
           SkeletonBox(width: 200, height: 18),
-          SizedBox(height: 10),
+          SizedBox(height: 8),
           SkeletonBox(height: 10),
-          SizedBox(height: 6),
+          SizedBox(height: 5),
           SkeletonBox(width: 220, height: 10),
         ],
       ),

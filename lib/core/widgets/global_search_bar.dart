@@ -49,7 +49,7 @@ class GlobalSearchBar extends StatelessWidget {
           ),
           style: AppTypography.body.copyWith(color: textColor),
           textInputAction: TextInputAction.search,
-          scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
+          scrollPadding: const EdgeInsets.fromLTRB(14, 14, 14, 80),
           onSubmitted: (value) {},
         ),
       ),

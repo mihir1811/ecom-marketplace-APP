@@ -23,7 +23,7 @@ class DiamondProjectPanel extends StatelessWidget {
     super.key,
     this.subtitle,
     this.trailing,
-    this.padding = const EdgeInsets.fromLTRB(18, 16, 18, 18),
+    this.padding = const EdgeInsets.fromLTRB(12, 12, 12, 12),
   });
 
   final String title;
@@ -69,7 +69,7 @@ class DiamondProjectPanel extends StatelessWidget {
               ?trailing,
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           child,
         ],
       ),

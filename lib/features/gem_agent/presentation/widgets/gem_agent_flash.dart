@@ -32,7 +32,7 @@ class _FlashPill extends StatelessWidget {
     final maxWidth = MediaQuery.sizeOf(context).width - 32;
     return Container(
       constraints: BoxConstraints(maxWidth: maxWidth.clamp(120, 360)),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: p.surface,
         borderRadius: BorderRadius.circular(18),

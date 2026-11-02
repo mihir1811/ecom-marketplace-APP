@@ -169,7 +169,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
             ).copyWith(scrollbars: false),
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 40),
+              padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 40),
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 1360),
@@ -195,7 +195,7 @@ class _SectionLabel extends StatelessWidget {
     return Row(
       children: [
         Text(text.toUpperCase(), style: AtelierType.overline(p.muted)),
-        const SizedBox(width: 12),
+        const SizedBox(width: 8),
         Expanded(child: Container(height: 1, color: p.hairline)),
       ],
     );

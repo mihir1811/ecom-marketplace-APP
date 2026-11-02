@@ -26,7 +26,7 @@ class CartItemsSection extends ConsumerWidget {
           for (var i = 0; i < items.length; i++)
             Padding(
               key: ValueKey(items[i].cartId),
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: 8),
               child: still
                   ? CartItemCard(item: items[i])
                   : CartItemCard(item: items[i])
