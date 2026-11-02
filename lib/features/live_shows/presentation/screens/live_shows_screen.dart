@@ -44,33 +44,31 @@ class LiveShowsScreen extends ConsumerWidget {
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
-      child: LiveShowsPolling(
-        child: AppScaffold(
-          safeTop: false,
-          safeBottom: false,
-          backgroundColor: LiveStage.void_,
-          body: Stack(
-            children: [
-              const Positioned.fill(child: LiveAurora()),
-              RefreshIndicator(
-                color: LiveStage.onChampagne,
-                backgroundColor: LiveStage.champagne,
-                edgeOffset: top + 60,
-                onRefresh: notifier.refresh,
-                child: CustomScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(
-                    parent: BouncingScrollPhysics(),
-                  ),
-                  slivers: [
-                    SliverToBoxAdapter(
-                      child: _Header(top: top, count: shows.length),
-                    ),
-                    ...slivers,
-                  ],
+      child: AppScaffold(
+        safeTop: false,
+        safeBottom: false,
+        backgroundColor: LiveStage.void_,
+        body: Stack(
+          children: [
+            const Positioned.fill(child: LiveAurora()),
+            RefreshIndicator(
+              color: LiveStage.onChampagne,
+              backgroundColor: LiveStage.champagne,
+              edgeOffset: top + 60,
+              onRefresh: notifier.refresh,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
                 ),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: _Header(top: top, count: shows.length),
+                  ),
+                  ...slivers,
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
