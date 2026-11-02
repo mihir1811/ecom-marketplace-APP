@@ -11,6 +11,7 @@ import '../../../../core/router/route_names.dart';
 import '../../../auction/application/auction_providers.dart';
 import '../../../auction/data/repositories/auction_repository_impl.dart';
 import '../../../auction/domain/models/auction_models.dart';
+import '../../../auction/presentation/auction_seller_outcome.dart';
 import '../../../auction/presentation/widgets/auction_card.dart';
 import '../../../auction/presentation/widgets/auction_clock.dart';
 import '../../../auction/presentation/widgets/auction_product_context.dart';
@@ -389,7 +390,7 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
                     onAccept: () => _accept(items[i]),
                     onReject: () => _reject(items[i]),
                     onMore: () => _more(items[i]),
-                    onSelectWinner: (bid) => _selectWinner(items[i], bid),
+                    onSelectWinner: (bid) => _acceptBid(items[i], bid),
                   ),
                 ),
               ),
@@ -441,60 +442,48 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
     }
   }
 
+  /// Sells to the highest bidder who has not declined: the top bid, or the
+  /// next one after a winner declined or let the 24 hours run out.
   Future<void> _accept(AuctionListing a) async {
-    final ok = await showAtelierConfirm(
-      context: context,
-      title: 'Accept the outcome?',
-      message:
-          'Sell ${a.title} to the highest bidder for '
-          '${auctionBidAmount(a.currentBid)}.',
-      confirmLabel: 'Accept',
-      icon: Icons.handshake_outlined,
-    );
-    if (!ok) return;
-    // The backend needs the bid being accepted; an empty body is a 400.
     if (!_bids.containsKey(a.id)) await _loadBids(a.id);
     if (!mounted) return;
-    final top = (_bids[a.id] ?? a.bids)
-        .where((b) => b.id.isNotEmpty && !b.id.startsWith('live:'))
-        .fold<AuctionBid?>(
-          null,
-          (best, b) => best == null || b.amount > best.amount ? b : best,
-        );
-    if (top == null) {
+    final next = a.eligibleBids(_bids[a.id]).firstOrNull;
+    if (next == null) {
       showAtelierToast(
         context,
-        _bidErrors[a.id] ?? 'Could not load the bids. Try again.',
+        _bidErrors[a.id] ??
+            'No eligible bidders remain. Restart or remove the auction.',
         tone: AtelierTone.ruby,
       );
       return;
     }
+    await _acceptBid(a, next);
+  }
+
+  /// `POST /auction/:id/accept` with `{ bidId }`. The winner gets the item
+  /// in their cart at this bid and 24 hours to check out.
+  Future<void> _acceptBid(AuctionListing a, AuctionBid bid) async {
+    final reserve = a.reservePrice;
+    final below = reserve != null && bid.amount < reserve;
+    final ok = await showAtelierConfirm(
+      context: context,
+      title: 'Sell to this bidder?',
+      message:
+          '${bid.buyerName ?? 'This bidder'} wins ${a.title} at '
+          '${auctionBidAmount(bid.amount)}'
+          '${below ? ', below your reserve of ${auctionBidAmount(reserve)}' : ''}. '
+          'It goes into their cart and they have 24 hours to pay, or it '
+          'comes back to you.',
+      confirmLabel: 'Accept',
+      icon: Icons.handshake_outlined,
+    );
+    if (!ok) return;
     await _act(
       a,
       () => ref
           .read(auctionRepositoryProvider)
-          .accept(auctionId: a.id, bidId: top.id),
+          .accept(auctionId: a.id, bidId: bid.id),
     );
-  }
-
-  Future<void> _selectWinner(AuctionListing a, AuctionBid bid) async {
-    final ok = await showAtelierConfirm(
-      context: context,
-      title: 'Choose this bidder?',
-      message:
-          '${bid.buyerName ?? 'This bidder'} wins ${a.title} at '
-          '${auctionBidAmount(bid.amount)}.',
-      confirmLabel: 'Select winner',
-      icon: Icons.emoji_events_outlined,
-    );
-    if (ok) {
-      await _act(
-        a,
-        () => ref
-            .read(auctionRepositoryProvider)
-            .selectWinner(auctionId: a.id, bidderId: bid.buyerId),
-      );
-    }
   }
 
   Future<void> _more(AuctionListing a) async {
@@ -568,13 +557,7 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
       ],
     );
     if (action == null || !mounted) return;
-    DateTime? start;
-    DateTime? end;
-    if (action == 'restart') {
-      final now = DateTime.now();
-      start = now.add(const Duration(minutes: 5));
-      end = now.add(const Duration(days: 7));
-    }
+    final window = action == 'restart' ? auctionRestartWindow() : null;
     await _act(
       a,
       () => ref
@@ -582,8 +565,8 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
           .reject(
             auctionId: a.id,
             action: action,
-            startTime: start,
-            endTime: end,
+            startTime: window?.start,
+            endTime: window?.end,
             minimumBid: a.minimumBid,
             reservePrice: a.reservePrice,
           ),
@@ -659,6 +642,8 @@ class _AuctionCard extends StatelessWidget {
     final contextLine = auctionProductContextLine(a);
     final deadline = auctionDeadline(a);
     final hasBids = a.highestBidAmount != null;
+    final hasDeclined = a.declinedWinnerIds.isNotEmpty;
+    final outcome = auctionSellerOutcome(a);
     final bidCount = bids?.length ?? a.bids.length;
     final reserve = a.reservePrice;
     final when = a.isUpcoming && a.startTime != null
@@ -777,7 +762,25 @@ class _AuctionCard extends StatelessWidget {
               ),
             ],
           ),
-          if (_winnerLine(a) case final line?) ...[
+          if (a.winnerName != null &&
+              a.winPayment != AuctionWinPayment.none) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(Icons.emoji_events_outlined, size: 13, color: p.gold),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Winner: ${a.winnerName}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AtelierType.label(p.ink, size: 12),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (outcome case final line?) ...[
             const SizedBox(height: 6),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -824,7 +827,7 @@ class _AuctionCard extends StatelessWidget {
                 if (hasBids) ...[
                   const SizedBox(width: 4),
                   AtelierButton(
-                    label: 'Accept',
+                    label: hasDeclined ? 'Accept next' : 'Accept',
                     icon: Icons.check_rounded,
                     compact: true,
                     variant: AtelierButtonVariant.gold,
@@ -869,6 +872,7 @@ class _AuctionCard extends StatelessWidget {
                       loading: loadingBids,
                       error: bidError,
                       canSelect: a.awaitingSellerDecision && !acting,
+                      declinedIds: a.declinedWinnerIds,
                       onRetry: onRetryBids,
                       onSelect: onSelectWinner,
                     ),
@@ -878,61 +882,6 @@ class _AuctionCard extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-/// Under the winner on a sold auction: where their cart payment stands, or
-/// that the last winner declined or let the 24 hours run out.
-({IconData icon, String text, bool done})? _winnerLine(AuctionListing a) {
-  switch (a.winPayment) {
-    case AuctionWinPayment.paid:
-      return (
-        icon: Icons.verified_rounded,
-        text: 'Paid by the winner. Ship it from your orders.',
-        done: true,
-      );
-    case AuctionWinPayment.withGemworld:
-      return (
-        icon: Icons.support_agent_outlined,
-        text: 'Awaiting payment: GemWorld is arranging it with the winner.',
-        done: false,
-      );
-    case AuctionWinPayment.due:
-    case AuctionWinPayment.expired:
-      final due = a.paymentDueAt;
-      return (
-        icon: Icons.hourglass_top_rounded,
-        text: due == null
-            ? 'Awaiting payment from the winner.'
-            : 'Awaiting payment: the winner has until ${auctionWhen(due)} '
-                  'to check out, or the item comes back to you.',
-        done: false,
-      );
-    case AuctionWinPayment.none:
-      if (a.awaitingSellerDecision && a.declinedWinnerIds.isNotEmpty) {
-        return (
-          icon: Icons.replay_rounded,
-          text:
-              'The last winner declined or didn’t pay in time. Accept the '
-              'next bidder, restart or remove the auction.',
-          done: false,
-        );
-      }
-      if (a.awaitingSellerDecision) {
-        final reserve = a.reservePrice;
-        return (
-          icon: Icons.gavel_rounded,
-          text: a.highestBidAmount == null
-              ? 'Ended without bids. Relist it or remove the listing.'
-              : reserve != null && !a.isReserveMet
-              ? 'Ended below your reserve of ${auctionBidAmount(reserve)}. '
-                    'Accept the highest bid, pick another bidder or reject.'
-              : 'Bidding closed. Accept the highest bid, pick another bidder '
-                    'or reject.',
-          done: false,
-        );
-      }
-      return null;
   }
 }
 
@@ -996,12 +945,17 @@ class _BidLadder extends StatelessWidget {
     required this.canSelect,
     required this.onRetry,
     required this.onSelect,
+    this.declinedIds = const [],
   });
 
   final List<AuctionBid>? bids;
   final bool loading;
   final String? error;
   final bool canSelect;
+
+  /// Bidders who declined the win or let the 24 hours run out; they can't
+  /// be accepted again.
+  final List<String> declinedIds;
   final VoidCallback onRetry;
   final ValueChanged<AuctionBid> onSelect;
 
@@ -1106,6 +1060,14 @@ class _BidLadder extends StatelessWidget {
                         ],
                       ),
                     ),
+                    if (declinedIds.contains(list[i].buyerId)) ...[
+                      const AtelierPill(
+                        label: 'Declined',
+                        tone: AtelierTone.ruby,
+                        dense: true,
+                      ),
+                      const SizedBox(width: 8),
+                    ],
                     Text(
                       auctionBidAmount(list[i].amount),
                       style: AtelierType.figure(
@@ -1113,10 +1075,12 @@ class _BidLadder extends StatelessWidget {
                         size: 13.5,
                       ),
                     ),
-                    if (canSelect) ...[
+                    if (canSelect &&
+                        list[i].id.isNotEmpty &&
+                        !declinedIds.contains(list[i].buyerId)) ...[
                       const SizedBox(width: 8),
                       AtelierButton(
-                        label: 'Select',
+                        label: 'Accept',
                         compact: true,
                         variant: AtelierButtonVariant.secondary,
                         onPressed: () => onSelect(list[i]),

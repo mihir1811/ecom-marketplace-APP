@@ -16,6 +16,7 @@ import '../../application/auction_providers.dart';
 import '../../domain/models/auction_models.dart';
 import 'auction_card.dart';
 import 'auction_clock.dart';
+import 'auction_seller_panel.dart';
 
 /// Sticky auction actions. Replaces the product add-to-cart bar.
 class AuctionActionBar extends ConsumerStatefulWidget {
@@ -96,7 +97,10 @@ class _AuctionActionBarState extends ConsumerState<AuctionActionBar> {
 
     final Widget content;
     if (owns) {
-      content = note(Icons.storefront_outlined, 'This is your auction.');
+      content = AuctionSellerPanel(
+        auction: auction,
+        auctionId: widget.auctionId,
+      );
     } else if (lapsed) {
       content = note(
         Icons.event_busy_outlined,

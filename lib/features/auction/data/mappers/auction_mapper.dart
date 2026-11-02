@@ -107,6 +107,7 @@ abstract final class AuctionMapper {
   static AuctionListing listingFromJson(Map<String, dynamic> json) {
     final product = _map(json['product']) ?? const {};
     final seller = _map(json['seller']) ?? const {};
+    final winner = _map(json['winner']) ?? const {};
     final bids = _bids(json['bids']);
     final highest = _highest(json['highestBid'], bids);
     return AuctionListing(
@@ -125,7 +126,8 @@ abstract final class AuctionMapper {
       catalogPrice: _num(product['totalPrice']) ?? _num(product['price']),
       highestBidAmount: highest,
       winningAmount: _num(json['winningAmount']),
-      winnerId: _str(json['winnerId']),
+      winnerId: _str(json['winnerId']) ?? _str(winner['id']),
+      winnerName: _str(winner['name']) ?? _str(winner['userName']),
       winnerStatus: _str(json['winnerStatus']),
       paymentDueAt: _date(json['paymentDueAt']),
       paymentWithGemworld: json['paymentWithGemworld'] == true,

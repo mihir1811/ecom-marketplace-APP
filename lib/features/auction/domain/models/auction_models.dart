@@ -41,6 +41,7 @@ class AuctionListing {
     this.endTime,
     this.reservePrice,
     this.winnerId,
+    this.winnerName,
     this.winningAmount,
     this.winnerStatus,
     this.paymentDueAt,
@@ -69,6 +70,9 @@ class AuctionListing {
   final double? highestBidAmount;
   final double? winningAmount;
   final String? winnerId;
+
+  /// Name of the accepted winner (`winner.name` / `winner.userName`).
+  final String? winnerName;
   final String? winnerStatus;
 
   /// When a `PENDING` winner must have paid from the cart (24 h after the
@@ -171,6 +175,7 @@ class AuctionListing {
       endTime: endTime,
       reservePrice: reservePrice,
       winnerId: winnerId,
+      winnerName: winnerName,
       winningAmount: winningAmount,
       winnerStatus: winnerStatus,
       paymentDueAt: paymentDueAt,
@@ -207,6 +212,23 @@ class AuctionListing {
       return AuctionWinPayment.expired;
     }
     return AuctionWinPayment.due;
+  }
+
+  /// True when this bidder declined the win or let its 24 hours run out.
+  bool hasDeclined(String buyerId) =>
+      buyerId.isNotEmpty && declinedWinnerIds.contains(buyerId);
+
+  /// Bids the seller can still accept: real bid rows (not socket
+  /// placeholders) from bidders who have not declined, highest first.
+  List<AuctionBid> eligibleBids([List<AuctionBid>? from]) {
+    final rows = [
+      for (final bid in from ?? bids)
+        if (bid.id.isNotEmpty &&
+            !bid.id.startsWith('live:') &&
+            !hasDeclined(bid.buyerId))
+          bid,
+    ]..sort((a, b) => b.amount.compareTo(a.amount));
+    return rows;
   }
 
   bool get isUpcoming {
