@@ -527,9 +527,7 @@ class StardustField extends ChangeNotifier {
       // star only sways on a small bounded epicycle along its arm.
       final epicycle = math.sin(time * _galW[i] + twinklePhase[i]) * 0.035;
       final a =
-          _galA[i] +
-          time * _patternSpeed * (outer == 1 ? 1 : 0.35) +
-          epicycle;
+          _galA[i] + time * _patternSpeed * (outer == 1 ? 1 : 0.35) + epicycle;
       final r = _galR[i] * outer * (1 + epicycle * 0.4);
       final lx = r * math.cos(a);
       final ly = _galH[i];

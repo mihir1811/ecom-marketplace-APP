@@ -7,10 +7,10 @@ import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/widgets/app_network_image.dart';
 import '../../../recently_viewed/application/recently_viewed_list_provider.dart';
 import '../../../recently_viewed/domain/models/recently_viewed.dart';
 import '../../../recently_viewed/presentation/widgets/recent/recent_piece.dart';
+import '../../application/recent_searches_provider.dart';
 import '../home_content.dart';
 import '../theme/home_tokens.dart';
 
@@ -60,7 +60,7 @@ class HomeSearchArrive extends StatelessWidget {
   }
 }
 
-/// Catalogue search's resting state: the collections, diamond shapes,
+/// Catalogue search's resting state: recent searches, diamond shapes,
 /// recently viewed pieces and a stock / certificate number tip.
 class HomeSearchBrowse extends ConsumerWidget {
   const HomeSearchBrowse({
@@ -77,7 +77,6 @@ class HomeSearchBrowse extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final signedIn = ref.watch(authProvider.select((s) => s.isAuthenticated));
-    const items = HomeContent.collections;
 
     Widget arrive(double order, Widget child, {double distance = 26}) =>
         HomeSearchArrive(
@@ -96,26 +95,7 @@ class HomeSearchBrowse extends ConsumerWidget {
       ),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       children: [
-        arrive(
-          3,
-          _BrowseCard(
-            eyebrow: context.tr(HomeL10n.collectionsEyebrow),
-            child: Column(
-              children: [
-                for (var i = 0; i < items.length; i++)
-                  arrive(
-                    3.5 + i * 0.6,
-                    distance: 12,
-                    _CollectionRow(
-                      item: items[i],
-                      onTap: () => onOpenRoute(items[i].route),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
+        arrive(3, _RecentSearchesCard(onSearch: onSearch)),
         arrive(5, _ShapesCard(onSearch: onSearch)),
         if (signedIn) arrive(6, _RecentCard(onOpenRoute: onOpenRoute)),
         const SizedBox(height: 12),
@@ -173,11 +153,75 @@ class _BrowseCard extends StatelessWidget {
   }
 }
 
-class _CollectionRow extends StatelessWidget {
-  const _CollectionRow({required this.item, required this.onTap});
+/// What the buyer searched for lately, kept on this device. Tap to search
+/// again; the cross forgets one entry. Hidden until there is history.
+class _RecentSearchesCard extends ConsumerWidget {
+  const _RecentSearchesCard({required this.onSearch});
 
-  final HomeCollection item;
+  final ValueChanged<String> onSearch;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final palette = HomePalette.of(context);
+    final searches = ref.watch(recentSearchesProvider);
+    final notifier = ref.read(recentSearchesProvider.notifier);
+
+    return AnimatedSize(
+      duration: HomeMotion.medium,
+      curve: HomeMotion.settle,
+      alignment: Alignment.topCenter,
+      child: searches.isEmpty
+          ? const SizedBox(width: double.infinity)
+          : Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _BrowseCard(
+                eyebrow: context.tr(HomeL10n.recentSearchesEyebrow),
+                padding: const EdgeInsets.fromLTRB(16, 10, 6, 6),
+                trailing: TextButton(
+                  onPressed: () {
+                    AppHaptics.light();
+                    notifier.clear();
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: palette.accent,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  child: Text(
+                    context.tr(CatalogL10n.clearAll),
+                    style: HomeType.label(palette.accent),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    for (final query in searches)
+                      _RecentSearchRow(
+                        key: ValueKey(query),
+                        query: query,
+                        onTap: () => onSearch(query),
+                        onRemove: () {
+                          AppHaptics.selection();
+                          notifier.remove(query);
+                        },
+                      ),
+                  ],
+                ),
+              ),
+            ),
+    );
+  }
+}
+
+class _RecentSearchRow extends StatelessWidget {
+  const _RecentSearchRow({
+    required this.query,
+    required this.onTap,
+    required this.onRemove,
+    super.key,
+  });
+
+  final String query;
   final VoidCallback onTap;
+  final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -185,46 +229,30 @@ class _CollectionRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(HomeSpace.radiusSmall),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 7),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 44),
         child: Row(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: SizedBox.square(
-                dimension: 52,
-                child: ColoredBox(
-                  color: palette.canvas,
-                  child: AppNetworkImage(
-                    url: item.imageUrl,
-                    memCacheWidth: 160,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 14),
+            Icon(Icons.history_rounded, size: 19, color: palette.inkFaint),
+            const SizedBox(width: 12),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    context.tr(item.titleKey),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: HomeType.label(palette.ink, size: 15),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    context.tr(item.noteKey),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: HomeType.body(palette.inkMuted, size: 13),
-                  ),
-                ],
+              child: Text(
+                query,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: HomeType.body(palette.ink, size: 14),
               ),
             ),
-            const SizedBox(width: 8),
-            Icon(Icons.north_east_rounded, size: 18, color: palette.accent),
+            IconButton(
+              tooltip: context.tr(HomeL10n.removeRecentSearch),
+              onPressed: onRemove,
+              visualDensity: VisualDensity.compact,
+              icon: Icon(
+                Icons.close_rounded,
+                size: 18,
+                color: palette.inkMuted,
+              ),
+            ),
           ],
         ),
       ),
@@ -333,7 +361,7 @@ class _RecentCard extends ConsumerWidget {
                     ),
                   ),
                   child: SizedBox(
-                    height: 142,
+                    height: _RecentTile.height(context),
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsetsDirectional.only(end: 16),
@@ -354,6 +382,31 @@ class _RecentTile extends ConsumerWidget {
   const _RecentTile({required this.entry});
 
   final RecentlyViewedEntry entry;
+
+  /// Image + gaps + both text lines at the current text scale, so larger
+  /// system fonts never overflow the strip.
+  static double height(BuildContext context) {
+    final scaler = MediaQuery.textScalerOf(context);
+    final palette = HomePalette.of(context);
+    double line(TextStyle style) {
+      final painter = TextPainter(
+        text: TextSpan(text: 'Ag', style: style),
+        textDirection: TextDirection.ltr,
+        textScaler: scaler,
+        maxLines: 1,
+      )..layout();
+      final h = painter.height;
+      painter.dispose();
+      return h;
+    }
+
+    return 100 +
+        7 +
+        line(HomeType.label(palette.ink)) +
+        2 +
+        line(HomeType.body(palette.inkMuted, size: 12)) +
+        4;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

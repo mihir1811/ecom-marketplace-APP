@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
@@ -18,6 +20,7 @@ enum _Band { far, focus, near }
 
 class _FieldGem {
   _FieldGem({
+    required this.slot,
     required this.band,
     required this.pick,
     required this.rank,
@@ -36,7 +39,12 @@ class _FieldGem {
     required this.spinZ,
   }) : pose = GemPose(z: hz, scale: scale);
 
+  /// Seeding order; staggers which frame each stone is re-shaded on.
+  final int slot;
   final _Band band;
+
+  /// Facet colours kept between re-shades.
+  final DiamondShade shade = DiamondShade();
 
   /// 0..1 choice of cut, mapped onto however many models are loaded.
   final double pick;
@@ -113,24 +121,44 @@ class GemFieldController extends ChangeNotifier {
   /// Baked cuts; nothing is drawn until they are set.
   List<DiamondModel>? models;
 
-  /// Quality tiers, best first. The widget steps down one tier whenever
-  /// frames run long: first the depth-of-field blur goes (the costliest
-  /// GPU work), then a share of the stones, then fine facets. Stones drawn
-  /// at least `detail` pixels in radius use the full model.
+  /// Quality tiers, best first. The widget starts low-memory devices on a
+  /// cheaper tier and steps down whenever frames run long: first the
+  /// depth-of-field blur goes (the costliest GPU work) and facet shading
+  /// is refreshed every `shadeEvery` frames instead of every frame (the
+  /// costliest CPU work; outlines still move every frame), then a share of
+  /// the stones and fine facets. Stones drawn at least `detail` pixels in
+  /// radius use the full model; `clear` is the smallest radius drawn as
+  /// see-through crystal (twice the facets).
   static const _tiers = [
-    (blur: true, density: 1.0, detail: 22.0),
-    (blur: false, density: 1.0, detail: 22.0),
-    (blur: false, density: 0.75, detail: 36.0),
-    (blur: false, density: 0.55, detail: double.infinity),
+    (blur: true, density: 1.0, detail: 22.0, shadeEvery: 1, clear: 12.0),
+    (blur: false, density: 1.0, detail: 22.0, shadeEvery: 2, clear: 12.0),
+    (blur: false, density: 0.85, detail: 30.0, shadeEvery: 2, clear: 14.0),
+    (blur: false, density: 0.7, detail: 44.0, shadeEvery: 3, clear: 17.0),
+    (blur: false, density: 0.55, detail: 60.0, shadeEvery: 3, clear: 20.0),
   ];
+  static int get tierCount => _tiers.length;
   int _quality = 0;
+  int _frame = 0;
 
+  int get quality => _quality;
   bool get blur => _tiers[_quality].blur;
+
+  /// Below the best tier the field steps at most 60 times a second, so
+  /// 90/120 Hz screens do not double the work.
+  bool get capFrameRate => _quality > 0;
 
   /// Drops to the next cheaper tier; false when already at the cheapest.
   bool lowerQuality() {
     if (_quality == _tiers.length - 1) return false;
     _quality++;
+    return true;
+  }
+
+  /// Never runs better than [tier]; false when nothing changed.
+  bool capQuality(int tier) {
+    final next = tier.clamp(0, _tiers.length - 1);
+    if (next <= _quality) return false;
+    _quality = next;
     return true;
   }
 
@@ -225,6 +253,7 @@ class GemFieldController extends ChangeNotifier {
       final x = s0 * _flowX - q0 * _flowY;
       final y = s0 * _flowY + q0 * _flowX;
       final g = _FieldGem(
+        slot: i,
         band: band,
         pick: rng.nextDouble(),
         rank: rng.nextDouble(),
@@ -281,6 +310,7 @@ class GemFieldController extends ChangeNotifier {
   void step(double dt) {
     if (_gems.isEmpty) return;
     _time += dt;
+    _frame++;
     final cam = camera;
     final pointer = _pointer;
     final idle = reduceMotion ? 0.0 : 1.0;
@@ -550,6 +580,7 @@ class GemFieldController extends ChangeNotifier {
     final cam = camera;
     final tier = _tiers[_quality];
     final detailScale = tier.detail / unit;
+    final every = tier.shadeEvery;
     final sparkle = DiamondSparkle.image;
     final sparkleWidth = sparkle.width.toDouble();
     // Back to front. The list is reused and stays nearly sorted from frame
@@ -592,6 +623,15 @@ class GemFieldController extends ChangeNotifier {
         // Clear-crystal shading for every cut but pear, whose many small
         // facets already read as a diamond. Blurred far stones skip it.
         seeThrough: band != _Band.far && model.name != 'pear',
+        seeThroughMin: tier.clear,
+        shade: g.shade,
+        // Each frame re-shades its share of the stones; a stone the finger
+        // just lit or flashed is always fresh.
+        reshade:
+            every == 1 ||
+            (g.slot + _frame) % every == 0 ||
+            g.flash > 0 ||
+            (g.lit > 0.02 && g.lit < 0.98 && _presence > 0),
       );
     }
     batch.paint(canvas, sparkle: sparkle);
@@ -670,28 +710,70 @@ class _GemFieldState extends State<GemField>
           _field.models = models;
           _syncTicker();
         });
+    // Low-memory phones start on a cheaper tier instead of janking for a
+    // few seconds while the frame watcher finds it.
+    _startTier().then((tier) {
+      if (mounted && _field.capQuality(tier)) setState(() {});
+    });
     SchedulerBinding.instance.addTimingsCallback(_onTimings);
   }
 
+  static Future<int>? _deviceTier;
+
+  /// Starting quality tier from the device's memory, a fair proxy for its
+  /// CPU and GPU class. Unknown devices start on the best tier.
+  static Future<int> _startTier() => _deviceTier ??= () async {
+    if (kIsWeb) return 0;
+    try {
+      int tierFor(int ramMb, {bool lowRam = false}) {
+        if (ramMb <= 0) return lowRam ? 3 : 0;
+        if (lowRam || ramMb < 3 * 1024) return 3;
+        if (ramMb < 4 * 1024 + 512) return 2;
+        if (ramMb < 6 * 1024 + 512) return 1;
+        return 0;
+      }
+
+      switch (defaultTargetPlatform) {
+        case TargetPlatform.android:
+          final info = await DeviceInfoPlugin().androidInfo;
+          return tierFor(info.physicalRamSize, lowRam: info.isLowRamDevice);
+        case TargetPlatform.iOS:
+          // iPhones run this well with less memory than Android phones.
+          final info = await DeviceInfoPlugin().iosInfo;
+          final ram = info.physicalRamSize;
+          if (ram <= 0) return 0;
+          if (ram < 2560) return 2;
+          if (ram < 3584) return 1;
+          return 0;
+        default:
+          return 0;
+      }
+    } catch (_) {
+      return 0;
+    }
+  }();
+
   /// Watches real frame cost (UI and raster threads) while the field
-  /// animates, and steps quality down when frames run long for about a
-  /// second, so slow devices still show a steady herd.
+  /// animates, and steps quality down when frames run long for about half
+  /// a second (two tiers at once when far over budget), so slow devices
+  /// settle quickly on a steady herd.
   void _onTimings(List<FrameTiming> timings) {
     if (!mounted || !_ticker.isActive) return;
     for (final t in timings) {
-      final ms =
-          math.max(
-            t.buildDuration.inMicroseconds,
-            t.rasterDuration.inMicroseconds,
-          ) /
-          1000;
+      final build = t.buildDuration.inMicroseconds;
+      final raster = t.rasterDuration.inMicroseconds;
+      // Frames skipped by the 60 fps cap do no work; they would hide the
+      // cost of the frames that do.
+      if (build < 1200 && raster < 2500) continue;
+      final ms = math.max(build, raster) / 1000;
       _frameCost = _frameSamples == 0 ? ms : _frameCost * 0.85 + ms * 0.15;
       _frameSamples++;
     }
-    if (_frameSamples >= 50 && _frameCost > 20 && _field.lowerQuality()) {
-      _frameSamples = 0;
-      setState(() {});
-    }
+    if (_frameSamples < 30 || _frameCost <= 19) return;
+    var changed = _field.lowerQuality();
+    if (_frameCost > 32 && _field.lowerQuality()) changed = true;
+    _frameSamples = 0;
+    if (changed) setState(() {});
   }
 
   @override
@@ -739,6 +821,12 @@ class _GemFieldState extends State<GemField>
   }
 
   void _tick(Duration elapsed) {
+    // On 90/120 Hz screens a degraded field steps every other vsync.
+    if (_field.capFrameRate &&
+        _last != Duration.zero &&
+        elapsed - _last < const Duration(microseconds: 15000)) {
+      return;
+    }
     final dt = _last == Duration.zero
         ? 1 / 60
         : ((elapsed - _last).inMicroseconds / 1e6).clamp(0.0, 1 / 24);

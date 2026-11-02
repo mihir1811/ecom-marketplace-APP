@@ -11,6 +11,7 @@ import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../ai_chat/application/ai_chat_providers.dart';
 import '../../application/home_search_provider.dart';
+import '../../application/recent_searches_provider.dart';
 import '../theme/home_tokens.dart';
 import 'home_search_ai_mode.dart';
 import 'home_search_browse.dart';
@@ -99,6 +100,7 @@ class _HomeSearchOverlayState extends ConsumerState<_HomeSearchOverlay> {
     }
     _timer?.cancel();
     ref.read(homeSearchQueryProvider.notifier).state = value;
+    ref.read(recentSearchesProvider.notifier).add(value);
   }
 
   void _clear() {
@@ -117,6 +119,7 @@ class _HomeSearchOverlayState extends ConsumerState<_HomeSearchOverlay> {
       selection: TextSelection.collapsed(offset: text.length),
     );
     ref.read(homeSearchQueryProvider.notifier).state = text;
+    ref.read(recentSearchesProvider.notifier).add(text);
     setState(() {});
   }
 
@@ -152,6 +155,8 @@ class _HomeSearchOverlayState extends ConsumerState<_HomeSearchOverlay> {
   Widget build(BuildContext context) {
     final palette = HomePalette.of(context);
     final animation = widget.animation;
+    // Keeps recent searches loaded while search is open, whichever view shows.
+    ref.watch(recentSearchesProvider.notifier);
     final hasQuery =
         !_aiMode &&
         ref.watch(homeSearchQueryProvider.select((q) => q.trim().isNotEmpty));

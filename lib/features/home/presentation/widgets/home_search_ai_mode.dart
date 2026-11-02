@@ -20,73 +20,70 @@ class HomeSearchModeSwitch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = HomePalette.of(context);
-    return Align(
-      alignment: AlignmentDirectional.centerStart,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 300),
-        child: Container(
-          height: 42,
-          padding: const EdgeInsets.all(4),
-          decoration: ShapeDecoration(
-            color: palette.surface,
-            shape: StadiumBorder(side: BorderSide(color: palette.hairline)),
-          ),
-          child: Stack(
-            children: [
-              AnimatedAlign(
-                duration: HomeMotion.medium,
-                curve: HomeMotion.settle,
-                alignment: aiMode
-                    ? AlignmentDirectional.centerEnd
-                    : AlignmentDirectional.centerStart,
-                child: FractionallySizedBox(
-                  widthFactor: 0.5,
-                  heightFactor: 1,
-                  child: AnimatedContainer(
-                    duration: HomeMotion.medium,
-                    curve: HomeMotion.settle,
-                    decoration: ShapeDecoration(
-                      shape: const StadiumBorder(),
-                      color: aiMode ? HomeStage.obsidian : palette.ink,
-                      shadows: [
-                        BoxShadow(
-                          color: HomeStage.gold.withValues(
-                            alpha: aiMode ? 0.28 : 0,
-                          ),
-                          blurRadius: 14,
-                          spreadRadius: -2,
+    return SizedBox(
+      width: double.infinity,
+      child: Container(
+        height: 42,
+        padding: const EdgeInsets.all(4),
+        decoration: ShapeDecoration(
+          color: palette.surface,
+          shape: StadiumBorder(side: BorderSide(color: palette.hairline)),
+        ),
+        child: Stack(
+          children: [
+            AnimatedAlign(
+              duration: HomeMotion.medium,
+              curve: HomeMotion.settle,
+              alignment: aiMode
+                  ? AlignmentDirectional.centerEnd
+                  : AlignmentDirectional.centerStart,
+              child: FractionallySizedBox(
+                widthFactor: 0.5,
+                heightFactor: 1,
+                child: AnimatedContainer(
+                  duration: HomeMotion.medium,
+                  curve: HomeMotion.settle,
+                  decoration: ShapeDecoration(
+                    shape: const StadiumBorder(),
+                    color: aiMode ? HomeStage.obsidian : palette.ink,
+                    shadows: [
+                      BoxShadow(
+                        color: HomeStage.gold.withValues(
+                          alpha: aiMode ? 0.28 : 0,
                         ),
-                      ],
-                    ),
+                        blurRadius: 14,
+                        spreadRadius: -2,
+                      ),
+                    ],
                   ),
                 ),
               ),
-              Row(
-                children: [
-                  Expanded(
-                    child: _ModeSegment(
-                      label: context.tr(HomeL10n.searchModeCatalog),
-                      icon: Icons.search_rounded,
-                      selected: !aiMode,
-                      selectedColor: palette.canvas,
-                      idleColor: palette.inkMuted,
-                      onTap: () => onChanged(false),
-                    ),
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: _ModeSegment(
+                    label: context.tr(HomeL10n.searchModeCatalog),
+                    icon: Icons.search_rounded,
+                    selected: !aiMode,
+                    selectedColor: palette.canvas,
+                    idleColor: palette.inkMuted,
+                    onTap: () => onChanged(false),
                   ),
-                  Expanded(
-                    child: _ModeSegment(
-                      label: context.tr(HomeL10n.aiMode),
-                      icon: Icons.auto_awesome_rounded,
-                      selected: aiMode,
-                      selectedColor: HomeStage.gold,
-                      idleColor: palette.accent,
-                      onTap: () => onChanged(true),
-                    ),
+                ),
+                Expanded(
+                  child: _ModeSegment(
+                    label: context.tr(HomeL10n.aiMode),
+                    icon: Icons.auto_awesome_rounded,
+                    selected: aiMode,
+                    selectedColor: HomeStage.gold,
+                    idleColor: palette.accent,
+                    onTap: () => onChanged(true),
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

@@ -21,7 +21,8 @@ abstract final class HomeL10n {
   static const aiModePromptJewellery = 'home.aiModePromptJewellery';
   static const aiModePromptWatches = 'home.aiModePromptWatches';
   static const aiModePromptBullion = 'home.aiModePromptBullion';
-  static const collectionsEyebrow = 'home.collectionsEyebrow';
+  static const recentSearchesEyebrow = 'home.recentSearchesEyebrow';
+  static const removeRecentSearch = 'home.removeRecentSearch';
   static const searchNoteDiamonds = 'home.searchNoteDiamonds';
   static const searchNoteLab = 'home.searchNoteLab';
   static const searchNoteGemstones = 'home.searchNoteGemstones';
@@ -181,10 +182,15 @@ const homeMessages = <String, LocalizedMessage>{
     hindi: 'खोज बंद करें',
     gujarati: 'શોધ બંધ કરો',
   ),
-  HomeL10n.collectionsEyebrow: LocalizedMessage(
-    english: 'The collections',
-    hindi: 'संग्रह',
-    gujarati: 'સંગ્રહ',
+  HomeL10n.recentSearchesEyebrow: LocalizedMessage(
+    english: 'Recent searches',
+    hindi: 'हाल की खोजें',
+    gujarati: 'તાજેતરની શોધો',
+  ),
+  HomeL10n.removeRecentSearch: LocalizedMessage(
+    english: 'Remove from recent searches',
+    hindi: 'हाल की खोजों से हटाएँ',
+    gujarati: 'તાજેતરની શોધોમાંથી દૂર કરો',
   ),
   HomeL10n.searchNoteDiamonds: LocalizedMessage(
     english: 'Certified, graded natural stones',

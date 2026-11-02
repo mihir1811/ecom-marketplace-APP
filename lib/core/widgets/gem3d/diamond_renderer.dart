@@ -8,6 +8,37 @@ import 'diamond_mesh.dart';
 import 'gem_mesh.dart';
 import 'gem_renderer.dart';
 
+/// Facet colours of one stone kept between frames. A stone can then be
+/// re-shaded only every few frames while its outline still moves every
+/// frame: facet colours drift slowly as it turns, so the lag is invisible,
+/// and shading is most of the per-stone cost.
+class DiamondShade {
+  DiamondMesh? _mesh;
+  bool _clear = false;
+  Int32List _color = Int32List(0);
+  Float32List _lum = Float32List(0);
+
+  /// Per facet: 0 not shaded yet, 1 shaded as a front facet, 2 as a back
+  /// facet seen through the stone.
+  Uint8List _side = Uint8List(0);
+
+  /// Binds to [mesh]; false when the cache had to be cleared.
+  bool _bind(DiamondMesh mesh, bool clear) {
+    if (identical(mesh, _mesh) && clear == _clear) return true;
+    _mesh = mesh;
+    _clear = clear;
+    final n = mesh.facetCount;
+    if (_side.length < n) {
+      _color = Int32List(n);
+      _lum = Float32List(n);
+      _side = Uint8List(n);
+    } else {
+      _side.fillRange(0, n, 0);
+    }
+    return false;
+  }
+}
+
 /// Accumulates colourless diamonds into indexed [ui.Vertices] draws plus
 /// one sparkle atlas draw. Reuse one batch per painter: its buffers grow
 /// once and are recycled every frame, so steady-state painting allocates
@@ -42,6 +73,7 @@ class DiamondBatch {
 
   // Sparkles, drawn in one atlas call.
   Float32List _sparkXform = Float32List(0);
+  Float32List _sparkRects = Float32List(0);
   Int32List _sparkColor = Int32List(0);
   int _sparks = 0;
 
@@ -126,7 +158,10 @@ class DiamondBatch {
     _chunks.clear();
     if (sparkle == null || _sparks == 0) return;
     final w = sparkle.width.toDouble(), h = sparkle.height.toDouble();
-    final rects = Float32List(_sparks * 4);
+    if (_sparkRects.length < _sparks * 4) {
+      _sparkRects = Float32List(_sparkXform.length);
+    }
+    final rects = _sparkRects;
     for (var i = 0; i < _sparks; i++) {
       rects
         ..[i * 4 + 2] = w
@@ -135,7 +170,7 @@ class DiamondBatch {
     canvas.drawRawAtlas(
       sparkle,
       Float32List.sublistView(_sparkXform, 0, _sparks * 4),
-      rects,
+      Float32List.sublistView(rects, 0, _sparks * 4),
       Int32List.sublistView(_sparkColor, 0, _sparks),
       BlendMode.modulate,
       null,
@@ -205,7 +240,11 @@ class DiamondBatch {
   /// inside it, then the front facets over them, part transparent. The
   /// crossing facet lines and the bright/dark mosaic inside are what read
   /// as a cut diamond on large flat facets (step cuts). It roughly doubles
-  /// the facets drawn, so it is skipped on stones under ~12 px.
+  /// the facets drawn, so it is skipped on stones under [seeThroughMin] px.
+  ///
+  /// With a [shade] cache, facet colours are stored per stone; when
+  /// [reshade] is false the stored colours are reused for every facet
+  /// still facing the same way, so only the outline is recomputed.
   void add({
     required DiamondMesh mesh,
     required GemPose pose,
@@ -221,6 +260,9 @@ class DiamondBatch {
     Offset lightFrom = Offset.zero,
     double phase = 0,
     bool seeThrough = false,
+    double seeThroughMin = 12,
+    DiamondShade? shade,
+    bool reshade = true,
   }) {
     final eyeX = camera.eyeX, eyeY = camera.eyeY, eyeZ = camera.distance;
     final unit = camera.unit;
@@ -236,8 +278,10 @@ class DiamondBatch {
         py0 - reach > viewport.height) {
       return;
     }
-    final clear = seeThrough && reach >= 12;
+    final clear = seeThrough && reach >= seeThroughMin;
     _reserve(mesh, twice: clear);
+    final reuse = shade != null && shade._bind(mesh, clear) && !reshade;
+    final colors = shade?._color, lums = shade?._lum, sides = shade?._side;
 
     // Rotation R = Ry · Rx · Rz.
     final cx = math.cos(pose.rx), sx = math.sin(pose.rx);
@@ -318,6 +362,19 @@ class DiamondBatch {
             0;
         if (facing == behind) continue;
         final kind = kinds[f];
+        final side = behind ? 2 : 1;
+
+        // Cached colour from an earlier frame, while the facet still faces
+        // the same way.
+        if (reuse && sides![f] == side) {
+          _emit(f, colors![f], start, end);
+          final l = lums![f];
+          if (sparkle && kind != girdleKind && l > bestSpark) {
+            bestSpark = l;
+            bestFacet = f;
+          }
+          continue;
+        }
 
         if (behind) {
           // Inside face of a back facet: the view ray mirrors off it and
@@ -354,7 +411,13 @@ class DiamondBatch {
               (0.04 + tone * tone * (1.6 - 0.6 * tone)) * keep +
               fogGrey * (1 - keep);
           final c = (grey.clamp(0.0, 1.0) * 255).round();
-          _emit(f, 0xFF000000 | c << 16 | c << 8 | c, start, end);
+          final color = 0xFF000000 | c << 16 | c << 8 | c;
+          _emit(f, color, start, end);
+          if (sides != null) {
+            colors![f] = color;
+            lums![f] = lum;
+            sides[f] = side;
+          }
           // Inner reflections sparkle too.
           if (sparkle && kind != girdleKind && lum > bestSpark) {
             bestSpark = lum;
@@ -446,12 +509,13 @@ class DiamondBatch {
         // Clear stones: front facets let the crystal behind show through,
         // less so at grazing angles where the surface mirrors more.
         final alpha = clear ? (0.38 + 0.8 * fresnel).clamp(0.38, 0.92) : 1.0;
-        _emit(
-          f,
-          (alpha * 255).round() << 24 | c << 16 | c << 8 | c,
-          start,
-          end,
-        );
+        final color = (alpha * 255).round() << 24 | c << 16 | c << 8 | c;
+        _emit(f, color, start, end);
+        if (sides != null) {
+          colors![f] = color;
+          lums![f] = lum;
+          sides[f] = side;
+        }
 
         if (sparkle && kind != girdleKind && lum > bestSpark) {
           bestSpark = lum;

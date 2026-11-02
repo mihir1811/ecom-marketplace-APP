@@ -7,6 +7,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/home_search_provider.dart';
+import '../../application/recent_searches_provider.dart';
 import '../../domain/models/home_search_result.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
@@ -204,7 +205,10 @@ class _HomeSearchResultsListState extends ConsumerState<HomeSearchResultsList> {
               final item = results[index];
               return _HomeSearchResultTile(
                 result: item,
-                onTap: () => openProductDetail(context, item.detail),
+                onTap: () {
+                  ref.read(recentSearchesProvider.notifier).add(query);
+                  openProductDetail(context, item.detail);
+                },
               );
             },
           ),

@@ -8,7 +8,13 @@ abstract final class UserLocalDataCleaner {
   static const aiChatSessionId = 'gw.aiChat.sessionId';
   static const aiChatGuestSessionKeys = 'gw.aiChat.guestSessionKeys';
 
-  static const _keys = <String>[aiChatSessionId, aiChatGuestSessionKeys];
+  static const recentSearches = 'gw.search.recent';
+
+  static const _keys = <String>[
+    aiChatSessionId,
+    aiChatGuestSessionKeys,
+    recentSearches,
+  ];
 
   static Future<void> clearUserScopedPrefs() async {
     try {
