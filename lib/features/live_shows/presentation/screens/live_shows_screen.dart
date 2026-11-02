@@ -44,35 +44,33 @@ class LiveShowsScreen extends ConsumerWidget {
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
-      child: AppScaffold(
-        safeTop: false,
-        safeBottom: false,
-        backgroundColor: LiveStage.void_,
-        body: Stack(
-          children: [
-            const Positioned.fill(child: LiveAurora()),
-            RefreshIndicator(
-              color: LiveStage.onChampagne,
-              backgroundColor: LiveStage.champagne,
-              edgeOffset: top + 60,
-              onRefresh: notifier.refresh,
-              child: CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(
-                  parent: BouncingScrollPhysics(),
-                ),
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: _Header(
-                      top: top,
-                      count: shows.length,
-                      loading: state.isLoading && shows.isEmpty,
-                    ),
+      child: LiveShowsPolling(
+        child: AppScaffold(
+          safeTop: false,
+          safeBottom: false,
+          backgroundColor: LiveStage.void_,
+          body: Stack(
+            children: [
+              const Positioned.fill(child: LiveAurora()),
+              RefreshIndicator(
+                color: LiveStage.onChampagne,
+                backgroundColor: LiveStage.champagne,
+                edgeOffset: top + 60,
+                onRefresh: notifier.refresh,
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
                   ),
-                  ...slivers,
-                ],
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: _Header(top: top, count: shows.length),
+                    ),
+                    ...slivers,
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -109,34 +107,23 @@ class LiveShowsScreen extends ConsumerWidget {
     }
     return [
       SliverPadding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
         sliver: SliverToBoxAdapter(child: hero),
       ),
       if (rest.isNotEmpty) ...[
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
           sliver: SliverToBoxAdapter(
-            child: Row(
-              children: [
-                Text('ALSO ON AIR', style: LiveType.eyebrow()),
-                const SizedBox(width: 12),
-                const Expanded(child: LiveRule()),
-                const SizedBox(width: 12),
-                Text(
-                  '${rest.length}',
-                  style: LiveType.figure(12, color: LiveStage.inkFaint),
-                ),
-              ],
-            ),
+            child: Text('More shows', style: LiveType.label(15)),
           ),
         ),
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 140),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
           sliver: SliverGrid(
             gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
               maxCrossAxisExtent: 240,
-              mainAxisSpacing: 14,
-              crossAxisSpacing: 14,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
               childAspectRatio: 9 / 14,
             ),
             delegate: SliverChildBuilderDelegate((context, i) {
@@ -160,97 +147,55 @@ class LiveShowsScreen extends ConsumerWidget {
           ),
         ),
       ] else
-        const SliverToBoxAdapter(child: SizedBox(height: 140)),
+        const SliverToBoxAdapter(child: SizedBox(height: 120)),
     ];
   }
 }
 
 class _Header extends StatelessWidget {
-  const _Header({
-    required this.top,
-    required this.count,
-    required this.loading,
-  });
+  const _Header({required this.top, required this.count});
 
   final double top;
   final int count;
-  final bool loading;
 
   @override
   Widget build(BuildContext context) {
-    final still = MediaQuery.disableAnimationsOf(context);
-    Widget title = Text.rich(
-      TextSpan(
-        children: [
-          const TextSpan(text: 'Live '),
-          TextSpan(
-            text: 'shows',
-            style: LiveType.display(
-              52,
-              italic: true,
-              color: LiveStage.champagne,
-            ),
-          ),
-        ],
-      ),
-      style: LiveType.display(52),
-    );
-    if (!still) {
-      title = title
-          .animate()
-          .fadeIn(duration: 500.ms)
-          .moveY(
-            begin: 12,
-            end: 0,
-            duration: 600.ms,
-            curve: LiveMotion.emphasized,
-          );
-    }
     return Padding(
-      padding: EdgeInsets.fromLTRB(12, top + 8, 20, 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: EdgeInsets.fromLTRB(8, top + 8, 16, 12),
+      child: Row(
         children: [
           LiveIconButton(
             icon: Icons.arrow_back_rounded,
             tooltip: 'Back',
+            size: 40,
             onTap: () => context.goBack(fallbackLocation: AppRouteNames.home),
           ),
-          const SizedBox(height: 22),
-          Padding(
-            padding: const EdgeInsets.only(left: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AnimatedSwitcher(
-                  duration: LiveMotion.base,
-                  child: Row(
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Live shows',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: LiveType.display(26),
+            ),
+          ),
+          // Live count only when something is on air; off air stays blank.
+          AnimatedSwitcher(
+            duration: LiveMotion.base,
+            child: count == 0
+                ? const SizedBox.shrink()
+                : Row(
                     key: ValueKey(count),
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (count > 0) ...[
-                        const LiveBadge(compact: true),
-                        const SizedBox(width: 10),
-                      ],
+                      const LiveBadge(compact: true),
+                      const SizedBox(width: 8),
                       Text(
-                        loading
-                            ? 'TUNING IN'
-                            : count == 0
-                            ? 'OFF AIR'
-                            : '$count ${count == 1 ? 'SHOW' : 'SHOWS'} ON AIR',
-                        style: LiveType.eyebrow(),
+                        '$count on air',
+                        style: LiveType.label(13, weight: FontWeight.w600),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 10),
-                title,
-                const SizedBox(height: 8),
-                Text(
-                  'Sellers present each piece on camera. Ask, bid and win in real time.',
-                  style: LiveType.body(14),
-                ),
-              ],
-            ),
           ),
         ],
       ),
@@ -332,18 +277,20 @@ class _EmptyOrErrorState extends State<_EmptyOrError> {
       mainAxisSize: MainAxisSize.min,
       children: [
         _Beacon(error: error != null),
-        const SizedBox(height: 28),
+        const SizedBox(height: 16),
         Text(
-          error != null ? 'We lost the signal' : 'Nobody is live just now',
+          error != null ? 'We lost the signal' : 'No live shows right now',
           textAlign: TextAlign.center,
-          style: LiveType.display(32),
+          style: LiveType.label(17),
         ),
-        // Empty state stays quiet: polling and pull-to-refresh pick up
-        // new shows, so only a lost signal gets a message and a retry.
+        const SizedBox(height: 6),
+        Text(
+          error ?? 'Pull down to refresh',
+          textAlign: TextAlign.center,
+          style: LiveType.body(13, color: LiveStage.inkFaint),
+        ),
         if (error != null) ...[
-          const SizedBox(height: 10),
-          Text(error, textAlign: TextAlign.center, style: LiveType.body(14)),
-          const SizedBox(height: 26),
+          const SizedBox(height: 18),
           LiveButton(
             label: 'Try again',
             icon: Icons.refresh_rounded,
@@ -361,7 +308,7 @@ class _EmptyOrErrorState extends State<_EmptyOrError> {
           .moveY(begin: 16, end: 0, curve: LiveMotion.emphasized);
     }
     return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 0, 32, 160),
+      padding: const EdgeInsets.fromLTRB(32, 0, 32, 96),
       child: Center(child: content),
     );
   }
@@ -379,8 +326,8 @@ class _Beacon extends StatelessWidget {
     final color = error ? LiveStage.urgent : LiveStage.champagne;
     Widget ring(int i) {
       Widget r = Container(
-        width: 120,
-        height: 120,
+        width: 84,
+        height: 84,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(color: color.withValues(alpha: 0.5)),
@@ -388,27 +335,27 @@ class _Beacon extends StatelessWidget {
       );
       if (!still) {
         r = r
-            .animate(onPlay: (c) => c.repeat(), delay: (i * 900).ms)
+            .animate(onPlay: (c) => c.repeat(), delay: (i * 1400).ms)
             .scaleXY(
-              begin: 0.3,
+              begin: 0.5,
               end: 1,
-              duration: 2700.ms,
+              duration: 2800.ms,
               curve: Curves.easeOut,
             )
-            .fade(begin: 1, end: 0, duration: 2700.ms, curve: Curves.easeIn);
+            .fade(begin: 0.8, end: 0, duration: 2800.ms, curve: Curves.easeIn);
       }
       return r;
     }
 
     return SizedBox.square(
-      dimension: 120,
+      dimension: 84,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          for (var i = 0; i < 3; i++) ring(i),
+          for (var i = 0; i < 2; i++) ring(i),
           Container(
-            width: 52,
-            height: 52,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: LiveStage.obsidian,
@@ -417,7 +364,7 @@ class _Beacon extends StatelessWidget {
             child: Icon(
               error ? Icons.wifi_off_rounded : Icons.sensors_rounded,
               color: color,
-              size: 24,
+              size: 20,
             ),
           ),
         ],

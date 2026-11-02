@@ -16,6 +16,14 @@ class HomeLiveShows extends ConsumerWidget {
   const HomeLiveShows({super.key});
 
   @override
+  Widget build(BuildContext context, WidgetRef ref) =>
+      const LiveShowsPolling(child: _HomeLiveBand());
+}
+
+class _HomeLiveBand extends ConsumerWidget {
+  const _HomeLiveBand();
+
+  @override
   Widget build(BuildContext context, WidgetRef ref) {
     final shows = ref.watch(liveShowsProvider.select((s) => s.shows));
     if (shows.isEmpty) return const _OffAirEntry();

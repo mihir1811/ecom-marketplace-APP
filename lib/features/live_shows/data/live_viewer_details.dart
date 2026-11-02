@@ -91,8 +91,8 @@ Future<Map<String, Object>> liveJoinDetails({
     out['screenHeight'] = screen.height.round();
     out['pixelRatio'] = view.devicePixelRatio;
   }
-  out['language'] =
-      WidgetsBinding.instance.platformDispatcher.locale.toLanguageTag();
+  out['language'] = WidgetsBinding.instance.platformDispatcher.locale
+      .toLanguageTag();
 
   await Future.wait([
     add(() async => out['deviceId'] = await liveInstallId()),
@@ -115,8 +115,9 @@ Future<Map<String, Object>> liveJoinDetails({
 
   if (!_isPhone) return out..addAll(_campaign(campaign));
 
-  out['platform'] =
-      defaultTargetPlatform == TargetPlatform.iOS ? 'IOS' : 'ANDROID';
+  out['platform'] = defaultTargetPlatform == TargetPlatform.iOS
+      ? 'IOS'
+      : 'ANDROID';
   out['cpuCores'] = Platform.numberOfProcessors;
 
   await Future.wait([
