@@ -124,22 +124,36 @@ class _AuthColumn extends StatelessWidget {
         children: [
           _AuthTopBar(showBack: showBack, fallbackLocation: fallbackLocation),
           Expanded(
-            child: SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: const EdgeInsets.fromLTRB(
-                AuthSpace.s24,
-                AuthSpace.s8,
-                AuthSpace.s24,
-                AuthSpace.s40,
-              ),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: AuthSpace.contentMaxWidth,
+            child: LayoutBuilder(
+              builder: (context, viewport) {
+                const padding = EdgeInsets.fromLTRB(
+                  AuthSpace.s24,
+                  AuthSpace.s8,
+                  AuthSpace.s24,
+                  AuthSpace.s40,
+                );
+                // Fill at least the viewport so short forms sit in the
+                // vertical centre; taller ones still scroll.
+                return SingleChildScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: padding,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: (viewport.maxHeight - padding.vertical)
+                          .clamp(0.0, double.infinity),
+                    ),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: AuthSpace.contentMaxWidth,
+                        ),
+                        child: child,
+                      ),
+                    ),
                   ),
-                  child: child,
-                ),
-              ),
+                );
+              },
             ),
           ),
         ],
