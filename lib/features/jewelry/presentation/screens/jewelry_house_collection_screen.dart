@@ -73,7 +73,6 @@ class _JewelryHouseCollectionScreenState
   final _offset = ValueNotifier<double>(0);
   final _barShown = ValueNotifier<bool>(false);
   final _barKey = GlobalKey();
-  final _entered = <String>{};
 
   late JewelryFilterState _filters = JewelryFilterState(
     shop: widget.shop,
@@ -334,7 +333,6 @@ class _JewelryHouseCollectionScreenState
               jewelry: j,
               onTap: () => openJewelryDetail(context, j, among: items),
             ),
-      entered: _entered,
       loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),
       emptyView: LuxeStateView(
         icon: Icons.diamond_outlined,

@@ -235,7 +235,6 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen>
               watch: w,
               onTap: () => openWatchDetail(context, w, among: listed),
             ),
-      entered: listingEntered,
       loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),
       emptyView: LuxeStateView(
         icon: Icons.watch_outlined,

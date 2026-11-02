@@ -191,7 +191,6 @@ class _AuctionsListScreenState extends ConsumerState<AuctionsListScreen>
             idOf: (a) => a.id,
             cardOf: (a, mode) =>
                 AuctionCard(auction: a, grid: mode == LuxeViewMode.grid),
-            entered: listingEntered,
             loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),
             emptyView: LuxeStateView(
               icon: Icons.gavel_rounded,

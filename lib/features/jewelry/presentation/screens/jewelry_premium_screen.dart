@@ -38,7 +38,6 @@ class _JewelryPremiumScreenState extends ConsumerState<JewelryPremiumScreen> {
   ];
 
   final _scroll = ScrollController();
-  final _entered = <String>{};
   String? _category;
   JewelrySortOption _sort = JewelrySortOption.newest;
   LuxeViewMode _viewMode = LuxeViewMode.grid;
@@ -223,7 +222,6 @@ class _JewelryPremiumScreenState extends ConsumerState<JewelryPremiumScreen> {
                       jewelry: j,
                       onTap: () => openJewelryDetail(context, j, among: items),
                     ),
-              entered: _entered,
               loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),
               emptyView: LuxeStateView(
                 icon: Icons.workspace_premium_outlined,

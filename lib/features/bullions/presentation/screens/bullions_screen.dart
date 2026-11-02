@@ -263,7 +263,6 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen>
               bullion: b,
               onTap: () => openBullionDetail(context, b, among: listed),
             ),
-      entered: listingEntered,
       loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),
       emptyView: LuxeStateView(
         icon: Icons.account_balance_wallet_outlined,

@@ -4,6 +4,7 @@ import '../../haptics/app_haptics.dart';
 import '../../theme/luxe_tokens.dart';
 import '../../utils/app_currency.dart';
 import '../../utils/format_catalog_price.dart';
+import 'luxe_card_reveal.dart';
 
 /// Text block height of [LuxeProductGridCard] for a given text scale, so
 /// grids can use fixed extents (fast layout, exact scroll restore).
@@ -72,10 +73,8 @@ class LuxeProductGridCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
-    final metaText = Text(
+    final metaText = LuxeScrambleText(
       meta ?? ' ',
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
       style: LuxeType.label(p.inkFaint, size: 11.5),
     );
     return LuxeCardFrame(
@@ -91,27 +90,30 @@ class LuxeProductGridCard extends StatelessWidget {
               padding: const EdgeInsets.all(5),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(LuxeSpace.radius - 5),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    media,
-                    if (overlays.topLeft != null)
-                      Positioned(top: 8, left: 8, child: overlays.topLeft!),
-                    if (overlays.topRight != null)
-                      Positioned(top: 6, right: 6, child: overlays.topRight!),
-                    if (overlays.bottomLeft != null)
-                      Positioned(
-                        left: 6,
-                        bottom: 6,
-                        child: overlays.bottomLeft!,
-                      ),
-                    if (overlays.bottomRight != null)
-                      Positioned(
-                        right: 6,
-                        bottom: 6,
-                        child: overlays.bottomRight!,
-                      ),
-                  ],
+                child: LuxeRevealMask(
+                  radius: LuxeSpace.radius - 5,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      LuxeRevealZoom(child: media),
+                      if (overlays.topLeft != null)
+                        Positioned(top: 8, left: 8, child: overlays.topLeft!),
+                      if (overlays.topRight != null)
+                        Positioned(top: 6, right: 6, child: overlays.topRight!),
+                      if (overlays.bottomLeft != null)
+                        Positioned(
+                          left: 6,
+                          bottom: 6,
+                          child: overlays.bottomLeft!,
+                        ),
+                      if (overlays.bottomRight != null)
+                        Positioned(
+                          right: 6,
+                          bottom: 6,
+                          child: overlays.bottomRight!,
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -121,17 +123,13 @@ class LuxeProductGridCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                LuxeRollTitle(
                   title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: LuxeType.display(19, p.ink).copyWith(height: 1.1),
                 ),
                 const SizedBox(height: 5),
-                Text(
+                LuxeScrambleText(
                   subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: LuxeType.label(p.inkMuted, size: 12.5),
                 ),
                 const SizedBox(height: 2),
@@ -215,15 +213,18 @@ class LuxeProductListCard extends StatelessWidget {
               height: thumbSize,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(LuxeSpace.radius - 6),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    media,
-                    if (thumbTopLeft != null)
-                      Positioned(top: 7, left: 7, child: thumbTopLeft!),
-                    if (thumbBottomLeft != null)
-                      Positioned(bottom: 6, left: 6, child: thumbBottomLeft!),
-                  ],
+                child: LuxeRevealMask(
+                  radius: LuxeSpace.radius - 6,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      LuxeRevealZoom(child: media),
+                      if (thumbTopLeft != null)
+                        Positioned(top: 7, left: 7, child: thumbTopLeft!),
+                      if (thumbBottomLeft != null)
+                        Positioned(bottom: 6, left: 6, child: thumbBottomLeft!),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -238,20 +239,16 @@ class LuxeProductListCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
-                          child: Text(
+                          child: LuxeRollTitle(
                             title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                             style: LuxeType.display(20, p.ink),
                           ),
                         ),
                         ?titleAction,
                       ],
                     ),
-                    Text(
+                    LuxeScrambleText(
                       subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: LuxeType.label(p.inkMuted, size: 12.5),
                     ),
                     if ((detail != null && detail!.isNotEmpty) ||
@@ -264,10 +261,8 @@ class LuxeProductListCard extends StatelessWidget {
                             const SizedBox(width: 5),
                           ],
                           Expanded(
-                            child: Text(
+                            child: LuxeScrambleText(
                               detail ?? '',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                               style: LuxeType.label(p.inkFaint, size: 11.5),
                             ),
                           ),
@@ -315,14 +310,30 @@ class LuxeCardFrame extends StatefulWidget {
 
 class _LuxeCardFrameState extends State<LuxeCardFrame> {
   bool _down = false;
+  bool _hover = false;
 
   void _setDown(bool value) {
     if (_down != value) setState(() => _down = value);
   }
 
+  void _setHover(bool value) {
+    if (_hover != value) setState(() => _hover = value);
+  }
+
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
+    return LuxeCardActive(
+      active: _hover || _down,
+      child: MouseRegion(
+        onEnter: (_) => _setHover(true),
+        onExit: (_) => _setHover(false),
+        child: _gesture(p),
+      ),
+    );
+  }
+
+  Widget _gesture(LuxePalette p) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTapDown: (_) => _setDown(true),

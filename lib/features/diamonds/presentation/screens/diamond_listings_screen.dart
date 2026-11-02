@@ -274,7 +274,6 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
       viewMode: grid ? LuxeViewMode.grid : LuxeViewMode.list,
       idOf: (r) => r.adId == null ? r.diamond.id : 'sp-${r.diamond.id}',
       cardOf: card,
-      entered: listingEntered,
       loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),
       emptyView: LuxeStateView(
         icon: Icons.diamond_outlined,

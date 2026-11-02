@@ -223,7 +223,6 @@ class _GemstoneListingsScreenState extends ConsumerState<GemstoneListingsScreen>
               gemstone: g,
               onTap: () => openGemstoneDetail(context, g, among: listed),
             ),
-      entered: listingEntered,
       loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),
       emptyView: LuxeStateView(
         icon: Icons.auto_awesome_outlined,

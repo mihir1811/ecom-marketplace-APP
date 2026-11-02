@@ -279,7 +279,6 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
               jewelry: j,
               onTap: () => openJewelryDetail(context, j, among: listed),
             ),
-      entered: listingEntered,
       loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),
       emptyView: LuxeStateView(
         icon: Icons.diamond_outlined,

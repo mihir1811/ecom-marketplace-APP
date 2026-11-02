@@ -2,12 +2,12 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../haptics/app_haptics.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/luxe_tokens.dart';
 import 'luxe_button.dart';
+import 'luxe_card_reveal.dart';
 import 'luxe_feedback.dart';
 import 'luxe_layout.dart';
 import 'luxe_product_card.dart';
@@ -423,43 +423,6 @@ class LuxeCountLine extends StatelessWidget {
   }
 }
 
-/// Plays a short fade-up the first time an item is shown (first ~10 only),
-/// never again when it is scrolled back into view.
-class LuxeEntranceOnce extends StatefulWidget {
-  const LuxeEntranceOnce({
-    required this.id,
-    required this.seen,
-    required this.index,
-    required this.child,
-    super.key,
-  });
-
-  final String id;
-
-  /// Ids that already played; owned by the screen so it outlives items.
-  final Set<String> seen;
-  final int index;
-  final Widget child;
-
-  @override
-  State<LuxeEntranceOnce> createState() => _LuxeEntranceOnceState();
-}
-
-class _LuxeEntranceOnceState extends State<LuxeEntranceOnce> {
-  late final bool _animate = widget.index < 10 && widget.seen.add(widget.id);
-
-  @override
-  Widget build(BuildContext context) {
-    if (!_animate || MediaQuery.disableAnimationsOf(context)) {
-      return widget.child;
-    }
-    return widget.child
-        .animate(delay: (widget.index * 55).ms)
-        .fadeIn(duration: 420.ms)
-        .moveY(begin: 18, end: 0, duration: 650.ms, curve: LuxeMotion.settle);
-  }
-}
-
 /// Inline spinner + label shown while the next page loads.
 class LuxeLoadingMore extends StatelessWidget {
   const LuxeLoadingMore({required this.label, super.key});
@@ -744,9 +707,6 @@ mixin LuxeListingMixin<W extends StatefulWidget> on State<W> {
   final listingOffset = ValueNotifier<double>(0);
   final listingHeaderKey = GlobalKey();
 
-  /// Ids whose entrance animation already played.
-  final listingEntered = <String>{};
-
   /// True when another page may be requested right now.
   bool get listingCanLoadMore;
   void listingLoadMore();
@@ -827,7 +787,6 @@ List<Widget> luxeResultSlivers<T>({
   required LuxeViewMode viewMode,
   required String Function(T) idOf,
   required Widget Function(T item, LuxeViewMode mode) cardOf,
-  required Set<String> entered,
   required Widget emptyView,
   required Widget Function(String message) errorView,
   required String loadingMoreLabel,
@@ -846,11 +805,8 @@ List<Widget> luxeResultSlivers<T>({
 
   Widget card(int i) {
     final item = items[i];
-    final id = '${viewMode.name}-${idOf(item)}';
-    return LuxeEntranceOnce(
-      key: ValueKey(id),
-      id: id,
-      seen: entered,
+    return LuxeCardReveal(
+      key: ValueKey('${viewMode.name}-${idOf(item)}'),
       index: i,
       child: ProductCardAnchor(index: i, child: cardOf(item, viewMode)),
     );
@@ -919,13 +875,16 @@ class LuxeListingScrollView extends StatelessWidget {
           color: p.ink,
           backgroundColor: p.surface,
           onRefresh: onRefresh,
-          child: CustomScrollView(
+          child: LuxeScrollRipple(
             controller: controller,
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              ...slivers,
-              SliverToBoxAdapter(child: SizedBox(height: bottom)),
-            ],
+            child: CustomScrollView(
+              controller: controller,
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                ...slivers,
+                SliverToBoxAdapter(child: SizedBox(height: bottom)),
+              ],
+            ),
           ),
         ),
         Positioned(
