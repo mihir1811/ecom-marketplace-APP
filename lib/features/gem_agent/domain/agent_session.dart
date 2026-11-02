@@ -1,5 +1,6 @@
-/// Which side of the app the user is on when they ask.
-enum AgentWorkspace { buyer, seller }
+/// Which side of the app the user is on when they ask. [shared] pages
+/// (about, terms, policies…) belong to neither side.
+enum AgentWorkspace { buyer, seller, shared }
 
 /// Who is asking. Decides which tools exist for the turn and lets tools
 /// refuse work the account may not do. Never sent to the model beyond the

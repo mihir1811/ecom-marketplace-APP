@@ -370,11 +370,25 @@ class GemAgentController extends Notifier<GemAgentState> {
       session: AgentSession(
         signedIn: auth.isAuthenticated,
         isSeller: auth.isSeller,
-        workspace: workspaceForPath(route) == AppWorkspace.seller
-            ? AgentWorkspace.seller
-            : AgentWorkspace.buyer,
+        workspace: _agentWorkspace(route),
       ),
     );
+  }
+
+  /// Info pages outside both workspaces belong to neither side, so the
+  /// agent asks which side a seller means there.
+  static final _sharedPages = RegExp(
+    r'^/(about|privacy|terms|policies|share|login|register|forgot-password|'
+    r'verify-otp|reset-password|recover-account)(/|$)',
+  );
+
+  static AgentWorkspace _agentWorkspace(String route) {
+    if (workspaceForPath(route) == AppWorkspace.seller) {
+      return AgentWorkspace.seller;
+    }
+    return _sharedPages.hasMatch(route)
+        ? AgentWorkspace.shared
+        : AgentWorkspace.buyer;
   }
 
   String _speechLocale() =>

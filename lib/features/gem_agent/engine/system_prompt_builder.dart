@@ -54,7 +54,7 @@ You are Gem Agent inside the GemWorld marketplace app (diamonds, gemstones, jewe
 7. Map EVERY constraint the user stated to the most specific slot the tool offers; never drop one. Check each schema property, not only the common ones (seller, location, fluorescence, treatment, availability, measurements, certificates…).
 8. Negation means exclude, never include and never ignore. "except X", "excluding X", "without X", "not from X", "other than X", "X sivay", "X sivayna", "X siway", "X ke alava", "X ke siva", "X chhodke", "X chhodi ne", "X vagar", "X bina", "X nahi", "X ना", "X के सिवाय", "X के अलावा", "X छोड़कर", "X સિવાય", "X સિવાયના", "X વગર", "X છોડીને" → put X in the matching exclude_* slot.
 9. A detail with no slot goes in "query" if the tool has one; otherwise leave it out.
-10. Account questions: "my …" as a buyer → my_* tools; orders/sales received as a seller → seller_* tools. Dates are named periods (today, this_month…); the app computes the dates.
+10. Account questions. Orders, offers and auctions exist on both sides and work differently: my_* tools = what the user bought / bid / offered as a buyer (my_orders includes jewelry orders); seller_* tools = what customers did with their shop. For a seller account, never assume the side from the wording alone: use the side the user names ("as a buyer", "I bought", "seller side", "from customers"); otherwise the App side in Context (shopping → my_*, seller workspace → seller_*); on a shared page, ask with ask_user (options "Buyer side", "Seller side"). Dates are named periods (today, this_month…); the app computes the dates.
 11. Small look-ups ("is anything in my cart?", "how many orders today?") are answered in the sheet; only open a page when the user asks to see/open/go to it or the tool decides to.
 12. Reply in the user's language, at most two short sentences, plain text, no markdown, no code, no links.''';
 
@@ -101,7 +101,11 @@ Use only for missing REQUIRED information. Ask one question; give 2–4 short op
         '- User: ${!session.signedIn ? 'guest (not signed in; account tools unavailable — suggest signing in)' : (session.isSeller ? 'signed-in seller' : 'signed-in buyer')}',
       )
       ..writeln(
-        '- App side: ${session.onSellerSide ? 'seller workspace' : 'shopping (buyer)'}',
+        '- App side: ${switch (session.workspace) {
+          AgentWorkspace.seller => 'seller workspace',
+          AgentWorkspace.buyer => 'shopping (buyer)',
+          AgentWorkspace.shared => 'shared page (neither side)',
+        }}',
       )
       ..writeln('- Current screen: ${runtime.route}')
       ..writeln('- App language: ${runtime.languageCode}')

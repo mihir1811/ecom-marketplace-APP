@@ -17,6 +17,7 @@ import '../domain/tool_result.dart';
 import 'conversation_memory.dart';
 import 'guardrails.dart';
 import 'local_router.dart';
+import 'side_resolver.dart';
 import 'system_prompt_builder.dart';
 import 'tool_registry.dart';
 import 'turn_limiter.dart';
@@ -45,6 +46,7 @@ class AgentEngine {
     this.inputGuard = const InputGuard(),
     this.outputGuard = const OutputGuard(),
     this.router = const LocalRouter(),
+    this.sides = const AgentSideResolver(),
     TurnLimiter? limiter,
     this.maxSteps = 6,
     this.toolTimeout = const Duration(seconds: 40),
@@ -63,6 +65,9 @@ class AgentEngine {
 
   /// Null disables the local fast path (every turn goes to the model).
   final LocalRouter? router;
+
+  /// Decides buyer vs seller for look-ups that exist on both sides.
+  final AgentSideResolver sides;
   final TurnLimiter limiter;
   final int maxSteps;
   final Duration toolTimeout;
@@ -329,15 +334,66 @@ class AgentEngine {
         recoverable: true,
       );
     }
-    onProgress?.call(AgentToolRunning(tool.name, tool.progressLabel(args)));
+    var target = tool;
+    var runArgs = args;
+    switch (_sideFor(tool, args, context)) {
+      case final ToolNeedsInput ask:
+        return ask;
+      case (final AgentTool twin, final Map<String, Object?> twinArgs):
+        target = twin;
+        runArgs = twinArgs;
+    }
+    onProgress?.call(
+      AgentToolRunning(target.name, target.progressLabel(runArgs)),
+    );
     try {
-      return await tool.execute(args, context).timeout(toolTimeout);
+      return await target.execute(runArgs, context).timeout(toolTimeout);
     } on TimeoutException {
       return const ToolFailure('That took too long. Please try again.');
     } catch (error, stack) {
-      debugPrint('Gem Agent tool ${tool.name} crashed: $error\n$stack');
+      debugPrint('Gem Agent tool ${target.name} crashed: $error\n$stack');
       return const ToolFailure('Something went wrong. Please try again.');
     }
+  }
+
+  /// Orders, offers and auctions exist on both sides. Whatever the model
+  /// or router picked, read the side the user means (named, else the screen
+  /// they are on), or ask when that can't be known. Returns null to run
+  /// [tool] as called, a question, or the twin tool with its arguments.
+  Object? _sideFor(
+    AgentTool tool,
+    Map<String, Object?> args,
+    AgentToolContext context,
+  ) {
+    final calledSide = AgentSideResolver.sideOf(tool.name);
+    if (calledSide == null) return null;
+    switch (sides.resolve(context.session, context.userUtterances)) {
+      case AskSide():
+        return AgentSideResolver.question(tool.name);
+      case UseSide(:final side) when side != calledSide:
+        final twin = registry.find(AgentSideResolver.twinOf(tool.name)!);
+        if (twin == null || !twin.access.allows(context.session)) return null;
+        _trace('side', {'from': tool.name, 'to': twin.name});
+        return (twin, _argsFor(twin, args));
+      case _:
+        return null;
+    }
+  }
+
+  /// [args] reduced to what [tool] accepts (same names, allowed values).
+  static Map<String, Object?> _argsFor(
+    AgentTool tool,
+    Map<String, Object?> args,
+  ) {
+    final properties = tool.parameters['properties'];
+    if (properties is! Map) return const {};
+    return {
+      for (final e in args.entries)
+        if (properties[e.key] case final Map<dynamic, dynamic> schema
+            when schema['enum'] is! List ||
+                (schema['enum'] as List).contains(e.value))
+          e.key: e.value,
+    };
   }
 
   String _capped(String content) => content.length <= maxToolContentChars

@@ -93,9 +93,6 @@ class LocalRouter {
   static final _wallet = _words(r'wallet|balance');
   static final _rewards = _words(r'rewards?|reward points|points');
   static final _orders = _words(r'orders?|ऑर्डर|ઓર્ડર');
-  static final _received = _words(
-    r'received|arrived|came|come|incoming|new|got|aaya|aaye|aavya|mila|mile',
-  );
   static final _sales = _words(r'sales|revenue|earnings|sold|turnover');
   static final _auctions = _words(r'auctions?|bids?|lots?');
   static final _offers = _words(r'offers?|negotiations?');
@@ -196,11 +193,11 @@ class LocalRouter {
     final sellerSide = seller && session.onSellerSide;
 
     if (_orders.hasMatch(text)) {
-      // A seller asking what "arrived" means sales, from either side.
-      if (seller && (sellerSide || _received.hasMatch(text))) {
-        return LocalToolCall('seller_orders', {'period': ?period});
-      }
-      return LocalToolCall('my_orders', {'period': ?period});
+      // The side on screen; the engine's side check then honours a side
+      // the user named, or asks on a shared page.
+      return LocalToolCall(sellerSide ? 'seller_orders' : 'my_orders', {
+        'period': ?period,
+      });
     }
     if (sellerSide && _sales.hasMatch(text)) {
       return LocalToolCall('seller_sales_report', {
