@@ -8,13 +8,10 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../core/widgets/gem3d/gem_renderer.dart';
 import '../../../api_share/application/api_share_providers.dart';
 import '../../../api_share/domain/models/api_share.dart';
 import '../atelier/atelier_components.dart';
 import '../atelier/atelier_feedback.dart';
-import '../atelier/atelier_motion.dart';
 import '../atelier/atelier_studio.dart';
 import '../atelier/atelier_theme.dart';
 
@@ -168,9 +165,6 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
     final keys = state.keys;
     final firstLoad = state.isLoading && keys.isEmpty;
     final partners = keys.map((k) => k.email.trim().toLowerCase()).toSet();
-    final catalogue = keys
-        .where((k) => k.permissions.any((perm) => perm.edits))
-        .length;
     final visible = _visible(keys);
     final loadError =
         state.errorMessage != null && state.errorMessage != _handledError
@@ -181,129 +175,85 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
       color: p.canvas,
       child: AtelierPage(
         onRefresh: _refresh,
-        maxWidth: 1080,
+        maxWidth: 900,
         children: [
-          AtelierHero(
-            title: context.tr(RemainingL10n.apiKeys),
-            cut: GemCut.emerald,
-            look: GemLook.ice,
-            action: AtelierButton(
-              label: context.tr(RemainingL10n.generateApiKey),
-              icon: Icons.add_rounded,
-              variant: AtelierButtonVariant.gold,
-              onPressed: state.isMutating ? null : _generate,
-            ),
-            footer: AtelierHeroStats(
-              stats: [
-                AtelierHeroStat(
-                  label: 'Active keys',
-                  value: firstLoad ? '—' : '${keys.length}',
-                  caption: 'Working right now',
-                  tone: keys.isEmpty ? null : AtelierTone.emerald,
-                ),
-                AtelierHeroStat(
-                  label: 'Partners',
-                  value: firstLoad ? '—' : '${partners.length}',
-                  caption: 'Distinct recipients',
-                ),
-                AtelierHeroStat(
-                  label: 'Catalogue access',
-                  value: firstLoad ? '—' : '$catalogue',
-                  caption: 'Keys that add or edit stones',
-                  tone: catalogue > 0 ? AtelierTone.amber : null,
-                ),
-              ],
-            ),
-          ),
-          if (loadError != null && keys.isNotEmpty) ...[
-            const SizedBox(height: AtelierSpace.s16),
-            Reveal(
-              child: AtelierNotice(
-                tone: AtelierTone.ruby,
-                icon: Icons.cloud_off_rounded,
-                text: loadError,
-                actionLabel: context.tr(RemainingL10n.retry),
-                onAction: _refresh,
-              ),
-            ),
-          ],
-          const SizedBox(height: AtelierSpace.s32),
-          Reveal(
-            index: 1,
-            child: AtelierSectionHeader(
-              title: context.tr(RemainingL10n.permissions),
-            ),
-          ),
-          const SizedBox(height: AtelierSpace.s16),
-          AtelierTileGrid(
-            columns: 4,
-            minTileWidth: 150,
+          Row(
             children: [
-              for (final perm in ApiSharePermission.values)
-                _ScopeTile(
-                  permission: perm,
-                  count: firstLoad
-                      ? null
-                      : keys.where((k) => k.permissions.contains(perm)).length,
-                  selected: _filter == perm,
-                  onTap: keys.isEmpty
-                      ? null
-                      : () => setState(
-                          () => _filter = _filter == perm ? null : perm,
-                        ),
+              Expanded(
+                child: Text(
+                  firstLoad
+                      ? context.tr(RemainingL10n.apiKeys)
+                      : '${keys.length} ${keys.length == 1 ? 'key' : 'keys'}'
+                            ' · ${partners.length} '
+                            '${partners.length == 1 ? 'partner' : 'partners'}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AtelierType.label(p.ink, size: 13),
                 ),
-            ],
-          ),
-          const SizedBox(height: AtelierSpace.s40),
-          Reveal(
-            index: 2,
-            child: AtelierSectionHeader(
-              title: 'Your keys',
-              trailing: AtelierIconButton(
-                icon: Icons.refresh_rounded,
+              ),
+              IconButton(
                 tooltip: context.tr(RemainingL10n.refresh),
-                filled: true,
+                visualDensity: VisualDensity.compact,
+                icon: Icon(Icons.refresh_rounded, size: 20, color: p.inkSoft),
                 onPressed: state.isLoading || state.isMutating
                     ? null
                     : _refresh,
               ),
-            ),
-          ),
-          const SizedBox(height: AtelierSpace.s16),
-          if (keys.length > 3) ...[
-            Reveal(
-              index: 3,
-              child: AtelierSearchField(
-                controller: _search,
-                hint: 'Search by key name or partner email',
-                onChanged: (v) => setState(() => _query = v),
+              const SizedBox(width: 4),
+              Flexible(
+                child: AtelierButton(
+                  label: context.tr(RemainingL10n.generateApiKey),
+                  icon: Icons.add_rounded,
+                  variant: AtelierButtonVariant.gold,
+                  compact: true,
+                  onPressed: state.isMutating ? null : _generate,
+                ),
               ),
+            ],
+          ),
+          if (loadError != null && keys.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            AtelierNotice(
+              tone: AtelierTone.ruby,
+              icon: Icons.cloud_off_rounded,
+              text: loadError,
+              actionLabel: context.tr(RemainingL10n.retry),
+              onAction: _refresh,
             ),
-            const SizedBox(height: AtelierSpace.s12),
           ],
-          AnimatedSize(
-            duration: AtelierMotion.base,
-            curve: AtelierMotion.emphasized,
-            alignment: Alignment.topLeft,
-            child: _filter == null
-                ? const SizedBox(width: double.infinity)
-                : Padding(
-                    padding: const EdgeInsets.only(bottom: AtelierSpace.s12),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: AtelierFilterTag(
-                        label: 'Can ${_filter!.title.toLowerCase()}',
-                        onRemove: () => setState(() => _filter = null),
-                      ),
-                    ),
+          if (keys.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            AtelierSegmented<ApiSharePermission?>(
+              dense: true,
+              segments: [
+                AtelierSegment(
+                  value: null,
+                  label: context.tr(RemainingL10n.all),
+                  count: keys.length,
+                ),
+                for (final perm in ApiSharePermission.values)
+                  AtelierSegment(
+                    value: perm,
+                    label: perm.title,
+                    count: keys
+                        .where((k) => k.permissions.contains(perm))
+                        .length,
                   ),
-          ),
-          AnimatedSize(
-            duration: AtelierMotion.slow,
-            curve: AtelierMotion.emphasized,
-            alignment: Alignment.topCenter,
-            child: _keyList(state, visible, loadError),
-          ),
+              ],
+              selected: _filter,
+              onChanged: (v) => setState(() => _filter = v),
+            ),
+          ],
+          if (keys.length > 3) ...[
+            const SizedBox(height: 8),
+            AtelierSearchField(
+              controller: _search,
+              hint: 'Search by key name or partner email',
+              onChanged: (v) => setState(() => _query = v),
+            ),
+          ],
+          const SizedBox(height: 8),
+          _keyList(state, visible, loadError),
         ],
       ),
     );
@@ -314,8 +264,9 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
     List<ApiShareKey> visible,
     String? loadError,
   ) {
+    final p = context.atelier;
     if (state.isLoading && state.keys.isEmpty) {
-      return const AtelierSkeletonList(count: 3, height: 168);
+      return const AtelierSkeletonList(count: 3, height: 96);
     }
     if (loadError != null && state.keys.isEmpty) {
       return AtelierErrorState(
@@ -326,51 +277,55 @@ class _SellerApiKeysScreenState extends ConsumerState<SellerApiKeysScreen> {
       );
     }
     if (state.keys.isEmpty) {
-      return Column(
-        children: [
-          AtelierEmptyState(
-            compact: true,
-            icon: Icons.vpn_key_outlined,
-            title: 'No keys issued',
-            message: context.tr(RemainingL10n.noApiKeysYetGenerateOneTo),
-            actionLabel: context.tr(RemainingL10n.generateApiKey),
-            onAction: _generate,
-          ),
-          const _HowItWorks(),
-        ],
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Text(
+          '${context.tr(RemainingL10n.noApiKeysYetGenerateOneTo)}\n'
+          'Name the partner, pick scopes — the key is emailed to them.',
+          textAlign: TextAlign.center,
+          style: AtelierType.caption(p.muted, size: 12),
+        ),
       );
     }
     if (visible.isEmpty) {
-      return AtelierEmptyState(
-        compact: true,
-        icon: Icons.filter_alt_off_outlined,
-        title: 'No matching keys',
-        message: 'Try another scope or clear your search.',
-        actionLabel: 'Clear filters',
-        onAction: () => setState(() {
-          _filter = null;
-          _search.clear();
-          _query = '';
-        }),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'No matching keys',
+              style: AtelierType.caption(p.muted, size: 12),
+            ),
+            TextButton(
+              onPressed: () => setState(() {
+                _filter = null;
+                _search.clear();
+                _query = '';
+              }),
+              child: Text(
+                'Clear filters',
+                style: AtelierType.label(p.gold, size: 12),
+              ),
+            ),
+          ],
+        ),
       );
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (var i = 0; i < visible.length; i++)
+        for (final k in visible)
           Padding(
-            key: ValueKey(visible[i].id),
-            padding: const EdgeInsets.only(bottom: AtelierSpace.s12),
-            child: Reveal(
-              index: i,
-              child: _ApiKeyCard(
-                apiKey: visible[i],
-                revoking: _revoking == visible[i].id,
-                busy: state.isMutating,
-                onCopy: () => _copyKey(visible[i]),
-                onEdit: () => _editPermissions(visible[i]),
-                onRevoke: () => _revoke(visible[i]),
-              ),
+            key: ValueKey(k.id),
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _ApiKeyCard(
+              apiKey: k,
+              revoking: _revoking == k.id,
+              busy: state.isMutating,
+              onCopy: () => _copyKey(k),
+              onEdit: () => _editPermissions(k),
+              onRevoke: () => _revoke(k),
             ),
           ),
       ],
@@ -395,13 +350,6 @@ extension on ApiSharePermission {
     ApiSharePermission.sell => 'Mark stones as sold',
     ApiSharePermission.insert => 'Add new stones to inventory',
     ApiSharePermission.update => 'Edit existing stone details',
-  };
-
-  IconData get icon => switch (this) {
-    ApiSharePermission.hold => Icons.back_hand_outlined,
-    ApiSharePermission.sell => Icons.sell_outlined,
-    ApiSharePermission.insert => Icons.add_box_outlined,
-    ApiSharePermission.update => Icons.edit_note_rounded,
   };
 
   /// Changes the catalogue itself rather than a stone's availability.
@@ -430,106 +378,10 @@ String _date(DateTime d) {
 }
 
 // ---------------------------------------------------------------------------
-// Scope tiles
-// ---------------------------------------------------------------------------
-
-class _ScopeTile extends StatelessWidget {
-  const _ScopeTile({
-    required this.permission,
-    required this.count,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final ApiSharePermission permission;
-  final int? count;
-  final bool selected;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.atelier;
-    final tone = permission.edits ? AtelierTone.amber : AtelierTone.gold;
-    final body = AnimatedContainer(
-      duration: AtelierMotion.base,
-      curve: AtelierMotion.emphasized,
-      padding: const EdgeInsets.fromLTRB(16, 16, 14, 14),
-      decoration: BoxDecoration(
-        color: selected ? p.goldSoft : p.surface,
-        borderRadius: BorderRadius.circular(AtelierRadius.lg),
-        border: Border.all(
-          color: selected ? p.gold : p.hairline,
-          width: selected ? 1.3 : 1,
-        ),
-        boxShadow: selected ? null : p.softShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              AtelierIconBadge(icon: permission.icon, tone: tone, size: 34),
-              const Spacer(),
-              if (count != null)
-                AnimatedSwitcher(
-                  duration: AtelierMotion.base,
-                  child: Text(
-                    '$count',
-                    key: ValueKey(count),
-                    style: AtelierType.display(
-                      selected ? p.gold : p.ink,
-                      size: 26,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Wrap(
-            spacing: 6,
-            runSpacing: 4,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text(
-                permission.apiValue,
-                style: AtelierType.overline(selected ? p.ink : p.muted),
-              ),
-              if (permission.edits)
-                const AtelierPill(
-                  label: 'Catalogue',
-                  tone: AtelierTone.amber,
-                  dense: true,
-                ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            permission.blurb,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: AtelierType.caption(p.inkSoft, size: 12.5),
-          ),
-        ],
-      ),
-    );
-    if (onTap == null) return body;
-    return Semantics(
-      selected: selected,
-      child: Pressable(
-        onTap: onTap,
-        semanticLabel: 'Filter keys that can ${permission.title}',
-        borderRadius: BorderRadius.circular(AtelierRadius.lg),
-        child: body,
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Key card
 // ---------------------------------------------------------------------------
 
+/// Name · email · date; key with show/copy; scopes with edit and revoke.
 class _ApiKeyCard extends StatefulWidget {
   const _ApiKeyCard({
     required this.apiKey,
@@ -566,38 +418,39 @@ class _ApiKeyCardState extends State<_ApiKeyCard> {
         updated != null &&
         updated.difference(created).inMinutes >= 1;
 
-    return AnimatedOpacity(
-      duration: AtelierMotion.base,
+    return Opacity(
       opacity: widget.revoking ? 0.55 : 1,
-      child: AtelierCard(
-        padding: EdgeInsets.zero,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 8, 4, 2),
+        decoration: BoxDecoration(
+          color: p.surface,
+          borderRadius: BorderRadius.circular(AtelierRadius.md),
+          border: Border.all(color: p.hairline),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 16, 0),
+              padding: const EdgeInsets.only(right: 8),
               child: Row(
                 children: [
-                  AtelierMonogram(name: k.name, size: 42),
-                  const SizedBox(width: 14),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          k.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AtelierType.title(p.ink),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          k.email,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AtelierType.caption(p.muted, size: 12.5),
-                        ),
-                      ],
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: k.name,
+                            style: AtelierType.label(p.ink, size: 13.5),
+                          ),
+                          if (k.email.trim().isNotEmpty)
+                            TextSpan(
+                              text: '  ${k.email}',
+                              style: AtelierType.caption(p.muted, size: 11.5),
+                            ),
+                        ],
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   if (created != null)
@@ -605,14 +458,15 @@ class _ApiKeyCardState extends State<_ApiKeyCard> {
                       padding: const EdgeInsets.only(left: 8),
                       child: Text(
                         edited ? 'Edited ${_date(updated)}' : _date(created),
-                        style: AtelierType.caption(p.muted, size: 11.5),
+                        style: AtelierType.caption(p.muted, size: 11),
                       ),
                     ),
                 ],
               ),
             ),
+            const SizedBox(height: 6),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              padding: const EdgeInsets.only(right: 8),
               child: _KeyWell(
                 value: _shown ? k.apiKey : k.maskedApiKey,
                 shown: _shown,
@@ -623,54 +477,49 @@ class _ApiKeyCardState extends State<_ApiKeyCard> {
                 onCopy: locked ? null : widget.onCopy,
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 14, 20, 16),
-              child: Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  for (final perm in ApiSharePermission.values)
-                    _ScopeChip(
-                      permission: perm,
-                      granted: k.permissions.contains(perm),
-                    ),
-                ],
-              ),
-            ),
-            const AtelierHairline(),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-              child: Row(
-                children: [
-                  Flexible(
-                    child: AtelierButton(
-                      label: context.tr(RemainingL10n.copyKey),
-                      icon: Icons.copy_rounded,
-                      variant: AtelierButtonVariant.ghost,
-                      compact: true,
-                      onPressed: locked ? null : widget.onCopy,
-                    ),
+            Row(
+              children: [
+                Expanded(
+                  child: Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
+                    children: [
+                      for (final perm in ApiSharePermission.values)
+                        _ScopeChip(
+                          permission: perm,
+                          granted: k.permissions.contains(perm),
+                        ),
+                    ],
                   ),
-                  Flexible(
-                    child: AtelierButton(
-                      label: context.tr(RemainingL10n.permissions),
-                      icon: Icons.tune_rounded,
-                      variant: AtelierButtonVariant.ghost,
-                      compact: true,
-                      onPressed: locked ? null : widget.onEdit,
+                ),
+                IconButton(
+                  tooltip: context.tr(RemainingL10n.editPermissions),
+                  visualDensity: VisualDensity.compact,
+                  icon: Icon(Icons.tune_rounded, size: 19, color: p.inkSoft),
+                  onPressed: locked ? null : widget.onEdit,
+                ),
+                if (widget.revoking)
+                  SizedBox(
+                    width: 40,
+                    child: Center(
+                      child: SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.8,
+                          color: p.ruby,
+                        ),
+                      ),
                     ),
-                  ),
-                  const Spacer(),
-                  AtelierButton(
-                    label: context.tr(RemainingL10n.revoke),
-                    icon: Icons.key_off_outlined,
-                    variant: AtelierButtonVariant.danger,
-                    compact: true,
-                    loading: widget.revoking,
+                  )
+                else
+                  IconButton(
+                    tooltip: context.tr(RemainingL10n.revoke),
+                    visualDensity: VisualDensity.compact,
+                    icon: Icon(Icons.key_off_outlined, size: 19, color: p.ruby),
                     onPressed: locked ? null : widget.onRevoke,
                   ),
-                ],
-              ),
+              ],
             ),
           ],
         ),
@@ -679,7 +528,7 @@ class _ApiKeyCardState extends State<_ApiKeyCard> {
   }
 }
 
-/// Monospace key display with reveal and copy.
+/// Monospace key with reveal and copy.
 class _KeyWell extends StatelessWidget {
   const _KeyWell({
     required this.value,
@@ -697,47 +546,38 @@ class _KeyWell extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.atelier;
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 6, 4, 6),
+      padding: const EdgeInsets.only(left: 10),
       decoration: BoxDecoration(
         color: p.sunken,
-        borderRadius: BorderRadius.circular(AtelierRadius.md),
+        borderRadius: BorderRadius.circular(AtelierRadius.xs),
       ),
       child: Row(
         children: [
-          Icon(Icons.vpn_key_outlined, size: 15, color: p.gold),
-          const SizedBox(width: 10),
           Expanded(
-            child: AnimatedSwitcher(
-              duration: AtelierMotion.base,
-              transitionBuilder: (child, a) =>
-                  FadeTransition(opacity: a, child: child),
-              child: Align(
-                key: ValueKey(shown),
-                alignment: Alignment.centerLeft,
-                child: SelectableText(
-                  value,
-                  maxLines: shown ? 3 : 1,
-                  style: AtelierType.label(p.ink, size: 13).copyWith(
-                    fontFamily: AppFonts.monoFontFamily,
-                    letterSpacing: shown ? 0.4 : 1.6,
-                  ),
-                ),
+            child: SelectableText(
+              value,
+              maxLines: shown ? 3 : 1,
+              style: AtelierType.label(p.ink, size: 12.5).copyWith(
+                fontFamily: AppFonts.monoFontFamily,
+                letterSpacing: shown ? 0.3 : 1.2,
               ),
             ),
           ),
           IconButton(
             tooltip: shown ? 'Hide key' : 'Show key',
+            visualDensity: VisualDensity.compact,
             onPressed: onToggle,
             icon: Icon(
               shown ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-              size: 18,
+              size: 17,
               color: p.inkSoft,
             ),
           ),
           IconButton(
             tooltip: context.tr(RemainingL10n.copyKey),
+            visualDensity: VisualDensity.compact,
             onPressed: onCopy,
-            icon: Icon(Icons.copy_rounded, size: 17, color: p.inkSoft),
+            icon: Icon(Icons.copy_rounded, size: 16, color: p.inkSoft),
           ),
         ],
       ),
@@ -745,6 +585,7 @@ class _KeyWell extends StatelessWidget {
   }
 }
 
+/// Scope name: tinted when granted, struck through when not.
 class _ScopeChip extends StatelessWidget {
   const _ScopeChip({required this.permission, required this.granted});
 
@@ -760,108 +601,22 @@ class _ScopeChip extends StatelessWidget {
           '${permission.title}: ${permission.blurb}'
           '${granted ? '' : ' (not granted)'}',
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
         decoration: BoxDecoration(
-          color: granted
-              ? c.withValues(alpha: p.isDark ? 0.16 : 0.1)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(AtelierRadius.pill),
+          color: granted ? c.withValues(alpha: p.isDark ? 0.16 : 0.1) : null,
+          borderRadius: BorderRadius.circular(AtelierRadius.xs),
           border: Border.all(
             color: granted ? c.withValues(alpha: 0.35) : p.hairline,
           ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              granted ? Icons.check_rounded : Icons.remove_rounded,
-              size: 12,
-              color: granted ? c : p.muted,
-            ),
-            const SizedBox(width: 5),
-            Text(
-              permission.apiValue,
-              style: AtelierType.label(
-                granted ? p.ink : p.muted,
-                size: 11,
-              ).copyWith(letterSpacing: 0.8),
-            ),
-          ],
+        child: Text(
+          permission.apiValue,
+          style: AtelierType.label(granted ? p.ink : p.muted, size: 10.5)
+              .copyWith(
+                letterSpacing: 0.6,
+                decoration: granted ? null : TextDecoration.lineThrough,
+              ),
         ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Onboarding
-// ---------------------------------------------------------------------------
-
-class _HowItWorks extends StatelessWidget {
-  const _HowItWorks();
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.atelier;
-    const steps = [
-      (Icons.vpn_key_outlined, 'Generate', 'Name the partner and pick scopes.'),
-      (
-        Icons.mark_email_read_outlined,
-        'Deliver',
-        'The key is emailed to them.',
-      ),
-      (Icons.hub_outlined, 'Connect', 'They use it to reach your inventory.'),
-    ];
-    return AtelierPanel(
-      overline: 'How it works',
-      title: 'Three steps to partner access',
-      child: AtelierTileGrid(
-        columns: 3,
-        minTileWidth: 180,
-        children: [
-          for (var i = 0; i < steps.length; i++)
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 28,
-                  height: 28,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: p.gold.withValues(alpha: 0.5)),
-                  ),
-                  child: Text(
-                    '${i + 1}',
-                    style: AtelierType.display(p.gold, size: 15),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(steps[i].$1, size: 14, color: p.inkSoft),
-                          const SizedBox(width: 6),
-                          Text(
-                            steps[i].$2,
-                            style: AtelierType.title(p.ink, size: 14),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        steps[i].$3,
-                        style: AtelierType.caption(p.muted, size: 12.5),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-        ],
       ),
     );
   }
@@ -894,6 +649,7 @@ class _PermissionPicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.atelier;
     final all = selected.length == ApiSharePermission.values.length;
+    const perms = ApiSharePermission.values;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -901,19 +657,19 @@ class _PermissionPicker extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                context.tr(RemainingL10n.permissions).toUpperCase(),
-                style: AtelierType.overline(p.muted),
+                context.tr(RemainingL10n.permissions),
+                style: AtelierType.label(p.inkSoft, size: 12),
               ),
             ),
             TextButton(
               onPressed: enabled
-                  ? () => onChanged(
-                      all
-                          ? <ApiSharePermission>{}
-                          : ApiSharePermission.values.toSet(),
-                    )
+                  ? () =>
+                        onChanged(all ? <ApiSharePermission>{} : perms.toSet())
                   : null,
-              style: TextButton.styleFrom(foregroundColor: p.gold),
+              style: TextButton.styleFrom(
+                foregroundColor: p.gold,
+                visualDensity: VisualDensity.compact,
+              ),
               child: Text(
                 all ? 'Clear all' : 'Select all',
                 style: AtelierType.label(p.gold, size: 12),
@@ -921,28 +677,23 @@ class _PermissionPicker extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 4),
-        LayoutBuilder(
-          builder: (context, c) {
-            const gap = AtelierSpace.s10;
-            final cols = c.maxWidth >= 380 ? 2 : 1;
-            final w = (c.maxWidth - gap * (cols - 1)) / cols;
-            return Wrap(
-              spacing: gap,
-              runSpacing: gap,
-              children: [
-                for (final perm in ApiSharePermission.values)
-                  SizedBox(
-                    width: w,
-                    child: _PermissionToggle(
-                      permission: perm,
-                      on: selected.contains(perm),
-                      onTap: enabled ? () => _toggle(perm) : null,
-                    ),
-                  ),
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AtelierRadius.md),
+            border: Border.all(color: p.hairline),
+          ),
+          child: Column(
+            children: [
+              for (var i = 0; i < perms.length; i++) ...[
+                if (i > 0) Container(height: 1, color: p.hairline),
+                _PermissionToggle(
+                  permission: perms[i],
+                  on: selected.contains(perms[i]),
+                  onTap: enabled ? () => _toggle(perms[i]) : null,
+                ),
               ],
-            );
-          },
+            ],
+          ),
         ),
         AtelierFieldError(error: error),
       ],
@@ -950,6 +701,7 @@ class _PermissionPicker extends StatelessWidget {
   }
 }
 
+/// Checkbox row: scope name and what it allows.
 class _PermissionToggle extends StatelessWidget {
   const _PermissionToggle({
     required this.permission,
@@ -966,63 +718,27 @@ class _PermissionToggle extends StatelessWidget {
     final p = context.atelier;
     return Semantics(
       checked: on,
-      child: Pressable(
+      label: '${permission.title}, ${permission.blurb}',
+      child: InkWell(
         onTap: onTap,
-        semanticLabel: '${permission.title}, ${permission.blurb}',
-        borderRadius: BorderRadius.circular(AtelierRadius.md),
-        child: AnimatedContainer(
-          duration: AtelierMotion.base,
-          curve: AtelierMotion.emphasized,
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: on ? p.goldSoft : p.sunken,
-            borderRadius: BorderRadius.circular(AtelierRadius.md),
-            border: Border.all(
-              color: on ? p.gold : Colors.transparent,
-              width: 1.2,
-            ),
-          ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           child: Row(
             children: [
-              Icon(permission.icon, size: 18, color: on ? p.gold : p.muted),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      permission.title,
-                      style: AtelierType.label(p.ink, size: 13.5),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      permission.blurb,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: AtelierType.caption(p.muted, size: 11.5),
-                    ),
-                  ],
-                ),
+              Icon(
+                on ? Icons.check_box_rounded : Icons.check_box_outline_blank,
+                size: 20,
+                color: on ? p.gold : p.muted,
               ),
+              const SizedBox(width: 10),
+              Text(permission.title, style: AtelierType.label(p.ink, size: 13)),
               const SizedBox(width: 8),
-              AnimatedContainer(
-                duration: AtelierMotion.base,
-                curve: AtelierMotion.settle,
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: on ? p.gold : Colors.transparent,
-                  border: Border.all(
-                    color: on ? p.gold : p.hairline,
-                    width: 1.4,
-                  ),
-                ),
-                child: AnimatedScale(
-                  scale: on ? 1 : 0,
-                  duration: AtelierMotion.base,
-                  curve: AtelierMotion.settle,
-                  child: Icon(Icons.check_rounded, size: 14, color: p.onGold),
+              Expanded(
+                child: Text(
+                  permission.blurb,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AtelierType.caption(p.muted, size: 11.5),
                 ),
               ),
             ],
@@ -1126,85 +842,77 @@ class _GenerateKeySheetState extends State<_GenerateKeySheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Reveal(
-            child: AtelierTextField(
-              controller: _name,
-              label: 'Partner name',
-              hint: 'e.g. Brilliant Exports',
-              error: _nameError,
-              enabled: !_saving,
-              autofocus: true,
-              textCapitalization: TextCapitalization.words,
-              textInputAction: TextInputAction.next,
-              onChanged: (_) {
-                if (_nameError != null) setState(() => _nameError = null);
-              },
-            ),
+          AtelierTextField(
+            controller: _name,
+            label: 'Partner name',
+            hint: 'e.g. Brilliant Exports',
+            error: _nameError,
+            enabled: !_saving,
+            autofocus: true,
+            textCapitalization: TextCapitalization.words,
+            textInputAction: TextInputAction.next,
+            onChanged: (_) {
+              if (_nameError != null) setState(() => _nameError = null);
+            },
           ),
-          const SizedBox(height: AtelierSpace.s16),
-          Reveal(
-            index: 1,
-            child: AtelierTextField(
-              controller: _email,
-              label: 'Partner email',
-              hint: 'partner@company.com',
-              error: _emailError,
-              enabled: !_saving,
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.done,
-              onChanged: (_) {
-                if (_emailError != null) setState(() => _emailError = null);
-              },
-              onSubmitted: (_) => _submit(),
-            ),
-          ),
-          const SizedBox(height: AtelierSpace.s20),
-          Reveal(
-            index: 2,
-            child: _PermissionPicker(
-              selected: _selected,
-              enabled: !_saving,
-              error: _permissionError,
-              onChanged: (next) => setState(() {
-                _selected = next;
-                _permissionError = null;
-              }),
-            ),
-          ),
-          AnimatedSize(
-            duration: AtelierMotion.base,
-            curve: AtelierMotion.emphasized,
-            child: _submitError == null
-                ? const SizedBox(width: double.infinity)
-                : Padding(
-                    padding: const EdgeInsets.only(top: AtelierSpace.s16),
-                    child: AtelierNotice(
-                      tone: AtelierTone.ruby,
-                      icon: Icons.error_outline_rounded,
-                      text: _submitError!,
-                    ),
-                  ),
-          ),
-          const SizedBox(height: AtelierSpace.s24),
-          Reveal(
-            index: 3,
-            child: AtelierButton(
-              label: _saving
-                  ? context.tr(RemainingL10n.generatingApiKey)
-                  : context.tr(RemainingL10n.generate),
-              icon: Icons.vpn_key_rounded,
-              variant: AtelierButtonVariant.gold,
-              expand: true,
-              loading: _saving,
-              onPressed: _submit,
-            ),
+          const SizedBox(height: AtelierSpace.s10),
+          AtelierTextField(
+            controller: _email,
+            label: 'Partner email',
+            hint: 'partner@company.com',
+            error: _emailError,
+            enabled: !_saving,
+            keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.done,
+            onChanged: (_) {
+              if (_emailError != null) setState(() => _emailError = null);
+            },
+            onSubmitted: (_) => _submit(),
           ),
           const SizedBox(height: AtelierSpace.s8),
-          AtelierButton(
-            label: context.tr(RemainingL10n.cancel),
-            variant: AtelierButtonVariant.ghost,
-            expand: true,
-            onPressed: _saving ? null : () => Navigator.of(context).pop(),
+          _PermissionPicker(
+            selected: _selected,
+            enabled: !_saving,
+            error: _permissionError,
+            onChanged: (next) => setState(() {
+              _selected = next;
+              _permissionError = null;
+            }),
+          ),
+          if (_submitError != null) ...[
+            const SizedBox(height: AtelierSpace.s10),
+            AtelierNotice(
+              tone: AtelierTone.ruby,
+              icon: Icons.error_outline_rounded,
+              text: _submitError!,
+            ),
+          ],
+          const SizedBox(height: AtelierSpace.s12),
+          Row(
+            children: [
+              Expanded(
+                child: AtelierButton(
+                  label: context.tr(RemainingL10n.cancel),
+                  variant: AtelierButtonVariant.secondary,
+                  compact: true,
+                  onPressed: _saving ? null : () => Navigator.of(context).pop(),
+                ),
+              ),
+              const SizedBox(width: AtelierSpace.s10),
+              Expanded(
+                flex: 2,
+                child: AtelierButton(
+                  label: _saving
+                      ? context.tr(RemainingL10n.generatingApiKey)
+                      : context.tr(RemainingL10n.generate),
+                  icon: Icons.vpn_key_rounded,
+                  variant: AtelierButtonVariant.gold,
+                  compact: true,
+                  loading: _saving,
+                  onPressed: _submit,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -1286,12 +994,11 @@ class _EditPermissionsSheetState extends State<_EditPermissionsSheet> {
               _permissionError = null;
             }),
           ),
-          const SizedBox(height: AtelierSpace.s12),
-          const AtelierNotice(
-            icon: Icons.bolt_rounded,
-            text:
-                'Changes apply to this key immediately — partners don’t '
-                'need a new key.',
+          const SizedBox(height: AtelierSpace.s4),
+          Text(
+            'Changes apply to this key immediately — partners don’t '
+            'need a new key.',
+            style: AtelierType.caption(context.atelier.muted, size: 11.5),
           ),
           AnimatedSize(
             duration: AtelierMotion.base,
@@ -1307,13 +1014,14 @@ class _EditPermissionsSheetState extends State<_EditPermissionsSheet> {
                     ),
                   ),
           ),
-          const SizedBox(height: AtelierSpace.s24),
+          const SizedBox(height: AtelierSpace.s12),
           Row(
             children: [
               Expanded(
                 child: AtelierButton(
                   label: context.tr(RemainingL10n.cancel),
                   variant: AtelierButtonVariant.secondary,
+                  compact: true,
                   onPressed: _saving ? null : () => Navigator.of(context).pop(),
                 ),
               ),
@@ -1324,6 +1032,7 @@ class _EditPermissionsSheetState extends State<_EditPermissionsSheet> {
                       ? context.tr(RemainingL10n.save)
                       : 'No changes',
                   variant: AtelierButtonVariant.primary,
+                  compact: true,
                   loading: _saving,
                   onPressed: _changed ? _submit : null,
                 ),

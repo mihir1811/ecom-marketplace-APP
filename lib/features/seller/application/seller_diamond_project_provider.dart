@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,8 +11,105 @@ import '../../diamond_projects/domain/diamond_project_stats_calculator.dart';
 import '../../diamond_projects/domain/models/diamond_project_item.dart';
 import '../../diamond_projects/domain/models/diamond_project_stats.dart';
 import '../../diamonds/application/diamond_search_provider.dart';
+import '../../diamonds/data/mappers/seller_diamond_project_search_mapper.dart';
 import '../../diamonds/data/repositories/diamond_repository_impl.dart';
+import '../../diamonds/domain/models/diamond.dart';
 import '../../diamonds/domain/models/diamond_filter_state.dart';
+
+/// Option values present in the seller's whole (unfiltered) inventory, so the
+/// filter dialog only offers choices that can match a stone.
+class SellerDiamondProjectFacets {
+  const SellerDiamondProjectFacets({
+    this.shapes = const {},
+    this.colors = const {},
+    this.clarities = const {},
+    this.cuts = const {},
+    this.fancyColors = const {},
+    this.labs = const {},
+    this.minCarat,
+    this.maxCarat,
+    this.minRatio,
+    this.maxRatio,
+  });
+
+  /// Lower-cased values; test options with [has].
+  final Set<String> shapes;
+  final Set<String> colors;
+  final Set<String> clarities;
+  final Set<String> cuts;
+  final Set<String> fancyColors;
+  final Set<String> labs;
+  final double? minCarat;
+  final double? maxCarat;
+  final double? minRatio;
+  final double? maxRatio;
+
+  static const _knownLabs = {'gia', 'hrd', 'igi', 'egl', 'ags'};
+
+  static bool has(Set<String> set, String option) =>
+      set.contains(option.trim().toLowerCase());
+
+  static String? _key(String? raw) {
+    final v = raw?.trim().toLowerCase();
+    return (v == null || v.isEmpty) ? null : v;
+  }
+
+  static String _cutKey(String raw) => switch (raw) {
+    'id' => 'ideal',
+    'ex' => 'excellent',
+    'vg' => 'very good',
+    'gd' || 'g' => 'good',
+    'fr' || 'f' => 'fair',
+    'pr' || 'p' => 'poor',
+    _ => raw,
+  };
+
+  factory SellerDiamondProjectFacets.fromDiamonds(List<Diamond> diamonds) {
+    final shapes = <String>{};
+    final colors = <String>{};
+    final clarities = <String>{};
+    final cuts = <String>{};
+    final fancy = <String>{};
+    final labs = <String>{};
+    double? minCt, maxCt, minRatio, maxRatio;
+    for (final d in diamonds) {
+      if (_key(d.shape) case final v?) shapes.add(v);
+      if (_key(d.clarity) case final v?) clarities.add(v);
+      if (_key(d.cut) case final v?) cuts.add(_cutKey(v));
+      if (_key(d.fancyColor) case final v?) fancy.add(v);
+      // Paired grades ("Y-Z") stand for both letters.
+      if (_key(d.color) case final v?) {
+        for (final part in v.split(RegExp(r'[-/ ]'))) {
+          if (part.isNotEmpty) colors.add(part);
+        }
+      }
+      if (_key(d.lab ?? d.certificate) case final v?) {
+        labs.add(_knownLabs.contains(v) ? v : 'others');
+      }
+      if (d.carat > 0) {
+        if (minCt == null || d.carat < minCt) minCt = d.carat;
+        if (maxCt == null || d.carat > maxCt) maxCt = d.carat;
+      }
+      final ratio = double.tryParse(d.ratio?.trim() ?? '');
+      if (ratio != null && ratio > 0) {
+        if (minRatio == null || ratio < minRatio) minRatio = ratio;
+        if (maxRatio == null || ratio > maxRatio) maxRatio = ratio;
+      }
+    }
+    return SellerDiamondProjectFacets(
+      shapes: shapes,
+      colors: colors,
+      clarities: clarities,
+      cuts: cuts,
+      fancyColors: fancy,
+      labs: labs,
+      minCarat: minCt,
+      maxCarat: maxCt,
+      minRatio: minRatio,
+      maxRatio: maxRatio,
+    );
+  }
+}
 
 class SellerDiamondProjectInventoryState {
   const SellerDiamondProjectInventoryState({
@@ -18,12 +117,16 @@ class SellerDiamondProjectInventoryState {
     this.totalCount = 0,
     this.appliedFilters,
     this.hasApplied = false,
+    this.facets,
   });
 
   final List<DiamondProjectItem> items;
   final int totalCount;
   final DiamondFilterState? appliedFilters;
   final bool hasApplied;
+
+  /// Options in the whole inventory; null until known.
+  final SellerDiamondProjectFacets? facets;
 
   bool get isEmpty => items.isEmpty;
 
@@ -32,6 +135,7 @@ class SellerDiamondProjectInventoryState {
     int? totalCount,
     DiamondFilterState? appliedFilters,
     bool? hasApplied,
+    SellerDiamondProjectFacets? facets,
     bool clearAppliedFilters = false,
   }) {
     return SellerDiamondProjectInventoryState(
@@ -41,6 +145,7 @@ class SellerDiamondProjectInventoryState {
           ? null
           : (appliedFilters ?? this.appliedFilters),
       hasApplied: hasApplied ?? this.hasApplied,
+      facets: facets ?? this.facets,
     );
   }
 }
@@ -111,13 +216,19 @@ final sellerDiamondProjectStatsProvider = Provider<DiamondProjectStats>((ref) {
 class SellerDiamondProjectInventoryNotifier
     extends AsyncNotifier<SellerDiamondProjectInventoryState> {
   CancelToken? _cancelToken;
+  CancelToken? _facetsToken;
 
   @override
   Future<SellerDiamondProjectInventoryState> build() async {
     ref.watch(authProvider.select((s) => s.user?.id));
-    ref.onDispose(() => _cancelToken?.cancel());
+    ref.onDispose(() {
+      _cancelToken?.cancel();
+      _facetsToken?.cancel();
+    });
     _cancelToken?.cancel('auth-user-changed');
     _cancelToken = null;
+    _facetsToken?.cancel('auth-user-changed');
+    _facetsToken = null;
     return const SellerDiamondProjectInventoryState();
   }
 
@@ -134,16 +245,47 @@ class SellerDiamondProjectInventoryNotifier
 
     final filters = ref.read(sellerDiamondProjectFiltersProvider);
     _cancelToken?.cancel('seller-diamond-project-apply');
-    _cancelToken = CancelToken();
+    final token = _cancelToken = CancelToken();
 
     final previous = state.valueOrNull;
     state = previous == null
         ? const AsyncLoading()
         : const AsyncLoading<SellerDiamondProjectInventoryState>()
               .copyWithPrevious(AsyncData(previous));
-    final repo = ref.read(diamondRepositoryProvider);
 
-    final items = <DiamondProjectItem>[];
+    final fetched = await _fetchAll(sellerId, filters, token);
+    if (fetched == null) return;
+    final (diamonds, totalCount) = fetched;
+    // An unfiltered load is the whole inventory: its options are the facets.
+    final facets = _isUnfiltered(filters)
+        ? SellerDiamondProjectFacets.fromDiamonds(diamonds)
+        : previous?.facets;
+
+    state = AsyncData(
+      SellerDiamondProjectInventoryState(
+        items: List<DiamondProjectItem>.unmodifiable([
+          for (final d in diamonds)
+            DiamondProjectMapper.fromDiamond(d, productKind: 'SINGLE'),
+        ]),
+        totalCount: totalCount,
+        appliedFilters: filters,
+        hasApplied: true,
+        facets: facets,
+      ),
+    );
+    if (facets == null) _loadFacets(sellerId);
+  }
+
+  /// Every page of seller inventory matching [filters] and the total count;
+  /// null when cancelled or failed.
+  Future<(List<Diamond>, int)?> _fetchAll(
+    String sellerId,
+    DiamondFilterState filters,
+    CancelToken token, {
+    bool reportErrors = true,
+  }) async {
+    final repo = ref.read(diamondRepositoryProvider);
+    final diamonds = <Diamond>[];
     final seen = <String>{};
     var page = 1;
     var totalCount = 0;
@@ -155,36 +297,67 @@ class SellerDiamondProjectInventoryNotifier
         sellerId: sellerId,
         filters: filters,
         page: requestedPage,
-        cancelToken: _cancelToken,
+        cancelToken: token,
       );
       switch (result) {
         case Success(value: final response):
           totalCount = response.totalCount;
           for (final diamond in response.diamonds) {
             if (diamond.id.isEmpty || !seen.add(diamond.id)) continue;
-            items.add(
-              DiamondProjectMapper.fromDiamond(diamond, productKind: 'SINGLE'),
-            );
+            diamonds.add(diamond);
           }
           hasMore = response.hasMore && response.diamonds.isNotEmpty;
           // Always advance from the requested page — response.page can reset
           // and stall the loop on the same page.
           page = requestedPage + 1;
         case ResultFailure(failure: final failure):
-          if (failure is NetworkFailure && failure.isCancelled) return;
-          state = AsyncError(failure.message, StackTrace.current);
-          return;
+          if (failure is NetworkFailure && failure.isCancelled) return null;
+          if (reportErrors) {
+            state = AsyncError(failure.message, StackTrace.current);
+          }
+          return null;
       }
     }
+    return (diamonds, totalCount);
+  }
 
-    state = AsyncData(
-      SellerDiamondProjectInventoryState(
-        items: List<DiamondProjectItem>.unmodifiable(items),
-        totalCount: totalCount,
-        appliedFilters: filters,
-        hasApplied: true,
-      ),
-    );
+  static String _bodyKey(DiamondFilterState filters) => jsonEncode(
+    SellerDiamondProjectSearchMapper.toBody(
+      sellerId: '',
+      filters: filters,
+      page: 1,
+    ),
+  );
+
+  static final _unfilteredKey = _bodyKey(const DiamondFilterState());
+
+  static bool _isUnfiltered(DiamondFilterState filters) =>
+      _bodyKey(filters) == _unfilteredKey;
+
+  /// Background pass over the whole inventory when the loads so far were
+  /// filtered, so the dialog still knows every available option.
+  Future<void> _loadFacets(String sellerId) async {
+    if (_facetsToken != null) return;
+    final token = _facetsToken = CancelToken();
+    try {
+      final fetched = await _fetchAll(
+        sellerId,
+        const DiamondFilterState(),
+        token,
+        reportErrors: false,
+      );
+      final current = state.valueOrNull;
+      if (fetched == null || current == null || current.facets != null) {
+        return;
+      }
+      state = AsyncData(
+        current.copyWith(
+          facets: SellerDiamondProjectFacets.fromDiamonds(fetched.$1),
+        ),
+      );
+    } finally {
+      if (identical(_facetsToken, token)) _facetsToken = null;
+    }
   }
 
   void clearFilters() {

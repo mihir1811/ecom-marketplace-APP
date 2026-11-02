@@ -273,7 +273,7 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen>
             ],
           ),
         ),
-        const SizedBox(height: AtelierSpace.s24),
+        const SizedBox(height: AtelierSpace.s16),
         Reveal(
           index: 2,
           child: AtelierSegmented<ProductOfferStatus?>(
@@ -331,7 +331,7 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen>
             onAction: _refresh,
           ),
         ],
-        const SizedBox(height: AtelierSpace.s20),
+        const SizedBox(height: AtelierSpace.s12),
         AnimatedSwitcher(
           duration: AtelierMotion.base,
           switchInCurve: AtelierMotion.emphasized,
@@ -352,7 +352,7 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen>
     List<ProductOffer> items,
   ) {
     if (state.isLoading && state.items.isEmpty) {
-      return const AtelierSkeletonList(count: 4, height: 168);
+      return const AtelierSkeletonList(count: 4, height: 110);
     }
     if (state.errorMessage != null && state.items.isEmpty) {
       return AtelierErrorState(
@@ -385,7 +385,7 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen>
     final grid = LayoutBuilder(
       builder: (context, constraints) {
         final cols = constraints.maxWidth >= 920 ? 2 : 1;
-        const gap = AtelierSpace.s16;
+        const gap = AtelierSpace.s12;
         final w = (constraints.maxWidth - gap * (cols - 1)) / cols;
         return Wrap(
           spacing: gap,
@@ -419,7 +419,7 @@ class _SellerOffersScreenState extends ConsumerState<SellerOffersScreen>
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         grid,
-        const SizedBox(height: AtelierSpace.s20),
+        const SizedBox(height: AtelierSpace.s16),
         Center(
           child: AtelierButton(
             label: 'Load more offers',
@@ -500,10 +500,15 @@ AtelierTone _toneFor(ProductOffer offer) => switch (offer.status) {
 /// The seller's own counter-offer, waiting for the buyer: time left and no
 /// buttons.
 class _CounterWaiting extends StatelessWidget {
-  const _CounterWaiting({required this.offer, this.onExpired});
+  const _CounterWaiting({
+    required this.offer,
+    this.onExpired,
+    this.dense = false,
+  });
 
   final ProductOffer offer;
   final VoidCallback? onExpired;
+  final bool dense;
 
   @override
   Widget build(BuildContext context) {
@@ -516,6 +521,7 @@ class _CounterWaiting extends StatelessWidget {
             '${formatOfferTimeLeft(left)} left.',
         tone: AtelierTone.gold,
         icon: Icons.swap_horiz_rounded,
+        dense: dense,
       ),
     );
   }
@@ -523,10 +529,15 @@ class _CounterWaiting extends StatelessWidget {
 
 /// Accepted and unpaid: how long the buyer has left to pay.
 class _PaymentWindow extends StatelessWidget {
-  const _PaymentWindow({required this.offer, this.onExpired});
+  const _PaymentWindow({
+    required this.offer,
+    this.onExpired,
+    this.dense = false,
+  });
 
   final ProductOffer offer;
   final VoidCallback? onExpired;
+  final bool dense;
 
   @override
   Widget build(BuildContext context) {
@@ -534,12 +545,15 @@ class _PaymentWindow extends StatelessWidget {
       expiresAt: offer.paymentExpiresAt,
       onExpired: onExpired,
       builder: (context, left) => AtelierNotice(
-        text:
-            'Waiting for payment · ${formatOfferTimeLeft(left)} left. The '
-            'stone is held for this buyer; unpaid offers are released after '
-            '24 hours.',
+        text: dense
+            ? 'Awaiting payment · ${formatOfferTimeLeft(left)} left · '
+                  'stone held, released if unpaid in 24h.'
+            : 'Waiting for payment · ${formatOfferTimeLeft(left)} left. The '
+                  'stone is held for this buyer; unpaid offers are released '
+                  'after 24 hours.',
         tone: AtelierTone.gold,
         icon: Icons.schedule_rounded,
+        dense: dense,
       ),
     );
   }
@@ -580,128 +594,103 @@ class _OfferCard extends StatelessWidget {
     // counter-offers are the buyer's to answer.
     final pending = offer.isAwaitingSeller;
     final canCounter = !offer.attemptsExhausted;
-    final meta = _metaParts(context, offer);
+    final meta = [offer.productType, ..._metaParts(context, offer)];
     final buyer = offer.buyerName ?? offer.buyerEmail;
+    const gap = SizedBox(height: 8);
 
     return AtelierCard(
       onTap: onOpen,
       semanticLabel: 'Offer on ${offer.displayTitle}',
       borderColor: pending ? p.amber.withValues(alpha: 0.35) : null,
-      padding: const EdgeInsets.all(AtelierSpace.s16),
+      padding: const EdgeInsets.all(AtelierSpace.s12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AtelierThumb(url: offer.imageUrl, size: 68),
-              const SizedBox(width: AtelierSpace.s12),
+              AtelierThumb(url: offer.imageUrl, size: 40),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: AtelierPill(
-                            label: offer.displayStatusLabel,
-                            tone: _toneFor(offer),
-                            dense: true,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Flexible(
-                          child: Text(
-                            offer.productType.toUpperCase(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AtelierType.overline(p.muted),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
                     Text(
                       offer.displayTitle,
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AtelierType.display(p.ink, size: 19),
+                      style: AtelierType.display(p.ink, size: 16),
                     ),
-                    if (meta.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        meta.join(' · '),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: AtelierType.caption(p.muted, size: 11.5),
-                      ),
-                    ],
+                    const SizedBox(height: 2),
+                    Text(
+                      meta.join(' · '),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AtelierType.caption(p.muted, size: 11),
+                    ),
                   ],
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: AtelierSpace.s16),
-          _PriceComparison(offer: offer),
-          const SizedBox(height: AtelierSpace.s12),
-          Row(
-            children: [
-              if (buyer != null) ...[
-                AtelierMonogram(name: buyer, size: 26),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    buyer,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AtelierType.label(p.inkSoft, size: 12.5),
-                  ),
-                ),
-              ] else
-                const Spacer(),
-              Text(
-                offer.createdAtLabel,
-                style: AtelierType.caption(p.muted, size: 11),
+              const SizedBox(width: 8),
+              AtelierPill(
+                label: offer.displayStatusLabel,
+                tone: _toneFor(offer),
+                dense: true,
               ),
             ],
           ),
+          gap,
+          _PriceLine(offer: offer),
+          const SizedBox(height: 4),
+          Text(
+            [?buyer, offer.createdAtLabel].join(' · '),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AtelierType.caption(p.muted, size: 11),
+          ),
           if (offer.history.isNotEmpty) ...[
-            const SizedBox(height: AtelierSpace.s12),
+            gap,
             OfferExchangeLine(offer: offer, asSeller: true),
           ],
           if (offer.message != null) ...[
-            const SizedBox(height: AtelierSpace.s12),
-            _Quote(text: offer.message!, maxLines: 2),
+            const SizedBox(height: 4),
+            Text(
+              '“${offer.message!}”',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AtelierType.body(
+                p.inkSoft,
+                size: 12,
+              ).copyWith(fontStyle: FontStyle.italic),
+            ),
           ],
           if (offer.isOpenCounter) ...[
-            const SizedBox(height: AtelierSpace.s12),
-            _CounterWaiting(offer: offer, onExpired: onExpired),
+            gap,
+            _CounterWaiting(offer: offer, onExpired: onExpired, dense: true),
           ],
           if (offer.isPayable) ...[
-            const SizedBox(height: AtelierSpace.s12),
-            _PaymentWindow(offer: offer, onExpired: onExpired),
+            gap,
+            _PaymentWindow(offer: offer, onExpired: onExpired, dense: true),
           ],
           if (offer.isWithGemworld) ...[
-            const SizedBox(height: AtelierSpace.s12),
+            gap,
             const AtelierNotice(
-              text:
-                  'GemWorld is arranging the payment with this buyer. The '
-                  'stone stays held for them until the order is paid or '
-                  'cancelled.',
+              text: 'GemWorld is arranging payment · stone held for buyer.',
               tone: AtelierTone.gold,
               icon: Icons.support_agent_outlined,
+              dense: true,
             ),
           ],
           if (offer.belowMinimum &&
               (pending || offer.status == ProductOfferStatus.rejected)) ...[
-            const SizedBox(height: AtelierSpace.s12),
+            gap,
             AtelierNotice(
               text: pending
-                  ? 'Below your minimum offer price: declined automatically '
-                        'within 10 minutes unless you accept or counter it.'
-                  : 'Declined automatically: below your minimum offer price.',
+                  ? 'Below your minimum · auto-declined in 10 min unless '
+                        'you accept or counter.'
+                  : 'Auto-declined · below your minimum offer price.',
               tone: pending ? AtelierTone.amber : AtelierTone.neutral,
               icon: Icons.south_rounded,
+              dense: true,
             ),
           ],
           AnimatedSize(
@@ -709,7 +698,7 @@ class _OfferCard extends StatelessWidget {
             curve: AtelierMotion.emphasized,
             child: pending
                 ? Padding(
-                    padding: const EdgeInsets.only(top: AtelierSpace.s16),
+                    padding: const EdgeInsets.only(top: 10),
                     child: Row(
                       children: [
                         Expanded(
@@ -749,6 +738,64 @@ class _OfferCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// One-line offer vs list price for list cards: amount, list price and how
+/// close the offer comes to asking (coloured like the detail meter).
+class _PriceLine extends StatelessWidget {
+  const _PriceLine({required this.offer});
+
+  final ProductOffer offer;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.atelier;
+    final list = offer.listPrice;
+    final ratio = list == null || list <= 0 ? null : offer.amount / list;
+    final gap = list == null ? null : list - offer.amount;
+    final tone = ratio == null
+        ? p.muted
+        : ratio >= 0.95
+        ? p.emerald
+        : ratio >= 0.85
+        ? p.gold
+        : p.amber;
+    final below = gap != null && gap > 0 ? ' (-${atelierMoney(gap)})' : '';
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        Text(
+          offer.fromSeller ? 'Counter ' : 'Offer ',
+          style: AtelierType.caption(p.muted, size: 11),
+        ),
+        Text(
+          atelierMoney(offer.amount, decimals: 2),
+          style: AtelierType.figure(p.ink, size: 16),
+        ),
+        const SizedBox(width: 8),
+        if (list != null)
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(text: 'of ${atelierMoney(list, decimals: 2)}'),
+                  if (ratio != null)
+                    TextSpan(
+                      text: ' · ${(ratio * 100).toStringAsFixed(0)}%$below',
+                      style: TextStyle(color: tone),
+                    ),
+                ],
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.end,
+              style: AtelierType.caption(p.muted, size: 11),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -840,10 +887,9 @@ class _PriceComparison extends StatelessWidget {
 }
 
 class _Quote extends StatelessWidget {
-  const _Quote({required this.text, this.maxLines});
+  const _Quote({required this.text});
 
   final String text;
-  final int? maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -855,8 +901,6 @@ class _Quote extends StatelessWidget {
       ),
       child: Text(
         '“$text”',
-        maxLines: maxLines,
-        overflow: maxLines == null ? null : TextOverflow.ellipsis,
         style: AtelierType.body(
           p.inkSoft,
           size: 13,

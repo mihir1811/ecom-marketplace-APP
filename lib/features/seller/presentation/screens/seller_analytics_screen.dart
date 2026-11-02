@@ -63,7 +63,7 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
             loading: snapshot == null && state.errorMessage == null,
           ),
         ),
-        const SizedBox(height: AtelierSpace.s24),
+        const SizedBox(height: AtelierSpace.s16),
         Reveal(
           index: 2,
           child: Row(
@@ -126,7 +126,7 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
             onAction: _refresh,
           ),
         ],
-        const SizedBox(height: AtelierSpace.s20),
+        const SizedBox(height: AtelierSpace.s16),
         AnimatedSwitcher(
           duration: AtelierMotion.slow,
           switchInCurve: AtelierMotion.emphasized,
@@ -205,22 +205,23 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
       children: [
         if (kpis.isNotEmpty)
           AtelierTileGrid(
-            columns: 3,
-            minTileWidth: 160,
+            scroll: true,
+            minTileWidth: 168,
             children: [
               for (final k in kpis)
                 AtelierStatTile(
+                  dense: true,
                   label: k.title,
                   value: k.value,
                   icon: _kpiIcon(k.title),
-                  caption: 'vs previous period',
+                  caption: 'vs prev. period',
                   trailing: k.delta.isEmpty
                       ? null
                       : AtelierDelta(label: k.delta, up: k.deltaUp),
                 ),
             ],
           ),
-        const SizedBox(height: AtelierSpace.s20),
+        const SizedBox(height: AtelierSpace.s16),
         Reveal(
           index: 3,
           child: AtelierPanel(
@@ -248,7 +249,7 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
                   ),
           ),
         ),
-        const SizedBox(height: AtelierSpace.s20),
+        const SizedBox(height: AtelierSpace.s16),
         Reveal(
           index: 4,
           child: LayoutBuilder(
@@ -258,7 +259,7 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     category,
-                    const SizedBox(height: AtelierSpace.s20),
+                    const SizedBox(height: AtelierSpace.s16),
                     pipeline,
                   ],
                 );
@@ -268,7 +269,7 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(child: category),
-                  const SizedBox(width: AtelierSpace.s20),
+                  const SizedBox(width: AtelierSpace.s16),
                   Expanded(child: pipeline),
                 ],
               );
@@ -276,17 +277,18 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
           ),
         ),
         if (snapshot.engagement.isNotEmpty) ...[
-          const SizedBox(height: AtelierSpace.s32),
+          const SizedBox(height: AtelierSpace.s24),
           AtelierSectionHeader(
             title: context.tr(RemainingL10n.engagementMetrics),
           ),
-          const SizedBox(height: AtelierSpace.s16),
+          const SizedBox(height: AtelierSpace.s12),
           AtelierTileGrid(
-            columns: 4,
+            scroll: true,
             minTileWidth: 150,
             children: [
               for (final m in snapshot.engagement)
                 AtelierStatTile(
+                  dense: true,
                   label: m.label,
                   value: m.value,
                   caption: m.hint,
@@ -482,29 +484,19 @@ class _AnalyticsSkeleton extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        LayoutBuilder(
-          builder: (context, c) {
-            final n = c.maxWidth >= 520 ? 3 : 2;
-            final w = (c.maxWidth - 12 * (n - 1)) / n;
-            return Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                for (var i = 0; i < 3; i++)
-                  SizedBox(
-                    width: w,
-                    child: const SkeletonBox(
-                      height: 104,
-                      radius: AtelierRadius.lg,
-                    ),
-                  ),
-              ],
-            );
-          },
+        Row(
+          children: [
+            for (var i = 0; i < 3; i++) ...[
+              if (i > 0) const SizedBox(width: 12),
+              const Expanded(
+                child: SkeletonBox(height: 84, radius: AtelierRadius.lg),
+              ),
+            ],
+          ],
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         const SkeletonBox(height: 320, radius: AtelierRadius.lg),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         const SkeletonBox(height: 220, radius: AtelierRadius.lg),
       ],
     );

@@ -5,9 +5,7 @@ import 'package:gemstone/core/l10n/app_localizations.dart';
 import 'package:gemstone/core/theme/app_palette.dart';
 import 'package:gemstone/features/buyer/presentation/widgets/settings/settings_parts.dart';
 import 'package:gemstone/features/reference/domain/models/reference_models.dart';
-import 'package:gemstone/features/reference/presentation/widgets/buyer/circle_earnings.dart';
-import 'package:gemstone/features/reference/presentation/widgets/buyer/circle_invite_card.dart';
-import 'package:gemstone/features/reference/presentation/widgets/buyer/circle_people.dart';
+import 'package:gemstone/features/reference/presentation/widgets/reference_compact.dart';
 
 const _long =
     'An exceptionally long collector name that keeps going to test wrapping '
@@ -90,21 +88,24 @@ void main() {
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            CircleInviteCard(profile: _profile(), onShare: (_) {}),
-            CircleSponsorTile(profile: _profile(), onOpen: () {}),
-            CircleSponsorTile(
+            RefInviteBar(profile: _profile()),
+            RefSponsorRow(profile: _profile(), onOpen: () {}),
+            RefSponsorRow(
               profile: _profile(
                 active: _request('a1', ReferenceStatus.pending),
               ),
               onOpen: () {},
             ),
-            CircleRequestCard(
+            RefRequestRow(
               request: _request('p1', ReferenceStatus.pending),
               busy: true,
               onDecide: ({required accept}) {},
             ),
-            CirclePersonRow(request: _request('c1', ReferenceStatus.accepted)),
-            CircleEarningsPanel(
+            RefPersonRow(
+              request: _request('c1', ReferenceStatus.accepted),
+              showStatus: true,
+            ),
+            RefEarnings(
               purchases: [_purchase('1', 1250.5), _purchase('2', -400)],
               loading: false,
               loadingMore: false,
@@ -164,7 +165,7 @@ void main() {
     await _pumpAt(
       tester,
       400,
-      CircleEarningsPanel(
+      RefEarnings(
         purchases: [_purchase('new', 10), old],
         loading: false,
         loadingMore: false,

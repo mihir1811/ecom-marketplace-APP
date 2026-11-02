@@ -170,17 +170,6 @@ class _ProductCard extends StatelessWidget {
                 children: [
                   Positioned.fill(child: _ProductThumb(product: product)),
                   Positioned(
-                    top: 10,
-                    left: 10,
-                    child: _SelectDot(
-                      selected: selected,
-                      label: context.tr(RemainingL10n.selectProduct, {
-                        'stockNumber': product.stockNumber,
-                      }),
-                      onTap: () => onSelected(!selected),
-                    ),
-                  ),
-                  Positioned(
                     top: 6,
                     right: 6,
                     child: AtelierIconButton(
@@ -268,57 +257,6 @@ class _ProductCard extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SelectDot extends StatelessWidget {
-  const _SelectDot({
-    required this.selected,
-    required this.label,
-    required this.onTap,
-  });
-
-  final bool selected;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.atelier;
-    return Semantics(
-      checked: selected,
-      child: Pressable(
-        onTap: onTap,
-        semanticLabel: label,
-        scale: 0.85,
-        child: AnimatedContainer(
-          duration: AtelierMotion.base,
-          curve: AtelierMotion.settle,
-          width: 26,
-          height: 26,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: selected ? p.gold : p.surface.withValues(alpha: 0.92),
-            border: Border.all(
-              color: selected ? p.gold : p.hairline,
-              width: 1.4,
-            ),
-          ),
-          child: AnimatedSwitcher(
-            duration: AtelierMotion.quick,
-            transitionBuilder: (c, a) => ScaleTransition(scale: a, child: c),
-            child: selected
-                ? Icon(
-                    Icons.check_rounded,
-                    key: const ValueKey('on'),
-                    size: 16,
-                    color: p.onGold,
-                  )
-                : const SizedBox(key: ValueKey('off')),
-          ),
         ),
       ),
     );

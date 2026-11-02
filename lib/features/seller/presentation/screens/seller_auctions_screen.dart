@@ -191,7 +191,7 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
             ),
           ),
         ],
-        const SizedBox(height: AtelierSpace.s24),
+        const SizedBox(height: AtelierSpace.s16),
         Reveal(
           index: 2,
           child: AtelierSegmented<String?>(
@@ -231,7 +231,7 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
             onChanged: _setStatus,
           ),
         ),
-        const SizedBox(height: AtelierSpace.s20),
+        const SizedBox(height: AtelierSpace.s12),
         AnimatedSwitcher(
           duration: AtelierMotion.base,
           switchInCurve: AtelierMotion.emphasized,
@@ -256,7 +256,7 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
   Widget _body(BuildContext context, AuctionFeedState feed) {
     final p = context.atelier;
     if (feed.isLoading && feed.items.isEmpty) {
-      return const AtelierSkeletonList(count: 3, height: 190);
+      return const AtelierSkeletonList(count: 3, height: 120);
     }
     if (feed.errorMessage != null && feed.items.isEmpty) {
       return AtelierErrorState(
@@ -278,7 +278,7 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _grid(feed.items),
-        const SizedBox(height: AtelierSpace.s16),
+        const SizedBox(height: AtelierSpace.s12),
         if (feed.isLoadingMore)
           Center(
             child: SizedBox(
@@ -322,7 +322,7 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
           onRetry: _refresh,
         );
       }
-      return const AtelierSkeletonList(count: 2, height: 190);
+      return const AtelierSkeletonList(count: 2, height: 120);
     }
     if (items.isEmpty) {
       return AtelierEmptyState(
@@ -344,7 +344,7 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
           tone: AtelierTone.amber,
           icon: Icons.info_outline_rounded,
         ),
-        const SizedBox(height: AtelierSpace.s16),
+        const SizedBox(height: AtelierSpace.s12),
         _grid(items),
       ],
     );
@@ -354,7 +354,7 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final cols = constraints.maxWidth >= 920 ? 2 : 1;
-        const gap = AtelierSpace.s16;
+        const gap = AtelierSpace.s12;
         final w = (constraints.maxWidth - gap * (cols - 1)) / cols;
         return Wrap(
           spacing: gap,
@@ -654,6 +654,16 @@ class _AuctionCard extends StatelessWidget {
     final hasBids = a.highestBidAmount != null;
     final bidCount = bids?.length ?? a.bids.length;
     final reserve = a.reservePrice;
+    final when = a.isUpcoming && a.startTime != null
+        ? 'Starts ${auctionWhen(a.startTime!)}'
+        : a.endTime != null
+        ? '${a.isEnded ? 'Ended' : 'Ends'} ${auctionWhen(a.endTime!)}'
+        : null;
+    final floor = reserve == null
+        ? 'Min ${auctionBidAmount(a.minimumBid)}'
+        : a.isReserveMet
+        ? 'Reserve met'
+        : 'Reserve ${auctionBidAmount(reserve)}';
 
     return AtelierCard(
       onTap: onOpen,
@@ -661,56 +671,29 @@ class _AuctionCard extends StatelessWidget {
       borderColor: a.awaitingSellerDecision
           ? p.amber.withValues(alpha: 0.45)
           : null,
-      padding: const EdgeInsets.all(AtelierSpace.s16),
+      padding: const EdgeInsets.all(AtelierSpace.s12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               AtelierThumb(
                 url: a.imageUrl,
-                size: 76,
+                size: 40,
                 icon: Icons.gavel_rounded,
               ),
-              const SizedBox(width: AtelierSpace.s12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        if (a.isLive) ...[
-                          const AtelierPulseDot(tone: AtelierTone.ruby),
-                          const SizedBox(width: 8),
-                        ],
-                        Flexible(
-                          child: AtelierPill(
-                            label: a.phaseLabel,
-                            tone: _phaseTone(a),
-                            dense: true,
-                          ),
-                        ),
-                        const Spacer(),
-                        if (deadline != null && !a.isEnded) ...[
-                          Icon(Icons.timer_outlined, size: 13, color: p.muted),
-                          const SizedBox(width: 4),
-                          AuctionCountdown(
-                            deadline: deadline,
-                            short: true,
-                            style: AtelierType.figure(p.ink, size: 12),
-                          ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 8),
                     Text(
                       a.title,
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AtelierType.display(p.ink, size: 19),
+                      style: AtelierType.display(p.ink, size: 16),
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 2),
                     Text(
                       [
                         if (contextLine.isNotEmpty) contextLine,
@@ -718,117 +701,96 @@ class _AuctionCard extends StatelessWidget {
                       ].join(' · ').ifEmpty(a.productType),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AtelierType.caption(p.muted, size: 11.5),
+                      style: AtelierType.caption(p.muted, size: 11),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  AtelierPill(
+                    label: a.phaseLabel,
+                    tone: _phaseTone(a),
+                    dense: true,
+                  ),
+                  if (deadline != null && !a.isEnded) ...[
+                    const SizedBox(height: 3),
+                    AuctionCountdown(
+                      deadline: deadline,
+                      short: true,
+                      style: AtelierType.figure(p.ink, size: 11),
+                    ),
+                  ],
+                ],
+              ),
             ],
           ),
-          const SizedBox(height: AtelierSpace.s16),
-          Container(
-            padding: const EdgeInsets.all(AtelierSpace.s12),
-            decoration: BoxDecoration(
-              color: p.sunken.withValues(alpha: p.isDark ? 0.6 : 0.55),
-              borderRadius: BorderRadius.circular(AtelierRadius.md),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                a.isSold
+                    ? 'Sold '
+                    : hasBids
+                    ? 'High bid '
+                    : 'Opening ',
+                style: AtelierType.caption(p.muted, size: 11),
+              ),
+              Text(
+                auctionBidAmount(a.winningAmount ?? a.currentBid),
+                style: AtelierType.figure(p.ink, size: 16),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text.rich(
+                  TextSpan(
                     children: [
-                      Text(
-                        (a.isSold
-                                ? 'Sold for'
-                                : hasBids
-                                ? 'Highest bid'
-                                : 'Opening bid')
-                            .toUpperCase(),
-                        style: AtelierType.overline(p.gold),
+                      TextSpan(
+                        text: '$bidCount bid${bidCount == 1 ? '' : 's'} · ',
                       ),
-                      const SizedBox(height: 4),
-                      CountUpText(
-                        auctionBidAmount(a.winningAmount ?? a.currentBid),
-                        style: AtelierType.display(p.ink, size: 26),
+                      TextSpan(
+                        text: floor,
+                        style: TextStyle(
+                          color: reserve != null && a.isReserveMet
+                              ? p.emerald
+                              : null,
+                        ),
                       ),
                     ],
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                  style: AtelierType.caption(p.muted, size: 11),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '$bidCount bid${bidCount == 1 ? '' : 's'}',
-                      style: AtelierType.label(p.inkSoft, size: 12.5),
-                    ),
-                    const SizedBox(height: 4),
-                    if (reserve != null)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            a.isReserveMet
-                                ? Icons.verified_rounded
-                                : Icons.lock_outline_rounded,
-                            size: 12,
-                            color: a.isReserveMet ? p.emerald : p.muted,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            a.isReserveMet
-                                ? 'Reserve met'
-                                : 'Reserve ${auctionBidAmount(reserve)}',
-                            style: AtelierType.caption(
-                              a.isReserveMet ? p.emerald : p.muted,
-                              size: 11,
-                            ),
-                          ),
-                        ],
-                      )
-                    else
-                      Text(
-                        'Min ${auctionBidAmount(a.minimumBid)}',
-                        style: AtelierType.caption(p.muted, size: 11),
-                      ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
           if (_winnerLine(a) case final line?) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 6),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
                   line.icon,
-                  size: 14,
+                  size: 13,
                   color: line.done ? p.emerald : p.amber,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     line.text,
-                    style: AtelierType.caption(p.inkSoft, size: 11.5),
+                    style: AtelierType.caption(p.inkSoft, size: 11),
                   ),
                 ),
               ],
             ),
           ],
-          if (a.endTime != null || a.startTime != null) ...[
-            const SizedBox(height: 10),
-            Text(
-              a.isUpcoming && a.startTime != null
-                  ? 'Starts ${auctionWhen(a.startTime!)}'
-                  : a.endTime != null
-                  ? '${a.isEnded ? 'Ended' : 'Ends'} ${auctionWhen(a.endTime!)}'
-                  : '',
-              style: AtelierType.caption(p.muted, size: 11),
-            ),
-          ],
-          const SizedBox(height: AtelierSpace.s12),
+          const SizedBox(height: 8),
           Row(
             children: [
               _BidsToggle(
@@ -836,7 +798,15 @@ class _AuctionCard extends StatelessWidget {
                 count: bidCount,
                 onTap: onToggleBids,
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  when ?? '',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AtelierType.caption(p.muted, size: 11),
+                ),
+              ),
               if (a.awaitingSellerDecision) ...[
                 AtelierButton(
                   label: hasBids ? 'Reject' : 'Relist',
@@ -865,17 +835,17 @@ class _AuctionCard extends StatelessWidget {
                 )
               else if (acting)
                 SizedBox(
-                  width: 18,
-                  height: 18,
+                  width: 16,
+                  height: 16,
                   child: CircularProgressIndicator(
                     strokeWidth: 1.8,
                     color: p.gold,
                   ),
                 ),
-              const SizedBox(width: 4),
               AtelierIconButton(
                 icon: Icons.more_horiz_rounded,
                 tooltip: 'More actions',
+                size: 32,
                 onPressed: acting ? null : onMore,
               ),
             ],
@@ -886,7 +856,7 @@ class _AuctionCard extends StatelessWidget {
             alignment: Alignment.topCenter,
             child: expanded
                 ? Padding(
-                    padding: const EdgeInsets.only(top: AtelierSpace.s12),
+                    padding: const EdgeInsets.only(top: 8),
                     child: _BidLadder(
                       bids: bids,
                       loading: loadingBids,
@@ -982,8 +952,8 @@ class _BidsToggle extends StatelessWidget {
       semanticLabel: expanded ? 'Hide bids' : 'Show bids',
       borderRadius: BorderRadius.circular(AtelierRadius.pill),
       child: Container(
-        height: 40,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
+        height: 30,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
           color: expanded ? p.goldSoft : Colors.transparent,
           borderRadius: BorderRadius.circular(AtelierRadius.pill),
@@ -992,17 +962,15 @@ class _BidsToggle extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.format_list_numbered_rounded, size: 15, color: p.ink),
-            const SizedBox(width: 6),
-            Text('Bids', style: AtelierType.label(p.ink, size: 12.5)),
-            const SizedBox(width: 4),
+            Text('Bids', style: AtelierType.label(p.ink, size: 12)),
+            const SizedBox(width: 2),
             AnimatedRotation(
               turns: expanded ? 0.5 : 0,
               duration: AtelierMotion.base,
               curve: AtelierMotion.emphasized,
               child: Icon(
                 Icons.keyboard_arrow_down_rounded,
-                size: 18,
+                size: 16,
                 color: p.inkSoft,
               ),
             ),
@@ -1064,16 +1032,10 @@ class _BidLadder extends StatelessWidget {
     final list = bids ?? const <AuctionBid>[];
     if (list.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            Icon(Icons.hourglass_empty_rounded, size: 15, color: p.muted),
-            const SizedBox(width: 8),
-            Text(
-              'No bids yet.',
-              style: AtelierType.caption(p.muted, size: 12.5),
-            ),
-          ],
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Text(
+          'No bids yet.',
+          style: AtelierType.caption(p.muted, size: 11.5),
         ),
       );
     }
@@ -1091,14 +1053,14 @@ class _BidLadder extends StatelessWidget {
               offset: 6,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
+                  horizontal: 10,
+                  vertical: 6,
                 ),
                 child: Row(
                   children: [
                     Container(
-                      width: 24,
-                      height: 24,
+                      width: 20,
+                      height: 20,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,

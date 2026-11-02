@@ -124,6 +124,7 @@ class AtelierNotice extends StatelessWidget {
     this.icon = Icons.info_outline_rounded,
     this.actionLabel,
     this.onAction,
+    this.dense = false,
     super.key,
   });
 
@@ -133,25 +134,32 @@ class AtelierNotice extends StatelessWidget {
   final String? actionLabel;
   final VoidCallback? onAction;
 
+  /// Borderless, tight variant for use inside list cards.
+  final bool dense;
+
   @override
   Widget build(BuildContext context) {
     final p = context.atelier;
     final c = p.tone(tone);
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+      padding: dense
+          ? const EdgeInsets.symmetric(horizontal: 8, vertical: 6)
+          : const EdgeInsets.fromLTRB(14, 12, 10, 12),
       decoration: BoxDecoration(
         color: c.withValues(alpha: p.isDark ? 0.12 : 0.06),
-        borderRadius: BorderRadius.circular(AtelierRadius.md),
-        border: Border.all(color: c.withValues(alpha: 0.2)),
+        borderRadius: BorderRadius.circular(
+          dense ? AtelierRadius.sm : AtelierRadius.md,
+        ),
+        border: dense ? null : Border.all(color: c.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
-          Icon(icon, size: 17, color: c),
-          const SizedBox(width: 10),
+          Icon(icon, size: dense ? 13 : 17, color: c),
+          SizedBox(width: dense ? 6 : 10),
           Expanded(
             child: Text(
               text,
-              style: AtelierType.caption(p.inkSoft, size: 12.5),
+              style: AtelierType.caption(p.inkSoft, size: dense ? 11.5 : 12.5),
             ),
           ),
           if (actionLabel != null && onAction != null)

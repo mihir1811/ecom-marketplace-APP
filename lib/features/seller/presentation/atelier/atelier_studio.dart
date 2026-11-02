@@ -327,6 +327,7 @@ class AtelierStatTile extends StatelessWidget {
     this.attention = false,
     this.onTap,
     this.trailing,
+    this.dense = false,
     super.key,
   });
 
@@ -340,6 +341,9 @@ class AtelierStatTile extends StatelessWidget {
   final VoidCallback? onTap;
   final Widget? trailing;
 
+  /// Tighter padding and a smaller figure for scrolling metric rows.
+  final bool dense;
+
   @override
   Widget build(BuildContext context) {
     final p = context.atelier;
@@ -347,7 +351,9 @@ class AtelierStatTile extends StatelessWidget {
     final body = AnimatedContainer(
       duration: AtelierMotion.base,
       curve: AtelierMotion.emphasized,
-      padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
+      padding: dense
+          ? const EdgeInsets.fromLTRB(12, 10, 10, 10)
+          : const EdgeInsets.fromLTRB(16, 14, 14, 14),
       decoration: BoxDecoration(
         color: selected ? p.goldSoft : p.surface,
         borderRadius: BorderRadius.circular(AtelierRadius.lg),
@@ -378,21 +384,23 @@ class AtelierStatTile extends StatelessWidget {
               if (attention) AtelierPulseDot(tone: tone),
             ],
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: dense ? 6 : 10),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: dense
+                ? CrossAxisAlignment.center
+                : CrossAxisAlignment.end,
             children: [
               Expanded(
                 child: CountUpText(
                   value,
-                  style: AtelierType.display(p.ink, size: 28),
+                  style: AtelierType.display(p.ink, size: dense ? 22 : 28),
                 ),
               ),
               ?trailing,
             ],
           ),
           if (caption != null) ...[
-            const SizedBox(height: 4),
+            SizedBox(height: dense ? 2 : 4),
             Text(
               caption!,
               maxLines: 1,
@@ -414,23 +422,53 @@ class AtelierStatTile extends StatelessWidget {
 }
 
 /// Lays tiles out in an even grid: [columns] on wide screens, two on phones.
+/// With [scroll], tiles stay on one row: stretched evenly when they all fit,
+/// otherwise [minTileWidth] wide and horizontally scrollable.
 class AtelierTileGrid extends StatelessWidget {
   const AtelierTileGrid({
     required this.children,
     this.columns = 4,
     this.minTileWidth = 150,
+    this.scroll = false,
     super.key,
   });
 
   final List<Widget> children;
   final int columns;
   final double minTileWidth;
+  final bool scroll;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         const gap = AtelierSpace.s12;
+        if (scroll) {
+          final count = children.length;
+          final even = (constraints.maxWidth - (count - 1) * gap) / count;
+          final fits = even >= minTileWidth;
+          final row = IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var i = 0; i < count; i++) ...[
+                  if (i > 0) const SizedBox(width: gap),
+                  SizedBox(
+                    width: fits ? even : minTileWidth,
+                    child: Reveal(index: i, child: children[i]),
+                  ),
+                ],
+              ],
+            ),
+          );
+          if (fits) return row;
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            clipBehavior: Clip.none,
+            physics: const BouncingScrollPhysics(),
+            child: row,
+          );
+        }
         var n = columns;
         while (n > 1 &&
             (constraints.maxWidth - (n - 1) * gap) / n < minTileWidth) {
