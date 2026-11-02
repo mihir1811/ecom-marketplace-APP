@@ -123,14 +123,14 @@ class _JewelryHouseScreenState extends ConsumerState<JewelryHouseScreen> {
                       topInset: topInset,
                     ),
                   ),
-                  SliverToBoxAdapter(child: _About(house: house)),
-                  SliverToBoxAdapter(child: _Policies(house: house)),
                   SliverToBoxAdapter(
                     child: JewelryHouseCollections(
                       shop: widget.slug,
                       onOpen: _openCollection,
                     ),
                   ),
+                  SliverToBoxAdapter(child: _About(house: house)),
+                  SliverToBoxAdapter(child: _Policies(house: house)),
                 ],
                 SliverToBoxAdapter(
                   child: SizedBox(
