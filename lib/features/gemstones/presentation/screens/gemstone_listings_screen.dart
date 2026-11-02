@@ -22,6 +22,8 @@ import '../../domain/models/gemstone_filter_state.dart';
 import '../../domain/models/gemstone_filter_summary.dart';
 import '../../domain/models/gemstone_sort_option.dart';
 import '../widgets/gemstone_luxe_cards.dart';
+import '../../../spotlight/domain/spotlight_models.dart';
+import '../../../spotlight/presentation/widgets/spotlight_category_block.dart';
 
 /// Gemstone results, built from the same luxe listing pieces as diamonds.
 ///
@@ -166,9 +168,17 @@ class _GemstoneListingsScreenState extends ConsumerState<GemstoneListingsScreen>
           SliverToBoxAdapter(
             child: KeyedSubtree(
               key: listingHeaderKey,
-              child: _ActiveFilterPills(
-                onEdit: _editFilters,
-                onResetAll: _resetFilters,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SpotlightCategoryBlock(
+                    category: SpotlightCategory.gemstones,
+                  ),
+                  _ActiveFilterPills(
+                    onEdit: _editFilters,
+                    onResetAll: _resetFilters,
+                  ),
+                ],
               ),
             ),
           ),

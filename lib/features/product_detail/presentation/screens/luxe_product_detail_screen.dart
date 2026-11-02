@@ -25,6 +25,8 @@ import '../widgets/luxe/luxe_purchase_bar.dart';
 import '../widgets/product_detail_natural_specs.dart';
 import '../widgets/product_detail_seller_panel.dart';
 import '../widgets/product_detail_suggested_products.dart';
+import '../../../spotlight/domain/spotlight_models.dart';
+import '../../../spotlight/presentation/widgets/spotlight_product_row.dart';
 
 /// Luxe product detail shared by natural and lab-grown diamonds,
 /// gemstones, fine jewelry, watches and bullion (single and melee).
@@ -161,10 +163,29 @@ LuxeProductSections luxeProductSections(
     headerActions: (glass) => [_HeaderActions(detail: detail, glass: glass)],
     summary: _Summary(detail: detail, labels: labels),
     record: _Record(detail: detail, isSeller: auth.isSeller),
-    related: (gutter) => ProductDetailSuggestedProducts(
-      detail: detail,
-      gutter: gutter,
-      padding: const EdgeInsets.only(top: 36),
+    related: (gutter) => Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ProductDetailSuggestedProducts(
+          detail: detail,
+          gutter: gutter,
+          padding: const EdgeInsets.only(top: 36),
+        ),
+        // PRODUCT_SPONSORED for this product's section, never advertising
+        // the product on its own page.
+        SpotlightProductRow(
+          query: spotlightQuery(
+            SpotlightPlacement.productSponsored,
+            category: SpotlightCategory.fromSegment(detail.segment),
+            excludeProductId: _spotlightExcludeId(detail),
+            limit: 8,
+          ),
+          titleKey: SpotlightL10n.youMayAlsoLike,
+          gutter: gutter,
+          padding: const EdgeInsets.only(top: 36),
+        ),
+      ],
     ),
     bottomBar: !auth.showProtected
         ? null
@@ -172,6 +193,13 @@ LuxeProductSections luxeProductSections(
         ? LuxeJewelryPurchaseBar(detail: detail)
         : LuxePurchaseBar(detail: detail, priceLabels: labels),
   );
+}
+
+/// The id the spotlight API knows this product by. Marketplace jewellery is
+/// keyed by slug in the app, so prefer the listing's own id there.
+String _spotlightExcludeId(ProductDetail detail) {
+  final listingId = detail.jewelryDetail?.listingId.trim();
+  return listingId != null && listingId.isNotEmpty ? listingId : detail.id;
 }
 
 /// Chat (sellers), share and save controls for the floating header.

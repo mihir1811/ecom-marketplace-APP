@@ -21,6 +21,8 @@ import '../../domain/models/watch_filter_state.dart';
 import '../widgets/watch_brand_assets.dart';
 import '../widgets/watch_filter_labels.dart';
 import '../widgets/watch_luxe_cards.dart';
+import '../../../spotlight/domain/spotlight_models.dart';
+import '../../../spotlight/presentation/widgets/spotlight_category_block.dart';
 
 /// One maison's watches: a quiet brand masthead over the shared luxe
 /// results layout (pinned filter / sort / view toolbar, staggered cards).
@@ -138,6 +140,9 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen>
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _BrandMasthead(brandName: widget.brandName),
+                const SpotlightCategoryBlock(
+                  category: SpotlightCategory.watches,
+                ),
                 WatchActiveFilterPills(
                   provider: brandWatchFilterProvider,
                   onEdit: _openFilters,

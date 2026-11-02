@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
+import '../../../spotlight/domain/spotlight_models.dart';
+import '../../../spotlight/presentation/widgets/spotlight_category_block.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/luxe_scope.dart';
@@ -160,6 +162,11 @@ class _GemstoneSearchScreenState extends ConsumerState<GemstoneSearchScreen>
       title: '',
       onBack: () => context.resetTo(AppRouteNames.home),
       actions: const [TopBarActions()],
+      header: const SpotlightCategoryBlock(
+        category: SpotlightCategory.gemstones,
+        topSpacing: 8,
+        bottomSpacing: 10,
+      ),
       controls: const GemstoneCatalogModeControls(),
       sections: sections,
       active: finderActive,

@@ -179,6 +179,11 @@ IconData notificationTypeIcon(String type) {
     'HELP_CENTER_ANSWERED' => Icons.help_outline,
     'ADMIN_BROADCAST' => Icons.campaign_outlined,
     'REWARD_CLUB_REACHED' => Icons.workspace_premium_outlined,
+    'AD_APPROVED' ||
+    'AD_REJECTED' ||
+    'AD_STOPPED' ||
+    'AD_EXPIRED' ||
+    'AD_ENDED' => Icons.campaign_outlined,
     _ => Icons.notifications_none,
   };
 }

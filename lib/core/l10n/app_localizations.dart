@@ -19,6 +19,7 @@ import 'translations/jewelry_market_messages.dart';
 import 'translations/home_messages.dart';
 import 'translations/navigation_messages.dart';
 import 'translations/remaining_messages.dart';
+import 'translations/spotlight_messages.dart';
 
 export 'locale_preference_provider.dart';
 export 'translations/account_commerce_messages.dart';
@@ -36,6 +37,7 @@ export 'translations/jewelry_market_messages.dart';
 export 'translations/home_messages.dart';
 export 'translations/navigation_messages.dart';
 export 'translations/remaining_messages.dart';
+export 'translations/spotlight_messages.dart';
 export 'catalog_filter_value_labels.dart';
 
 /// Type-safe access to all static frontend translations.
@@ -73,6 +75,7 @@ class AppLocalizations {
     ...navigationMessages,
     ...educationMessages,
     ...jewelryEducationMessages,
+    ...spotlightMessages,
   };
 
   /// Complete immutable message catalog, exposed for validation tests.

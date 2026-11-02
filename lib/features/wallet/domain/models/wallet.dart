@@ -42,6 +42,13 @@ class WalletTransaction {
   String get typeLabel {
     final raw = type.trim();
     if (raw.isEmpty) return 'Transaction';
+    // Spotlight booking charges and their refunds.
+    switch (raw.toUpperCase()) {
+      case 'AD_PAYMENT':
+        return 'Ad payment';
+      case 'AD_REFUND':
+        return 'Ad refund';
+    }
     return raw
         .replaceAll('_', ' ')
         .split(RegExp(r'\s+'))

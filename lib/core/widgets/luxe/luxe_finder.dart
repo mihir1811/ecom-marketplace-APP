@@ -258,6 +258,7 @@ class LuxeFinderScaffold<S> extends StatelessWidget {
     required this.actionBar,
     super.key,
     this.controls,
+    this.header,
     this.onBack,
     this.actions = const [],
   });
@@ -265,6 +266,10 @@ class LuxeFinderScaffold<S> extends StatelessWidget {
   final String title;
   final VoidCallback? onBack;
   final List<Widget> actions;
+
+  /// Full-width content above the mode controls (e.g. paid banners). It
+  /// brings its own spacing and may collapse to nothing.
+  final Widget? header;
 
   /// Catalog mode switches shown above the section index.
   final Widget? controls;
@@ -303,6 +308,7 @@ class LuxeFinderScaffold<S> extends StatelessWidget {
               parent: AlwaysScrollableScrollPhysics(),
             ),
             slivers: [
+              if (header != null) SliverToBoxAdapter(child: header),
               if (controls != null)
                 SliverToBoxAdapter(
                   child: Padding(

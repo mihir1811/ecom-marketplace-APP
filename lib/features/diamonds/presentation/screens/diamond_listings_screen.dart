@@ -17,6 +17,12 @@ import '../../../diamond_projects/application/diamond_project_listing_pick_provi
 import '../../../diamond_projects/application/diamond_selection.dart';
 import '../../../diamond_projects/presentation/widgets/diamond_insight_strip.dart';
 import '../../../product_detail/product_detail_navigation.dart';
+import '../../../spotlight/application/spotlight_providers.dart';
+import '../../../spotlight/application/sponsored_diamonds_provider.dart';
+import '../../../spotlight/domain/spotlight_models.dart';
+import '../../../spotlight/presentation/widgets/spotlight_category_block.dart';
+import '../../../spotlight/presentation/widgets/spotlight_impression.dart';
+import '../../domain/models/diamond.dart';
 import '../../application/diamond_list_provider.dart';
 import '../../application/diamond_results_handoff.dart';
 import '../../application/diamond_search_provider.dart';
@@ -51,6 +57,12 @@ class DiamondListingsScreen extends ConsumerStatefulWidget {
 class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
     with LuxeListingMixin {
   bool get _isLab => widget.searchRoute == AppRouteNames.labGrownDiamonds;
+
+  /// Sponsored stones count once per ad per visit to this screen.
+  final _spotlightVisit = SpotlightVisit();
+
+  /// Sponsored cards drawn before the results (kept for view-mode math).
+  int _sponsoredCount = 0;
 
   @override
   void initState() {
@@ -106,7 +118,8 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
 
   @override
   int get listingItemCount =>
-      ref.read(diamondListProvider).valueOrNull?.diamonds.length ?? 0;
+      (ref.read(diamondListProvider).valueOrNull?.diamonds.length ?? 0) +
+      _sponsoredCount;
 
   @override
   LuxeViewMode get listingViewMode =>
@@ -158,11 +171,22 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
           SliverToBoxAdapter(
             child: KeyedSubtree(
               key: listingHeaderKey,
-              child: _ActiveFilterPills(
-                onEdit: _editFilters,
-                onResetAll: () => ref
-                    .read(diamondListProvider.notifier)
-                    .resetFiltersAndReload(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Sponsored stones are drawn as result cards below, so
+                  // only the section banner goes here.
+                  const SpotlightCategoryBlock(
+                    category: SpotlightCategory.diamonds,
+                    sponsoredRow: false,
+                  ),
+                  _ActiveFilterPills(
+                    onEdit: _editFilters,
+                    onResetAll: () => ref
+                        .read(diamondListProvider.notifier)
+                        .resetFiltersAndReload(),
+                  ),
+                ],
               ),
             ),
           ),
@@ -193,24 +217,63 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
         stateAsync.whenOrNull(error: (e, _) => e.toString()) ??
         state?.errorMessage;
     final listed = state?.diamonds ?? const [];
+
+    // Listing ads go first, as the screen's own cards (one row at most),
+    // filtered by this screen's search. A sponsored stone may also appear
+    // later in its normal place.
+    final key = sponsoredDiamondKey(
+      ref.watch(diamondSearchProvider),
+      ref.watch(diamondCatalogTypeProvider),
+    );
+    final sponsored = key == null || listed.isEmpty
+        ? const <SponsoredDiamond>[]
+        : ref.watch(sponsoredDiamondResultsProvider(key)).valueOrNull ??
+              const <SponsoredDiamond>[];
+    _sponsoredCount = sponsored.length;
+    final sponsoredStones = [for (final s in sponsored) s.diamond];
+    final rows = <({Diamond diamond, String? adId})>[
+      for (final s in sponsored) (diamond: s.diamond, adId: s.adId),
+      for (final d in listed) (diamond: d, adId: null),
+    ];
+
+    Widget card(({Diamond diamond, String? adId}) row, LuxeViewMode mode) {
+      final d = row.diamond;
+      final adId = row.adId;
+      if (adId == null) {
+        return mode == LuxeViewMode.grid
+            ? DiamondLuxeGridCard(
+                diamond: d,
+                onTap: () => openDiamondDetail(context, d, among: listed),
+              )
+            : DiamondLuxeListCard(
+                diamond: d,
+                onTap: () => openDiamondDetail(context, d, among: listed),
+              );
+      }
+      void open() {
+        ref.read(spotlightEventsProvider).click(adId);
+        openDiamondDetail(context, d, among: sponsoredStones);
+      }
+
+      return SpotlightImpression(
+        adId: adId,
+        visit: _spotlightVisit,
+        child: mode == LuxeViewMode.grid
+            ? DiamondLuxeGridCard(diamond: d, sponsored: true, onTap: open)
+            : DiamondLuxeListCard(diamond: d, sponsored: true, onTap: open),
+      );
+    }
+
     return luxeResultSlivers(
       context: context,
       initialLoading:
           !stateAsync.hasError && (state == null || state.isInitialLoading),
       error: error,
-      items: listed,
+      items: rows,
       isLoadingMore: state?.isLoadingMore ?? false,
       viewMode: grid ? LuxeViewMode.grid : LuxeViewMode.list,
-      idOf: (d) => d.id,
-      cardOf: (d, mode) => mode == LuxeViewMode.grid
-          ? DiamondLuxeGridCard(
-              diamond: d,
-              onTap: () => openDiamondDetail(context, d, among: listed),
-            )
-          : DiamondLuxeListCard(
-              diamond: d,
-              onTap: () => openDiamondDetail(context, d, among: listed),
-            ),
+      idOf: (r) => r.adId == null ? r.diamond.id : 'sp-${r.diamond.id}',
+      cardOf: card,
       entered: listingEntered,
       loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),
       emptyView: LuxeStateView(

@@ -46,14 +46,19 @@ class LuxeProductGridCard extends StatelessWidget {
     required this.onTap,
     super.key,
     this.meta,
+    this.metaLeading,
     this.overlays = const LuxeMediaOverlays(),
     this.highlighted = false,
+    this.outlineColor,
   });
 
   final Widget media;
   final String title;
   final String subtitle;
   final String? meta;
+
+  /// Small badge before [meta] (e.g. the Sponsored pill).
+  final Widget? metaLeading;
   final Widget price;
   final VoidCallback onTap;
   final LuxeMediaOverlays overlays;
@@ -61,12 +66,22 @@ class LuxeProductGridCard extends StatelessWidget {
   /// Accent border, e.g. for recently viewed items.
   final bool highlighted;
 
+  /// Overrides the border colour (e.g. sponsored results).
+  final Color? outlineColor;
+
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
+    final metaText = Text(
+      meta ?? ' ',
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: LuxeType.label(p.inkFaint, size: 11.5),
+    );
     return LuxeCardFrame(
       onTap: onTap,
       highlighted: highlighted,
+      outlineColor: outlineColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -120,12 +135,16 @@ class LuxeProductGridCard extends StatelessWidget {
                   style: LuxeType.label(p.inkMuted, size: 12.5),
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  meta ?? ' ',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: LuxeType.label(p.inkFaint, size: 11.5),
-                ),
+                if (metaLeading == null)
+                  metaText
+                else
+                  Row(
+                    children: [
+                      metaLeading!,
+                      const SizedBox(width: 6),
+                      Expanded(child: metaText),
+                    ],
+                  ),
                 const SizedBox(height: 12),
                 price,
               ],
@@ -154,6 +173,8 @@ class LuxeProductListCard extends StatelessWidget {
     this.thumbTopLeft,
     this.thumbBottomLeft,
     this.highlighted = false,
+    this.detailLeading,
+    this.outlineColor,
   });
 
   /// Height of the thumbnail; the row stride is this plus padding and gap.
@@ -171,12 +192,19 @@ class LuxeProductListCard extends StatelessWidget {
   final Widget? thumbBottomLeft;
   final bool highlighted;
 
+  /// Small badge before [detail] (e.g. the Sponsored pill).
+  final Widget? detailLeading;
+
+  /// Overrides the border colour (e.g. sponsored results).
+  final Color? outlineColor;
+
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     return LuxeCardFrame(
       onTap: onTap,
       highlighted: highlighted,
+      outlineColor: outlineColor,
       child: Padding(
         padding: const EdgeInsets.all(6),
         child: Row(
@@ -226,13 +254,24 @@ class LuxeProductListCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: LuxeType.label(p.inkMuted, size: 12.5),
                     ),
-                    if (detail != null && detail!.isNotEmpty) ...[
+                    if ((detail != null && detail!.isNotEmpty) ||
+                        detailLeading != null) ...[
                       const SizedBox(height: 2),
-                      Text(
-                        detail!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: LuxeType.label(p.inkFaint, size: 11.5),
+                      Row(
+                        children: [
+                          if (detailLeading != null) ...[
+                            detailLeading!,
+                            const SizedBox(width: 6),
+                          ],
+                          Expanded(
+                            child: Text(
+                              detail ?? '',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: LuxeType.label(p.inkFaint, size: 11.5),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                     const SizedBox(height: 10),
@@ -260,11 +299,15 @@ class LuxeCardFrame extends StatefulWidget {
     required this.onTap,
     super.key,
     this.highlighted = false,
+    this.outlineColor,
   });
 
   final Widget child;
   final VoidCallback onTap;
   final bool highlighted;
+
+  /// Overrides the border colour.
+  final Color? outlineColor;
 
   @override
   State<LuxeCardFrame> createState() => _LuxeCardFrameState();
@@ -299,9 +342,11 @@ class _LuxeCardFrameState extends State<LuxeCardFrame> {
             color: p.surface,
             borderRadius: BorderRadius.circular(LuxeSpace.radius),
             border: Border.all(
-              color: widget.highlighted
-                  ? p.accent.withValues(alpha: 0.45)
-                  : p.hairline,
+              color:
+                  widget.outlineColor ??
+                  (widget.highlighted
+                      ? p.accent.withValues(alpha: 0.45)
+                      : p.hairline),
             ),
           ),
           child: widget.child,

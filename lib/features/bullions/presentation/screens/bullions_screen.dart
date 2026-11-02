@@ -25,6 +25,8 @@ import '../../domain/models/bullions_filter_state.dart';
 import '../../domain/models/bullions_filter_summary.dart';
 import '../widgets/bullion_filter_labels.dart';
 import '../widgets/bullion_luxe_cards.dart';
+import '../../../spotlight/domain/spotlight_models.dart';
+import '../../../spotlight/presentation/widgets/spotlight_category_block.dart';
 
 /// Bullion catalogue, built from the same luxe listing pieces as the other
 /// catalogues.
@@ -209,6 +211,10 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen>
                     onChanged: _onSearchChanged,
                     onSubmitted: _onSearchSubmitted,
                   ),
+                ),
+                const SpotlightCategoryBlock(
+                  category: SpotlightCategory.bullion,
+                  topSpacing: 0,
                 ),
                 LuxeRowHeading(title: context.tr(CatalogFlowL10n.metal)),
                 const _MetalPresets(),

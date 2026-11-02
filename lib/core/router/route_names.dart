@@ -70,6 +70,11 @@ class AppRouteNames {
   static String productDetailPath(String segment, String productId) =>
       '/product/$segment/${Uri.encodeComponent(productId)}';
 
+  /// A seller's public shop, opened from featured sellers and banners.
+  static const String sellerShop = '/shop/:sellerId';
+  static String sellerShopPath(String sellerId) =>
+      '/shop/${Uri.encodeComponent(sellerId)}';
+
   /// Public product share deep link (`GET /product-share/{token}`).
   static const String productShare = '/share/:token';
   static String productSharePath(String token) =>
@@ -173,6 +178,14 @@ class AppRouteNames {
   static const String sellerNotifications = '/seller/notifications';
   static const String sellerReferences = '/seller/references';
   static const String sellerPromotions = '/seller/promotions';
+
+  /// Seller Advertising studio (paid spotlight placements). Same path as the
+  /// website, which push links (`/seller/spotlight/<adId>`) point at.
+  static const String sellerSpotlight = '/seller/spotlight';
+  static const String sellerSpotlightNew = '/seller/spotlight/new';
+  static const String sellerSpotlightDetail = '/seller/spotlight/:adId';
+  static String sellerSpotlightDetailPath(String adId) =>
+      '/seller/spotlight/${Uri.encodeComponent(adId)}';
   static const String sellerProfile = '/seller/profile';
   static const String sellerApiKeys = '/seller/api-keys';
   static const String sellerSettings = '/seller/settings';

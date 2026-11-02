@@ -245,6 +245,21 @@ abstract final class ApiEndpoints {
   static String promotionsPublic(String sellerId) =>
       '/promotions/public/$sellerId';
 
+  // Spotlight (paid placements). The API never says "ads": ad blockers drop
+  // requests with that word in the URL, so keep it out of every path.
+  static const String spotlight = '/spotlight';
+  static const String spotlightEvents = '/spotlight/events';
+  static const String spotlightSeller = '/spotlight/seller';
+  static const String spotlightSellerOverview = '/spotlight/seller/overview';
+  static const String spotlightSellerAvailability =
+      '/spotlight/seller/availability';
+  static const String spotlightSellerProducts = '/spotlight/seller/products';
+  static const String spotlightSellerCreatives = '/spotlight/seller/creatives';
+  static String spotlightSellerById(String id) =>
+      '/spotlight/seller/${Uri.encodeComponent(id)}';
+  static String spotlightSellerCancel(String id) =>
+      '/spotlight/seller/${Uri.encodeComponent(id)}/cancel';
+
   // Push inbox + device registration
   static const String notifications = '/notifications';
   static const String notificationsUnreadCount = '/notifications/unread-count';

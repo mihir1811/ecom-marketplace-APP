@@ -22,6 +22,8 @@ import '../../domain/models/watch_filter_state.dart';
 import '../widgets/watch_brand_carousel.dart';
 import '../widgets/watch_filter_labels.dart';
 import '../widgets/watch_luxe_cards.dart';
+import '../../../spotlight/domain/spotlight_models.dart';
+import '../../../spotlight/presentation/widgets/spotlight_category_block.dart';
 
 /// Luxury watch catalogue, built from the same luxe listing pieces as the
 /// diamond and gemstone results.
@@ -174,6 +176,10 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen>
                     onChanged: _onSearchChanged,
                     onSubmitted: _onSearchSubmitted,
                   ),
+                ),
+                const SpotlightCategoryBlock(
+                  category: SpotlightCategory.watches,
+                  topSpacing: 0,
                 ),
                 const WatchCategoryChips(),
                 const SizedBox(height: 22),

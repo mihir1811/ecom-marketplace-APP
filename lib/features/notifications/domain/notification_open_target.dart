@@ -48,8 +48,17 @@ NotificationOpenTarget notificationOpenTarget(
     case 'MARKETPLACE_CHAT':
       // Shop messages live on jewelry.gemworld.in for now.
       return _fromLink(notification.link, isSeller: isSeller);
+    case 'AD':
+      return _spotlightAd(notification);
   }
   switch (notification.type) {
+    // Spotlight (seller ads): open the app's own ad screen.
+    case 'AD_APPROVED':
+    case 'AD_REJECTED':
+    case 'AD_STOPPED':
+    case 'AD_EXPIRED':
+    case 'AD_ENDED':
+      return _spotlightAd(notification);
     case 'CHAT_MESSAGE':
       // Open the conversation itself when the product is known; chats are
       // always about a product, so otherwise fall back to the inbox.
@@ -142,6 +151,26 @@ NotificationOpenTarget notificationOpenTarget(
   }
 }
 
+/// A seller's ad push: `adId` in data, or the `/seller/spotlight/<adId>`
+/// link; the ads list when neither is there.
+NotificationOpenTarget _spotlightAd(AppNotification notification) {
+  final id =
+      (notification.data['adId'] ?? '').trim().isNotEmpty
+      ? notification.data['adId']!.trim()
+      : _spotlightAdIdFromLink(notification.link);
+  return NotificationInApp(
+    id == null || id.isEmpty
+        ? AppRouteNames.sellerSpotlight
+        : AppRouteNames.sellerSpotlightDetailPath(id),
+  );
+}
+
+String? _spotlightAdIdFromLink(String link) {
+  final uri = Uri.tryParse(link.trim());
+  final m = RegExp(r'^/seller/spotlight/([^/?#]+)').firstMatch(uri?.path ?? '');
+  return m?.group(1);
+}
+
 NotificationOpenTarget _fromLink(String link, {required bool isSeller}) {
   final trimmed = link.trim();
   if (trimmed.isEmpty) return const NotificationStay();
@@ -150,6 +179,13 @@ NotificationOpenTarget _fromLink(String link, {required bool isSeller}) {
     return NotificationExternal(uri);
   }
   final path = trimmed.startsWith('/') ? trimmed : '/$trimmed';
+  final spotlightPath = Uri.tryParse(path)?.path ?? path;
+  if (spotlightPath == '/seller/spotlight') {
+    return const NotificationInApp(AppRouteNames.sellerSpotlight);
+  }
+  if (_spotlightAdIdFromLink(path) case final adId?) {
+    return NotificationInApp(AppRouteNames.sellerSpotlightDetailPath(adId));
+  }
   if (path == '/user/cart' || path == '/cart') {
     return const NotificationInApp(AppRouteNames.cart);
   }

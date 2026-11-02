@@ -19,6 +19,9 @@ enum WalletTxnKind { topUp, refund, payment, otherIn, otherOut }
 
 WalletTxnKind walletTxnKind(WalletTransaction t) {
   final type = t.type.toUpperCase();
+  // Spotlight bookings: paid from the wallet, refunds go back to it.
+  if (type == 'AD_PAYMENT') return WalletTxnKind.payment;
+  if (type == 'AD_REFUND') return WalletTxnKind.refund;
   if (type.contains('TOP')) return WalletTxnKind.topUp;
   if (type.contains('REFUND')) return WalletTxnKind.refund;
   if (type.contains('PAYMENT') ||

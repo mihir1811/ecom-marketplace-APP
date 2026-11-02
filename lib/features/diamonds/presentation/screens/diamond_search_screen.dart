@@ -19,6 +19,9 @@ import '../../../../core/widgets/luxe/luxe_multi_select_field.dart';
 import '../../application/diamond_list_provider.dart';
 import '../../application/diamond_search_provider.dart';
 import '../../domain/models/diamond_catalog_type.dart';
+import '../../../spotlight/domain/spotlight_models.dart';
+import '../../../spotlight/presentation/widgets/spotlight_category_block.dart';
+import '../../../spotlight/presentation/widgets/sponsored_diamonds_strip.dart';
 import '../../domain/models/diamond_filter_state.dart';
 import '../../domain/models/diamond_filter_summary.dart';
 import '../../../../core/widgets/navigation/top_bar/top_bar_actions.dart';
@@ -182,6 +185,19 @@ class _DiamondSearchScreenState extends ConsumerState<DiamondSearchScreen>
       title: '',
       onBack: () => context.resetTo(AppRouteNames.home),
       actions: const [TopBarActions()],
+      // Section banner, then every kind's sponsored stones as stone cards.
+      header: const Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SpotlightCategoryBlock(
+            category: SpotlightCategory.diamonds,
+            sponsoredRow: false,
+            topSpacing: 8,
+            bottomSpacing: 10,
+          ),
+          SponsoredDiamondsStrip(padding: EdgeInsets.only(top: 6, bottom: 10)),
+        ],
+      ),
       controls: DiamondCatalogModeControls(
         showOriginToggle: !_isLab,
         isLabCatalog: _isLab,

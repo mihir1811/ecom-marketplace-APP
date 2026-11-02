@@ -27,6 +27,8 @@ import '../../domain/models/marketplace_enums.dart';
 import '../../domain/models/marketplace_listing.dart';
 import '../jewellery_category_images.dart';
 import '../widgets/jewelry_showcase_stage.dart';
+import '../../../spotlight/domain/spotlight_models.dart';
+import '../../../spotlight/presentation/widgets/spotlight_category_block.dart';
 
 /// The jewelry house: the entry to the jewelry flow from Browse Collection.
 ///
@@ -168,6 +170,13 @@ class _JewelryCategoriesScreenState
                   ),
                 ),
                 const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                // Paid jewellery banner and Sponsored row, under the search.
+                const SliverToBoxAdapter(
+                  child: SpotlightCategoryBlock(
+                    category: SpotlightCategory.jewellery,
+                    topSpacing: 14,
+                  ),
+                ),
                 const SliverToBoxAdapter(child: _PremiumStrip()),
                 ..._collections(context),
                 SliverToBoxAdapter(child: _Styles(onOpen: _open)),

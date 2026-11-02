@@ -90,6 +90,11 @@ class SellerDrawer extends ConsumerWidget {
               RemainingL10n.promotions,
               Icons.card_giftcard_outlined,
             ),
+            item(
+              AppRouteNames.sellerSpotlight,
+              SpotlightL10n.advertising,
+              Icons.campaign_outlined,
+            ),
           ],
           item(
             AppRouteNames.sellerReferences,

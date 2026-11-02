@@ -22,6 +22,8 @@ import '../../domain/models/jewelry_filter_state.dart';
 import '../widgets/jewelry_filter_labels.dart';
 import '../widgets/jewelry_luxe_cards.dart';
 import '../widgets/jewelry_quick_filters.dart';
+import '../../../spotlight/domain/spotlight_models.dart';
+import '../../../spotlight/presentation/widgets/spotlight_category_block.dart';
 
 /// Jewelry results on the shared luxe listing pieces.
 ///
@@ -223,6 +225,10 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
                     onChanged: _onSearchChanged,
                     onSubmitted: _onSearchSubmitted,
                   ),
+                ),
+                const SpotlightCategoryBlock(
+                  category: SpotlightCategory.jewellery,
+                  topSpacing: 0,
                 ),
                 const _ShopPill(),
                 const JewelryStyleChips(),

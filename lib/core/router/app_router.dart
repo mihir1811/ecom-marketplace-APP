@@ -28,6 +28,7 @@ import '../../features/auction/auction_routes.dart';
 import '../../features/live_shows/live_shows_routes.dart';
 import '../../features/diamond_education/diamond_education_routes.dart';
 import '../../features/jewelry_education/jewelry_education_routes.dart';
+import '../../features/spotlight/spotlight_routes.dart';
 
 export 'navigator_keys.dart';
 
@@ -60,6 +61,7 @@ final GoRouter appRouter = GoRouter(
     ...jewelryRoutes,
     ...jewelryCheckoutRoutes,
     ...productDetailRoutes,
+    ...spotlightRoutes,
     ...productShareRoutes,
     ...diamondViewerRoutes,
     ...comparisonRoutes,

@@ -13,6 +13,7 @@ import '../../../product_detail/domain/adapters/diamond_product_detail.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../../recently_viewed/application/recently_viewed_providers.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_badge.dart';
+import '../../../spotlight/presentation/widgets/spotlight_tag.dart';
 import '../../domain/models/diamond.dart';
 import '../../domain/models/diamond_display.dart';
 import 'diamond_cards.dart' show diamondGradesLine;
@@ -87,21 +88,31 @@ class DiamondLuxeGridCard extends ConsumerWidget {
     required this.diamond,
     required this.onTap,
     super.key,
+    this.sponsored = false,
   });
 
   final Diamond diamond;
   final VoidCallback onTap;
 
+  /// Paid placement: blue Sponsored pill beside the stock number and a
+  /// blue outline.
+  final bool sponsored;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final d = diamond;
+    final stock = d.stockNumber?.trim();
     return LuxeProductGridCard(
       onTap: onTap,
       highlighted: ref.watch(isRecentlyViewedProvider(d.id)),
+      outlineColor: sponsored ? SpotlightColors.blue(context) : null,
       media: _thumb(context, d),
       title: _title(d),
       subtitle: diamondGradesLine(d) ?? DiamondDisplay.missing,
-      meta: _metaLine(d),
+      metaLeading: sponsored ? const SpotlightTag(pill: true) : null,
+      meta: sponsored && stock != null && stock.isNotEmpty
+          ? '#$stock'
+          : _metaLine(d),
       price: _price(d),
       overlays: LuxeMediaOverlays(
         topLeft: AvailabilityStatusBadge(status: d.available),
@@ -118,10 +129,15 @@ class DiamondLuxeListCard extends ConsumerWidget {
     required this.diamond,
     required this.onTap,
     super.key,
+    this.sponsored = false,
   });
 
   final Diamond diamond;
   final VoidCallback onTap;
+
+  /// Paid placement: blue Sponsored pill beside the stock number and a
+  /// blue outline.
+  final bool sponsored;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -130,14 +146,18 @@ class DiamondLuxeListCard extends ConsumerWidget {
     final stock = d.stockNumber?.trim();
     final measure = DiamondDisplay.optional(d.measurement);
     final detail = [
+      // Sponsored cards lead with the stock number, right after the pill.
+      if (sponsored && stock != null && stock.isNotEmpty) '#$stock',
       ?lab,
       if (measure != null) measure.replaceAll(RegExp(r'\s*[xX]\s*'), ' × '),
-      if (stock != null && stock.isNotEmpty) '#$stock',
+      if (!sponsored && stock != null && stock.isNotEmpty) '#$stock',
     ].join(' · ');
 
     return LuxeProductListCard(
       onTap: onTap,
       highlighted: ref.watch(isRecentlyViewedProvider(d.id)),
+      outlineColor: sponsored ? SpotlightColors.blue(context) : null,
+      detailLeading: sponsored ? const SpotlightTag(pill: true) : null,
       media: _thumb(context, d),
       title: _title(d),
       subtitle: diamondGradesLine(d) ?? DiamondDisplay.missing,

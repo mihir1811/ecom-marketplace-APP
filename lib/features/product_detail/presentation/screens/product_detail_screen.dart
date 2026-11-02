@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/auth/auth_providers.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -20,6 +21,8 @@ import '../widgets/product_detail_price.dart';
 import '../widgets/product_detail_seller_panel.dart';
 import '../widgets/product_detail_specs.dart';
 import '../widgets/product_detail_suggested_products.dart';
+import '../../../spotlight/domain/spotlight_models.dart';
+import '../../../spotlight/presentation/widgets/spotlight_product_row.dart';
 
 /// Legacy product detail screen. Every segment now opens
 /// LuxeProductDetailScreen; jewelry lives there only.
@@ -205,6 +208,17 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                   ),
                   ProductDetailSuggestedProducts(
                     detail: detail,
+                    gutter: AppSpacing.s16,
+                    padding: const EdgeInsets.only(top: AppSpacing.s40),
+                  ),
+                  SpotlightProductRow(
+                    query: spotlightQuery(
+                      SpotlightPlacement.productSponsored,
+                      category: SpotlightCategory.fromSegment(detail.segment),
+                      excludeProductId: detail.id,
+                      limit: 8,
+                    ),
+                    titleKey: SpotlightL10n.youMayAlsoLike,
                     gutter: AppSpacing.s16,
                     padding: const EdgeInsets.only(top: AppSpacing.s40),
                   ),

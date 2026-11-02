@@ -27,6 +27,9 @@ import '../help_center/presentation/screens/help_center_screen.dart';
 import '../reference/presentation/screens/seller_references_screen.dart';
 import '../notifications/presentation/screens/notifications_screen.dart';
 import '../wallet/presentation/screens/wallet_screen.dart';
+import '../spotlight/presentation/screens/seller_spotlight_book_screen.dart';
+import '../spotlight/presentation/screens/seller_spotlight_detail_screen.dart';
+import '../spotlight/presentation/screens/seller_spotlight_screen.dart';
 
 /// Modular routes for the authenticated seller workspace.
 ///
@@ -120,6 +123,21 @@ final List<RouteBase> sellerRoutes = [
       GoRoute(
         path: AppRouteNames.sellerPromotions,
         builder: (context, state) => const SellerPromotionsScreen(),
+      ),
+      // Advertising studio (paid spotlight placements).
+      GoRoute(
+        path: AppRouteNames.sellerSpotlight,
+        builder: (context, state) => const SellerSpotlightScreen(),
+      ),
+      GoRoute(
+        path: AppRouteNames.sellerSpotlightNew,
+        builder: (context, state) => const SellerSpotlightBookScreen(),
+      ),
+      GoRoute(
+        path: AppRouteNames.sellerSpotlightDetail,
+        builder: (context, state) => SellerSpotlightDetailScreen(
+          adId: state.pathParameters['adId'] ?? '',
+        ),
       ),
       GoRoute(
         path: AppRouteNames.sellerProfile,
