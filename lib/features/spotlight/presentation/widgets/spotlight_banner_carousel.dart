@@ -22,10 +22,17 @@ class SpotlightBannerCarousel extends ConsumerStatefulWidget {
     super.key,
     this.padding = EdgeInsets.zero,
     this.visit,
+    this.activeDotColor,
+    this.dotColor,
   });
 
   final SpotlightQuery query;
   final EdgeInsets padding;
+
+  /// Page dot colours; default to the palette's ink and hairline. Pass
+  /// light ones when the carousel sits on a dark stage.
+  final Color? activeDotColor;
+  final Color? dotColor;
 
   /// The screen's visit, so each banner's view counts once per visit.
   final SpotlightVisit? visit;
@@ -142,7 +149,9 @@ class _SpotlightBannerCarouselState
                     width: i == active ? 18 : 6,
                     height: 6,
                     decoration: BoxDecoration(
-                      color: i == active ? p.ink : p.hairline,
+                      color: i == active
+                          ? (widget.activeDotColor ?? p.ink)
+                          : (widget.dotColor ?? p.hairline),
                       borderRadius: BorderRadius.circular(3),
                     ),
                   ),

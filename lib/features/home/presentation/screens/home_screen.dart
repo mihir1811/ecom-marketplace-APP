@@ -19,8 +19,6 @@ import '../widgets/home_footer.dart';
 import '../widgets/home_live_auctions.dart';
 import '../widgets/home_sell_card.dart';
 import '../widgets/home_section.dart';
-import '../../../spotlight/domain/spotlight_models.dart';
-import '../../../spotlight/presentation/widgets/spotlight_banner_carousel.dart';
 import '../../../spotlight/presentation/widgets/spotlight_featured_sellers.dart';
 
 /// GemWorld home: an immersive hero stage followed by editorial sections.
@@ -100,12 +98,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       bottomInset: dockClearance,
                       overlap: 72,
                       scrollOffset: _offset,
-                    ),
-                    // Paid HOME_BANNER carousel right under the hero; it
-                    // draws nothing while no banner is live.
-                    SpotlightBannerCarousel(
-                      query: spotlightQuery(SpotlightPlacement.homeBanner),
-                      padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 16),
                     ),
                     // Rides up into the hero's fade so both read as one
                     // surface.

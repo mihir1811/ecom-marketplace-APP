@@ -12,7 +12,8 @@ import '../../../../../core/l10n/app_localizations.dart';
 import '../../theme/home_tokens.dart';
 import 'stardust_field.dart';
 import 'stardust_painter.dart';
-import 'hero_spotlight.dart';
+import '../../../../spotlight/domain/spotlight_models.dart';
+import '../../../../spotlight/presentation/widgets/spotlight_banner_carousel.dart';
 import 'stage_backdrop.dart';
 
 /// Full-bleed opening stage: a deep-space shader, interactive stardust that
@@ -278,9 +279,15 @@ class _HomeHeroState extends State<HomeHero>
                           padding: EdgeInsets.only(
                             bottom: 24 + widget.bottomInset,
                           ),
-                          child: HeroSpotlight(
-                            animate: !_reduceMotion,
-                            gutter: gutter,
+                          // Paid HOME_BANNER ads from the spotlight API;
+                          // takes no space while none is live.
+                          child: SpotlightBannerCarousel(
+                            query: spotlightQuery(
+                              SpotlightPlacement.homeBanner,
+                            ),
+                            padding: EdgeInsets.symmetric(horizontal: gutter),
+                            activeDotColor: HomeStage.gold,
+                            dotColor: HomeStage.ink.withValues(alpha: 0.25),
                           ),
                         ),
                       ),
