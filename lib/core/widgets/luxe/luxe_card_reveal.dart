@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 
-import '../../theme/luxe_tokens.dart';
-
 /// Product-card scroll entrance modelled on the lusion.co work grid.
 ///
 /// Each time a card scrolls into view (and again after it fully leaves):
@@ -296,8 +294,7 @@ class LuxeCardActive extends InheritedWidget {
       oldWidget.active != active;
 }
 
-/// One-line title whose letters roll down into place like a slot reel, and
-/// which slides right behind an arrow while the card is hovered or pressed.
+/// One-line title whose letters roll down into place like a slot reel.
 class LuxeRollTitle extends StatefulWidget {
   const LuxeRollTitle(this.text, {required this.style, super.key});
 
@@ -308,28 +305,11 @@ class LuxeRollTitle extends StatefulWidget {
   State<LuxeRollTitle> createState() => _LuxeRollTitleState();
 }
 
-class _LuxeRollTitleState extends State<LuxeRollTitle>
-    with SingleTickerProviderStateMixin {
-  // Lusion's hover ratio moves at 2.5 per second.
-  late final AnimationController _hover = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 400),
-  );
+class _LuxeRollTitleState extends State<LuxeRollTitle> {
   _RollLayout? _layout;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (LuxeCardActive.of(context)) {
-      _hover.forward();
-    } else {
-      _hover.reverse();
-    }
-  }
-
-  @override
   void dispose() {
-    _hover.dispose();
     _layout?.painter.dispose();
     super.dispose();
   }
@@ -371,11 +351,10 @@ class _LuxeRollTitleState extends State<LuxeRollTitle>
     final clock = LuxeCardReveal.clockOf(context);
     if (clock == null) return _plain;
     return AnimatedBuilder(
-      animation: Listenable.merge([clock.animation, _hover]),
+      animation: clock.animation,
       builder: (context, _) {
         // Edge letters finish last, at 1 / 0.8 seconds.
-        final rolled = clock.done || clock.seconds >= 1.25;
-        if (rolled && _hover.value == 0) return _plain;
+        if (clock.done || clock.seconds >= 1.25) return _plain;
         return LayoutBuilder(
           builder: (context, constraints) {
             final layout = _layoutFor(context, constraints.maxWidth);
@@ -386,15 +365,10 @@ class _LuxeRollTitleState extends State<LuxeRollTitle>
                 size: Size(
                   constraints.maxWidth.isFinite
                       ? constraints.maxWidth
-                      : layout.painter.width + layout.em * 1.5,
+                      : layout.painter.width,
                   layout.painter.height,
                 ),
-                painter: _RollPainter(
-                  layout: layout,
-                  seconds: rolled ? double.infinity : clock.seconds,
-                  hover: _hover.value,
-                  color: layout.style.color ?? const Color(0xFF000000),
-                ),
+                painter: _RollPainter(layout: layout, seconds: clock.seconds),
               ),
             );
           },
@@ -453,81 +427,40 @@ class _RollLayout {
 }
 
 class _RollPainter extends CustomPainter {
-  _RollPainter({
-    required this.layout,
-    required this.seconds,
-    required this.hover,
-    required this.color,
-  });
+  _RollPainter({required this.layout, required this.seconds});
 
   final _RollLayout layout;
   final double seconds;
-  final double hover;
-  final Color color;
 
   @override
   void paint(Canvas canvas, Size size) {
     final tp = layout.painter;
-    final em = layout.em;
     final line = tp.height;
-    final shiftT = LuxeMotion.settle.transform(hover);
-    final iconT = LuxeMotion.settle.transform(_saturate((hover - 0.3) / 0.7));
-    final shift = 1.5 * em * shiftT;
 
     canvas.save();
     canvas.clipRect(Offset.zero & Size(size.width, size.height));
-
-    if (hover > 0) _paintArrow(canvas, em, line, -em + em * iconT);
-
     final n = layout.columns.length;
-    if (seconds.isInfinite) {
-      tp.paint(canvas, Offset(shift, 0));
-    } else {
-      for (var f = 0; f < n; f++) {
-        final p = n == 1 ? math.pi : math.pi / 2 + math.pi * f / (n - 1);
-        final g = _saturate(seconds * 0.8 - math.cos(p) / 20);
-        // Reel of four copies, starting five reel heights above.
-        final reel = 5 * (1 - LuxeEase.expoInOut(g));
-        final dy = -reel * 4 * line;
-        final (l, r) = layout.columns[f];
-        canvas.save();
-        canvas.clipRect(Rect.fromLTRB(l + shift, 0, r + shift, line));
-        for (var k = 0; k < 4; k++) {
-          final y = dy + k * line;
-          if (y > -line && y < line) tp.paint(canvas, Offset(shift, y));
-        }
-        canvas.restore();
+    for (var f = 0; f < n; f++) {
+      final p = n == 1 ? math.pi : math.pi / 2 + math.pi * f / (n - 1);
+      final g = _saturate(seconds * 0.8 - math.cos(p) / 20);
+      // Reel of four copies, starting five reel heights above.
+      final reel = 5 * (1 - LuxeEase.expoInOut(g));
+      final dy = -reel * 4 * line;
+      final (l, r) = layout.columns[f];
+      canvas.save();
+      canvas.clipRect(Rect.fromLTRB(l, 0, r, line));
+      for (var k = 0; k < 4; k++) {
+        final y = dy + k * line;
+        if (y > -line && y < line) tp.paint(canvas, Offset(0, y));
       }
+      canvas.restore();
     }
     canvas.restore();
   }
 
-  void _paintArrow(Canvas canvas, double em, double line, double x) {
-    final s = em * 0.8;
-    final top = (line - s) / 2;
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = math.max(1.2, em * 0.07)
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    final midY = top + s / 2;
-    canvas.drawLine(Offset(x, midY), Offset(x + s, midY), paint);
-    canvas.drawPath(
-      Path()
-        ..moveTo(x + s * 0.55, top + s * 0.1)
-        ..lineTo(x + s, midY)
-        ..lineTo(x + s * 0.55, top + s * 0.9),
-      paint,
-    );
-  }
-
   @override
   bool shouldRepaint(_RollPainter old) =>
-      old.layout != layout ||
-      old.seconds != seconds ||
-      old.hover != hover ||
-      old.color != color;
+      old.layout != layout || old.seconds != seconds;
 }
 
 /// Folds the screen into a concave drum while the list scrolls, for the

@@ -14,8 +14,8 @@ import 'spotlight_impression.dart';
 import 'spotlight_tag.dart';
 
 /// Paid banners (HOME_BANNER, CATEGORY_BANNER): one at a time, moving on
-/// every 6.5 seconds and pausing while touched. Draws nothing, not even
-/// [padding], when there is no live banner.
+/// every 6.5 seconds and pausing while touched. With no live banner it
+/// draws [empty] inside [padding], or nothing at all when [empty] is null.
 class SpotlightBannerCarousel extends ConsumerStatefulWidget {
   const SpotlightBannerCarousel({
     required this.query,
@@ -24,9 +24,13 @@ class SpotlightBannerCarousel extends ConsumerStatefulWidget {
     this.visit,
     this.activeDotColor,
     this.dotColor,
+    this.empty,
   });
 
   final SpotlightQuery query;
+
+  /// Shown while no paid banner is live (also while loading).
+  final Widget? empty;
   final EdgeInsets padding;
 
   /// Page dot colours; default to the palette's ink and hairline. Pass
@@ -106,7 +110,11 @@ class _SpotlightBannerCarouselState
         if (mounted) _schedule();
       });
     }
-    if (banners.isEmpty) return const SizedBox.shrink();
+    if (banners.isEmpty) {
+      final empty = widget.empty;
+      if (empty == null) return const SizedBox.shrink();
+      return Padding(padding: widget.padding, child: empty);
+    }
 
     final tablet = SpotlightBannerCarousel.isTablet(context);
     final p = LuxePalette.of(context);

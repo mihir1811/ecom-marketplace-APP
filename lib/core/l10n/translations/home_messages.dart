@@ -81,6 +81,23 @@ abstract final class HomeL10n {
   static const saleGoldTag = 'home.saleGoldTag';
   static const saleGoldTitle = 'home.saleGoldTitle';
   static const saleGoldBody = 'home.saleGoldBody';
+  // GemWorld info banners, shown on the hero while no paid banner is live.
+  static const infoTag = 'home.infoTag';
+  static const infoAboutTitle = 'home.infoAboutTitle';
+  static const infoAboutBody = 'home.infoAboutBody';
+  static const infoAboutAction = 'home.infoAboutAction';
+  static const infoCertifiedTitle = 'home.infoCertifiedTitle';
+  static const infoCertifiedBody = 'home.infoCertifiedBody';
+  static const infoCertifiedAction = 'home.infoCertifiedAction';
+  static const infoLiveTitle = 'home.infoLiveTitle';
+  static const infoLiveBody = 'home.infoLiveBody';
+  static const infoLiveAction = 'home.infoLiveAction';
+  static const infoLearnTitle = 'home.infoLearnTitle';
+  static const infoLearnBody = 'home.infoLearnBody';
+  static const infoLearnAction = 'home.infoLearnAction';
+  static const infoSecureTitle = 'home.infoSecureTitle';
+  static const infoSecureBody = 'home.infoSecureBody';
+  static const infoSecureAction = 'home.infoSecureAction';
 }
 
 const homeMessages = <String, LocalizedMessage>{
@@ -482,5 +499,88 @@ const homeMessages = <String, LocalizedMessage>{
     english: 'Gold and diamond necklaces',
     hindi: 'सोने और हीरे के हार',
     gujarati: 'સોના અને હીરાના હાર',
+  ),
+  HomeL10n.infoTag: LocalizedMessage(
+    english: 'GemWorld',
+    hindi: 'GemWorld',
+    gujarati: 'GemWorld',
+  ),
+  HomeL10n.infoAboutTitle: LocalizedMessage(
+    english: 'One world for every gem',
+    hindi: 'हर रत्न के लिए एक दुनिया',
+    gujarati: 'દરેક રત્ન માટે એક દુનિયા',
+  ),
+  HomeL10n.infoAboutBody: LocalizedMessage(
+    english:
+        'Diamonds, gemstones, jewellery, watches and bullion from verified sellers.',
+    hindi: 'सत्यापित विक्रेताओं से हीरे, रत्न, आभूषण, घड़ियाँ और बुलियन।',
+    gujarati:
+        'ચકાસાયેલા વિક્રેતાઓ પાસેથી હીરા, રત્નો, ઘરેણાં, ઘડિયાળો અને બુલિયન.',
+  ),
+  HomeL10n.infoAboutAction: LocalizedMessage(
+    english: 'About us',
+    hindi: 'हमारे बारे में',
+    gujarati: 'અમારા વિશે',
+  ),
+  HomeL10n.infoCertifiedTitle: LocalizedMessage(
+    english: 'Certified diamonds',
+    hindi: 'प्रमाणित हीरे',
+    gujarati: 'પ્રમાણિત હીરા',
+  ),
+  HomeL10n.infoCertifiedBody: LocalizedMessage(
+    english:
+        'Natural and lab-grown stones with certificates you can check before you buy.',
+    hindi: 'प्राकृतिक और लैब-ग्रोन हीरे, खरीदने से पहले प्रमाणपत्र जाँचें।',
+    gujarati: 'કુદરતી અને લેબ-ગ્રોન હીરા, ખરીદતા પહેલાં પ્રમાણપત્ર તપાસો.',
+  ),
+  HomeL10n.infoCertifiedAction: LocalizedMessage(
+    english: 'Search diamonds',
+    hindi: 'हीरे खोजें',
+    gujarati: 'હીરા શોધો',
+  ),
+  HomeL10n.infoLiveTitle: LocalizedMessage(
+    english: 'Bid live with sellers',
+    hindi: 'विक्रेताओं के साथ लाइव बोली',
+    gujarati: 'વિક્રેતાઓ સાથે લાઇવ બોલી',
+  ),
+  HomeL10n.infoLiveBody: LocalizedMessage(
+    english: 'Join live shows and auctions and win pieces in real time.',
+    hindi: 'लाइव शो और नीलामी में जुड़ें और तुरंत जीतें।',
+    gujarati: 'લાઇવ શો અને હરાજીમાં જોડાઓ અને તરત જીતો.',
+  ),
+  HomeL10n.infoLiveAction: LocalizedMessage(
+    english: 'Watch live',
+    hindi: 'लाइव देखें',
+    gujarati: 'લાઇવ જુઓ',
+  ),
+  HomeL10n.infoLearnTitle: LocalizedMessage(
+    english: 'Know your diamond',
+    hindi: 'अपने हीरे को जानें',
+    gujarati: 'તમારા હીરાને જાણો',
+  ),
+  HomeL10n.infoLearnBody: LocalizedMessage(
+    english: 'Cut, colour, clarity and carat explained before you choose.',
+    hindi: 'चुनने से पहले कट, रंग, स्पष्टता और कैरेट समझें।',
+    gujarati: 'પસંદ કરતા પહેલાં કટ, રંગ, સ્પષ્ટતા અને કેરેટ સમજો.',
+  ),
+  HomeL10n.infoLearnAction: LocalizedMessage(
+    english: 'Learn',
+    hindi: 'सीखें',
+    gujarati: 'શીખો',
+  ),
+  HomeL10n.infoSecureTitle: LocalizedMessage(
+    english: 'Safe, secure checkout',
+    hindi: 'सुरक्षित चेकआउट',
+    gujarati: 'સુરક્ષિત ચેકઆઉટ',
+  ),
+  HomeL10n.infoSecureBody: LocalizedMessage(
+    english: 'Protected payments and dedicated support at every step.',
+    hindi: 'सुरक्षित भुगतान और हर कदम पर सहायता।',
+    gujarati: 'સુરક્ષિત ચુકવણી અને દરેક પગલે સહાય.',
+  ),
+  HomeL10n.infoSecureAction: LocalizedMessage(
+    english: 'Our policies',
+    hindi: 'हमारी नीतियाँ',
+    gujarati: 'અમારી નીતિઓ',
   ),
 };

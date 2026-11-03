@@ -14,6 +14,7 @@ import 'stardust_field.dart';
 import 'stardust_painter.dart';
 import '../../../../spotlight/domain/spotlight_models.dart';
 import '../../../../spotlight/presentation/widgets/spotlight_banner_carousel.dart';
+import 'home_info_banners.dart';
 import 'stage_backdrop.dart';
 
 /// Full-bleed opening stage: a deep-space shader, interactive stardust that
@@ -280,7 +281,7 @@ class _HomeHeroState extends State<HomeHero>
                             bottom: 16 + widget.bottomInset,
                           ),
                           // Paid HOME_BANNER ads from the spotlight API;
-                          // takes no space while none is live.
+                          // GemWorld info banners while none is live.
                           child: SpotlightBannerCarousel(
                             query: spotlightQuery(
                               SpotlightPlacement.homeBanner,
@@ -288,6 +289,7 @@ class _HomeHeroState extends State<HomeHero>
                             padding: EdgeInsets.symmetric(horizontal: gutter),
                             activeDotColor: HomeStage.gold,
                             dotColor: HomeStage.ink.withValues(alpha: 0.25),
+                            empty: const HomeInfoBanners(),
                           ),
                         ),
                       ),
