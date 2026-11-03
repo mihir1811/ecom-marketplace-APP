@@ -121,10 +121,11 @@ class GemFieldController extends ChangeNotifier {
   /// Baked cuts; nothing is drawn until they are set.
   List<DiamondModel>? models;
 
-  /// Quality tiers, best first. The widget starts low-memory devices on a
-  /// cheaper tier and steps down whenever frames run long: first the
-  /// depth-of-field blur goes (the costliest GPU work) and facet shading
-  /// is refreshed every `shadeEvery` frames instead of every frame (the
+  /// Quality tiers, best first. The tier is picked before the field is on
+  /// screen ([GemFieldWarmup]) and never changes while it is visible, so
+  /// no stone ever vanishes in front of the viewer. Cheaper tiers first
+  /// drop the depth-of-field blur (the costliest GPU work) and refresh
+  /// facet shading every `shadeEvery` frames instead of every frame (the
   /// costliest CPU work; outlines still move every frame), then a share of
   /// the stones and fine facets. Stones drawn at least `detail` pixels in
   /// radius use the full model; `clear` is the smallest radius drawn as
@@ -180,6 +181,15 @@ class GemFieldController extends ChangeNotifier {
 
   /// Depth-of-field band edges.
   static const _zFar = -0.95, _zFront = 0.65;
+
+  /// Depth-of-field blur radius of the far and near bands.
+  static const _blurFar = 3.2, _blurNear = 1.8;
+
+  static double _blurOf(_Band band) => switch (band) {
+    _Band.far => _blurFar,
+    _Band.focus => 0,
+    _Band.near => _blurNear,
+  };
 
   /// Radius of the void carved around the finger, in logical pixels.
   double get voidRadius => (_size.shortestSide * 0.2).clamp(64.0, 130.0);
@@ -637,6 +647,30 @@ class GemFieldController extends ChangeNotifier {
     batch.paint(canvas, sparkle: sparkle);
   }
 
+  /// One whole frame onto [canvas] as the widget would show it, blur
+  /// included; used to time a tier off screen.
+  void _paintFrame(Canvas canvas, Color background) {
+    final bounds = Offset.zero & _size;
+    canvas.drawRect(bounds, Paint()..color = background);
+    for (final band in _Band.values) {
+      final sigma = blur ? _blurOf(band) : 0.0;
+      if (sigma > 0) {
+        canvas.saveLayer(
+          bounds,
+          Paint()
+            ..imageFilter = ui.ImageFilter.blur(
+              sigmaX: sigma,
+              sigmaY: sigma,
+              tileMode: TileMode.decal,
+            ),
+        );
+      }
+      _paintBand(canvas, band, background);
+      if (sigma > 0) canvas.restore();
+    }
+    _paintLight(canvas);
+  }
+
   /// A faint white pool under the finger; the stones carry the light.
   void _paintLight(Canvas canvas) {
     if (_glow <= 0) return;
@@ -660,11 +694,143 @@ class GemFieldController extends ChangeNotifier {
   }
 }
 
+/// Decides the gem field's quality tier before the field is on screen,
+/// once per app run: loads the models, starts from the device's memory
+/// class, then draws whole frames off screen and steps down until a frame
+/// fits the budget. The field shows nothing until this is done, so it never
+/// starts rich and thins out in front of the viewer.
+///
+/// Screens that end in a gem field call [prepare] early (home does it
+/// shortly after it opens); the field itself calls it as a fallback.
+abstract final class GemFieldWarmup {
+  static Future<({List<DiamondModel> models, int tier})>? _ready;
+
+  /// Cheapest tier the field has had to fall back to while running; a
+  /// field mounted later starts there.
+  static int _floor = 0;
+
+  /// Frame budget, in ms, for the UI-thread work (physics plus shading) and
+  /// for the GPU work of one field frame.
+  static const _uiBudget = 11.0, _rasterBudget = 12.0;
+
+  /// Models plus the tier to draw them at; starts the work on first call.
+  static Future<({List<DiamondModel> models, int tier})> prepare({
+    required Size size,
+    required double pixelRatio,
+    required Color background,
+  }) => _ready ??= _run(size, pixelRatio, background);
+
+  /// Tier a newly mounted field should use given what the warmup picked.
+  static int startTier(int picked) => math.max(picked, _floor);
+
+  /// Records that a running field had to go down to [tier].
+  static void lowerTo(int tier) => _floor = math.max(_floor, tier);
+
+  static Future<({List<DiamondModel> models, int tier})> _run(
+    Size size,
+    double pixelRatio,
+    Color background,
+  ) async {
+    final models = await DiamondModels.load().catchError(
+      (Object _) => DiamondModels.fallback(),
+    );
+    var tier = await _deviceTier();
+    // Debug and test builds run far slower than release ones; timing them
+    // would only ever pick the cheapest tier.
+    if (!kReleaseMode || size.isEmpty) return (models: models, tier: tier);
+    final field = GemFieldController(seed: 7, reduceMotion: false)
+      ..models = models
+      ..layout(size)
+      ..capQuality(tier);
+    try {
+      while (field.quality < GemFieldController.tierCount - 1) {
+        if (await _fits(field, size, pixelRatio, background)) break;
+        field.lowerQuality();
+      }
+      tier = field.quality;
+    } catch (_) {
+      // Timing failed; the memory-class tier stands.
+    } finally {
+      field.dispose();
+    }
+    return (models: models, tier: tier);
+  }
+
+  /// Times a few whole frames of [field] at its current tier, one per
+  /// scheduler slot so the screen above keeps scrolling smoothly. The
+  /// fastest of three (after one warm-up frame) is compared with the
+  /// budget, since noise only ever adds time.
+  static Future<bool> _fits(
+    GemFieldController field,
+    Size size,
+    double pixelRatio,
+    Color background,
+  ) async {
+    var cpuMs = double.infinity, gpuMs = double.infinity;
+    final width = (size.width * pixelRatio).ceil();
+    final height = (size.height * pixelRatio).ceil();
+    for (var i = 0; i < 4; i++) {
+      final picture = await SchedulerBinding.instance.scheduleTask(() {
+        final watch = Stopwatch()..start();
+        final recorder = ui.PictureRecorder();
+        final canvas = Canvas(recorder)..scale(pixelRatio);
+        field
+          ..step(1 / 60)
+          .._paintFrame(canvas, background);
+        final picture = recorder.endRecording();
+        if (i > 0) cpuMs = math.min(cpuMs, watch.elapsedMicroseconds / 1000);
+        return picture;
+      }, Priority.animation);
+      final watch = Stopwatch()..start();
+      final image = await picture.toImage(width, height);
+      if (i > 0) gpuMs = math.min(gpuMs, watch.elapsedMicroseconds / 1000);
+      image.dispose();
+      picture.dispose();
+      await SchedulerBinding.instance.endOfFrame;
+    }
+    return cpuMs <= _uiBudget && gpuMs <= _rasterBudget;
+  }
+
+  /// Starting tier from the device's memory, a fair proxy for its CPU and
+  /// GPU class. Unknown devices start on the best tier.
+  static Future<int> _deviceTier() async {
+    if (kIsWeb) return 0;
+    try {
+      int tierFor(int ramMb, {bool lowRam = false}) {
+        if (ramMb <= 0) return lowRam ? 3 : 0;
+        if (lowRam || ramMb < 3 * 1024) return 3;
+        if (ramMb < 4 * 1024 + 512) return 2;
+        if (ramMb < 6 * 1024 + 512) return 1;
+        return 0;
+      }
+
+      switch (defaultTargetPlatform) {
+        case TargetPlatform.android:
+          final info = await DeviceInfoPlugin().androidInfo;
+          return tierFor(info.physicalRamSize, lowRam: info.isLowRamDevice);
+        case TargetPlatform.iOS:
+          // iPhones run this well with less memory than Android phones.
+          final info = await DeviceInfoPlugin().iosInfo;
+          final ram = info.physicalRamSize;
+          if (ram <= 0) return 0;
+          if (ram < 2560) return 2;
+          if (ram < 3584) return 1;
+          return 0;
+        default:
+          return 0;
+      }
+    } catch (_) {
+      return 0;
+    }
+  }
+}
+
 /// Full-bleed field of colourless 3D diamonds in every bundled cut
 /// ([DiamondModels]) streaming diagonally that part around the finger,
 /// tumble when swept and catch its light. Pauses while scrolled off
-/// screen, honours reduced motion, and lowers its own quality when the
-/// device cannot keep up.
+/// screen and honours reduced motion. Its quality tier is settled before
+/// it shows ([GemFieldWarmup]) and only ever lowered while it is off
+/// screen, so stones never vanish in view.
 ///
 /// Touches below [touchTopInset] are claimed eagerly so the page does not
 /// scroll while a finger plays with the stones; above it, scrolling works
@@ -699,66 +865,42 @@ class _GemFieldState extends State<GemField>
   double _frameCost = 0;
   int _frameSamples = 0;
 
+  /// Tiers to drop the next time the field is off screen.
+  int _pendingDrop = 0;
+
+  Color get _background => widget.background ?? LuxeStage.obsidian;
+
   @override
   void initState() {
     super.initState();
-    // The herd waits for the models, so its entrance plays once they are in.
-    DiamondModels.load()
-        .catchError((Object _) => DiamondModels.fallback())
-        .then((models) {
-          if (!mounted) return;
-          _field.models = models;
-          _syncTicker();
-        });
-    // Low-memory phones start on a cheaper tier instead of janking for a
-    // few seconds while the frame watcher finds it.
-    _startTier().then((tier) {
-      if (mounted && _field.capQuality(tier)) setState(() {});
+    // Nothing is drawn until the warmup has settled models and tier
+    // (usually long before, started by the screen); the herd's entrance
+    // plays once they are in.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final size = context.size ?? MediaQuery.sizeOf(context);
+      GemFieldWarmup.prepare(
+        size: size,
+        pixelRatio: MediaQuery.devicePixelRatioOf(context),
+        background: _background,
+      ).then((ready) {
+        if (!mounted) return;
+        _field
+          ..capQuality(GemFieldWarmup.startTier(ready.tier))
+          ..models = ready.models;
+        setState(() {});
+        _syncTicker();
+      });
     });
     SchedulerBinding.instance.addTimingsCallback(_onTimings);
   }
 
-  static Future<int>? _deviceTier;
-
-  /// Starting quality tier from the device's memory, a fair proxy for its
-  /// CPU and GPU class. Unknown devices start on the best tier.
-  static Future<int> _startTier() => _deviceTier ??= () async {
-    if (kIsWeb) return 0;
-    try {
-      int tierFor(int ramMb, {bool lowRam = false}) {
-        if (ramMb <= 0) return lowRam ? 3 : 0;
-        if (lowRam || ramMb < 3 * 1024) return 3;
-        if (ramMb < 4 * 1024 + 512) return 2;
-        if (ramMb < 6 * 1024 + 512) return 1;
-        return 0;
-      }
-
-      switch (defaultTargetPlatform) {
-        case TargetPlatform.android:
-          final info = await DeviceInfoPlugin().androidInfo;
-          return tierFor(info.physicalRamSize, lowRam: info.isLowRamDevice);
-        case TargetPlatform.iOS:
-          // iPhones run this well with less memory than Android phones.
-          final info = await DeviceInfoPlugin().iosInfo;
-          final ram = info.physicalRamSize;
-          if (ram <= 0) return 0;
-          if (ram < 2560) return 2;
-          if (ram < 3584) return 1;
-          return 0;
-        default:
-          return 0;
-      }
-    } catch (_) {
-      return 0;
-    }
-  }();
-
   /// Watches real frame cost (UI and raster threads) while the field
-  /// animates, and steps quality down when frames run long for about half
-  /// a second (two tiers at once when far over budget), so slow devices
-  /// settle quickly on a steady herd.
+  /// animates. If frames run long for about half a second, a cheaper tier
+  /// (two when far over budget) is queued and applied only once the field
+  /// is off screen; nothing changes in front of the viewer.
   void _onTimings(List<FrameTiming> timings) {
-    if (!mounted || !_ticker.isActive) return;
+    if (!mounted || !_ticker.isActive || _pendingDrop > 0) return;
     for (final t in timings) {
       final build = t.buildDuration.inMicroseconds;
       final raster = t.rasterDuration.inMicroseconds;
@@ -770,8 +912,20 @@ class _GemFieldState extends State<GemField>
       _frameSamples++;
     }
     if (_frameSamples < 30 || _frameCost <= 19) return;
-    var changed = _field.lowerQuality();
-    if (_frameCost > 32 && _field.lowerQuality()) changed = true;
+    _pendingDrop = _frameCost > 32 ? 2 : 1;
+    _frameSamples = 0;
+    GemFieldWarmup.lowerTo(_field.quality + _pendingDrop);
+  }
+
+  /// Applies a queued tier drop; only called while the field is hidden.
+  void _applyPendingDrop() {
+    if (_pendingDrop == 0) return;
+    var changed = false;
+    for (var i = 0; i < _pendingDrop; i++) {
+      if (_field.lowerQuality()) changed = true;
+    }
+    _pendingDrop = 0;
+    _frameCost = 0;
     _frameSamples = 0;
     if (changed) setState(() {});
   }
@@ -804,6 +958,7 @@ class _GemFieldState extends State<GemField>
     final top = box.localToGlobal(Offset.zero).dy;
     final screen = MediaQuery.sizeOf(context).height;
     _visible = top < screen && top + box.size.height > 0;
+    if (!_visible) _applyPendingDrop();
     _syncTicker();
   }
 
@@ -844,10 +999,10 @@ class _GemFieldState extends State<GemField>
 
   @override
   Widget build(BuildContext context) {
-    final bg = widget.background ?? LuxeStage.obsidian;
+    final bg = _background;
     final inset = Offset(0, widget.touchTopInset);
-    Widget band(_Band b, double blur) {
-      if (!_field.blur) blur = 0;
+    Widget band(_Band b) {
+      final blur = _field.blur ? GemFieldController._blurOf(b) : 0.0;
       Widget layer = CustomPaint(
         painter: _BandPainter(_field, b, bg),
         size: Size.infinite,
@@ -877,9 +1032,7 @@ class _GemFieldState extends State<GemField>
                   fit: StackFit.expand,
                   children: [
                     ColoredBox(color: bg),
-                    band(_Band.far, 3.2),
-                    band(_Band.focus, 0),
-                    band(_Band.near, 1.8),
+                    for (final b in _Band.values) band(b),
                     Positioned.fill(
                       child: CustomPaint(painter: _LightPainter(_field)),
                     ),

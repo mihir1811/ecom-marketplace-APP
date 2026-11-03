@@ -23,6 +23,18 @@ class HomeGemStage extends StatelessWidget {
   /// Defaults to the screen height.
   final double? height;
 
+  /// Settles the stage's quality off screen ahead of time, so the stones
+  /// show at their final density the moment the stage is reached. Safe to
+  /// call often; the work runs once.
+  static void warmUp(BuildContext context, {double? height}) {
+    final media = MediaQuery.of(context);
+    GemFieldWarmup.prepare(
+      size: Size(media.size.width, height ?? media.size.height),
+      pixelRatio: media.devicePixelRatio,
+      background: HomeStage.obsidian,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final palette = HomePalette.of(context);

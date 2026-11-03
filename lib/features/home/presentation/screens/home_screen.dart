@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,6 +18,7 @@ import '../widgets/hero/home_hero.dart';
 import '../widgets/home_collections.dart';
 import '../widgets/home_ai_search_card.dart';
 import '../widgets/home_footer.dart';
+import '../widgets/home_gem_stage.dart';
 import '../widgets/home_live_auctions.dart';
 import '../widgets/home_sell_card.dart';
 import '../widgets/home_section.dart';
@@ -33,14 +36,35 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _scroll = ScrollController();
   final _offset = ValueNotifier<double>(0);
 
+  Timer? _stageWarmup;
+
   @override
   void initState() {
     super.initState();
-    _scroll.addListener(() => _offset.value = _scroll.offset);
+    _scroll.addListener(() {
+      _offset.value = _scroll.offset;
+      // Leaving the hero: settle the closing gem stage's quality now, well
+      // before it scrolls into view.
+      if (_scroll.offset > 200) _warmUpStage();
+    });
+    // Or once the screen has been open a moment, whichever comes first.
+    _stageWarmup = Timer(const Duration(seconds: 3), _warmUpStage);
+  }
+
+  void _warmUpStage() {
+    if (_stageWarmup == null || !mounted) return;
+    _stageWarmup!.cancel();
+    _stageWarmup = null;
+    final media = MediaQuery.of(context);
+    HomeGemStage.warmUp(
+      context,
+      height: media.size.height - media.padding.top - SectionTopBar.height,
+    );
   }
 
   @override
   void dispose() {
+    _stageWarmup?.cancel();
     _scroll.dispose();
     _offset.dispose();
     super.dispose();
