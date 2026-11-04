@@ -5,10 +5,8 @@ import 'package:gemstone/core/haptics/app_haptics.dart';
 import 'package:gemstone/features/watches/application/watch_filter_provider.dart';
 import 'package:gemstone/features/watches/presentation/widgets/brand_dials/watch_dial.dart';
 import 'package:gemstone/features/watches/presentation/widgets/watch_brand_carousel.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 void main() {
-  setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
   setUp(() => AppHaptics.debugDisable = true);
   tearDown(AppHaptics.debugReset);
 

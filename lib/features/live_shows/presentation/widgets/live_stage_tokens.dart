@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/bundled_fonts.dart';
 
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/widgets/app_network_image.dart';
@@ -78,7 +78,7 @@ abstract final class LiveType {
     double height = 1.05,
   }) => _cached(
     (#display, size, color, italic, height),
-    () => GoogleFonts.getFont(
+    () => BundledFonts.style(
       _serif,
       fontSize: size,
       color: color,
@@ -97,7 +97,7 @@ abstract final class LiveType {
     final c = color ?? LiveStage.inkMuted;
     return _cached(
       (#body, size, c, weight, height),
-      () => GoogleFonts.getFont(
+      () => BundledFonts.style(
         _sans,
         fontSize: size,
         color: c,
@@ -113,7 +113,7 @@ abstract final class LiveType {
     FontWeight weight = FontWeight.w700,
   }) => _cached(
     (#label, size, color, weight),
-    () => GoogleFonts.getFont(
+    () => BundledFonts.style(
       _sans,
       fontSize: size,
       color: color,
@@ -130,7 +130,7 @@ abstract final class LiveType {
     FontWeight weight = FontWeight.w700,
   }) => _cached(
     (#figure, size, color, weight),
-    () => GoogleFonts.getFont(
+    () => BundledFonts.style(
       _sans,
       fontSize: size,
       color: color,
@@ -144,7 +144,7 @@ abstract final class LiveType {
     final c = color ?? LiveStage.inkFaint;
     return _cached(
       (#eyebrow, size, c),
-      () => GoogleFonts.getFont(
+      () => BundledFonts.style(
         _sans,
         fontSize: size,
         color: c,

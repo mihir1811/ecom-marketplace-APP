@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gemstone/core/error/failure.dart';
 import 'package:gemstone/core/error/result.dart';
 import 'package:gemstone/features/payment/presentation/payment_flow.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 const _summary = PurchaseSummary(
   item: '1 item',
@@ -62,7 +61,6 @@ Future<void> _pressBack(WidgetTester tester) async {
 }
 
 void main() {
-  setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
 
   testWidgets('confirm → progress → success stays until closed with icon', (
     tester,

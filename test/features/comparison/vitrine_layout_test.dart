@@ -6,7 +6,6 @@ import 'package:gemstone/features/comparison/domain/models/compare_item.dart';
 import 'package:gemstone/features/comparison/domain/models/compare_spec.dart';
 import 'package:gemstone/features/comparison/presentation/widgets/vitrine/vitrine_rail.dart';
 import 'package:gemstone/features/comparison/presentation/widgets/vitrine/vitrine_specs.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 CompareItem _diamond(String id, String shape, double carat, double price) =>
     CompareItem(
@@ -27,7 +26,6 @@ CompareItem _diamond(String id, String shape, double carat, double price) =>
     );
 
 void main() {
-  setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
 
   final items = [
     _diamond('a', 'Pear', 0.18, 571.43),

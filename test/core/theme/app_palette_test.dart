@@ -6,11 +6,9 @@ import 'package:gemstone/core/theme/app_theme.dart';
 import 'package:gemstone/core/theme/atelier_palette.dart';
 import 'package:gemstone/core/theme/luxe_tokens.dart';
 import 'package:gemstone/core/theme/theme_preference_provider.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
   tearDown(() => AppPalette.activate(AppPaletteId.ivory));
 
   group('PalettePreference', () {

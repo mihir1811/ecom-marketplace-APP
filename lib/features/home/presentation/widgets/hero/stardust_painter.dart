@@ -3,7 +3,6 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gemstone/core/theme/app_fonts.dart';
 
 import 'stardust_field.dart';
@@ -56,11 +55,7 @@ Future<GlyphCloud> sampleGlyph(String char) async {
     color: Colors.white,
     height: 1,
   );
-  try {
-    await GoogleFonts.pendingFonts([style]);
-  } catch (_) {
-    // Offline or fonts unavailable: the fallback font still reads as a G.
-  }
+  // The display font is bundled, so it is already loaded here.
   final painter = TextPainter(
     text: TextSpan(text: char, style: style),
     textDirection: TextDirection.ltr,

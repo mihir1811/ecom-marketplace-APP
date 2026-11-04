@@ -6,7 +6,6 @@ import 'package:gemstone/core/haptics/app_haptics.dart';
 import 'package:gemstone/core/widgets/luxe/luxe_shape_dial.dart';
 import 'package:gemstone/core/widgets/luxe/luxe_shape_picker.dart';
 import 'package:gemstone/core/widgets/luxe/luxe_wheel.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 const _shapes = [
   LuxeShapeOption(value: 'Round', label: 'Round'),
@@ -16,7 +15,6 @@ const _shapes = [
 ];
 
 void main() {
-  setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
   setUp(() => AppHaptics.debugDisable = true);
   tearDown(AppHaptics.debugReset);
 

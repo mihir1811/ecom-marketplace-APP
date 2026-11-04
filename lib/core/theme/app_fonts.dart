@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'bundled_fonts.dart';
 
 /// Single source of truth for every typeface in the app.
 ///
 /// Change a family name below and it applies everywhere. Names must match
-/// the Google Fonts catalogue exactly (https://fonts.google.com).
+/// the Google Fonts catalogue exactly (https://fonts.google.com), and the
+/// family's files must be bundled (see [BundledFonts] and pubspec.yaml).
 ///
 /// Roles:
 /// - [primary]   — headings, titles, prices, figures, buttons.
@@ -17,7 +18,7 @@ abstract final class AppFonts {
   static const String displayFamily = 'Cormorant Garamond';
   static const String monoFamily = 'JetBrains Mono';
 
-  /// Resolved family names (registers the font with google_fonts on access).
+  /// Resolved family names (the bundled regular variant).
   static String get primaryFontFamily => primary().fontFamily!;
   static String get secondaryFontFamily => secondary().fontFamily!;
   static String get displayFontFamily => display().fontFamily!;
@@ -109,7 +110,7 @@ abstract final class AppFonts {
 
   /// [base] restyled with the secondary family (body/UI default).
   static TextTheme secondaryTextTheme([TextTheme? base]) =>
-      GoogleFonts.getTextTheme(secondaryFamily, base);
+      BundledFonts.textTheme(secondaryFamily, base);
 
   static TextStyle _font(
     String family, {
@@ -121,7 +122,7 @@ abstract final class AppFonts {
     double? letterSpacing,
     double? height,
     List<FontFeature>? fontFeatures,
-  }) => GoogleFonts.getFont(
+  }) => BundledFonts.style(
     family,
     textStyle: textStyle,
     color: color,
