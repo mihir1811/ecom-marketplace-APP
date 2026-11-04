@@ -114,9 +114,11 @@ class _SpotlightProductStripState
           const SizedBox(height: 8),
           LayoutBuilder(
             builder: (context, constraints) {
-              final cardWidth = ((constraints.maxWidth - gutter - _gap * 2) /
-                      2.3)
-                  .clamp(140.0, 210.0);
+              final cardWidth =
+                  ((constraints.maxWidth - gutter - _gap * 2) / 2.3).clamp(
+                    140.0,
+                    210.0,
+                  );
               final textBlock =
                   14 +
                   textScaler.scale(15 * 1.1) +

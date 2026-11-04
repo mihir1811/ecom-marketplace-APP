@@ -45,8 +45,13 @@ abstract final class MarketplaceMapper {
         if (e.value.trim().isNotEmpty) e.key: e.value.trim(),
     },
     showPriceBreakdown: j['showPriceBreakdown'] == true,
-    listingCount: _J.intOrNull(_J.obj(j['_count'])['listings']),
+    listingCount:
+        _J.intOrNull(j['listingCount']) ??
+        _J.intOrNull(_J.obj(j['_count'])['listings']),
     listings: _J.listOf(j['listings'], listing),
+    isVerified: j['isVerified'] == true,
+    location:
+        _J.text(j['location']) ?? _J.text(_J.obj(j['policies'])['location']),
   );
 
   static MarketplaceListing listing(Map<String, dynamic> j) {

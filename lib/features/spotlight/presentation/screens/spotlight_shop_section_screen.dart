@@ -82,8 +82,7 @@ class _SpotlightShopSectionScreenState
     const gap = 8.0;
     final cell = (MediaQuery.sizeOf(context).width - pad * 2 - gap) / 2;
     final extent =
-        cell +
-        spotlightShopCardTextExtent(MediaQuery.textScalerOf(context));
+        cell + spotlightShopCardTextExtent(MediaQuery.textScalerOf(context));
 
     final List<Widget> body;
     if (state.isInitialLoading) {

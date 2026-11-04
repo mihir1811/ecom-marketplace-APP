@@ -32,11 +32,8 @@ Future<List<SpotlightSellerProduct>?> showSpotlightProductPicker({
         ? 'Only pieces for sale right now can be picked.'
         : 'Up to $max. Only pieces for sale right now can be picked.',
     scrollable: false,
-    builder: (_) => _ProductPicker(
-      categories: categories,
-      initial: selected,
-      max: max,
-    ),
+    builder: (_) =>
+        _ProductPicker(categories: categories, initial: selected, max: max),
   );
 }
 
@@ -175,7 +172,9 @@ class _ProductPickerState extends ConsumerState<_ProductPicker> {
                     child: AtelierEmptyState(
                       compact: true,
                       icon: Icons.inventory_2_outlined,
-                      title: _error == null ? 'Nothing to sponsor here' : 'Couldn’t load products',
+                      title: _error == null
+                          ? 'Nothing to sponsor here'
+                          : 'Couldn’t load products',
                       message:
                           _error ??
                           'Only pieces for sale right now in this section can be sponsored.',

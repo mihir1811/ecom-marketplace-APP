@@ -43,31 +43,32 @@ List<ProductSegment> spotlightShopSegments(String? sellerType) {
 
 /// Pieces a seller has for sale, per section; empty sections are left out.
 final spotlightShopSectionsProvider = FutureProvider.autoDispose
-    .family<List<SpotlightShopSection>, ({String sellerId, String? sellerType})>(
-      (ref, key) async {
-        final repo = ref.read(suggestedSellerProductsRepositoryProvider);
-        final segments = spotlightShopSegments(key.sellerType);
-        final pages = await Future.wait([
-          for (final segment in segments)
-            repo.getPage(
-              segment: segment,
-              excludeProductId: '',
-              sellerId: key.sellerId,
-              page: 1,
-              pageSize: 12,
+    .family<
+      List<SpotlightShopSection>,
+      ({String sellerId, String? sellerType})
+    >((ref, key) async {
+      final repo = ref.read(suggestedSellerProductsRepositoryProvider);
+      final segments = spotlightShopSegments(key.sellerType);
+      final pages = await Future.wait([
+        for (final segment in segments)
+          repo.getPage(
+            segment: segment,
+            excludeProductId: '',
+            sellerId: key.sellerId,
+            page: 1,
+            pageSize: 12,
+          ),
+      ]);
+      return [
+        for (var i = 0; i < segments.length; i++)
+          if (pages[i] case Success(:final value) when value.items.isNotEmpty)
+            SpotlightShopSection(
+              segment: segments[i],
+              items: value.items,
+              totalCount: value.totalCount,
             ),
-        ]);
-        return [
-          for (var i = 0; i < segments.length; i++)
-            if (pages[i] case Success(:final value) when value.items.isNotEmpty)
-              SpotlightShopSection(
-                segment: segments[i],
-                items: value.items,
-                totalCount: value.totalCount,
-              ),
-        ];
-      },
-    );
+      ];
+    });
 
 /// The seller's jewellery house on the marketplace, when they have one.
 final spotlightShopHouseProvider = FutureProvider.autoDispose

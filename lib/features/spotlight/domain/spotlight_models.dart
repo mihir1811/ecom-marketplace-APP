@@ -1,3 +1,5 @@
+import '../../jewelry/domain/models/jewelry.dart';
+import '../../jewelry/domain/models/marketplace_listing.dart';
 import '../../product_detail/domain/models/product_detail.dart';
 
 /// Where a paid placement is drawn. Values match the API's `placement`.
@@ -6,7 +8,14 @@ enum SpotlightPlacement {
   homeFeaturedSeller('HOME_FEATURED_SELLER'),
   categoryBanner('CATEGORY_BANNER'),
   categorySponsored('CATEGORY_SPONSORED'),
-  productSponsored('PRODUCT_SPONSORED');
+  productSponsored('PRODUCT_SPONSORED'),
+
+  // Jewellery marketplace (jewelry.gemworld.in). Separate from the five
+  // above; none takes a `category`.
+  jewelleryHomeBanner('JEWELLERY_HOME_BANNER'),
+  jewelleryFeaturedShop('JEWELLERY_FEATURED_SHOP'),
+  jewelleryListingSponsored('JEWELLERY_LISTING_SPONSORED'),
+  jewelleryProductSponsored('JEWELLERY_PRODUCT_SPONSORED');
 
   const SpotlightPlacement(this.api);
 
@@ -20,7 +29,17 @@ enum SpotlightPlacement {
 
   /// Sponsored placements take a `limit` (1–24, default 8).
   bool get isSponsoredProducts =>
-      this == categorySponsored || this == productSponsored;
+      this == categorySponsored ||
+      this == productSponsored ||
+      this == jewelleryListingSponsored ||
+      this == jewelleryProductSponsored;
+
+  /// A jewellery marketplace placement.
+  bool get isJewellery =>
+      this == jewelleryHomeBanner ||
+      this == jewelleryFeaturedShop ||
+      this == jewelleryListingSponsored ||
+      this == jewelleryProductSponsored;
 
   static SpotlightPlacement? fromApi(Object? value) {
     final raw = value?.toString().trim().toUpperCase();
@@ -84,8 +103,9 @@ SpotlightQuery spotlightQuery(
   limit: limit,
 );
 
-/// Where a banner tap goes.
-enum SpotlightLinkKind { product, seller }
+/// Where a banner tap goes. [listing] and [shop] are jewellery
+/// marketplace links (a piece by slug, or a shop by slug).
+enum SpotlightLinkKind { product, seller, listing, shop }
 
 class SpotlightLink {
   const SpotlightLink({
@@ -93,6 +113,9 @@ class SpotlightLink {
     this.productType,
     this.productId,
     this.sellerId,
+    this.listingId,
+    this.slug,
+    this.shopSlug,
   });
 
   final SpotlightLinkKind kind;
@@ -100,15 +123,28 @@ class SpotlightLink {
   final String? productId;
   final String? sellerId;
 
+  /// Jewellery `LISTING` links: the piece's id and public slug.
+  final String? listingId;
+  final String? slug;
+
+  /// Jewellery `LISTING` and `SHOP` links: the shop's slug.
+  final String? shopSlug;
+
   factory SpotlightLink.fromJson(Map<String, dynamic> j) {
-    final kind = SpotlightJson.text(j['kind'])?.toUpperCase() == 'PRODUCT'
-        ? SpotlightLinkKind.product
-        : SpotlightLinkKind.seller;
+    final kind = switch (SpotlightJson.text(j['kind'])?.toUpperCase()) {
+      'PRODUCT' => SpotlightLinkKind.product,
+      'LISTING' => SpotlightLinkKind.listing,
+      'SHOP' => SpotlightLinkKind.shop,
+      _ => SpotlightLinkKind.seller,
+    };
     return SpotlightLink(
       kind: kind,
       productType: SpotlightJson.text(j['productType']),
       productId: SpotlightJson.text(j['productId']),
       sellerId: SpotlightJson.text(j['sellerId']),
+      listingId: SpotlightJson.text(j['listingId']),
+      slug: SpotlightJson.text(j['slug']),
+      shopSlug: SpotlightJson.text(j['shopSlug']),
     );
   }
 
@@ -116,6 +152,14 @@ class SpotlightLink {
       kind == SpotlightLinkKind.product &&
       (productId?.isNotEmpty ?? false) &&
       (productType?.isNotEmpty ?? false);
+
+  /// A jewellery piece the banner opens.
+  bool get opensListing =>
+      kind == SpotlightLinkKind.listing && (slug?.isNotEmpty ?? false);
+
+  /// A jewellery marketplace link (piece or shop).
+  bool get isJewellery =>
+      kind == SpotlightLinkKind.listing || kind == SpotlightLinkKind.shop;
 }
 
 /// `seller: { id, name }` on banners and sponsored products.
@@ -130,7 +174,10 @@ class SpotlightSellerRef {
     if (j == null) return null;
     final id = SpotlightJson.text(j['id']) ?? SpotlightJson.text(j['_id']);
     if (id == null) return null;
-    return SpotlightSellerRef(id: id, name: SpotlightJson.text(j['name']) ?? '');
+    return SpotlightSellerRef(
+      id: id,
+      name: SpotlightJson.text(j['name']) ?? '',
+    );
   }
 }
 
@@ -243,7 +290,7 @@ sealed class SpotlightItem {
   }
 }
 
-/// HOME_BANNER and CATEGORY_BANNER.
+/// HOME_BANNER, CATEGORY_BANNER and JEWELLERY_HOME_BANNER.
 class SpotlightBanner extends SpotlightItem {
   const SpotlightBanner({
     required super.adId,
@@ -255,7 +302,7 @@ class SpotlightBanner extends SpotlightItem {
     this.seller,
   });
 
-  /// Up to 60 characters.
+  /// Up to 60 characters (80 on jewellery banners).
   final String title;
 
   /// Up to 120 characters; may be null.
@@ -287,6 +334,45 @@ class SpotlightSponsoredProduct extends SpotlightItem {
 
   final SpotlightProduct product;
   final SpotlightSellerRef? seller;
+}
+
+/// JEWELLERY_FEATURED_SHOP: a shop card. [shop] is an item of
+/// `GET /marketplace/shops`.
+class SpotlightFeaturedShop extends SpotlightItem {
+  const SpotlightFeaturedShop({
+    required super.adId,
+    required this.shop,
+    this.tagline,
+  });
+
+  final MarketplaceShop shop;
+
+  /// The ad's own line; null shows the shop's headline instead.
+  final String? tagline;
+
+  String? get line {
+    for (final t in [tagline, shop.headline]) {
+      final s = t?.trim();
+      if (s != null && s.isNotEmpty) return s;
+    }
+    return null;
+  }
+}
+
+/// JEWELLERY_LISTING_SPONSORED and JEWELLERY_PRODUCT_SPONSORED: a piece
+/// drawn as the normal product card with the Sponsored marks.
+class SpotlightSponsoredListing extends SpotlightItem {
+  const SpotlightSponsoredListing({
+    required super.adId,
+    required this.piece,
+    this.seller,
+  });
+
+  final Jewelry piece;
+  final SpotlightSellerRef? seller;
+
+  /// The listing's UUID, which `ids=` and `excludeProductId` take.
+  String get listingId => piece.listingId ?? piece.id;
 }
 
 class SpotlightProduct {
@@ -333,9 +419,7 @@ class SpotlightProduct {
       productId: id,
       stockNumber: SpotlightJson.text(j['stockNumber']),
       title:
-          SpotlightJson.text(j['title']) ??
-          SpotlightJson.text(j['name']) ??
-          '',
+          SpotlightJson.text(j['title']) ?? SpotlightJson.text(j['name']) ?? '',
       subtitle: SpotlightJson.text(j['subtitle']),
       imageUrl: SpotlightJson.text(j['imageUrl']),
       shape: SpotlightJson.text(j['shape']),

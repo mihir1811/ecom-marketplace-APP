@@ -199,10 +199,7 @@ class _FeaturedCard extends StatelessWidget {
               top: 12,
               left: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 5,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                 decoration: ShapeDecoration(
                   color: LuxeStage.obsidian.withValues(alpha: 0.6),
                   shape: StadiumBorder(

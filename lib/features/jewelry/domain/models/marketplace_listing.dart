@@ -70,11 +70,19 @@ class MarketplaceShop {
     this.showPriceBreakdown = false,
     this.listingCount,
     this.listings = const [],
+    this.isVerified = false,
+    this.location,
   });
 
   final String id;
   final String name;
   final String slug;
+
+  /// GemWorld-verified seller (shop cards show a tick).
+  final bool isVerified;
+
+  /// Where the shop works from, e.g. `surat`.
+  final String? location;
 
   /// GemWorld seller id; matches the signed-in seller for own-shop checks.
   final String? sellerId;

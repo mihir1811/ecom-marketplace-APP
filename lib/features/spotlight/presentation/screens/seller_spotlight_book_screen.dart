@@ -129,8 +129,7 @@ class _BookingFormState extends ConsumerState<_BookingForm> {
 
   // ── Derived values ────────────────────────────────────────────────────
 
-  DateTime? get _end =>
-      _start?.add(Duration(days: _days - 1));
+  DateTime? get _end => _start?.add(Duration(days: _days - 1));
 
   int get _units => _rate?.isSponsoredProducts ?? false ? _products.length : 1;
 
@@ -146,9 +145,8 @@ class _BookingFormState extends ConsumerState<_BookingForm> {
   DateTime get _lastStart =>
       _o.today.add(Duration(days: _rate?.bookAheadDays ?? 0));
 
-  List<SpotlightCategory> get _categories => _o.categories.isEmpty
-      ? SpotlightCategory.values
-      : _o.categories;
+  List<SpotlightCategory> get _categories =>
+      _o.categories.isEmpty ? SpotlightCategory.values : _o.categories;
 
   void _changed() {
     _quotedTotal = null;
@@ -161,7 +159,9 @@ class _BookingFormState extends ConsumerState<_BookingForm> {
     setState(() {
       _changed();
       _rate = rate;
-      _days = _days.clamp(rate.minDays, max(rate.minDays, rate.maxDays)).toInt();
+      _days = _days
+          .clamp(rate.minDays, max(rate.minDays, rate.maxDays))
+          .toInt();
       if (!rate.hasCategory) _category = null;
       if (rate.hasCategory && _category == null && _categories.length == 1) {
         _category = _categories.first;
@@ -1087,9 +1087,7 @@ class _ImageSlot extends StatelessWidget {
               decoration: BoxDecoration(
                 color: p.sunken,
                 borderRadius: BorderRadius.circular(AtelierRadius.sm),
-                border: Border.all(
-                  color: error ? p.ruby : p.hairline,
-                ),
+                border: Border.all(color: error ? p.ruby : p.hairline),
               ),
               child: Stack(
                 fit: StackFit.expand,

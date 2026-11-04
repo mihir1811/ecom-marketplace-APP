@@ -23,6 +23,15 @@ abstract class JewelryRepository {
     CancelToken? cancelToken,
   });
 
+  /// The pieces of [ids] (listing UUIDs, at most 50) that also match
+  /// [filters], in [ids] order. Used to keep sponsored pieces to the
+  /// screens they belong on.
+  Future<Result<List<Jewelry>, Failure>> getByIds({
+    required JewelryFilterState filters,
+    required List<String> ids,
+    CancelToken? cancelToken,
+  });
+
   /// The product page via `GET /marketplace/listings/{slug}`. Each call
   /// counts as a view, so never prefetch these in bulk.
   Future<Result<Jewelry, Failure>> getListing(

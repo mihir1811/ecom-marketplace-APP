@@ -6,6 +6,8 @@ import '../../../core/network/dio_provider.dart';
 import '../../diamonds/data/mappers/diamond_mapper.dart';
 import '../../diamonds/data/models/diamond_dto.dart';
 import '../../diamonds/domain/models/diamond.dart';
+import '../../jewelry/data/mappers/jewelry_mapper.dart';
+import '../../jewelry/data/mappers/marketplace_mapper.dart';
 import '../domain/spotlight_models.dart';
 
 final spotlightRepositoryProvider = Provider<SpotlightRepository>(
@@ -57,12 +59,50 @@ class SpotlightRepository {
       );
       final data = SpotlightJson.map(response.data?['data']);
       return [
-        for (final raw in SpotlightJson.list(data?['items']))
-          ?SpotlightItem.fromJson(raw),
+        for (final raw in SpotlightJson.list(data?['items'])) ?parseItem(raw),
       ];
     } catch (_) {
       return const [];
     }
+  }
+
+  /// One `items[]` entry of any kind; null for unknown shapes.
+  static SpotlightItem? parseItem(Object? raw) =>
+      SpotlightItem.fromJson(raw) ?? _jewelleryItem(raw);
+
+  /// FEATURED_SHOP and SPONSORED_LISTING (jewellery marketplace). Their
+  /// `shop` and `listing` are the marketplace's own shapes.
+  static SpotlightItem? _jewelleryItem(Object? raw) {
+    final j = SpotlightJson.map(raw);
+    final adId = SpotlightJson.text(j?['adId']);
+    if (j == null || adId == null) return null;
+    try {
+      switch (SpotlightJson.text(j['kind'])?.toUpperCase()) {
+        case 'FEATURED_SHOP':
+          final shopJson = SpotlightJson.map(j['shop']);
+          if (shopJson == null) return null;
+          final shop = MarketplaceMapper.shop(shopJson);
+          if (shop.slug.isEmpty) return null;
+          return SpotlightFeaturedShop(
+            adId: adId,
+            shop: shop,
+            tagline: SpotlightJson.text(j['tagline']),
+          );
+        case 'SPONSORED_LISTING':
+          final listingJson = SpotlightJson.map(j['listing']);
+          if (listingJson == null) return null;
+          final listing = MarketplaceMapper.listing(listingJson);
+          if (listing.slug.isEmpty) return null;
+          return SpotlightSponsoredListing(
+            adId: adId,
+            piece: JewelryMapper.fromListing(listing),
+            seller: SpotlightSellerRef.fromJson(j['seller']),
+          );
+      }
+    } catch (_) {
+      // A malformed item is skipped, never the whole placement.
+    }
+    return null;
   }
 
   /// Fire and forget: no retries and no errors surfaced.
@@ -105,12 +145,7 @@ class SpotlightRepository {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
         ApiEndpoints.diamondSearch,
-        data: {
-          ...body,
-          'ids': wanted,
-          'page': 1,
-          'limit': wanted.length,
-        },
+        data: {...body, 'ids': wanted, 'page': 1, 'limit': wanted.length},
         cancelToken: cancelToken,
       );
       final payload = SpotlightJson.map(response.data?['data']);
@@ -122,9 +157,7 @@ class SpotlightRepository {
         if (dto.id.isEmpty) continue;
         byId[dto.id] = DiamondMapper.toDomain(dto, isLabGrown: isLabGrown);
       }
-      return [
-        for (final id in wanted) ?byId[id],
-      ];
+      return [for (final id in wanted) ?byId[id]];
     } catch (_) {
       return const [];
     }

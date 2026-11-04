@@ -26,8 +26,13 @@ class SellerSpotlightScreen extends ConsumerWidget {
       ..invalidate(sellerSpotlightAdsProvider)
       ..invalidate(spotlightOverviewProvider);
     await Future.wait([
-      ref.read(sellerSpotlightAdsProvider.future).catchError((_) => const <SpotlightSellerAd>[]),
-      ref.read(spotlightOverviewProvider.future).then<Object?>((v) => v).catchError((_) => null),
+      ref
+          .read(sellerSpotlightAdsProvider.future)
+          .catchError((_) => const <SpotlightSellerAd>[]),
+      ref
+          .read(spotlightOverviewProvider.future)
+          .then<Object?>((v) => v)
+          .catchError((_) => null),
     ]);
   }
 
@@ -217,6 +222,10 @@ String spotlightPlacementName(SpotlightSellerAd ad) =>
       SpotlightPlacement.categoryBanner => 'Section banner',
       SpotlightPlacement.categorySponsored => 'Sponsored products',
       SpotlightPlacement.productSponsored => 'Product page products',
+      SpotlightPlacement.jewelleryHomeBanner => 'Jewellery home banner',
+      SpotlightPlacement.jewelleryFeaturedShop => 'Featured shop',
+      SpotlightPlacement.jewelleryListingSponsored => 'Sponsored pieces',
+      SpotlightPlacement.jewelleryProductSponsored => 'Product page pieces',
       null => 'Spotlight',
     };
 

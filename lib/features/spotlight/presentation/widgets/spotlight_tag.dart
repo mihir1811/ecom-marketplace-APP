@@ -38,10 +38,10 @@ class SpotlightTag extends StatelessWidget {
         child: Text(
           label,
           maxLines: 1,
-          style: LuxeType.label(blue, size: 9.5).copyWith(
-            fontWeight: FontWeight.w600,
-            height: 1.2,
-          ),
+          style: LuxeType.label(
+            blue,
+            size: 9.5,
+          ).copyWith(fontWeight: FontWeight.w600, height: 1.2),
         ),
       );
     }
@@ -62,6 +62,45 @@ class SpotlightTag extends StatelessWidget {
           label,
           maxLines: 1,
           style: LuxeType.label(fg, size: 10).copyWith(letterSpacing: 0.4),
+        ),
+      ),
+    );
+  }
+}
+
+/// Jewellery paid spots: "SPONSORED" with a sparkle, white on the ads
+/// blue. Sits on the image (top-left on cards, top-right on banners and
+/// shop cards).
+class SpotlightSponsoredPill extends StatelessWidget {
+  const SpotlightSponsoredPill({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final label = context.tr(SpotlightL10n.sponsored);
+    return Semantics(
+      label: label,
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(6, 3, 8, 3),
+        decoration: const ShapeDecoration(
+          color: SpotlightColors.blueLight,
+          shape: StadiumBorder(),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.auto_awesome, size: 10, color: Colors.white),
+            const SizedBox(width: 3),
+            Text(
+              label.toUpperCase(),
+              maxLines: 1,
+              style: LuxeType.label(Colors.white, size: 9.5).copyWith(
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.9,
+                height: 1.2,
+              ),
+            ),
+          ],
         ),
       ),
     );

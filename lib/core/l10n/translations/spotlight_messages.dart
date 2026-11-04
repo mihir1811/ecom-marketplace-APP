@@ -26,6 +26,15 @@ abstract final class SpotlightL10n {
   static const seeAll = 'spotlight.seeAll';
   static const viewAll = 'spotlight.viewAll';
   static const piecesCount = 'spotlight.piecesCount';
+  static const viewThePiece = 'spotlight.viewThePiece';
+  static const visitNamed = 'spotlight.visitNamed';
+  static const featuredShops = 'spotlight.featuredShops';
+  static const sponsoredPieces = 'spotlight.sponsoredPieces';
+  static const fromGemWorldSellers = 'spotlight.fromGemWorldSellers';
+  static const previous = 'spotlight.previous';
+  static const next = 'spotlight.next';
+  static const pause = 'spotlight.pause';
+  static const play = 'spotlight.play';
 }
 
 const spotlightMessages = <String, LocalizedMessage>{
@@ -143,5 +152,50 @@ const spotlightMessages = <String, LocalizedMessage>{
     english: '{count} pieces',
     hindi: '{count} वस्तुएँ',
     gujarati: '{count} વસ્તુઓ',
+  ),
+  SpotlightL10n.viewThePiece: LocalizedMessage(
+    english: 'View the piece',
+    hindi: 'आभूषण देखें',
+    gujarati: 'આભૂષણ જુઓ',
+  ),
+  SpotlightL10n.visitNamed: LocalizedMessage(
+    english: 'Visit {name}',
+    hindi: '{name} देखें',
+    gujarati: '{name} જુઓ',
+  ),
+  SpotlightL10n.featuredShops: LocalizedMessage(
+    english: 'Featured shops',
+    hindi: 'चुनिंदा दुकानें',
+    gujarati: 'પસંદગીની દુકાનો',
+  ),
+  SpotlightL10n.sponsoredPieces: LocalizedMessage(
+    english: 'Sponsored pieces',
+    hindi: 'प्रायोजित आभूषण',
+    gujarati: 'પ્રાયોજિત આભૂષણ',
+  ),
+  SpotlightL10n.fromGemWorldSellers: LocalizedMessage(
+    english: 'From GemWorld sellers',
+    hindi: 'GemWorld विक्रेताओं से',
+    gujarati: 'GemWorld વિક્રેતાઓ તરફથી',
+  ),
+  SpotlightL10n.previous: LocalizedMessage(
+    english: 'Previous',
+    hindi: 'पिछला',
+    gujarati: 'પાછલું',
+  ),
+  SpotlightL10n.next: LocalizedMessage(
+    english: 'Next',
+    hindi: 'अगला',
+    gujarati: 'આગળ',
+  ),
+  SpotlightL10n.pause: LocalizedMessage(
+    english: 'Pause',
+    hindi: 'रोकें',
+    gujarati: 'થોભો',
+  ),
+  SpotlightL10n.play: LocalizedMessage(
+    english: 'Play',
+    hindi: 'चलाएँ',
+    gujarati: 'ચલાવો',
   ),
 };

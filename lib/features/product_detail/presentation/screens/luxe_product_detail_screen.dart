@@ -26,6 +26,7 @@ import '../widgets/product_detail_natural_specs.dart';
 import '../widgets/product_detail_seller_panel.dart';
 import '../widgets/product_detail_suggested_products.dart';
 import '../../../spotlight/domain/spotlight_models.dart';
+import '../../../spotlight/presentation/widgets/jewellery_sponsored_pieces_row.dart';
 import '../../../spotlight/presentation/widgets/spotlight_product_row.dart';
 
 /// Luxe product detail shared by natural and lab-grown diamonds,
@@ -173,18 +174,26 @@ LuxeProductSections luxeProductSections(
           padding: const EdgeInsets.only(top: 36),
         ),
         // PRODUCT_SPONSORED for this product's section, never advertising
-        // the product on its own page.
-        SpotlightProductRow(
-          query: spotlightQuery(
-            SpotlightPlacement.productSponsored,
-            category: SpotlightCategory.fromSegment(detail.segment),
-            excludeProductId: _spotlightExcludeId(detail),
-            limit: 8,
+        // the product on its own page. Marketplace jewellery has its own
+        // placement, drawn with the normal piece cards.
+        if (detail.apiProductType == CartProductType.marketplaceJewellery)
+          JewellerySponsoredPiecesRow(
+            excludeListingId: _spotlightExcludeId(detail),
+            gutter: gutter,
+            padding: const EdgeInsets.only(top: 36),
+          )
+        else
+          SpotlightProductRow(
+            query: spotlightQuery(
+              SpotlightPlacement.productSponsored,
+              category: SpotlightCategory.fromSegment(detail.segment),
+              excludeProductId: _spotlightExcludeId(detail),
+              limit: 8,
+            ),
+            titleKey: SpotlightL10n.youMayAlsoLike,
+            gutter: gutter,
+            padding: const EdgeInsets.only(top: 36),
           ),
-          titleKey: SpotlightL10n.youMayAlsoLike,
-          gutter: gutter,
-          padding: const EdgeInsets.only(top: 36),
-        ),
       ],
     ),
     bottomBar: !auth.showProtected

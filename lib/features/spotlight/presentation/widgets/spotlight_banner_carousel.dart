@@ -248,39 +248,39 @@ class _BannerFace extends StatelessWidget {
               top: 12,
               bottom: 12,
               child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: width * (tablet ? 0.5 : 0.66),
+                constraints: BoxConstraints(
+                  maxWidth: width * (tablet ? 0.5 : 0.66),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      banner.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: LuxeType.display(
+                        tablet ? 26 : 20,
+                        Colors.white,
+                      ).copyWith(height: 1.1),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          banner.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: LuxeType.display(
-                            tablet ? 26 : 20,
-                            Colors.white,
-                          ).copyWith(height: 1.1),
+                    if (subtitle != null && subtitle.isNotEmpty) ...[
+                      const SizedBox(height: 5),
+                      Text(
+                        subtitle,
+                        maxLines: tablet ? 2 : 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: LuxeType.label(
+                          const Color(0xD9FFFFFF),
+                          size: 12.5,
                         ),
-                        if (subtitle != null && subtitle.isNotEmpty) ...[
-                          const SizedBox(height: 5),
-                          Text(
-                            subtitle,
-                            maxLines: tablet ? 2 : 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: LuxeType.label(
-                              const Color(0xD9FFFFFF),
-                              size: 12.5,
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 8),
-                        _ActionChip(label: actionLabel, onTap: onTap),
-                      ],
-                    ),
-                  ),
+                      ),
+                    ],
+                    const SizedBox(height: 8),
+                    _ActionChip(label: actionLabel, onTap: onTap),
+                  ],
+                ),
+              ),
             ),
           ],
         ),

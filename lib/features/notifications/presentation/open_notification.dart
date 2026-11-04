@@ -42,8 +42,13 @@ Future<String?> openNotification(
       }
     case NotificationInApp(:final route):
       context.switchToRoute(route);
-    case NotificationExternal(:final url):
-      await launchUrl(url, mode: LaunchMode.externalApplication);
+    case NotificationExternal(:final url, :final inApp):
+      await launchUrl(
+        url,
+        mode: inApp
+            ? LaunchMode.inAppBrowserView
+            : LaunchMode.externalApplication,
+      );
   }
   return error;
 }

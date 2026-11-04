@@ -49,7 +49,8 @@ class SpotlightRate {
     if (j == null) return null;
     final placement = SpotlightPlacement.fromApi(j['placement']);
     if (placement == null) return null;
-    final unit = SpotlightJson.text(j['unit'])?.toLowerCase().startsWith('product') ??
+    final unit =
+        SpotlightJson.text(j['unit'])?.toLowerCase().startsWith('product') ??
             placement.isSponsoredProducts
         ? SpotlightUnit.product
         : SpotlightUnit.ad;
@@ -59,10 +60,9 @@ class SpotlightRate {
       type: SpotlightJson.text(j['type']),
       label: SpotlightJson.text(j['label']) ?? placement.api,
       description: SpotlightJson.text(j['description']),
-      hasCategory:
-          j.containsKey('hasCategory')
-              ? SpotlightJson.flag(j['hasCategory'])
-              : placement.needsCategory,
+      hasCategory: j.containsKey('hasCategory')
+          ? SpotlightJson.flag(j['hasCategory'])
+          : placement.needsCategory,
       unit: unit,
       isOpen: SpotlightJson.flag(j['isOpen']),
       pricePerDay: SpotlightJson.number(j['pricePerDay']) ?? 0,

@@ -200,7 +200,8 @@ class SpotlightSellerRepository {
       final list = map == null ? data : (map['items'] ?? map['ads']);
       return [
         for (final raw in SpotlightJson.list(list))
-          if (SpotlightJson.map(raw) case final j?) SpotlightSellerAd.fromJson(j),
+          if (SpotlightJson.map(raw) case final j?)
+            SpotlightSellerAd.fromJson(j),
       ];
     },
   );
@@ -213,9 +214,8 @@ class SpotlightSellerRepository {
 
   /// Cancels an ad that hasn't started; what's left goes back to the wallet.
   Future<Result<SpotlightSellerAd, SpotlightError>> cancel(String id) => _call(
-    () => _dio.post<Map<String, dynamic>>(
-      ApiEndpoints.spotlightSellerCancel(id),
-    ),
+    () =>
+        _dio.post<Map<String, dynamic>>(ApiEndpoints.spotlightSellerCancel(id)),
     _ad,
   );
 

@@ -142,7 +142,9 @@ class SpotlightShopScreen extends ConsumerWidget {
                     ],
             ),
             SliverToBoxAdapter(
-              child: SizedBox(height: 48 + MediaQuery.paddingOf(context).bottom),
+              child: SizedBox(
+                height: 48 + MediaQuery.paddingOf(context).bottom,
+              ),
             ),
           ],
         ),

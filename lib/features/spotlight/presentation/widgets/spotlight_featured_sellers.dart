@@ -293,7 +293,11 @@ class SellerLogo extends StatelessWidget {
         color: p.surface,
         border: Border.all(color: p.surface, width: 3),
         boxShadow: const [
-          BoxShadow(color: Color(0x22000000), blurRadius: 8, offset: Offset(0, 2)),
+          BoxShadow(
+            color: Color(0x22000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
         ],
       ),
       child: ClipOval(

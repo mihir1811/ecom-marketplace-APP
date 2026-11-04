@@ -80,9 +80,7 @@ final sponsoredDiamondResultsProvider = FutureProvider.autoDispose
         adOf.putIfAbsent(ad.product.productId, () => ad.adId);
       }
       if (adOf.isEmpty) return const [];
-      final body = Map<String, dynamic>.from(
-        jsonDecode(key.bodyJson) as Map,
-      );
+      final body = Map<String, dynamic>.from(jsonDecode(key.bodyJson) as Map);
       final stones = await ref
           .read(spotlightRepositoryProvider)
           .diamondsByIds(

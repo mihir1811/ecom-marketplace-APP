@@ -22,8 +22,10 @@ import '../../domain/models/jewelry_filter_state.dart';
 import '../widgets/jewelry_filter_labels.dart';
 import '../widgets/jewelry_luxe_cards.dart';
 import '../widgets/jewelry_quick_filters.dart';
-import '../../../spotlight/domain/spotlight_models.dart';
-import '../../../spotlight/presentation/widgets/spotlight_category_block.dart';
+import '../../../spotlight/application/sponsored_jewellery_provider.dart';
+import '../../../spotlight/presentation/spotlight_navigation.dart';
+import '../../../spotlight/presentation/widgets/spotlight_impression.dart';
+import '../../domain/models/jewelry.dart';
 
 /// Jewelry results on the shared luxe listing pieces.
 ///
@@ -56,6 +58,12 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
     with LuxeListingMixin {
   final _searchController = TextEditingController();
   Timer? _searchDebounce;
+
+  /// Sponsored cards count one view per ad per visit to this screen.
+  final _spotlightVisit = SpotlightVisit();
+
+  /// Sponsored cards drawn ahead of the results (counted by the loader).
+  int _sponsoredCount = 0;
 
   @override
   void initState() {
@@ -106,7 +114,8 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
 
   @override
   int get listingItemCount =>
-      ref.read(jewelryListProvider).valueOrNull?.items.length ?? 0;
+      (ref.read(jewelryListProvider).valueOrNull?.items.length ?? 0) +
+      _sponsoredCount;
 
   @override
   LuxeViewMode get listingViewMode =>
@@ -226,10 +235,6 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
                     onSubmitted: _onSearchSubmitted,
                   ),
                 ),
-                const SpotlightCategoryBlock(
-                  category: SpotlightCategory.jewellery,
-                  topSpacing: 0,
-                ),
                 const _ShopPill(),
                 const JewelryStyleChips(),
                 const SizedBox(height: 8),
@@ -260,25 +265,70 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
     final error =
         stateAsync.whenOrNull(error: (e, _) => e.toString()) ??
         state?.errorMessage;
-    final listed = state?.items ?? const [];
+    final listed = state?.items ?? const <Jewelry>[];
+
+    // Listing ads lead the results as the screen's own cards (one row),
+    // only pieces the marketplace returns for this screen's filters. Not
+    // while the results failed; a sponsored piece may also appear later in
+    // its normal place.
+    final resultsOk =
+        listed.isNotEmpty &&
+        error == null &&
+        !(state?.isInitialLoading ?? true);
+    final key = SponsoredJewelleryKey(ref.watch(jewelryFilterProvider));
+    final sponsored = !resultsOk
+        ? const <SponsoredJewellery>[]
+        : (ref.watch(sponsoredJewelleryResultsProvider(key)).valueOrNull ??
+                  const <SponsoredJewellery>[])
+              .take(kSponsoredJewellerySlots)
+              .toList();
+    _sponsoredCount = sponsored.length;
+    final sponsoredPieces = [for (final s in sponsored) s.piece];
+    final rows = <({Jewelry piece, String? adId})>[
+      for (final s in sponsored) (piece: s.piece, adId: s.adId),
+      for (final j in listed) (piece: j, adId: null),
+    ];
+
+    Widget card(({Jewelry piece, String? adId}) row, LuxeViewMode mode) {
+      final j = row.piece;
+      final adId = row.adId;
+      if (adId == null) {
+        return mode == LuxeViewMode.grid
+            ? JewelryLuxeGridCard(
+                jewelry: j,
+                onTap: () => openJewelryDetail(context, j, among: listed),
+              )
+            : JewelryLuxeListCard(
+                jewelry: j,
+                onTap: () => openJewelryDetail(context, j, among: listed),
+              );
+      }
+      void open() => openSpotlightPiece(
+        context,
+        ref,
+        adId: adId,
+        piece: j,
+        among: sponsoredPieces,
+      );
+      return SpotlightImpression(
+        adId: adId,
+        visit: _spotlightVisit,
+        child: mode == LuxeViewMode.grid
+            ? JewelryLuxeGridCard(jewelry: j, sponsored: true, onTap: open)
+            : JewelryLuxeListCard(jewelry: j, sponsored: true, onTap: open),
+      );
+    }
+
     return luxeResultSlivers(
       context: context,
       initialLoading:
           !stateAsync.hasError && (state == null || state.isInitialLoading),
       error: error,
-      items: listed,
+      items: rows,
       isLoadingMore: state?.isLoadingMore ?? false,
       viewMode: grid ? LuxeViewMode.grid : LuxeViewMode.list,
-      idOf: (j) => j.id,
-      cardOf: (j, mode) => mode == LuxeViewMode.grid
-          ? JewelryLuxeGridCard(
-              jewelry: j,
-              onTap: () => openJewelryDetail(context, j, among: listed),
-            )
-          : JewelryLuxeListCard(
-              jewelry: j,
-              onTap: () => openJewelryDetail(context, j, among: listed),
-            ),
+      idOf: (r) => r.adId == null ? r.piece.id : 'sp-${r.piece.id}',
+      cardOf: card,
       loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),
       emptyView: LuxeStateView(
         icon: Icons.diamond_outlined,

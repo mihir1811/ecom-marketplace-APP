@@ -27,7 +27,9 @@ final List<RouteBase> spotlightRoutes = [
       final known = ProductSegment.values.any((s) => s.slug == slug);
       return known
           ? null
-          : AppRouteNames.sellerShopPath(state.pathParameters['sellerId'] ?? '');
+          : AppRouteNames.sellerShopPath(
+              state.pathParameters['sellerId'] ?? '',
+            );
     },
     builder: (context, state) {
       final slug = state.pathParameters['segment'];

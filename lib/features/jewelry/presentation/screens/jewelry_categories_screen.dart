@@ -27,8 +27,10 @@ import '../../domain/models/marketplace_enums.dart';
 import '../../domain/models/marketplace_listing.dart';
 import '../jewellery_category_images.dart';
 import '../widgets/jewelry_showcase_stage.dart';
-import '../../../spotlight/domain/spotlight_models.dart';
-import '../../../spotlight/presentation/widgets/spotlight_category_block.dart';
+import '../../../spotlight/application/spotlight_providers.dart';
+import '../../../spotlight/presentation/widgets/jewellery_banner_carousel.dart';
+import '../../../spotlight/presentation/widgets/jewellery_featured_shops.dart';
+import '../../../spotlight/presentation/widgets/spotlight_impression.dart';
 
 /// The jewelry house: the entry to the jewelry flow from Browse Collection.
 ///
@@ -49,6 +51,9 @@ class _JewelryCategoriesScreenState
   final _scroll = ScrollController();
   final _offset = ValueNotifier<double>(0);
   final _search = TextEditingController();
+
+  /// Paid spots count one view per ad per visit to this screen.
+  final _spotlightVisit = SpotlightVisit();
 
   @override
   void initState() {
@@ -108,7 +113,9 @@ class _JewelryCategoriesScreenState
               ref
                 ..invalidate(jewelleryCategoriesProvider)
                 ..invalidate(jewelryShopsProvider)
-                ..invalidate(jewelryPremiumStripProvider);
+                ..invalidate(jewelryPremiumStripProvider)
+                ..invalidate(spotlightProvider(JewelleryBannerCarousel.query))
+                ..invalidate(spotlightProvider(JewelleryFeaturedShops.query));
               await Future.wait([
                 ref
                     .read(jewelleryCategoriesProvider.future)
@@ -170,11 +177,18 @@ class _JewelryCategoriesScreenState
                   ),
                 ),
                 const SliverToBoxAdapter(child: SizedBox(height: 6)),
-                // Paid jewellery banner and Sponsored row, under the search.
-                const SliverToBoxAdapter(
-                  child: SpotlightCategoryBlock(
-                    category: SpotlightCategory.jewellery,
-                    topSpacing: 14,
+                // Paid spots under the opening stage: the shops' banners,
+                // then the Featured shops row. Each hides when none runs.
+                SliverToBoxAdapter(
+                  child: JewelleryBannerCarousel(
+                    visit: _spotlightVisit,
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: JewelleryFeaturedShops(
+                    visit: _spotlightVisit,
+                    padding: const EdgeInsets.only(top: 18, bottom: 4),
                   ),
                 ),
                 const SliverToBoxAdapter(child: _PremiumStrip()),

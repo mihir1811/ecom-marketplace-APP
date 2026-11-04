@@ -20,11 +20,13 @@ class NotificationInApp extends NotificationOpenTarget {
   final String route;
 }
 
-/// An absolute http(s) link opened outside the app.
+/// An absolute http(s) link opened outside the app, or in the in-app
+/// browser when [inApp].
 class NotificationExternal extends NotificationOpenTarget {
-  const NotificationExternal(this.url);
+  const NotificationExternal(this.url, {this.inApp = false});
 
   final Uri url;
+  final bool inApp;
 }
 
 /// Maps a notification `type` and `link` onto an existing app screen.
@@ -38,7 +40,8 @@ NotificationOpenTarget notificationOpenTarget(
   switch (data['entityType']) {
     case 'MARKETPLACE_ORDER':
       final orderId = data['orderId'] ?? '';
-      final forBuyer = notification.type != 'ORDER_RECEIVED' &&
+      final forBuyer =
+          notification.type != 'ORDER_RECEIVED' &&
           notification.type != 'ORDER_CANCELLED_BY_BUYER';
       if (forBuyer && orderId.isNotEmpty) {
         return NotificationInApp(AppRouteNames.jewelryOrderDetailPath(orderId));
@@ -153,9 +156,19 @@ NotificationOpenTarget notificationOpenTarget(
 
 /// A seller's ad push: `adId` in data, or the `/seller/spotlight/<adId>`
 /// link; the ads list when neither is there.
+///
+/// Jewellery shop ads carry the full studio address
+/// (`https://<jewellery site>/seller/advertising/<adId>`); it opens in the
+/// in-app browser, since the app books diamond-site ads only.
 NotificationOpenTarget _spotlightAd(AppNotification notification) {
-  final id =
-      (notification.data['adId'] ?? '').trim().isNotEmpty
+  final link = notification.link.trim();
+  if (link.toLowerCase().startsWith('http')) {
+    final uri = Uri.tryParse(link);
+    if (uri != null && (uri.scheme == 'https' || uri.scheme == 'http')) {
+      return NotificationExternal(uri, inApp: true);
+    }
+  }
+  final id = (notification.data['adId'] ?? '').trim().isNotEmpty
       ? notification.data['adId']!.trim()
       : _spotlightAdIdFromLink(notification.link);
   return NotificationInApp(

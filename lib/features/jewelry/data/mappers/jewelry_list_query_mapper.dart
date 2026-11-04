@@ -5,6 +5,9 @@ import '../../domain/repositories/jewelry_repository.dart';
 ///
 /// Multi-value filters are comma-separated; empty params are left out.
 abstract final class JewelryListQueryMapper {
+  /// Most listing ids one `ids=` filter takes (more is a 400).
+  static const maxIds = 50;
+
   static Map<String, dynamic> toQuery({
     required JewelryFilterState filters,
     int? page,

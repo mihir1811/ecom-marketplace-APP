@@ -14,6 +14,7 @@ import '../../../product_detail/domain/adapters/jewelry_product_detail.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../../recently_viewed/application/recently_viewed_providers.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_badge.dart';
+import '../../../spotlight/presentation/widgets/spotlight_tag.dart';
 import '../../domain/models/jewelry.dart';
 
 String _join(Iterable<String> parts) =>
@@ -70,6 +71,19 @@ Widget _price(BuildContext context, Jewelry j) => LuxePriceRow(
 /// Stock dot (sold out / made to order / in stock).
 Widget _status(Jewelry j) => AvailabilityStatusBadge(status: j.availability);
 
+/// Paid cards: the Sponsored pill above the stock dot.
+Widget _badges(Jewelry j, {required bool sponsored}) => !sponsored
+    ? _status(j)
+    : Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SpotlightSponsoredPill(),
+          const SizedBox(height: 4),
+          _status(j),
+        ],
+      );
+
 CatalogSaveButton _save(Jewelry j, {bool onLight = false}) => CatalogSaveButton(
   item: WishlistItem.fromJewelry(j),
   onAdded: () => rememberProductDetail(jewelryProductDetail(j)),
@@ -90,10 +104,14 @@ class JewelryLuxeGridCard extends ConsumerWidget {
     required this.jewelry,
     required this.onTap,
     super.key,
+    this.sponsored = false,
   });
 
   final Jewelry jewelry;
   final VoidCallback onTap;
+
+  /// Paid placement: Sponsored pill on the photo and a blue outline.
+  final bool sponsored;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -101,13 +119,14 @@ class JewelryLuxeGridCard extends ConsumerWidget {
     return LuxeProductGridCard(
       onTap: onTap,
       highlighted: ref.watch(isRecentlyViewedProvider(j.id)),
+      outlineColor: sponsored ? SpotlightColors.blueLight : null,
       media: _thumb(context, j),
       title: jewelryCardTitle(j),
       subtitle: _metal(j).isEmpty ? _category(j) : _metal(j),
       meta: _stones(j).isEmpty ? _category(j) : _stones(j),
       price: _price(context, j),
       overlays: LuxeMediaOverlays(
-        topLeft: _status(j),
+        topLeft: _badges(j, sponsored: sponsored),
         topRight: _save(j),
         bottomLeft: j.colorVariants.isEmpty
             ? null
@@ -124,10 +143,14 @@ class JewelryLuxeListCard extends ConsumerWidget {
     required this.jewelry,
     required this.onTap,
     super.key,
+    this.sponsored = false,
   });
 
   final Jewelry jewelry;
   final VoidCallback onTap;
+
+  /// Paid placement: Sponsored pill on the photo and a blue outline.
+  final bool sponsored;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -135,6 +158,8 @@ class JewelryLuxeListCard extends ConsumerWidget {
     return LuxeProductListCard(
       onTap: onTap,
       highlighted: ref.watch(isRecentlyViewedProvider(j.id)),
+      outlineColor: sponsored ? SpotlightColors.blueLight : null,
+      detailLeading: sponsored ? const SpotlightTag(pill: true) : null,
       media: _thumb(context, j),
       title: jewelryCardTitle(j),
       subtitle: _join([

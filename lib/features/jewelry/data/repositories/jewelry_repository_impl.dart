@@ -57,6 +57,40 @@ class JewelryRepositoryImpl implements JewelryRepository {
   });
 
   @override
+  Future<Result<List<Jewelry>, Failure>> getByIds({
+    required JewelryFilterState filters,
+    required List<String> ids,
+    CancelToken? cancelToken,
+  }) => _guard(() async {
+    final wanted = [
+      for (final id in ids.toSet())
+        if (id.trim().isNotEmpty) id.trim(),
+    ].take(JewelryListQueryMapper.maxIds).toList();
+    if (wanted.isEmpty) return const <Jewelry>[];
+    final response = await _dio.get<Object?>(
+      ApiEndpoints.marketplaceListings,
+      queryParameters: {
+        ...JewelryListQueryMapper.toQuery(
+          filters: filters,
+          page: 1,
+          pageSize: wanted.length,
+        ),
+        'ids': wanted.join(','),
+      },
+      cancelToken: cancelToken,
+    );
+    final parsed = MarketplaceMapper.page(
+      MarketplaceJson.data(response.data),
+      page: 1,
+    );
+    final byId = {
+      for (final l in parsed.items)
+        if (l.slug.isNotEmpty) l.id: JewelryMapper.fromListing(l),
+    };
+    return [for (final id in wanted) ?byId[id]];
+  });
+
+  @override
   Future<Result<Jewelry, Failure>> getListing(
     String slug, {
     CancelToken? cancelToken,
