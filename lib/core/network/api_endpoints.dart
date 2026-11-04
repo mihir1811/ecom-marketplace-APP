@@ -67,6 +67,20 @@ abstract final class ApiEndpoints {
   /// Paid orders holding the signed-in jewellery shop's pieces.
   static const String marketplaceSellerOrders = '/marketplace/seller/orders';
 
+  /// Jewellery reviews: buyers write and edit; lists are public; the shop
+  /// sees all (hidden too) and replies.
+  static const String marketplaceReviews = '/marketplace/reviews';
+  static String marketplaceReview(String id) => '/marketplace/reviews/$id';
+  static String marketplaceListingReviews(String slug) =>
+      '/marketplace/listings/${Uri.encodeComponent(slug)}/reviews';
+  static String marketplaceShopReviews(String slug) =>
+      '/marketplace/shops/${Uri.encodeComponent(slug)}/reviews';
+  static const String marketplaceSellerReviews = '/marketplace/seller/reviews';
+  static String marketplaceSellerReviewReply(String id) =>
+      '/marketplace/seller/reviews/$id/reply';
+  static const String marketplaceSellerDashboard =
+      '/marketplace/seller/dashboard';
+
   static const String watchAll = '/watch/all';
   static String watchById(String id) => '/watch/$id';
 

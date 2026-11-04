@@ -200,6 +200,8 @@ ProductJewelryDetail _jewelryDetail(Jewelry j, MarketplaceListing? l) {
     ],
     coverImageUrl: l.coverImageUrl,
     isFullRecord: l.isFullRecord,
+    ratingAverage: l.ratingAverage,
+    ratingCount: l.ratingCount,
   );
 }
 

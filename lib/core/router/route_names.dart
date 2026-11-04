@@ -65,6 +65,19 @@ class AppRouteNames {
       ? jewelryShopOrders
       : '$jewelryShopOrders?o=${Uri.encodeQueryComponent(openOrderId)}';
 
+  /// A jewellery shop's reviews (seller studio); [reviewId] scrolls to one
+  /// (review push), [show] opens a filter (`unanswered`, `hidden`).
+  static const String jewelryShopReviews = '/jewelry/shop/reviews';
+  static String jewelryShopReviewsPath({String? reviewId, String? show}) {
+    final query = {
+      if (reviewId != null && reviewId.isNotEmpty) 'r': reviewId,
+      if (show != null && show.isNotEmpty) 'show': show,
+    };
+    return query.isEmpty
+        ? jewelryShopReviews
+        : Uri(path: jewelryShopReviews, queryParameters: query).toString();
+  }
+
   /// Shared product detail page used by every catalog segment.
   static const String productDetail = '/product/:segment/:productId';
   static String productDetailPath(String segment, String productId) =>

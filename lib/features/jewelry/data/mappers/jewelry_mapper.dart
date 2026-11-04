@@ -56,6 +56,8 @@ abstract final class JewelryMapper {
       totalWeightG: d.grossWeightGrams,
       shopName: l.shop?.name,
       listing: l,
+      rating: l.ratingCount > 0 ? l.ratingAverage : null,
+      reviewCount: l.ratingCount,
     );
   }
 

@@ -14,6 +14,7 @@ import '../../../product_detail/domain/adapters/jewelry_product_detail.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../../recently_viewed/application/recently_viewed_providers.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_badge.dart';
+import '../../../jewelry_reviews/presentation/widgets/jewelry_review_stars.dart';
 import '../../../spotlight/presentation/widgets/spotlight_tag.dart';
 import '../../domain/models/jewelry.dart';
 
@@ -67,6 +68,11 @@ Widget _price(BuildContext context, Jewelry j) => LuxePriceRow(
   currencySymbol: j.isMarketplace ? AppCurrency.inrSymbol : null,
   prefix: j.hasPriceRange ? context.tr(JewelryMarketL10n.from) : null,
 );
+
+/// "★ 4.7 (12)" from the listing record; null without reviews.
+Widget? _stars(Jewelry j) => j.rating == null || (j.reviewCount ?? 0) <= 0
+    ? null
+    : JewelryRatingChip(average: j.rating, count: j.reviewCount ?? 0);
 
 /// Stock dot (sold out / made to order / in stock).
 Widget _status(Jewelry j) => AvailabilityStatusBadge(status: j.availability);
@@ -124,6 +130,7 @@ class JewelryLuxeGridCard extends ConsumerWidget {
       title: jewelryCardTitle(j),
       subtitle: _metal(j).isEmpty ? _category(j) : _metal(j),
       meta: _stones(j).isEmpty ? _category(j) : _stones(j),
+      metaLeading: _stars(j),
       price: _price(context, j),
       overlays: LuxeMediaOverlays(
         topLeft: _badges(j, sponsored: sponsored),
@@ -159,7 +166,7 @@ class JewelryLuxeListCard extends ConsumerWidget {
       onTap: onTap,
       highlighted: ref.watch(isRecentlyViewedProvider(j.id)),
       outlineColor: sponsored ? SpotlightColors.blueLight : null,
-      detailLeading: sponsored ? const SpotlightTag(pill: true) : null,
+      detailLeading: sponsored ? const SpotlightTag(pill: true) : _stars(j),
       media: _thumb(context, j),
       title: jewelryCardTitle(j),
       subtitle: _join([

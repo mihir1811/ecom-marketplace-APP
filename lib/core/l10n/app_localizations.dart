@@ -16,6 +16,7 @@ import 'translations/catalog_flow_messages.dart';
 import 'translations/jewelry_education_messages.dart';
 import 'translations/jewelry_flow_messages.dart';
 import 'translations/jewelry_market_messages.dart';
+import 'translations/jewelry_review_messages.dart';
 import 'translations/home_messages.dart';
 import 'translations/navigation_messages.dart';
 import 'translations/remaining_messages.dart';
@@ -34,6 +35,7 @@ export 'translations/catalog_flow_messages.dart';
 export 'translations/jewelry_education_messages.dart';
 export 'translations/jewelry_flow_messages.dart';
 export 'translations/jewelry_market_messages.dart';
+export 'translations/jewelry_review_messages.dart';
 export 'translations/home_messages.dart';
 export 'translations/navigation_messages.dart';
 export 'translations/remaining_messages.dart';
@@ -71,6 +73,7 @@ class AppLocalizations {
     ...catalogFlowMessages,
     ...jewelryFlowMessages,
     ...jewelryMarketMessages,
+    ...jewelryReviewMessages,
     ...experienceMessages,
     ...navigationMessages,
     ...educationMessages,

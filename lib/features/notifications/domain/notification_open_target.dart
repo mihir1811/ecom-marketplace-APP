@@ -48,6 +48,20 @@ NotificationOpenTarget notificationOpenTarget(
       }
       // Shop orders are managed in the seller studio on the website.
       return _fromLink(notification.link, isSeller: isSeller);
+    case 'MARKETPLACE_REVIEW':
+      // New review → the shop's review list at that review; the shop's
+      // first reply → the buyer's order, where the review sits.
+      final reviewId = data['reviewId'] ?? '';
+      final orderId = data['orderId'] ?? '';
+      if (notification.type == 'MARKETPLACE_REVIEW_RECEIVED') {
+        return NotificationInApp(
+          AppRouteNames.jewelryShopReviewsPath(reviewId: reviewId),
+        );
+      }
+      if (orderId.isNotEmpty) {
+        return NotificationInApp(AppRouteNames.jewelryOrderDetailPath(orderId));
+      }
+      return _fromLink(notification.link, isSeller: isSeller);
     case 'MARKETPLACE_CHAT':
       // Shop messages live on jewelry.gemworld.in for now.
       return _fromLink(notification.link, isSeller: isSeller);

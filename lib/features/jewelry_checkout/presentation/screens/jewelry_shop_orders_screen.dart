@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/l10n/app_localizations.dart';
@@ -7,8 +8,12 @@ import '../../../../core/theme/luxe_scope.dart';
 import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/app_scaffold.dart';
+import '../../../../core/widgets/luxe/luxe_button.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
+import '../../../../core/router/route_names.dart';
+import '../../../jewelry_reviews/application/jewelry_review_providers.dart';
+import '../../../jewelry_reviews/presentation/widgets/jewelry_review_stars.dart';
 import '../../application/jewelry_orders_provider.dart';
 import '../../domain/models/marketplace_order.dart';
 import '../../domain/models/shop_order.dart';
@@ -36,7 +41,24 @@ class JewelryShopOrdersScreen extends ConsumerWidget {
     final wanted = openOrderId?.trim().toLowerCase();
     return AppScaffold(
       backgroundColor: p.canvas,
-      appBar: LuxeTopBar(title: context.tr(JewelryMarketL10n.shopOrdersTitle)),
+      appBar: LuxeTopBar(
+        title: context.tr(JewelryMarketL10n.shopOrdersTitle),
+        actions: [
+          LuxeIconButton(
+            icon: Icons.reviews_outlined,
+            tooltip: context.tr(JewelryReviewL10n.title),
+            badge: ref
+                .watch(jewelrySellerReviewStatsProvider)
+                .valueOrNull
+                ?.unanswered,
+            onPressed: () => context.push(
+              AppRouteNames.jewelryShopReviewsPath(
+                show: 'unanswered',
+              ),
+            ),
+          ),
+        ],
+      ),
       body: orders.when(
         skipLoadingOnRefresh: true,
         loading: () => ListView(
@@ -401,6 +423,14 @@ class _ItemRow extends StatelessWidget {
                     size: 12,
                   ),
                 ),
+                if (i.review case final review?)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 3),
+                    child: JewelryStars(
+                      rating: review.rating.toDouble(),
+                      size: 13,
+                    ),
+                  ),
               ],
             ),
           ),

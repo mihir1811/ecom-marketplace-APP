@@ -5,6 +5,7 @@ import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/widgets/luxe/press_tilt.dart';
 import '../../domain/models/marketplace_listing.dart';
+import '../../../jewelry_reviews/presentation/widgets/jewelry_review_stars.dart';
 
 /// Ordering and grouping helpers for jewelry houses (marketplace shops).
 abstract final class JewelryHouses {
@@ -108,6 +109,16 @@ class JewelryHouseRow extends StatelessWidget {
                   const SizedBox(height: 5),
                   Row(
                     children: [
+                      if (house.ratingCount > 0 &&
+                          house.ratingAverage != null) ...[
+                        JewelryRatingChip(
+                          average: house.ratingAverage,
+                          count: house.ratingCount,
+                          color: LuxeStage.ink,
+                          mutedColor: LuxeStage.inkMuted,
+                        ),
+                        const SizedBox(width: 8),
+                      ],
                       Text(
                         context.tr(JewelryMarketL10n.shopPieces, {
                           'count': house.listingCount ?? 0,

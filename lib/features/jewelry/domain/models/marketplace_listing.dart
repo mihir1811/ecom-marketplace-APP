@@ -72,7 +72,13 @@ class MarketplaceShop {
     this.listings = const [],
     this.isVerified = false,
     this.location,
+    this.ratingAverage,
+    this.ratingCount = 0,
   });
+
+  /// Average stars of visible reviews; null with none.
+  final double? ratingAverage;
+  final int ratingCount;
 
   final String id;
   final String name;
@@ -277,7 +283,13 @@ class MarketplaceListing {
     this.publishedAt,
     this.isFullRecord = false,
     this.taxLabels = const [],
+    this.ratingAverage,
+    this.ratingCount = 0,
   });
+
+  /// Average stars of visible reviews; null with none.
+  final double? ratingAverage;
+  final int ratingCount;
 
   final String id;
   final String slug;

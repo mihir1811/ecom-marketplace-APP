@@ -20,6 +20,7 @@ import '../../../product_detail/domain/adapters/jewelry_product_detail.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../domain/models/jewelry.dart';
 import '../../../../core/utils/app_currency.dart';
+import '../../../jewelry_reviews/presentation/widgets/jewelry_review_stars.dart';
 
 Color jewelryMetalSwatch(String label) => AppSwatches.jewelryMetal(label);
 
@@ -364,14 +365,14 @@ class JewelryProductCard extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  if (item.rating != null) ...[
+                  if (item.rating != null && (item.reviewCount ?? 0) > 0) ...[
                     const SizedBox(height: AppSpacing.s8),
                     Row(
                       children: [
                         Icon(Icons.star, size: 14, color: AppColors.bronze),
                         const SizedBox(width: 4),
                         Text(
-                          '${item.rating}',
+                          jewelryAverageLabel(item.rating!),
                           style: AppTypography.caption.copyWith(
                             fontWeight: FontWeight.w600,
                             color: text,

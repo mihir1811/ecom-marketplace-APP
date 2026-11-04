@@ -15,6 +15,9 @@ import '../../../product_detail/presentation/widgets/luxe/luxe_detail_parts.dart
 import '../../application/jewelry_catalogue_providers.dart';
 import '../../application/jewelry_house_providers.dart';
 import '../../domain/models/marketplace_listing.dart';
+import '../../../jewelry_reviews/data/jewelry_review_repository.dart';
+import '../../../jewelry_reviews/presentation/widgets/jewelry_review_stars.dart';
+import '../../../jewelry_reviews/presentation/widgets/jewelry_reviews_section.dart';
 import '../widgets/jewelry_house_collections.dart';
 import '../widgets/jewelry_house_parts.dart';
 
@@ -131,6 +134,14 @@ class _JewelryHouseScreenState extends ConsumerState<JewelryHouseScreen> {
                   ),
                   SliverToBoxAdapter(child: _About(house: house)),
                   SliverToBoxAdapter(child: _Policies(house: house)),
+                  SliverToBoxAdapter(
+                    child: JewelryReviewsSection(
+                      source: JewelryReviewSource.shop,
+                      slug: widget.slug,
+                      shopName: house.name,
+                      padding: const EdgeInsets.fromLTRB(12, 18, 12, 0),
+                    ),
+                  ),
                 ],
                 SliverToBoxAdapter(
                   child: SizedBox(
@@ -249,6 +260,15 @@ class _Hero extends StatelessWidget {
                     spacing: 6,
                     runSpacing: 6,
                     children: [
+                      if (details != null &&
+                          details.ratingCount > 0 &&
+                          details.ratingAverage != null)
+                        _StatPill(
+                          icon: Icons.star_rounded,
+                          label:
+                              '${jewelryAverageLabel(details.ratingAverage!)}'
+                              ' · ${jewelryReviewCount(context, details.ratingCount)}',
+                        ),
                       if (pieces != null)
                         _StatPill(
                           icon: Icons.diamond_outlined,

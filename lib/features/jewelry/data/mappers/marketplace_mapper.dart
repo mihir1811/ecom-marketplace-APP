@@ -52,6 +52,8 @@ abstract final class MarketplaceMapper {
     isVerified: j['isVerified'] == true,
     location:
         _J.text(j['location']) ?? _J.text(_J.obj(j['policies'])['location']),
+    ratingAverage: _J.decimal(j['ratingAverage']),
+    ratingCount: _J.asInt(j['ratingCount']),
   );
 
   static MarketplaceListing listing(Map<String, dynamic> j) {
@@ -104,6 +106,8 @@ abstract final class MarketplaceMapper {
         for (final t in _J.listOf(j['taxes'], (t) => t))
           ?(_J.text(t['label']) ?? _J.text(t['name'])),
       ],
+      ratingAverage: _J.decimal(j['ratingAverage']),
+      ratingCount: _J.asInt(j['ratingCount']),
     );
   }
 

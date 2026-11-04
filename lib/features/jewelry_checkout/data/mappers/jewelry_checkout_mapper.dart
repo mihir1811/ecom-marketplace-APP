@@ -1,4 +1,5 @@
 import '../../../jewelry/data/mappers/marketplace_json.dart';
+import '../../../jewelry_reviews/data/jewelry_review_mapper.dart';
 import '../../domain/models/marketplace_charge.dart';
 import '../../domain/models/marketplace_invoice.dart';
 import '../../domain/models/marketplace_order.dart';
@@ -173,6 +174,8 @@ abstract final class JewelryCheckoutMapper {
         refundedAt: _J.date(j['refundedAt']),
         taxes: taxesOf(j),
         taxAmount: _J.money(j['taxAmount']),
+        review: JewelryReviewMapper.ownOrNull(j['review']),
+        canReview: j['canReview'] == true,
       );
 
   static MarketplaceShipment _shipment(Map<String, dynamic> j) =>

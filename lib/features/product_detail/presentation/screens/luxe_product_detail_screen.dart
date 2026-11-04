@@ -13,6 +13,9 @@ import '../../../buyer/presentation/widgets/wishlist_toggle_button.dart';
 import '../../../cart/domain/models/cart_product_type.dart';
 import '../../../chat/presentation/open_product_seller_chat.dart';
 import '../../../jewelry/application/jewelry_catalogue_providers.dart';
+import '../../../jewelry_reviews/data/jewelry_review_repository.dart';
+import '../../../jewelry_reviews/presentation/widgets/jewelry_review_stars.dart';
+import '../../../jewelry_reviews/presentation/widgets/jewelry_reviews_section.dart';
 import '../../../product_share/presentation/widgets/product_share_sheet.dart';
 import '../../../recently_viewed/application/recently_viewed_providers.dart';
 import '../../domain/adapters/jewelry_product_detail.dart';
@@ -335,6 +338,27 @@ class _Summary extends StatelessWidget {
           Text(detail.subtitle, style: LuxeType.body(p.inkMuted, size: 15)),
           2,
         ),
+        if (detail.jewelryDetail case final j?
+            when j.ratingCount > 0 && j.ratingAverage != null) ...[
+          const SizedBox(height: 6),
+          enter(
+            Row(
+              children: [
+                JewelryStars(rating: j.ratingAverage!, size: 16),
+                const SizedBox(width: 6),
+                Text(
+                  jewelryAverageLabel(j.ratingAverage!),
+                  style: LuxeType.label(p.ink, size: 13),
+                ),
+                Text(
+                  ' · ${jewelryReviewCount(context, j.ratingCount)}',
+                  style: LuxeType.body(p.inkMuted, size: 13),
+                ),
+              ],
+            ),
+            2,
+          ),
+        ],
         if (detail.badges.isNotEmpty) ...[
           const SizedBox(height: 10),
           enter(
@@ -423,6 +447,12 @@ class _Record extends StatelessWidget {
         if (detail.jewelryDetail != null) ...[
           const SizedBox(height: 20),
           ScrollReveal(child: LuxeJewelryRecord(detail: detail)),
+          JewelryReviewsSection(
+            source: JewelryReviewSource.listing,
+            slug: detail.jewelryDetail!.slug,
+            shopName: detail.jewelryDetail!.shop?.name ?? '',
+            padding: const EdgeInsets.only(top: 18),
+          ),
         ] else if (specs != null && specs.tabs.isNotEmpty) ...[
           const SizedBox(height: 20),
           ScrollReveal(child: LuxeSpecTabs(specs: specs)),

@@ -18,6 +18,8 @@ import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/luxe/luxe_button.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
+import '../../../jewelry_reviews/application/jewelry_review_providers.dart';
+import '../../../jewelry_reviews/presentation/widgets/jewelry_order_review_block.dart';
 import '../../application/jewelry_checkout_controller.dart';
 import '../../application/jewelry_orders_provider.dart';
 import '../../data/repositories/jewelry_checkout_repository_impl.dart';
@@ -95,7 +97,17 @@ class JewelryOrderDetailScreen extends ConsumerWidget {
               ),
         data: (order) => RefreshIndicator(
           color: p.accent,
-          onRefresh: () => ref.refresh(jewelryOrderProvider(orderId).future),
+          onRefresh: () {
+            // The fresh order carries the latest reviews.
+            final overrides = ref.read(
+              jewelryOwnReviewOverridesProvider.notifier,
+            );
+            overrides.state = {
+              for (final e in overrides.state.entries)
+                if (!order.items.any((i) => i.id == e.key)) e.key: e.value,
+            };
+            return ref.refresh(jewelryOrderProvider(orderId).future);
+          },
           child: ListView(
             padding: const EdgeInsets.fromLTRB(12, 6, 12, 20),
             children: [
@@ -607,6 +619,7 @@ class _ItemCard extends ConsumerWidget {
               ],
             ),
           ],
+          JewelryOrderReviewBlock(orderId: order.id, item: i),
         ],
       ),
     );

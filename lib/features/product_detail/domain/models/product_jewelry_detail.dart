@@ -43,7 +43,13 @@ class ProductJewelryDetail {
     this.coverImageUrl,
     this.isFullRecord = false,
     this.taxLabels = const [],
+    this.ratingAverage,
+    this.ratingCount = 0,
   });
+
+  /// Average stars of visible reviews; null with none.
+  final double? ratingAverage;
+  final int ratingCount;
 
   /// Taxes added at checkout ("GST (3%)"); empty when none.
   final List<String> taxLabels;

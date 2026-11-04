@@ -11,6 +11,7 @@ import 'presentation/screens/jewelry_order_detail_screen.dart';
 import 'presentation/screens/jewelry_invoice_screen.dart';
 import 'presentation/screens/jewelry_orders_screen.dart';
 import 'presentation/screens/jewelry_shop_orders_screen.dart';
+import '../jewelry_reviews/presentation/screens/jewelry_seller_reviews_screen.dart';
 
 /// Sends guests to sign in: the bag, checkout and orders are for signed-in
 /// buyers only.
@@ -66,5 +67,14 @@ final List<RouteBase> jewelryCheckoutRoutes = [
     redirect: _signedInOnly,
     builder: (context, state) =>
         JewelryShopOrdersScreen(openOrderId: state.uri.queryParameters['o']),
+  ),
+  // Seller studio → reviews; `r` is the review a push points at.
+  GoRoute(
+    path: AppRouteNames.jewelryShopReviews,
+    redirect: _signedInOnly,
+    builder: (context, state) => JewelrySellerReviewsScreen(
+      focusReviewId: state.uri.queryParameters['r'],
+      initialShow: state.uri.queryParameters['show'],
+    ),
   ),
 ];

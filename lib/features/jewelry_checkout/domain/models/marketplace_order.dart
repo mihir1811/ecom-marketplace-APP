@@ -1,3 +1,4 @@
+import '../../../jewelry_reviews/domain/models/jewelry_review.dart';
 import 'marketplace_charge.dart';
 
 /// Delivery address for a marketplace order. [country] is a 2-letter ISO
@@ -220,6 +221,8 @@ class MarketplaceOrderItem {
     this.refundedAt,
     this.taxes = const [],
     this.taxAmount = 0,
+    this.review,
+    this.canReview = false,
   });
 
   final String id;
@@ -250,6 +253,12 @@ class MarketplaceOrderItem {
 
   /// What the buyer paid for this piece, tax included.
   double get paidTotal => lineTotal + taxAmount;
+
+  /// The buyer's review of this line (on the seller's list: the buyer's).
+  final JewelryOwnReview? review;
+
+  /// Delivered on a paid order and not reviewed yet.
+  final bool canReview;
 }
 
 class MarketplaceShipment {
