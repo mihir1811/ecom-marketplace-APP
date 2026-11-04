@@ -7,6 +7,24 @@
             <certificates src="system" />
         </trust-anchors>
     </base-config>
+    <!-- API: chain must include one of Let's Encrypt's ISRG roots (SPKI
+         SHA-256). Same roots and expiry as lib/core/network/certificate_pins.dart
+         (Dart networking does not read this file). After the expiration date
+         Android stops enforcing the pins (fail-open). Rotation steps are in
+         certificate_pins.dart. -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="false">api.gemworld.in</domain>
+        <pin-set expiration="2028-06-30">
+            <!-- ISRG Root X1 (RSA, 2035) -->
+            <pin digest="SHA-256">C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=</pin>
+            <!-- ISRG Root X2 (ECDSA, 2040) -->
+            <pin digest="SHA-256">diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=</pin>
+            <!-- ISRG Root YE (ECDSA, 2045), today's chain: YE2 -> Root YE -->
+            <pin digest="SHA-256">sCkq5UWXjg+7mKu9lMhhYF5bGLsy7VI/UNW3tccdR7w=</pin>
+            <!-- ISRG Root YR (RSA, 2045) -->
+            <pin digest="SHA-256">fk6IOKit1ild5647BH06ujSIq5XbCgqlbYl6ANhhi88=</pin>
+        </pin-set>
+    </domain-config>
     <!-- Socket.IO only: api.gemworld.in's nginx does not forward WebSocket
          upgrades yet (see ApiConfig.socketBaseUrl). Remove this block once it
          does. -->

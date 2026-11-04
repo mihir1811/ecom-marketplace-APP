@@ -29,6 +29,16 @@ try {
     flutter build apk @common @args
   }
   $code = $LASTEXITCODE
-  if ($code -eq 0) { Write-Host "Debug symbols: $symbols (keep these for crash symbolication)" }
+  if ($code -eq 0) {
+    Write-Host "Debug symbols: $symbols (keep these for crash symbolication)"
+    # Crashlytics needs the Dart symbols to show readable stacks for obfuscated
+    # builds (Firebase CLI: npm i -g firebase-tools; firebase login). The R8
+    # mapping file is uploaded by the Crashlytics Gradle plugin during the build.
+    if (Get-Command firebase -ErrorAction SilentlyContinue) {
+      firebase crashlytics:symbols:upload --app=1:1033527417367:android:283b66ae3fdd8ed21b5a52 $symbols
+    } else {
+      Write-Warning "Firebase CLI not found: upload $symbols to Crashlytics manually."
+    }
+  }
   exit $code
 } finally { Pop-Location }

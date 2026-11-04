@@ -10,6 +10,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../theme/luxe_tokens.dart';
 import '../../luxe/luxe_spring.dart';
 import 'app_bottom_nav_destinations.dart';
+import '../../../device/device_tier.dart';
 
 /// Floating bottom navigation dock for the buyer side.
 ///
@@ -859,8 +860,14 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
                 _layer(
                   ClipPath(
                     clipper: _GlassClipper(this),
-                    child: BackdropFilter(
-                      filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                    // Budget phones / battery saver: same tint, no blur.
+                    child: ValueListenableBuilder<bool>(
+                      valueListenable: DeviceTier.reduceEffects,
+                      builder: (context, reduce, tint) => BackdropFilter(
+                        enabled: !reduce,
+                        filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                        child: tint,
+                      ),
                       child: ColoredBox(
                         color: p.surface.withValues(
                           alpha: p.isDark ? 0.12 : 0.18,

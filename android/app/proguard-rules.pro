@@ -21,3 +21,7 @@
     public static int d(...);
     public static int i(...);
 }
+
+# Crashlytics: keep file/line info and custom exception names readable.
+-keepattributes SourceFile,LineNumberTable
+-keep public class * extends java.lang.Exception

@@ -12,6 +12,7 @@ import 'luxe_feedback.dart';
 import 'luxe_layout.dart';
 import 'luxe_product_card.dart';
 import 'product_card_anchor.dart';
+import '../../device/device_tier.dart';
 
 /// Pinned, frosted sliver header used by finder indexes and result toolbars.
 class LuxePinnedBar extends StatelessWidget {
@@ -64,8 +65,14 @@ class _PinnedBarDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlaps) {
     return ClipRect(
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+      // Budget phones / battery saver: same tint, no blur.
+      child: ValueListenableBuilder<bool>(
+        valueListenable: DeviceTier.reduceEffects,
+        builder: (context, reduce, bar) => BackdropFilter(
+          enabled: !reduce,
+          filter: ui.ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          child: bar,
+        ),
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: background.withValues(alpha: 0.9),

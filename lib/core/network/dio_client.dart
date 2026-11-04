@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import '../auth/auth_token_store.dart';
 import 'api_config.dart';
 import 'auth_interceptor.dart';
+import 'pinned_adapter_stub.dart' if (dart.library.io) 'pinned_adapter_io.dart';
 import 'retry_interceptor.dart';
 
 /// Builds the shared [Dio] instance used by feature repositories.
@@ -24,6 +25,11 @@ abstract final class DioClient {
         responseType: ResponseType.json,
       ),
     );
+
+    // Release/profile: the API host must chain to a pinned Let's Encrypt
+    // root (see CertificatePins); other hosts use normal system trust.
+    final pinned = createPinnedAdapter();
+    if (pinned != null) dio.httpClientAdapter = pinned;
 
     // Release builds talk to the API over HTTPS only. dart:io does not apply
     // Android's network security config, so enforce it here as well.

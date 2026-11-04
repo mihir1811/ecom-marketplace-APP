@@ -1,23 +1,31 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app.dart';
+import 'core/firebase/crash_reporting.dart';
 import 'core/deep_links/order_links.dart';
 import 'core/l10n/app_localizations.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/theme_preference_provider.dart';
 import 'features/notifications/application/push_messaging_service.dart';
 import 'features/product_detail/presentation/transition/product_sheet_launch.dart';
+import 'core/device/device_tier.dart';
 
 void main() {
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
+      // Budget phones / battery saver skip backdrop blurs (DeviceTier).
+      DeviceTier.init();
       // Lets product detail grow out of whichever card was tapped.
       ProductTapTracker.attach();
       // WhatsApp order links tapped while the app runs (before the router).
       OrderLinks.attach();
       await PushMessagingService.initializeFirebase();
+      await CrashReporting.init(
+        firebaseReady: PushMessagingService.isSupported,
+      );
       // Restore the palette before the first frame so it never flashes.
       final palette = await PalettePreference.load();
 
@@ -63,12 +71,15 @@ void main() {
       };
 
       FlutterError.onError = (FlutterErrorDetails details) {
-        // In production, report to crash reporting (e.g. Sentry/Firebase Crashlytics)
-        FlutterError.presentError(details);
+        if (kDebugMode) FlutterError.presentError(details);
+        CrashReporting.recordFlutterError(details);
       };
 
       runApp(
         ProviderScope(
+          // Riverpod 3 retries failing providers automatically; this app
+          // shows its own error/retry UI, so keep Riverpod 2 behaviour.
+          retry: (_, _) => null,
           overrides: [
             palettePreferenceProvider.overrideWith(
               (ref) => PalettePreference(palette.palette, palette.lastLight),
@@ -79,7 +90,9 @@ void main() {
       );
     },
     (Object error, StackTrace stack) {
-      // Catch-all for async zones/isolates exceptions
+      // Uncaught async errors: logged in debug, reported in release.
+      if (kDebugMode) debugPrint('Uncaught: $error\n$stack');
+      CrashReporting.recordError(error, stack, reason: 'uncaught async');
     },
   );
 }
