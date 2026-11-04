@@ -63,15 +63,15 @@ abstract final class HomeContent {
 
   /// Shapes offered in the diamond atelier carousel.
   static const shapes = <({String name, String image})>[
-    (name: 'Round', image: 'public/images/round.png'),
-    (name: 'Oval', image: 'public/images/Oval.png'),
-    (name: 'Cushion', image: 'public/images/Cushion.png'),
-    (name: 'Emerald', image: 'public/images/Emerald.png'),
-    (name: 'Pear', image: 'public/images/Pear.png'),
-    (name: 'Princess', image: 'public/images/princess.png'),
-    (name: 'Radiant', image: 'public/images/Radiant.png'),
-    (name: 'Marquise', image: 'public/images/Marquise.png'),
-    (name: 'Heart', image: 'public/images/Heart.png'),
-    (name: 'Asscher', image: 'public/images/Asscher.png'),
+    (name: 'Round', image: 'public/images/round.webp'),
+    (name: 'Oval', image: 'public/images/Oval.webp'),
+    (name: 'Cushion', image: 'public/images/Cushion.webp'),
+    (name: 'Emerald', image: 'public/images/Emerald.webp'),
+    (name: 'Pear', image: 'public/images/Pear.webp'),
+    (name: 'Princess', image: 'public/images/princess.webp'),
+    (name: 'Radiant', image: 'public/images/Radiant.webp'),
+    (name: 'Marquise', image: 'public/images/Marquise.webp'),
+    (name: 'Heart', image: 'public/images/Heart.webp'),
+    (name: 'Asscher', image: 'public/images/Asscher.webp'),
   ];
 }

@@ -7,7 +7,7 @@ String? gemstoneImagePath(String name) {
   // Filenames in public/images/gemstones/ that differ from the display name.
   const aliases = {"Tiger's Eye": 'Tiger Eye'};
   final fileName = aliases[name] ?? name;
-  return 'public/images/gemstones/$fileName.png';
+  return 'public/images/gemstones/$fileName.webp';
 }
 
 /// Representative display hue used when the image asset is missing.
