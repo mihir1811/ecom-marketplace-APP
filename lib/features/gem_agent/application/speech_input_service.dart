@@ -52,7 +52,7 @@ class SpeechInputService {
         onError: _handleError,
       );
     } catch (error) {
-      debugPrint('Gem Agent speech init failed: $error');
+      if (kDebugMode) debugPrint('Gem Agent speech init failed: $error');
       _ready = false;
     }
     return _ready;
@@ -115,7 +115,7 @@ class SpeechInputService {
         ),
       );
     } catch (error) {
-      debugPrint('Gem Agent speech listen failed: $error');
+      if (kDebugMode) debugPrint('Gem Agent speech listen failed: $error');
       final report = _onError;
       _clear();
       report?.call(SpeechFailure.busy);
@@ -143,7 +143,7 @@ class SpeechInputService {
   }
 
   void _handleError(SpeechRecognitionError error) {
-    debugPrint('Gem Agent speech error: ${error.errorMsg}');
+    if (kDebugMode) debugPrint('Gem Agent speech error: ${error.errorMsg}');
     _onError?.call(classify(error.errorMsg));
   }
 

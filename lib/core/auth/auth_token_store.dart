@@ -178,12 +178,21 @@ class SecureAuthTokenStore implements AuthTokenStore {
     await UserLocalDataCleaner.clearUserScopedPrefs();
   }
 
-  Future<void> _ensureHydrated() async {
-    if (_hydrated) return;
-    _hydrated = true;
+  /// In-flight first read of the persisted session. Concurrent callers wait
+  /// for the same read, so an early request never goes out without a token
+  /// that is in fact stored.
+  Future<void>? _hydration;
 
+  Future<void> _ensureHydrated() {
+    if (_hydrated) return Future<void>.value();
+    return _hydration ??= _hydrate();
+  }
+
+  Future<void> _hydrate() async {
     final fromSecure = await _readSecureMap();
     final fromPrefs = await _readPrefsMap();
+    // A save/clear while reading wins over what was on disk.
+    if (_hydrated) return;
     final source = _pickSource(fromSecure, fromPrefs);
 
     _cachedAccessToken = source[_accessToken];
@@ -195,6 +204,50 @@ class SecureAuthTokenStore implements AuthTokenStore {
     _cachedIsVerified = verifiedRaw == null ? null : verifiedRaw == 'true';
     _cachedSellerSnapshot = source[_sellerSnapshot];
     _cachedRememberDevice = source[_rememberDevice] == 'true';
+    _hydrated = true;
+
+    if (!kIsWeb) await _migrateLegacyPrefs(fromSecure, fromPrefs);
+  }
+
+  /// Older builds mirrored the session (token, seller KYC snapshot) into
+  /// plain SharedPreferences. Move anything only found there into secure
+  /// storage once, then delete every plain copy.
+  Future<void> _migrateLegacyPrefs(
+    Map<String, String?> secure,
+    Map<String, String?> prefs,
+  ) async {
+    if (prefs.values.every((v) => v == null)) return;
+    final token = _cachedAccessToken;
+    final userId = _cachedUserId;
+    final secureToken = secure[_accessToken];
+    if (token != null &&
+        token.isNotEmpty &&
+        userId != null &&
+        (secureToken == null || secureToken.isEmpty)) {
+      try {
+        await _writeSecure(
+          accessToken: token,
+          userId: userId,
+          sellerId: _cachedSellerId,
+          userName: _cachedUserName,
+          role: _cachedRole,
+          isVerified: _cachedIsVerified,
+          rememberDevice: _cachedRememberDevice ?? true,
+        );
+      } catch (_) {
+        // Secure storage unusable: the session stays in memory only.
+      }
+    }
+    final snapshot = _cachedSellerSnapshot;
+    final secureSnapshot = secure[_sellerSnapshot];
+    if (snapshot != null &&
+        snapshot.isNotEmpty &&
+        (secureSnapshot == null || secureSnapshot.isEmpty)) {
+      try {
+        await _storage.write(key: _sellerSnapshot, value: snapshot);
+      } catch (_) {}
+    }
+    await _removePrefsSession();
   }
 
   Map<String, String?> _pickSource(
@@ -206,7 +259,7 @@ class SecureAuthTokenStore implements AuthTokenStore {
       // Never blend identity fields across stores — a prior account's sellerId
       // / userName can linger in prefs after a secure-only write and poison
       // the next login. Only allow seller-snapshot prefs fallback when userIds
-      // match (large snapshots sometimes fail Keychain writes).
+      // match (legacy builds mirrored the snapshot to prefs).
       final merged = Map<String, String?>.from(secure);
       final secureSnap = merged[_sellerSnapshot];
       final prefsSnap = prefs?[_sellerSnapshot];
@@ -252,30 +305,7 @@ class SecureAuthTokenStore implements AuthTokenStore {
     }
 
     try {
-      await Future.wait([
-        _storage.write(key: _accessToken, value: accessToken),
-        _storage.write(key: _userId, value: userId),
-        _storage.write(key: _rememberDevice, value: rememberDevice.toString()),
-        if (sellerId != null)
-          _storage.write(key: _sellerId, value: sellerId)
-        else
-          _storage.delete(key: _sellerId),
-        if (userName != null)
-          _storage.write(key: _userName, value: userName)
-        else
-          _storage.delete(key: _userName),
-        if (role != null)
-          _storage.write(key: _role, value: role)
-        else
-          _storage.delete(key: _role),
-        if (isVerified != null)
-          _storage.write(key: _isVerified, value: isVerified.toString())
-        else
-          _storage.delete(key: _isVerified),
-      ]);
-      // Keep SharedPreferences in lockstep so a later secure→prefs merge
-      // cannot revive a previous account's sellerId / userId.
-      await _writePrefs(
+      await _writeSecure(
         accessToken: accessToken,
         userId: userId,
         sellerId: sellerId,
@@ -285,23 +315,51 @@ class SecureAuthTokenStore implements AuthTokenStore {
         rememberDevice: rememberDevice,
       );
     } catch (e, st) {
+      // The token never goes to plain storage on native: when the Keystore
+      // fails, the session lives in memory until the app is killed.
       assert(() {
         debugPrint('AuthTokenStore.secure write failed: $e\n$st');
         return true;
       }());
-      // Native fallback so remember-me still works if Keychain fails.
-      await _writePrefs(
-        accessToken: accessToken,
-        userId: userId,
-        sellerId: sellerId,
-        userName: userName,
-        role: role,
-        isVerified: isVerified,
-        rememberDevice: rememberDevice,
-      );
     }
+    // Drop any plain copy (legacy builds, or a previous account) so a later
+    // read can never revive it.
+    await _removePrefsSession();
   }
 
+  Future<void> _writeSecure({
+    required String accessToken,
+    required String userId,
+    String? sellerId,
+    String? userName,
+    String? role,
+    bool? isVerified,
+    required bool rememberDevice,
+  }) {
+    return Future.wait([
+      _storage.write(key: _accessToken, value: accessToken),
+      _storage.write(key: _userId, value: userId),
+      _storage.write(key: _rememberDevice, value: rememberDevice.toString()),
+      if (sellerId != null)
+        _storage.write(key: _sellerId, value: sellerId)
+      else
+        _storage.delete(key: _sellerId),
+      if (userName != null)
+        _storage.write(key: _userName, value: userName)
+      else
+        _storage.delete(key: _userName),
+      if (role != null)
+        _storage.write(key: _role, value: role)
+      else
+        _storage.delete(key: _role),
+      if (isVerified != null)
+        _storage.write(key: _isVerified, value: isVerified.toString())
+      else
+        _storage.delete(key: _isVerified),
+    ]);
+  }
+
+  /// Web only: secure storage is unreliable in browsers.
   Future<void> _writePrefs({
     required String accessToken,
     required String userId,
@@ -364,6 +422,8 @@ class SecureAuthTokenStore implements AuthTokenStore {
       return;
     }
 
+    // Native: secure storage only. The snapshot holds KYC fields (PAN,
+    // Aadhaar, GST); on a Keystore failure it stays in memory for the session.
     try {
       if (json == null) {
         await _storage.delete(key: _sellerSnapshot);
@@ -378,15 +438,9 @@ class SecureAuthTokenStore implements AuthTokenStore {
         return true;
       }());
     }
-    // Always mirror to prefs so native cold-start can recover if secure
-    // storage drops or rejects the snapshot.
     try {
       final prefs = await SharedPreferences.getInstance();
-      if (json == null) {
-        await prefs.remove(_sellerSnapshot);
-      } else {
-        await prefs.setString(_sellerSnapshot, json);
-      }
+      await prefs.remove(_sellerSnapshot);
     } catch (_) {}
   }
 
@@ -455,6 +509,10 @@ class SecureAuthTokenStore implements AuthTokenStore {
         }());
       }
     }
+    await _removePrefsSession();
+  }
+
+  Future<void> _removePrefsSession() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await Future.wait([

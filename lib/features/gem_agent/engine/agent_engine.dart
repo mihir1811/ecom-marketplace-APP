@@ -351,7 +351,9 @@ class AgentEngine {
     } on TimeoutException {
       return const ToolFailure('That took too long. Please try again.');
     } catch (error, stack) {
-      debugPrint('Gem Agent tool ${target.name} crashed: $error\n$stack');
+      if (kDebugMode) {
+        debugPrint('Gem Agent tool ${target.name} crashed: $error\n$stack');
+      }
       return const ToolFailure('Something went wrong. Please try again.');
     }
   }

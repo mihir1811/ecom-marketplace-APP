@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Release/profile: HTTPS only, system CAs only.
+     Debug builds use src/debug/res/xml/network_security_config.xml instead. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <!-- Socket.IO only: api.gemworld.in's nginx does not forward WebSocket
+         upgrades yet (see ApiConfig.socketBaseUrl). Remove this block once it
+         does. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">15.252.107.13</domain>
+    </domain-config>
+</network-security-config>
