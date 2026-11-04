@@ -13,8 +13,11 @@ import '../../../payment/domain/models/payment_models.dart';
 import '../../../seller/application/seller_reviews_provider.dart';
 import '../../../seller/domain/models/seller_review.dart';
 import '../../../seller/presentation/widgets/seller_review_form.dart';
+import '../../../tracking/application/order_shipments_provider.dart';
+import '../../../tracking/domain/models/shipment_models.dart';
 
-/// Public seller ratings + write forms after payment (one per unreviewed seller).
+/// Public seller ratings + write forms once delivered (one per unreviewed
+/// seller whose parcel has arrived).
 class OrderReviewSection extends ConsumerStatefulWidget {
   const OrderReviewSection({required this.order, super.key});
 
@@ -54,14 +57,24 @@ class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
   Widget build(BuildContext context) {
     final targets = _sellerTargets;
     final orderAsync = ref.watch(orderSellerReviewsProvider(widget.order.id));
+    final shipmentsAsync = ref.watch(orderShipmentsProvider(widget.order.id));
+    final delivered = deliveredSellerIds(
+      shipmentsAsync.asData?.value ?? const <Shipment>[],
+    );
     final orderReviews = orderAsync.asData?.value ?? <SellerReview>[];
     final reviewedSellerIds = <String>{
       ...orderReviews.map((r) => r.sellerId),
       ..._submittedLocally,
     };
-    final pendingTargets = targets
+    final unreviewed = targets
         .where((t) => !reviewedSellerIds.contains(t.sellerId))
         .toList();
+    // Reviews open per seller once that seller's parcel is delivered.
+    final pendingTargets = _isPaid
+        ? unreviewed.where((t) => delivered.contains(t.sellerId)).toList()
+        : const <({String sellerId, String sellerName})>[];
+    final awaitingDelivery =
+        _isPaid && pendingTargets.length < unreviewed.length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -73,14 +86,15 @@ class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
         const SizedBox(height: 4),
         Text(
           targets.isEmpty
-              ? 'Rate sellers from this order after payment.'
+              ? 'Rate sellers from this order once it is delivered.'
               : 'Leave a review for each seller on this order.',
           style: AppTypography.caption.copyWith(
             color: AppColors.textMuted(context),
           ),
         ),
         const SizedBox(height: 8),
-        if (orderAsync.isLoading)
+        if (orderAsync.isLoading ||
+            (shipmentsAsync.isLoading && !shipmentsAsync.hasValue))
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
             child: Center(child: CircularProgressIndicator()),
@@ -101,13 +115,13 @@ class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
           if (!_isPaid && targets.isNotEmpty) ...[
             const SizedBox(height: 6),
             Text(
-              'You can leave a review after payment is complete.',
+              'You can leave a review once your order is delivered.',
               style: AppTypography.caption.copyWith(
                 color: AppColors.textMuted(context),
               ),
             ),
           ],
-          if (_isPaid && pendingTargets.isEmpty && targets.isNotEmpty) ...[
+          if (_isPaid && unreviewed.isEmpty && targets.isNotEmpty) ...[
             const SizedBox(height: 6),
             Text(
               'You have reviewed every seller on this order.',
@@ -116,19 +130,30 @@ class _OrderReviewSectionState extends ConsumerState<OrderReviewSection> {
               ),
             ),
           ],
-          if (_isPaid)
-            for (final target in pendingTargets) ...[
-              const SizedBox(height: 8),
-              _SellerReviewFormBlock(
-                key: ValueKey('review-form-${target.sellerId}'),
-                orderId: widget.order.id,
-                sellerId: target.sellerId,
-                sellerName: target.sellerName,
-                onSubmitted: () {
-                  setState(() => _submittedLocally.add(target.sellerId));
-                },
+          if (awaitingDelivery) ...[
+            const SizedBox(height: 6),
+            Text(
+              pendingTargets.isEmpty
+                  ? 'You can leave a review once your order is delivered.'
+                  : 'Other sellers open for review once their parcel is '
+                        'delivered.',
+              style: AppTypography.caption.copyWith(
+                color: AppColors.textMuted(context),
               ),
-            ],
+            ),
+          ],
+          for (final target in pendingTargets) ...[
+            const SizedBox(height: 8),
+            _SellerReviewFormBlock(
+              key: ValueKey('review-form-${target.sellerId}'),
+              orderId: widget.order.id,
+              sellerId: target.sellerId,
+              sellerName: target.sellerName,
+              onSubmitted: () {
+                setState(() => _submittedLocally.add(target.sellerId));
+              },
+            ),
+          ],
         ],
       ],
     );

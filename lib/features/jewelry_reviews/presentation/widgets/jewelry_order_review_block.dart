@@ -51,7 +51,12 @@ class JewelryOrderReviewBlock extends ConsumerWidget {
       jewelryOwnReviewOverridesProvider.select((m) => m[item.id]),
     );
     final review = override ?? item.review;
-    final canReview = override == null && item.review == null && item.canReview;
+    // Reviews open only once the piece is delivered, whatever the API says.
+    final canReview =
+        override == null &&
+        item.review == null &&
+        item.canReview &&
+        item.isDelivered;
     if (review == null && !canReview) return const SizedBox.shrink();
 
     final p = LuxePalette.of(context);

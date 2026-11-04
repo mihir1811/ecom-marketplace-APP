@@ -52,6 +52,22 @@ abstract final class ShipmentStatuses {
   }
 }
 
+/// Sellers whose parcels on an order have all arrived: at least one
+/// delivered and none still on the way. Buyers review only these sellers.
+Set<String> deliveredSellerIds(Iterable<Shipment> shipments) {
+  final delivered = <String>{};
+  final moving = <String>{};
+  for (final s in shipments) {
+    final status = s.status.trim().toUpperCase();
+    if (status == ShipmentStatuses.delivered) {
+      delivered.add(s.sellerId);
+    } else if (status != ShipmentStatuses.cancelled) {
+      moving.add(s.sellerId);
+    }
+  }
+  return delivered.difference(moving);
+}
+
 /// Shipment summary for a paid order.
 class Shipment {
   const Shipment({

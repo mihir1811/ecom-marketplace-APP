@@ -14,11 +14,13 @@ import '../../../../seller/presentation/atelier/atelier_components.dart';
 import '../../../../seller/presentation/atelier/atelier_feedback.dart';
 import '../../../../seller/presentation/atelier/atelier_studio.dart';
 import '../../../../seller/presentation/atelier/atelier_theme.dart';
+import '../../../../tracking/application/order_shipments_provider.dart';
+import '../../../../tracking/domain/models/shipment_models.dart';
 import '../../maison/maison_kit.dart';
 import 'order_refund_panels.dart';
 
 /// Seller ratings on this order and one review form per seller not yet
-/// reviewed (paid orders only).
+/// reviewed, opened once that seller's parcel is delivered.
 class OrderReviewPanel extends ConsumerStatefulWidget {
   const OrderReviewPanel({required this.order, super.key});
 
@@ -58,14 +60,24 @@ class _OrderReviewPanelState extends ConsumerState<OrderReviewPanel> {
   Widget build(BuildContext context) {
     final targets = _targets;
     final async = ref.watch(orderSellerReviewsProvider(widget.order.id));
+    final shipmentsAsync = ref.watch(orderShipmentsProvider(widget.order.id));
+    final delivered = deliveredSellerIds(
+      shipmentsAsync.asData?.value ?? const <Shipment>[],
+    );
     final reviews = async.asData?.value ?? <SellerReview>[];
     final reviewed = {...reviews.map((r) => r.sellerId), ..._submittedLocally};
-    final pending = targets
+    final unreviewed = targets
         .where((t) => !reviewed.contains(t.sellerId))
         .toList();
+    // Reviews open per seller once that seller's parcel is delivered.
+    final pending = _isPaid
+        ? unreviewed.where((t) => delivered.contains(t.sellerId)).toList()
+        : const <({String sellerId, String sellerName})>[];
+    final awaitingDelivery = _isPaid && pending.length < unreviewed.length;
 
     final Widget body;
-    if (async.isLoading && !async.hasValue) {
+    if ((async.isLoading && !async.hasValue) ||
+        (shipmentsAsync.isLoading && !shipmentsAsync.hasValue)) {
       body = const AtelierSkeletonCard(height: 90);
     } else if (async.hasError) {
       body = AtelierNotice(
@@ -88,30 +100,40 @@ class _OrderReviewPanelState extends ConsumerState<OrderReviewPanel> {
           ],
           if (!_isPaid && targets.isNotEmpty)
             const AtelierNotice(
-              text: 'You can leave a review after payment is complete.',
+              text: 'You can leave a review once your order is delivered.',
               icon: Icons.schedule_rounded,
             ),
-          if (_isPaid && pending.isEmpty && targets.isNotEmpty)
+          if (_isPaid && unreviewed.isEmpty && targets.isNotEmpty)
             const AtelierNotice(
               text: 'You have reviewed every seller on this order. Thank you.',
               tone: AtelierTone.emerald,
               icon: Icons.verified_rounded,
             ),
-          if (_isPaid)
-            for (var i = 0; i < pending.length; i++) ...[
-              if (i > 0 || reviews.isNotEmpty) const SizedBox(height: 5),
-              _ReviewForm(
-                key: ValueKey('review-${pending[i].sellerId}'),
-                orderId: widget.order.id,
-                sellerId: pending[i].sellerId,
-                sellerName: pending[i].sellerName,
-                onSubmitted: () =>
-                    setState(() => _submittedLocally.add(pending[i].sellerId)),
-              ),
-            ],
+          if (awaitingDelivery) ...[
+            if (reviews.isNotEmpty || pending.isNotEmpty)
+              const SizedBox(height: 5),
+            AtelierNotice(
+              text: pending.isEmpty
+                  ? 'You can leave a review once your order is delivered.'
+                  : 'Other sellers open for review once their parcel is '
+                        'delivered.',
+              icon: Icons.local_shipping_outlined,
+            ),
+          ],
+          for (var i = 0; i < pending.length; i++) ...[
+            if (i > 0 || reviews.isNotEmpty) const SizedBox(height: 5),
+            _ReviewForm(
+              key: ValueKey('review-${pending[i].sellerId}'),
+              orderId: widget.order.id,
+              sellerId: pending[i].sellerId,
+              sellerName: pending[i].sellerName,
+              onSubmitted: () =>
+                  setState(() => _submittedLocally.add(pending[i].sellerId)),
+            ),
+          ],
           if (targets.isEmpty && reviews.isEmpty)
             const AtelierNotice(
-              text: 'Rate sellers from this order after payment.',
+              text: 'Rate sellers from this order once it is delivered.',
             ),
         ],
       );

@@ -259,6 +259,10 @@ class MarketplaceOrderItem {
 
   /// Delivered on a paid order and not reviewed yet.
   final bool canReview;
+
+  /// The piece has reached the buyer; reviews open only then.
+  bool get isDelivered =>
+      status.trim().toUpperCase() == MarketplaceStepStatus.delivered;
 }
 
 class MarketplaceShipment {
