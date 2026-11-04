@@ -141,7 +141,7 @@ LuxeProductSections luxeProductSections(
   if (loadFull &&
       detail.apiProductType == CartProductType.marketplaceJewellery &&
       !(detail.jewelryDetail?.isFullRecord ?? true)) {
-    final full = ref.watch(jewelryListingProvider(detail.id)).valueOrNull;
+    final full = ref.watch(jewelryListingProvider(detail.id)).value;
     if (full != null) detail = jewelryProductDetail(full);
   }
   final auth = ref.watch(

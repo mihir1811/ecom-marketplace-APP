@@ -118,20 +118,21 @@ class _BuyerLegalDocumentScreenState extends State<_BuyerLegalDocumentScreen> {
   }
 
   void _reload() {
-    _future = PoliciesRepository.loadById(
-      widget.policyId,
-      _locale ?? Localizations.localeOf(context),
-    ).then((doc) {
-      if (doc != null && mounted) {
-        setState(() {
-          _sectionKeys = List.generate(
-            doc.sections.length,
-            (_) => GlobalKey(),
-          );
+    _future =
+        PoliciesRepository.loadById(
+          widget.policyId,
+          _locale ?? Localizations.localeOf(context),
+        ).then((doc) {
+          if (doc != null && mounted) {
+            setState(() {
+              _sectionKeys = List.generate(
+                doc.sections.length,
+                (_) => GlobalKey(),
+              );
+            });
+          }
+          return doc;
         });
-      }
-      return doc;
-    });
     setState(() {});
   }
 
@@ -142,9 +143,7 @@ class _BuyerLegalDocumentScreenState extends State<_BuyerLegalDocumentScreen> {
     if (ctx == null) return;
     await Scrollable.ensureVisible(
       ctx,
-      duration: context.reduceMotion
-          ? Duration.zero
-          : AtelierMotion.slow,
+      duration: context.reduceMotion ? Duration.zero : AtelierMotion.slow,
       curve: AtelierMotion.emphasized,
       alignment: 0.08,
     );
@@ -162,8 +161,7 @@ class _BuyerLegalDocumentScreenState extends State<_BuyerLegalDocumentScreen> {
       child: FutureBuilder<PolicyDocument?>(
         future: _future,
         builder: (context, snapshot) {
-          final loading =
-              snapshot.connectionState != ConnectionState.done;
+          final loading = snapshot.connectionState != ConnectionState.done;
           final doc = snapshot.data;
           final failed =
               snapshot.connectionState == ConnectionState.done &&
@@ -184,8 +182,7 @@ class _BuyerLegalDocumentScreenState extends State<_BuyerLegalDocumentScreen> {
                     MaisonHeader(
                       title: loading
                           ? context.tr(RemainingL10n.policy)
-                          : (doc?.title ??
-                                context.tr(RemainingL10n.policy)),
+                          : (doc?.title ?? context.tr(RemainingL10n.policy)),
                       cut: widget.cut,
                       look: widget.look,
                     ),
@@ -196,9 +193,7 @@ class _BuyerLegalDocumentScreenState extends State<_BuyerLegalDocumentScreen> {
                       reveal(
                         MaisonEmptyState(
                           title: context.tr(RemainingL10n.policyNotFound),
-                          message: context.tr(
-                            RemainingL10n.unableLoadPolicies,
-                          ),
+                          message: context.tr(RemainingL10n.unableLoadPolicies),
                           cut: widget.cut,
                           actionLabel: context.tr(
                             RemainingL10n.viewAllPolicies,
@@ -215,8 +210,7 @@ class _BuyerLegalDocumentScreenState extends State<_BuyerLegalDocumentScreen> {
                             onSelect: _jumpTo,
                           ),
                         ),
-                      if (doc.sections.length > 3)
-                        const SizedBox(height: 12),
+                      if (doc.sections.length > 3) const SizedBox(height: 12),
                       reveal(
                         PolicyDocumentBody(
                           document: doc,
@@ -259,9 +253,8 @@ class _BuyerLegalDocumentScreenState extends State<_BuyerLegalDocumentScreen> {
                                       RemainingL10n.allPolicies,
                                     ),
                                     variant: AtelierButtonVariant.secondary,
-                                    onPressed: () => context.openRoute(
-                                      widget.policiesRoute,
-                                    ),
+                                    onPressed: () =>
+                                        context.openRoute(widget.policiesRoute),
                                   ),
                                   AtelierButton(
                                     label: context.tr(

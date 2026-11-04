@@ -183,10 +183,7 @@ class PolicyDocumentSkeleton extends StatelessWidget {
         const SizedBox(height: 14),
         bar(h: 56),
         const SizedBox(height: 8),
-        for (var i = 0; i < 4; i++) ...[
-          bar(h: 72),
-          const SizedBox(height: 8),
-        ],
+        for (var i = 0; i < 4; i++) ...[bar(h: 72), const SizedBox(height: 8)],
       ],
     );
   }

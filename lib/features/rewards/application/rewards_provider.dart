@@ -6,13 +6,15 @@ import '../../../core/error/result.dart';
 import '../data/repositories/rewards_repository_impl.dart';
 import '../domain/models/rewards.dart';
 import '../domain/repositories/rewards_repository.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 final rewardsProvider = AsyncNotifierProvider<RewardsNotifier, RewardsSummary>(
   RewardsNotifier.new,
 );
 
 /// Loads GET /rewards (balance, rates, latest movements) for the buyer.
-class RewardsNotifier extends AsyncNotifier<RewardsSummary> {
+class RewardsNotifier extends AsyncNotifier<RewardsSummary>
+    with DisposeTolerantAsyncNotifier<RewardsSummary> {
   RewardsRepository get _repo => ref.read(rewardsRepositoryProvider);
 
   @override
@@ -37,6 +39,7 @@ class RewardsNotifier extends AsyncNotifier<RewardsSummary> {
 
   Future<void> refresh() async {
     state = await AsyncValue.guard(_fetch);
+    if (!ref.mounted) return;
   }
 }
 
@@ -79,7 +82,8 @@ class RewardTransactionsState {
 }
 
 /// Paginated GET /rewards/transactions, newest first.
-class RewardTransactionsNotifier extends Notifier<RewardTransactionsState> {
+class RewardTransactionsNotifier extends Notifier<RewardTransactionsState>
+    with DisposeTolerantNotifier<RewardTransactionsState> {
   static const pageSize = 20;
 
   RewardsRepository get _repo => ref.read(rewardsRepositoryProvider);
@@ -97,6 +101,7 @@ class RewardTransactionsNotifier extends Notifier<RewardTransactionsState> {
   Future<void> loadInitial() async {
     state = state.copyWith(isLoading: true, clearError: true);
     final result = await _repo.getTransactions(page: 1, limit: pageSize);
+    if (!ref.mounted) return;
     switch (result) {
       case Success(:final value):
         state = RewardTransactionsState(
@@ -116,6 +121,7 @@ class RewardTransactionsNotifier extends Notifier<RewardTransactionsState> {
       page: state.page + 1,
       limit: pageSize,
     );
+    if (!ref.mounted) return;
     switch (result) {
       case Success(:final value):
         final seen = {for (final t in state.items) t.id};

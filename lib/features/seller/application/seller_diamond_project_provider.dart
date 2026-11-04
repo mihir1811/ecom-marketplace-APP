@@ -15,6 +15,7 @@ import '../../diamonds/data/mappers/seller_diamond_project_search_mapper.dart';
 import '../../diamonds/data/repositories/diamond_repository_impl.dart';
 import '../../diamonds/domain/models/diamond.dart';
 import '../../diamonds/domain/models/diamond_filter_state.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// Option values present in the seller's whole (unfiltered) inventory, so the
 /// filter dialog only offers choices that can match a stone.
@@ -209,12 +210,13 @@ final sellerDiamondProjectStatsProvider = Provider<DiamondProjectStats>((ref) {
   // Watch the full async value (not a List select) so stats always recompute
   // when inventory finishes loading after AsyncLoading clears valueOrNull.
   final inventory = ref.watch(sellerDiamondProjectInventoryProvider);
-  final items = inventory.valueOrNull?.items ?? const <DiamondProjectItem>[];
+  final items = inventory.value?.items ?? const <DiamondProjectItem>[];
   return DiamondProjectStatsCalculator.compute(items);
 });
 
 class SellerDiamondProjectInventoryNotifier
-    extends AsyncNotifier<SellerDiamondProjectInventoryState> {
+    extends AsyncNotifier<SellerDiamondProjectInventoryState>
+    with DisposeTolerantAsyncNotifier<SellerDiamondProjectInventoryState> {
   CancelToken? _cancelToken;
   CancelToken? _facetsToken;
 
@@ -247,13 +249,17 @@ class SellerDiamondProjectInventoryNotifier
     _cancelToken?.cancel('seller-diamond-project-apply');
     final token = _cancelToken = CancelToken();
 
-    final previous = state.valueOrNull;
+    final previous = state.value;
     state = previous == null
         ? const AsyncLoading()
+        // Keeps the previous inventory visible while reloading. Marked
+        // internal in Riverpod 3 but unchanged; ref.refresh would refetch.
         : const AsyncLoading<SellerDiamondProjectInventoryState>()
-              .copyWithPrevious(AsyncData(previous));
+          // ignore: invalid_use_of_internal_member
+          .copyWithPrevious(AsyncData(previous));
 
     final fetched = await _fetchAll(sellerId, filters, token);
+    if (!ref.mounted) return;
     if (fetched == null) return;
     final (diamonds, totalCount) = fetched;
     // An unfiltered load is the whole inventory: its options are the facets.
@@ -346,7 +352,8 @@ class SellerDiamondProjectInventoryNotifier
         token,
         reportErrors: false,
       );
-      final current = state.valueOrNull;
+      if (!ref.mounted) return;
+      final current = state.value;
       if (fetched == null || current == null || current.facets != null) {
         return;
       }
@@ -366,13 +373,14 @@ class SellerDiamondProjectInventoryNotifier
   }
 
   Future<void> loadIfNeeded() async {
-    if (state.valueOrNull?.hasApplied == true) return;
+    if (state.value?.hasApplied == true) return;
     await applyFilters();
+    if (!ref.mounted) return;
   }
 
   /// Drops one stone from the applied inventory (and therefore from KPIs/charts).
   void removeItem(String diamondId) {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null || !current.hasApplied) return;
     final id = diamondId.trim();
     if (id.isEmpty) return;

@@ -66,7 +66,7 @@ String jewelryCollectionTitle(
 class JewelryCollectionTitle {
   static String watch(BuildContext context, WidgetRef ref) {
     final filters = ref.watch(jewelryFilterProvider);
-    final categories = ref.watch(jewelleryCategoriesProvider).valueOrNull;
+    final categories = ref.watch(jewelleryCategoriesProvider).value;
     final found = categories == null
         ? null
         : MarketplaceCategory.find(categories, filters.categorySlug);

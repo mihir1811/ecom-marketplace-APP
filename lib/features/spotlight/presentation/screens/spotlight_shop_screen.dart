@@ -42,8 +42,8 @@ class SpotlightShopScreen extends ConsumerWidget {
     final p = LuxePalette.of(context);
     final key = (sellerId: sellerId, sellerType: profile?.sellerType);
     final sections = ref.watch(spotlightShopSectionsProvider(key));
-    final house = ref.watch(spotlightShopHouseProvider(sellerId)).valueOrNull;
-    final loaded = sections.valueOrNull ?? const <SpotlightShopSection>[];
+    final house = ref.watch(spotlightShopHouseProvider(sellerId)).value;
+    final loaded = sections.value ?? const <SpotlightShopSection>[];
 
     // A banner link carries only the id: take the name from the listings.
     var name = profile?.name.trim() ?? '';

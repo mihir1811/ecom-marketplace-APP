@@ -14,6 +14,7 @@ import '../domain/models/chat_message.dart';
 import '../domain/models/chat_thread.dart';
 import '../domain/models/product_chat_context.dart';
 import '../domain/repositories/chat_repository.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 class ChatInboxState {
   const ChatInboxState({
@@ -40,7 +41,8 @@ class ChatInboxState {
   }
 }
 
-class ChatInboxNotifier extends Notifier<ChatInboxState> {
+class ChatInboxNotifier extends Notifier<ChatInboxState>
+    with DisposeTolerantNotifier<ChatInboxState> {
   CancelToken? _cancelToken;
   StreamSubscription<ChatMessage>? _socketSub;
 
@@ -61,6 +63,7 @@ class ChatInboxNotifier extends Notifier<ChatInboxState> {
 
     Future.microtask(() async {
       await ref.read(chatRepositoryProvider).connectSocket(userId: userId);
+      if (!ref.mounted) return;
       await refresh();
     });
     _socketSub?.cancel();
@@ -79,6 +82,7 @@ class ChatInboxNotifier extends Notifier<ChatInboxState> {
     state = state.copyWith(isLoading: true, clearError: true);
 
     final result = await _repo.listThreads(cancelToken: _cancelToken);
+    if (!ref.mounted) return;
     switch (result) {
       case Success(value: final threads):
         state = ChatInboxState(threads: threads);
@@ -172,13 +176,18 @@ class ChatThreadState {
   }
 }
 
-class ChatThreadNotifier
-    extends FamilyNotifier<ChatThreadState, ChatThreadArgs> {
+class ChatThreadNotifier extends Notifier<ChatThreadState>
+    with DisposeTolerantNotifier<ChatThreadState> {
+  ChatThreadNotifier(this.arg);
+
+  /// The family argument this notifier was created for.
+  final ChatThreadArgs arg;
+
   CancelToken? _cancelToken;
   StreamSubscription<ChatMessage>? _socketSub;
 
   @override
-  ChatThreadState build(ChatThreadArgs arg) {
+  ChatThreadState build() {
     ref.onDispose(() {
       _cancelToken?.cancel();
       _socketSub?.cancel();
@@ -188,6 +197,7 @@ class ChatThreadNotifier
     if (userId != null && userId.isNotEmpty) {
       Future.microtask(() async {
         await ref.read(chatRepositoryProvider).connectSocket(userId: userId);
+        if (!ref.mounted) return;
         await refresh();
       });
       _socketSub?.cancel();
@@ -239,9 +249,11 @@ class ChatThreadNotifier
           );
 
     final listResult = await listFuture;
+    if (!ref.mounted) return;
     ProductChatContext? context = state.context;
     if (contextFuture != null) {
       final ctxResult = await contextFuture;
+      if (!ref.mounted) return;
       if (ctxResult case Success(value: final value)) {
         context = value;
       }
@@ -259,6 +271,7 @@ class ChatThreadNotifier
           uploadProgress: state.uploadProgress,
         );
         await _markUnread(filtered);
+        if (!ref.mounted) return;
       case ResultFailure(failure: final failure):
         if (failure is NetworkFailure && failure.isCancelled) return;
         state = state.copyWith(
@@ -276,6 +289,7 @@ class ChatThreadNotifier
         .toList();
     if (unread.isEmpty) return;
     await _repo.markAsRead(messageIds: unread);
+    if (!ref.mounted) return;
     // Refresh inbox so app-bar / list unread dots clear after reading.
     unawaited(ref.read(chatInboxProvider.notifier).refresh());
   }

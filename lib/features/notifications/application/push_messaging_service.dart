@@ -61,7 +61,7 @@ class PushMessagingService {
       _log('Firebase initialized (${options.projectId})');
     } catch (error, stack) {
       _log('Firebase init failed: $error');
-      debugPrintStack(stackTrace: stack, label: '[FCM]');
+      if (kDebugMode) debugPrintStack(stackTrace: stack, label: '[FCM]');
     }
   }
 
@@ -111,12 +111,18 @@ class PushMessagingService {
       _log('permission request failed: $error');
     }
 
+    // getToken/onTokenRefresh are deprecated in firebase_messaging 17 in
+    // favour of register()/onRegistered, which report a Firebase
+    // Installation ID instead of an FCM token. The backend sends to FCM
+    // tokens, so keep these until it supports installation IDs.
+    // ignore: deprecated_member_use
     _tokenRefreshSub ??= messaging.onTokenRefresh.listen((token) {
       _log('token refreshed');
       unawaited(_sendToken(token));
     }, onError: (Object error) => _log('onTokenRefresh error: $error'));
 
     try {
+      // ignore: deprecated_member_use
       final token = await messaging.getToken();
       if (token == null || token.isEmpty) {
         _log('no FCM token yet');

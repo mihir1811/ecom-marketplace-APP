@@ -9,6 +9,7 @@ import 'presentation/screens/diamond_viewer_screen.dart';
 
 final List<RouteBase> diamondViewerRoutes = [
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.diamondViewer,
     parentNavigatorKey: rootNavigatorKey,
     builder: (context, state) {

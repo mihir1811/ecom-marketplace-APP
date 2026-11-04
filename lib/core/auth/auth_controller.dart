@@ -16,9 +16,11 @@ import 'auth_validators.dart';
 import 'business_registration_data.dart';
 import 'jwt_utils.dart';
 import 'seller_account_snapshot.dart';
+import '../riverpod/dispose_tolerant.dart';
 
 /// Auth session controller: login, register/OTP, logout, password reset, cold start.
-class AuthController extends Notifier<AuthState> {
+class AuthController extends Notifier<AuthState>
+    with DisposeTolerantNotifier<AuthState> {
   AuthRepository get _repo => ref.read(authRepositoryProvider);
   AuthTokenStore get _store => ref.read(authTokenStoreProvider);
 
@@ -45,6 +47,7 @@ class AuthController extends Notifier<AuthState> {
   Future<void> _bootstrap() async {
     try {
       final token = await _store.readAccessToken();
+      if (!ref.mounted) return;
       if (token == null || token.isEmpty) {
         state = const AuthState(isBootstrapping: false);
         return;
@@ -53,18 +56,25 @@ class AuthController extends Notifier<AuthState> {
       final claims = JwtUtils.decodePayload(token);
       if (claims == null || JwtUtils.isExpired(token)) {
         await _clearLocalSession();
+        if (!ref.mounted) return;
         state = const AuthState(isBootstrapping: false);
         return;
       }
 
       final cachedUserId = await _store.readUserId();
+      if (!ref.mounted) return;
       final cachedUserName = await _store.readUserName();
+      if (!ref.mounted) return;
       final cachedRole = await _store.readRole();
+      if (!ref.mounted) return;
       final cachedSellerId = await _store.readSellerId();
+      if (!ref.mounted) return;
       final cachedIsVerified = await _store.readIsVerified();
+      if (!ref.mounted) return;
       final cachedSellerAccount = _decodeSellerSnapshot(
         await _store.readSellerAccountSnapshot(),
       );
+      if (!ref.mounted) return;
 
       // Only trust disk identity fields when they belong to this JWT subject.
       // Stale sellerId / snapshot from a prior account causes "not found" on
@@ -85,6 +95,7 @@ class AuthController extends Notifier<AuthState> {
       );
       if (user.id.isEmpty) {
         await _clearLocalSession();
+        if (!ref.mounted) return;
         state = const AuthState(isBootstrapping: false);
         return;
       }
@@ -104,10 +115,12 @@ class AuthController extends Notifier<AuthState> {
           isVerified: user.isVerified,
           rememberDevice: true,
         );
+        if (!ref.mounted) return;
         final snap = user.sellerAccount;
         await _store.saveSellerAccountSnapshot(
           snap == null || !snap.hasAnyField ? null : jsonEncode(snap.toJson()),
         );
+        if (!ref.mounted) return;
       }
 
       state = AuthState(
@@ -428,8 +441,10 @@ class AuthController extends Notifier<AuthState> {
     _cancelExpiryTimer();
     _setLoading();
     await _repo.logout();
+    if (!ref.mounted) return;
     // Guarantee local wipe even if repository clear was skipped.
     await _clearLocalSession();
+    if (!ref.mounted) return;
     state = const AuthState();
   }
 
@@ -600,12 +615,14 @@ class AuthController extends Notifier<AuthState> {
   Future<void> _expireSession() async {
     _cancelExpiryTimer();
     await _clearLocalSession();
+    if (!ref.mounted) return;
     state = const AuthState();
   }
 
   Future<void> _clearLocalSession() async {
     try {
       await _store.clear();
+      if (!ref.mounted) return;
     } catch (_) {
       // Best-effort; UI must still sign out.
     }

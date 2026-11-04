@@ -112,7 +112,7 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
   /// accept or pick a bidder straight away.
   void _openDecisionBids() {
     final awaiting =
-        ref.read(sellerAuctionStandingProvider).valueOrNull?.awaitingDecision ??
+        ref.read(sellerAuctionStandingProvider).value?.awaitingDecision ??
         const <AuctionListing>[];
     if (awaiting.isEmpty) return;
     setState(() => _expanded.addAll(awaiting.map((a) => a.id)));
@@ -221,9 +221,7 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
             switchInCurve: AtelierMotion.emphasized,
             child: _fromStanding
                 ? KeyedSubtree(
-                    key: ValueKey(
-                      '$_status-${standingAsync.valueOrNull == null}',
-                    ),
+                    key: ValueKey('$_status-${standingAsync.value == null}'),
                     child: _deciding
                         ? _decisionBody(standingAsync)
                         : _soldBody(standingAsync),
@@ -299,7 +297,7 @@ class _SellerAuctionsScreenState extends ConsumerState<SellerAuctionsScreen> {
 
   /// Loading / error stand-in while the standing scan has no data yet.
   Widget? _standingPending(AsyncValue<SellerAuctionStanding> standing) {
-    if (standing.valueOrNull != null) return null;
+    if (standing.value != null) return null;
     if (standing.hasError) {
       return AtelierErrorState(
         title: 'Auctions unavailable',
@@ -1013,10 +1011,7 @@ class _BidLadder extends StatelessWidget {
               index: i < 6 ? i : 0,
               offset: 6,
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 5,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                 child: Row(
                   children: [
                     Container(

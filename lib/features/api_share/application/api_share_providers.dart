@@ -5,6 +5,7 @@ import '../../../core/error/result.dart';
 import '../data/repositories/api_share_repository_impl.dart';
 import '../domain/models/api_share.dart';
 import '../domain/repositories/api_share_repository.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 class ApiShareState {
   const ApiShareState({
@@ -42,7 +43,8 @@ class ApiShareState {
   }
 }
 
-class ApiShareNotifier extends Notifier<ApiShareState> {
+class ApiShareNotifier extends Notifier<ApiShareState>
+    with DisposeTolerantNotifier<ApiShareState> {
   ApiShareRepository get _repo => ref.read(apiShareRepositoryProvider);
 
   @override
@@ -54,18 +56,12 @@ class ApiShareNotifier extends Notifier<ApiShareState> {
   Future<void> refresh() async {
     state = state.copyWith(isLoading: true, clearError: true);
     final result = await _repo.list();
+    if (!ref.mounted) return;
     switch (result) {
       case Success(value: final keys):
-        state = state.copyWith(
-          keys: keys,
-          isLoading: false,
-          clearError: true,
-        );
+        state = state.copyWith(keys: keys, isLoading: false, clearError: true);
       case ResultFailure(failure: final failure):
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-        );
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
     }
   }
 
@@ -148,5 +144,6 @@ class ApiShareNotifier extends Notifier<ApiShareState> {
   }
 }
 
-final apiShareProvider =
-    NotifierProvider<ApiShareNotifier, ApiShareState>(ApiShareNotifier.new);
+final apiShareProvider = NotifierProvider<ApiShareNotifier, ApiShareState>(
+  ApiShareNotifier.new,
+);

@@ -62,7 +62,7 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen>
 
   @override
   bool get listingCanLoadMore {
-    final s = ref.read(brandWatchListProvider).valueOrNull;
+    final s = ref.read(brandWatchListProvider).value;
     return s != null && s.hasMore && !s.isLoadingMore && !s.isInitialLoading;
   }
 
@@ -72,7 +72,7 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen>
 
   @override
   int get listingItemCount =>
-      ref.read(brandWatchListProvider).valueOrNull?.watches.length ?? 0;
+      ref.read(brandWatchListProvider).value?.watches.length ?? 0;
 
   @override
   LuxeViewMode get listingViewMode =>
@@ -118,7 +118,7 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen>
           builder: (context, ref, _) => WatchCountLine(
             total: ref.watch(
               brandWatchListProvider.select((v) {
-                final s = v.valueOrNull;
+                final s = v.value;
                 return s == null || s.isInitialLoading ? null : s.totalCount;
               }),
             ),
@@ -169,7 +169,7 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen>
   }
 
   List<Widget> _content(BuildContext context) {
-    final state = ref.watch(brandWatchListProvider).valueOrNull;
+    final state = ref.watch(brandWatchListProvider).value;
     final grid = ref.watch(watchViewModeProvider) == WatchViewMode.grid;
     final listed = state?.watches ?? const [];
     return luxeResultSlivers(

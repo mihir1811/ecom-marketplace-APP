@@ -64,7 +64,7 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen>
 
   @override
   bool get listingCanLoadMore {
-    final s = ref.read(bullionsListProvider).valueOrNull;
+    final s = ref.read(bullionsListProvider).value;
     return s != null &&
         s.hasMore &&
         !s.isLoadingMore &&
@@ -78,7 +78,7 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen>
 
   @override
   int get listingItemCount =>
-      ref.read(bullionsListProvider).valueOrNull?.bullions.length ?? 0;
+      ref.read(bullionsListProvider).value?.bullions.length ?? 0;
 
   @override
   LuxeViewMode get listingViewMode =>
@@ -240,7 +240,7 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen>
   List<Widget> _content(BuildContext context) {
     final stateAsync = ref.watch(bullionsListProvider);
     final grid = ref.watch(bullionsViewModeProvider) == BullionsViewMode.grid;
-    final state = stateAsync.valueOrNull;
+    final state = stateAsync.value;
     final error =
         stateAsync.whenOrNull(error: (e, _) => e.toString()) ??
         state?.errorMessage;
@@ -352,7 +352,7 @@ class _CountLine extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final total = ref.watch(
       bullionsListProvider.select((v) {
-        final s = v.valueOrNull;
+        final s = v.value;
         return s == null || s.isInitialLoading ? null : s.totalCount;
       }),
     );

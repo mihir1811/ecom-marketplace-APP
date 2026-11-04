@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 
 import '../error/failure.dart';
 import '../error/result.dart';
 import 'paginated_list_state.dart';
+import '../riverpod/dispose_tolerant.dart';
 
 /// Lightweight page payload consumed by the shared paginated notifier.
 class PaginatedPage<T> {
@@ -22,7 +24,8 @@ class PaginatedPage<T> {
 /// Loads one page at a time, appends on scroll, and discards stale responses
 /// when a newer first-page/refresh request supersedes an in-flight fetch.
 abstract class PaginatedAsyncNotifier<T>
-    extends AsyncNotifier<PaginatedListState<T>> {
+    extends AsyncNotifier<PaginatedListState<T>>
+    with DisposeTolerantAsyncNotifier<PaginatedListState<T>> {
   int _currentPage = 1;
   int _epoch = 0;
   Future<void>? _inFlightNextPage;
@@ -63,12 +66,13 @@ abstract class PaginatedAsyncNotifier<T>
 
     state = AsyncData(PaginatedListState<T>(isInitialLoading: true));
     final result = await loadPage(1);
+    if (!ref.mounted) return;
     if (epoch != _epoch) return;
     _setFirstPage(result);
   }
 
   Future<void> loadNextPage() {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null ||
         !current.hasMore ||
         current.isLoadingMore ||
@@ -93,6 +97,7 @@ abstract class PaginatedAsyncNotifier<T>
 
     try {
       final result = await loadPage(nextPage);
+      if (!ref.mounted) return;
       if (epoch != _epoch) return;
 
       switch (result) {
@@ -126,7 +131,7 @@ abstract class PaginatedAsyncNotifier<T>
   }
 
   Future<void> refresh() async {
-    final current = state.valueOrNull ?? PaginatedListState<T>();
+    final current = state.value ?? PaginatedListState<T>();
     final epoch = ++_epoch;
     _currentPage = 1;
     _inFlightNextPage = null;
@@ -135,12 +140,13 @@ abstract class PaginatedAsyncNotifier<T>
 
     state = AsyncData(current.copyWith(isRefreshing: true, errorMessage: null));
     final result = await loadPage(1);
+    if (!ref.mounted) return;
     if (epoch != _epoch) return;
     _setFirstPage(result);
   }
 
   void clearError() {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null) return;
     state = AsyncData(current.copyWith(errorMessage: null));
   }

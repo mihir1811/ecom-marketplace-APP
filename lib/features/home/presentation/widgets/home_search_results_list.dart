@@ -65,7 +65,7 @@ class _HomeSearchResultsListState extends ConsumerState<HomeSearchResultsList> {
     }
 
     final async = ref.watch(homeSearchResultsProvider);
-    final state = async.valueOrNull;
+    final state = async.value;
 
     if (state == null || state.isInitialLoading) {
       return Center(

@@ -57,7 +57,8 @@ abstract final class CartMapper {
         ? (isAvailable: false, label: 'Win expired')
         : _productAvailability(json, productMap);
     final stoneWeight = _str(specifications?['stoneWeight']);
-    final displayTitle = (stoneWeight != null &&
+    final displayTitle =
+        (stoneWeight != null &&
             stoneWeight.isNotEmpty &&
             !name.toLowerCase().contains(stoneWeight.toLowerCase()))
         ? '$name · $stoneWeight'

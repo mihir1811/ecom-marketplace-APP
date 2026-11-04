@@ -87,7 +87,7 @@ class _SellerDashboardDiamondProjectsSectionState
   @override
   Widget build(BuildContext context) {
     final inventoryAsync = ref.watch(sellerDiamondProjectInventoryProvider);
-    final inventory = inventoryAsync.valueOrNull;
+    final inventory = inventoryAsync.value;
     final stats = ref.watch(sellerDiamondProjectStatsProvider);
     final isLoading = inventoryAsync.isLoading;
     final hasData = inventory?.hasApplied == true;
@@ -345,9 +345,7 @@ class _SellerDiamondProjectFilterDialogState
     final p = context.atelier;
     final state = ref.watch(sellerDiamondProjectFiltersProvider);
     final facets = ref.watch(
-      sellerDiamondProjectInventoryProvider.select(
-        (s) => s.valueOrNull?.facets,
-      ),
+      sellerDiamondProjectInventoryProvider.select((s) => s.value?.facets),
     );
     final notifier = widget.notifier;
     final wide = MediaQuery.sizeOf(context).width >= 720;

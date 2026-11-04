@@ -100,7 +100,7 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
 
   @override
   bool get listingCanLoadMore {
-    final s = ref.read(jewelryListProvider).valueOrNull;
+    final s = ref.read(jewelryListProvider).value;
     return s != null &&
         s.hasMore &&
         !s.isLoadingMore &&
@@ -114,7 +114,7 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
 
   @override
   int get listingItemCount =>
-      (ref.read(jewelryListProvider).valueOrNull?.items.length ?? 0) +
+      (ref.read(jewelryListProvider).value?.items.length ?? 0) +
       _sponsoredCount;
 
   @override
@@ -205,7 +205,7 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
           builder: (context, ref, _) => JewelryCountLine(
             total: ref.watch(
               jewelryListProvider.select((v) {
-                final s = v.valueOrNull;
+                final s = v.value;
                 return s == null || s.isInitialLoading ? null : s.totalCount;
               }),
             ),
@@ -261,7 +261,7 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
   List<Widget> _content(BuildContext context) {
     final stateAsync = ref.watch(jewelryListProvider);
     final grid = ref.watch(jewelryViewModeProvider) == JewelryViewMode.grid;
-    final state = stateAsync.valueOrNull;
+    final state = stateAsync.value;
     final error =
         stateAsync.whenOrNull(error: (e, _) => e.toString()) ??
         state?.errorMessage;
@@ -278,7 +278,7 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
     final key = SponsoredJewelleryKey(ref.watch(jewelryFilterProvider));
     final sponsored = !resultsOk
         ? const <SponsoredJewellery>[]
-        : (ref.watch(sponsoredJewelleryResultsProvider(key)).valueOrNull ??
+        : (ref.watch(sponsoredJewelleryResultsProvider(key)).value ??
                   const <SponsoredJewellery>[])
               .take(kSponsoredJewellerySlots)
               .toList();
@@ -364,7 +364,7 @@ class _ShopPill extends ConsumerWidget {
     final p = LuxePalette.of(context);
     final name = ref.watch(
       jewelryListProvider.select((v) {
-        final items = v.valueOrNull?.items ?? const [];
+        final items = v.value?.items ?? const [];
         return items.isEmpty ? null : items.first.shopName;
       }),
     );

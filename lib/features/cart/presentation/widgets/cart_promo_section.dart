@@ -90,7 +90,11 @@ class _CartPromoSectionState extends ConsumerState<CartPromoSection> {
                 shape: BoxShape.circle,
                 color: p.positive.withValues(alpha: 0.12),
               ),
-              child: Icon(Icons.local_offer_rounded, size: 16, color: p.positive),
+              child: Icon(
+                Icons.local_offer_rounded,
+                size: 16,
+                color: p.positive,
+              ),
             ),
             const SizedBox(width: 8),
             Expanded(

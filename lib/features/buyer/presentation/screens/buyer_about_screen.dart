@@ -111,9 +111,7 @@ class BuyerAboutScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 18),
                 reveal(
-                  MaisonGroupLabel(
-                    label: context.tr(RemainingL10n.ourStory),
-                  ),
+                  MaisonGroupLabel(label: context.tr(RemainingL10n.ourStory)),
                 ),
                 reveal(
                   Text(
@@ -130,9 +128,7 @@ class BuyerAboutScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 reveal(
-                  MaisonGroupLabel(
-                    label: context.tr(RemainingL10n.ourPromise),
-                  ),
+                  MaisonGroupLabel(label: context.tr(RemainingL10n.ourPromise)),
                 ),
                 reveal(
                   Text(
@@ -176,9 +172,7 @@ class BuyerAboutScreen extends StatelessWidget {
                 ],
                 const SizedBox(height: 10),
                 reveal(
-                  MaisonGroupLabel(
-                    label: context.tr(RemainingL10n.whatWeDo),
-                  ),
+                  MaisonGroupLabel(label: context.tr(RemainingL10n.whatWeDo)),
                 ),
                 reveal(
                   Text(
@@ -208,9 +202,7 @@ class BuyerAboutScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 18),
                 reveal(
-                  MaisonGroupLabel(
-                    label: context.tr(RemainingL10n.ourValues),
-                  ),
+                  MaisonGroupLabel(label: context.tr(RemainingL10n.ourValues)),
                 ),
                 LayoutBuilder(
                   builder: (context, constraints) {
@@ -231,10 +223,7 @@ class BuyerAboutScreen extends StatelessWidget {
                                   children: [
                                     AtelierIconBadge(icon: v.$1),
                                     const SizedBox(height: 8),
-                                    Text(
-                                      v.$2,
-                                      style: AtelierType.title(p.ink),
-                                    ),
+                                    Text(v.$2, style: AtelierType.title(p.ink)),
                                     const SizedBox(height: 6),
                                     Text(
                                       v.$3,
@@ -321,11 +310,11 @@ class BuyerAboutScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          context.tr(RemainingL10n.highValueTradeDemandsMoreThan),
+                          context.tr(
+                            RemainingL10n.highValueTradeDemandsMoreThan,
+                          ),
                           style: AtelierType.body(
-                            p.isDark
-                                ? p.inkSoft
-                                : const Color(0xFFD5B27A),
+                            p.isDark ? p.inkSoft : const Color(0xFFD5B27A),
                             size: 14,
                           ),
                         ),

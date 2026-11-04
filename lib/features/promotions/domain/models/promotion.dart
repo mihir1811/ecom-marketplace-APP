@@ -80,13 +80,13 @@ class DiscountInput {
   final DateTime endDate;
 
   Map<String, dynamic> toJson() => {
-        'name': name.trim(),
-        'description': description.trim(),
-        'type': type.apiValue,
-        'value': value,
-        'startDate': _isoDate(startDate),
-        'endDate': _isoDate(endDate),
-      };
+    'name': name.trim(),
+    'description': description.trim(),
+    'type': type.apiValue,
+    'value': value,
+    'startDate': _isoDate(startDate),
+    'endDate': _isoDate(endDate),
+  };
 
   static String _isoDate(DateTime d) =>
       '${d.year.toString().padLeft(4, '0')}-'
@@ -114,21 +114,18 @@ class PromoCodeInput {
   final int? maxUses;
 
   Map<String, dynamic> toJson() => {
-        'code': code.trim(),
-        'description': description.trim(),
-        'type': type.apiValue,
-        'value': value,
-        'startDate': DiscountInput._isoDate(startDate),
-        'endDate': DiscountInput._isoDate(endDate),
-        if (maxUses != null) 'maxUses': maxUses,
-      };
+    'code': code.trim(),
+    'description': description.trim(),
+    'type': type.apiValue,
+    'value': value,
+    'startDate': DiscountInput._isoDate(startDate),
+    'endDate': DiscountInput._isoDate(endDate),
+    if (maxUses != null) 'maxUses': maxUses,
+  };
 }
 
 class PublicPromotions {
-  const PublicPromotions({
-    required this.discounts,
-    required this.promoCodes,
-  });
+  const PublicPromotions({required this.discounts, required this.promoCodes});
 
   final List<Discount> discounts;
   final List<PromoCode> promoCodes;

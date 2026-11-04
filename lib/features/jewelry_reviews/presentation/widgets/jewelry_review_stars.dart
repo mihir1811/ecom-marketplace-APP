@@ -5,15 +5,14 @@ import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/luxe_tokens.dart';
 
 /// "Excellent" for 5 stars, and so on.
-String jewelryStarWord(BuildContext context, int stars) => context.tr(
-  switch (stars) {
-    1 => JewelryReviewL10n.star1,
-    2 => JewelryReviewL10n.star2,
-    3 => JewelryReviewL10n.star3,
-    4 => JewelryReviewL10n.star4,
-    _ => JewelryReviewL10n.star5,
-  },
-);
+String jewelryStarWord(BuildContext context, int stars) =>
+    context.tr(switch (stars) {
+      1 => JewelryReviewL10n.star1,
+      2 => JewelryReviewL10n.star2,
+      3 => JewelryReviewL10n.star3,
+      4 => JewelryReviewL10n.star4,
+      _ => JewelryReviewL10n.star5,
+    });
 
 /// "1 review" / "12 reviews".
 String jewelryReviewCount(BuildContext context, int count) => count == 1
@@ -117,7 +116,10 @@ class JewelryRatingChip extends StatelessWidget {
         children: [
           Icon(Icons.star_rounded, size: size + 2, color: p.accent),
           const SizedBox(width: 2),
-          Text(jewelryAverageLabel(avg), style: LuxeType.label(ink, size: size)),
+          Text(
+            jewelryAverageLabel(avg),
+            style: LuxeType.label(ink, size: size),
+          ),
           if (showCount)
             Text(
               ' ($count)',

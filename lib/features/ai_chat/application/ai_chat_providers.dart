@@ -13,6 +13,7 @@ import '../domain/models/ai_chat_language.dart';
 import '../domain/models/ai_chat_message.dart';
 import '../domain/models/ai_chat_reply.dart';
 import '../domain/repositories/ai_chat_repository.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 const _sessionPrefKey = UserLocalDataCleaner.aiChatSessionId;
 const _guestKeysPrefKey = UserLocalDataCleaner.aiChatGuestSessionKeys;
@@ -31,7 +32,8 @@ class AiChatUiState {
   }
 }
 
-class AiChatUiController extends Notifier<AiChatUiState> {
+class AiChatUiController extends Notifier<AiChatUiState>
+    with DisposeTolerantNotifier<AiChatUiState> {
   @override
   AiChatUiState build() => const AiChatUiState();
 
@@ -112,7 +114,8 @@ class AiChatPanelState {
   }
 }
 
-class AiChatPanelNotifier extends Notifier<AiChatPanelState> {
+class AiChatPanelNotifier extends Notifier<AiChatPanelState>
+    with DisposeTolerantNotifier<AiChatPanelState> {
   CancelToken? _cancelToken;
   SharedPreferences? _prefs;
 
@@ -134,7 +137,9 @@ class AiChatPanelNotifier extends Notifier<AiChatPanelState> {
     if (sessionId.isEmpty) {
       sessionId = _newSessionId();
       await _prefs!.setString(_sessionPrefKey, sessionId);
+      if (!ref.mounted) return;
       await _rememberGuestKey(sessionId);
+      if (!ref.mounted) return;
     }
     state = state.copyWith(sessionId: sessionId);
   }
@@ -161,6 +166,7 @@ class AiChatPanelNotifier extends Notifier<AiChatPanelState> {
       next.removeRange(0, next.length - 20);
     }
     await _prefs!.setStringList(_guestKeysPrefKey, next);
+    if (!ref.mounted) return;
   }
 
   Future<List<String>> _guestKeys() async {
@@ -181,7 +187,9 @@ class AiChatPanelNotifier extends Notifier<AiChatPanelState> {
     final sessionId = _newSessionId();
     _prefs ??= await SharedPreferences.getInstance();
     await _prefs!.setString(_sessionPrefKey, sessionId);
+    if (!ref.mounted) return;
     await _rememberGuestKey(sessionId);
+    if (!ref.mounted) return;
     state = AiChatPanelState(sessionId: sessionId, language: state.language);
   }
 
@@ -193,6 +201,7 @@ class AiChatPanelNotifier extends Notifier<AiChatPanelState> {
       imageQuality: 85,
       maxWidth: 2048,
     );
+    if (!ref.mounted) return;
     if (file == null) return;
 
     _cancelToken?.cancel('upload');
@@ -203,6 +212,7 @@ class AiChatPanelNotifier extends Notifier<AiChatPanelState> {
       file: file,
       cancelToken: _cancelToken,
     );
+    if (!ref.mounted) return;
 
     switch (result) {
       case Success(value: final url):
@@ -233,7 +243,9 @@ class AiChatPanelNotifier extends Notifier<AiChatPanelState> {
     if (state.sessionId.isEmpty) {
       _prefs ??= await SharedPreferences.getInstance();
       await _prefs!.setString(_sessionPrefKey, sessionId);
+      if (!ref.mounted) return;
       await _rememberGuestKey(sessionId);
+      if (!ref.mounted) return;
     }
 
     final localId = 'local-${DateTime.now().microsecondsSinceEpoch}';
@@ -269,6 +281,7 @@ class AiChatPanelNotifier extends Notifier<AiChatPanelState> {
       language: state.language,
       cancelToken: _cancelToken,
     );
+    if (!ref.mounted) return;
 
     switch (result) {
       case Success(value: final reply):
@@ -278,7 +291,9 @@ class AiChatPanelNotifier extends Notifier<AiChatPanelState> {
         if (resolvedSession != sessionId) {
           _prefs ??= await SharedPreferences.getInstance();
           await _prefs!.setString(_sessionPrefKey, resolvedSession);
+          if (!ref.mounted) return;
           await _rememberGuestKey(resolvedSession);
+          if (!ref.mounted) return;
         }
         final assistant = AiChatMessage(
           id: 'assistant-${DateTime.now().microsecondsSinceEpoch}',
@@ -303,7 +318,9 @@ class AiChatPanelNotifier extends Notifier<AiChatPanelState> {
   Future<void> loadHistory() async {
     state = state.copyWith(isLoadingHistory: true, clearError: true);
     final keys = await _guestKeys();
+    if (!ref.mounted) return;
     final result = await _repo.listSessions(sessionKeys: keys, limit: 30);
+    if (!ref.mounted) return;
     switch (result) {
       case Success(value: final sessions):
         state = state.copyWith(isLoadingHistory: false, sessions: sessions);
@@ -319,11 +336,14 @@ class AiChatPanelNotifier extends Notifier<AiChatPanelState> {
     if (sessionId.isEmpty) return;
     state = state.copyWith(isLoadingSession: true, clearError: true);
     final result = await _repo.getSession(sessionId: sessionId);
+    if (!ref.mounted) return;
     switch (result) {
       case Success(value: final detail):
         _prefs ??= await SharedPreferences.getInstance();
         await _prefs!.setString(_sessionPrefKey, detail.sessionId);
+        if (!ref.mounted) return;
         await _rememberGuestKey(detail.sessionId);
+        if (!ref.mounted) return;
         state = state.copyWith(
           sessionId: detail.sessionId,
           messages: detail.messages,

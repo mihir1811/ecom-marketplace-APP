@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
@@ -22,16 +24,19 @@ extension GemstoneListStateX on GemstoneListState {
   List<Gemstone> get gemstones => items;
 }
 
-final gemstoneViewModeProvider =
-    StateProvider<GemstoneViewMode>((ref) => GemstoneViewMode.grid);
+final gemstoneViewModeProvider = StateProvider<GemstoneViewMode>(
+  (ref) => GemstoneViewMode.grid,
+);
 
-final gemstoneSortProvider =
-    StateProvider<GemstoneSortOption>((ref) => GemstoneSortOption.newest);
+final gemstoneSortProvider = StateProvider<GemstoneSortOption>(
+  (ref) => GemstoneSortOption.newest,
+);
 
 /// First page fetched outside the finder (e.g. Gem Agent), served once.
-final gemstonePrefetchProvider = StateProvider<
-  PrefetchedFirstPage<GemstoneFilterState, Gemstone>?
->((ref) => null);
+final gemstonePrefetchProvider =
+    StateProvider<PrefetchedFirstPage<GemstoneFilterState, Gemstone>?>(
+      (ref) => null,
+    );
 
 /// Applies [prefetched]'s filters and primes results to show its page.
 void presentPrefetchedGemstones(
@@ -46,16 +51,16 @@ void presentPrefetchedGemstones(
 /// Results list. Uses backend `page` / `limit` + `meta.next` for infinite scroll.
 final gemstoneListProvider =
     AsyncNotifierProvider<GemstoneListNotifier, GemstoneListState>(
-  GemstoneListNotifier.new,
-);
+      GemstoneListNotifier.new,
+    );
 
 class GemstoneListNotifier extends PaginatedAsyncNotifier<Gemstone> {
   CancelToken? _cancelToken;
 
   @override
   Iterable<ProviderListenable<Object?>> get reloadTriggers => [
-        gemstoneSortProvider,
-      ];
+    gemstoneSortProvider,
+  ];
 
   @override
   void onResetPagination() {
@@ -65,7 +70,6 @@ class GemstoneListNotifier extends PaginatedAsyncNotifier<Gemstone> {
     }
     _cancelToken = CancelToken();
   }
-
 
   @override
   void onBeforePageLoad({required int page, required bool isFirstPage}) {
@@ -93,17 +97,18 @@ class GemstoneListNotifier extends PaginatedAsyncNotifier<Gemstone> {
     );
     return switch (result) {
       Success(value: final response) => Success(
-          PaginatedPage<Gemstone>(
-            items: response.gemstones,
-            hasMore: response.hasMore,
-            totalCount: response.totalCount,
-          ),
+        PaginatedPage<Gemstone>(
+          items: response.gemstones,
+          hasMore: response.hasMore,
+          totalCount: response.totalCount,
         ),
+      ),
       ResultFailure(failure: final failure) => ResultFailure(failure),
     };
   }
 
   Future<void> applyFiltersAndReload() async {
     await loadFirstPage();
+    if (!ref.mounted) return;
   }
 }

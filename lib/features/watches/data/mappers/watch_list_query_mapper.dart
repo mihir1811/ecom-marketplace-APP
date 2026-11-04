@@ -57,12 +57,16 @@ abstract final class WatchListQueryMapper {
       filters['sellerId'] = {'equals': sid};
     }
 
-    final brands =
-        f.brands.map((b) => b.trim()).where((b) => b.isNotEmpty).toList();
+    final brands = f.brands
+        .map((b) => b.trim())
+        .where((b) => b.isNotEmpty)
+        .toList();
     _putEqualsOrIn(filters, 'brand', brands);
 
-    final models =
-        f.models.map((m) => m.trim()).where((m) => m.isNotEmpty).toList();
+    final models = f.models
+        .map((m) => m.trim())
+        .where((m) => m.isNotEmpty)
+        .toList();
     _putEqualsOrIn(filters, 'model', models);
 
     final styles = f.categories
@@ -81,11 +85,13 @@ abstract final class WatchListQueryMapper {
         .toList();
     _putEqualsOrIn(filters, 'movementType', movements);
 
-    final genders =
-        f.genders.map(_mapGenderToApi).whereType<String>().toList();
+    final genders = f.genders.map(_mapGenderToApi).whereType<String>().toList();
     _putEqualsOrIn(filters, 'gender', genders);
 
-    final conditions = f.conditions.map(_mapConditionToApi).whereType<String>().toList();
+    final conditions = f.conditions
+        .map(_mapConditionToApi)
+        .whereType<String>()
+        .toList();
     _putEqualsOrIn(filters, 'condition', conditions);
 
     final availability = _mapAvailabilityToApi(f.selectedAvailability);
@@ -99,16 +105,22 @@ abstract final class WatchListQueryMapper {
         .toList();
     _putEqualsOrIn(filters, 'caseMaterial', caseMaterials);
 
-    final dialColors =
-        f.dialColors.map((c) => c.trim()).where((c) => c.isNotEmpty).toList();
+    final dialColors = f.dialColors
+        .map((c) => c.trim())
+        .where((c) => c.isNotEmpty)
+        .toList();
     _putEqualsOrIn(filters, 'dialColor', dialColors);
 
-    final indexes =
-        f.indexes.map(_mapIndexesToApi).whereType<String>().toList();
+    final indexes = f.indexes
+        .map(_mapIndexesToApi)
+        .whereType<String>()
+        .toList();
     _putEqualsOrIn(filters, 'indexes', indexes);
 
-    final caseShapes =
-        f.caseShapes.map((c) => c.trim()).where((c) => c.isNotEmpty).toList();
+    final caseShapes = f.caseShapes
+        .map((c) => c.trim())
+        .where((c) => c.isNotEmpty)
+        .toList();
     _putEqualsOrIn(filters, 'caseShape', caseShapes);
 
     final strapMaterials = f.strapMaterials
@@ -202,7 +214,9 @@ abstract final class WatchListQueryMapper {
       return 'Baton / Stick Markers';
     }
     if (v.contains('dot') || v.contains('gem')) return 'Dot / Gem Markers';
-    if (v.contains('no marker') || v.contains('blank') || v.contains('minimal')) {
+    if (v.contains('no marker') ||
+        v.contains('blank') ||
+        v.contains('minimal')) {
       return 'Blank / Minimalist';
     }
     return ui.trim();

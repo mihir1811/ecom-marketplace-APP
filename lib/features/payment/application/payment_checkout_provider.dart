@@ -12,6 +12,7 @@ import '../data/repositories/payment_repository_impl.dart';
 import '../domain/models/payment_models.dart';
 import '../domain/repositories/payment_repository.dart';
 import 'razorpay_checkout_service.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// Short-lived FX cache for cart INR estimates.
 final exchangeRateProvider = FutureProvider.autoDispose<ExchangeRate>((
@@ -85,7 +86,8 @@ class CheckoutState {
 }
 
 /// Single-flight checkout: create-order → Razorpay → server verify.
-class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
+class PaymentCheckoutNotifier extends Notifier<CheckoutState>
+    with DisposeTolerantNotifier<CheckoutState> {
   final RazorpayCheckoutService _razorpay = RazorpayCheckoutService();
 
   PaymentRepository get _payments => ref.read(paymentRepositoryProvider);
@@ -142,12 +144,12 @@ class PaymentCheckoutNotifier extends Notifier<CheckoutState> {
       );
     }
 
-    final fees = ref.read(activeFeesProvider).valueOrNull;
+    final fees = ref.read(activeFeesProvider).value;
     final wantVerification =
         state.wantGemworldVerification &&
         (fees?.offersGemworldVerification ?? false);
     final useWallet = state.useWallet;
-    final rewards = ref.read(rewardsProvider).valueOrNull;
+    final rewards = ref.read(rewardsProvider).value;
     final usePoints = state.usePoints && (rewards?.canSpend ?? false);
 
     state = state.copyWith(

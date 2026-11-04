@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../core/auth/auth_providers.dart';
 import '../../comparison/application/comparison_provider.dart';

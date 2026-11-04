@@ -11,6 +11,7 @@ import '../../product_detail/domain/models/product_detail.dart';
 import '../data/repositories/product_offer_repository_impl.dart';
 import '../domain/models/product_offer.dart';
 import '../domain/repositories/product_offer_repository.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 class OfferListState {
   const OfferListState({
@@ -60,7 +61,8 @@ class OfferListState {
 typedef SellerOfferListState = OfferListState;
 
 /// Paged offer list with a server-side `status` filter.
-abstract class _OfferListNotifier extends Notifier<OfferListState> {
+abstract class _OfferListNotifier extends Notifier<OfferListState>
+    with DisposeTolerantNotifier<OfferListState> {
   CancelToken? _cancelToken;
 
   ProductOfferRepository get _repo => ref.read(productOfferRepositoryProvider);
@@ -290,9 +292,7 @@ typedef OfferProductKey = ({
 /// may show (make an offer, waiting, no attempts left, pay now).
 final productOfferEligibilityProvider = FutureProvider.autoDispose
     .family<ProductOfferEligibility, OfferProductKey>((ref, key) async {
-      final signedIn = ref.watch(
-        authProvider.select((s) => s.isAuthenticated),
-      );
+      final signedIn = ref.watch(authProvider.select((s) => s.isAuthenticated));
       if (!signedIn || !OfferProductType.supports(key.productType)) {
         return ProductOfferEligibility(
           offers: const [],
@@ -325,7 +325,8 @@ final productOfferEligibilityProvider = FutureProvider.autoDispose
       };
     });
 
-class ProductOfferMutationNotifier extends Notifier<AsyncValue<void>> {
+class ProductOfferMutationNotifier extends Notifier<AsyncValue<void>>
+    with DisposeTolerantNotifier<AsyncValue<void>> {
   @override
   AsyncValue<void> build() => const AsyncValue.data(null);
 
@@ -442,9 +443,9 @@ class ProductOfferMutationNotifier extends Notifier<AsyncValue<void>> {
   void _invalidate() {
     ref.invalidate(productOfferEligibilityProvider);
     if (ref.exists(buyerOfferListProvider)) {
-      ref.read(buyerOfferListProvider.notifier).refresh(
-        statusFilter: ref.read(buyerOfferListProvider).statusFilter,
-      );
+      ref
+          .read(buyerOfferListProvider.notifier)
+          .refresh(statusFilter: ref.read(buyerOfferListProvider).statusFilter);
     }
   }
 }

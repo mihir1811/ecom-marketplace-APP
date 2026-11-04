@@ -6,6 +6,7 @@ import '../../../core/error/result.dart';
 import '../data/repositories/reference_repository_impl.dart';
 import '../domain/models/reference_models.dart';
 import '../domain/repositories/reference_repository.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 class ReferenceHubState {
   const ReferenceHubState({
@@ -68,7 +69,8 @@ class ReferenceHubState {
   }
 }
 
-class ReferenceHubNotifier extends Notifier<ReferenceHubState> {
+class ReferenceHubNotifier extends Notifier<ReferenceHubState>
+    with DisposeTolerantNotifier<ReferenceHubState> {
   CancelToken? _cancelToken;
   bool _started = false;
   Future<void>? _inFlight;
@@ -91,6 +93,7 @@ class ReferenceHubNotifier extends Notifier<ReferenceHubState> {
     _inFlight = done;
     try {
       await done;
+      if (!ref.mounted) return;
     } finally {
       if (identical(_inFlight, done)) _inFlight = null;
     }
@@ -115,6 +118,7 @@ class ReferenceHubNotifier extends Notifier<ReferenceHubState> {
       _repo.listOutbound(cancelToken: token),
       _repo.listPurchases(page: 1, cancelToken: token),
     ]);
+    if (!ref.mounted) return;
 
     if (gen != _refreshGen || token.isCancelled) return;
 
@@ -174,11 +178,9 @@ class ReferenceHubNotifier extends Notifier<ReferenceHubState> {
 
   Future<void> _retryPurchasesOnce() async {
     if (state.isLoadingPurchases || state.isLoading) return;
-    state = state.copyWith(
-      isLoadingPurchases: true,
-      clearPurchasesError: true,
-    );
+    state = state.copyWith(isLoadingPurchases: true, clearPurchasesError: true);
     final result = await _repo.listPurchases(page: 1);
+    if (!ref.mounted) return;
     switch (result) {
       case Success(:final value):
         state = state.copyWith(
@@ -207,9 +209,13 @@ class ReferenceHubNotifier extends Notifier<ReferenceHubState> {
         !state.purchasesHasMore) {
       return;
     }
-    state = state.copyWith(isLoadingMorePurchases: true, clearPurchasesError: true);
+    state = state.copyWith(
+      isLoadingMorePurchases: true,
+      clearPurchasesError: true,
+    );
     final next = state.purchasesPage + 1;
     final result = await _repo.listPurchases(page: next);
+    if (!ref.mounted) return;
     switch (result) {
       case Success(value: final page):
         state = state.copyWith(

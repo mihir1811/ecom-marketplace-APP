@@ -7,6 +7,7 @@ import '../../../core/error/result.dart';
 import '../data/repositories/seller_order_repository_impl.dart';
 import '../domain/models/seller_order.dart';
 import 'seller_insights_provider.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 class SellerOrdersState {
   const SellerOrdersState({
@@ -55,7 +56,8 @@ class SellerOrdersState {
 /// The Orders screen splits, sorts and filters this list locally, so
 /// switching tabs or sort order never triggers another request. Realtime
 /// pushes and decisions call [refresh].
-class SellerOrdersNotifier extends Notifier<SellerOrdersState> {
+class SellerOrdersNotifier extends Notifier<SellerOrdersState>
+    with DisposeTolerantNotifier<SellerOrdersState> {
   static const _pageSize = 50;
   static const _maxPages = 20;
   CancelToken? _cancelToken;
@@ -88,6 +90,7 @@ class SellerOrdersNotifier extends Notifier<SellerOrdersState> {
         limit: _pageSize,
         cancelToken: token,
       );
+      if (!ref.mounted) return;
       if (token.isCancelled) return;
       switch (result) {
         case Success(:final value):
@@ -188,7 +191,8 @@ void refreshSellerOrderViews(Ref ref, {String? orderId}) {
 ///
 /// A second tap on the same order is ignored until the first one settles,
 /// so a slow network cannot send two decisions.
-class SellerOrderActionsNotifier extends Notifier<Set<String>> {
+class SellerOrderActionsNotifier extends Notifier<Set<String>>
+    with DisposeTolerantNotifier<Set<String>> {
   @override
   Set<String> build() => const {};
 

@@ -34,6 +34,8 @@ export 'navigator_keys.dart';
 
 /// Root GoRouter configuration compiling routes from all feature modules.
 /// When adding a new feature, import its routes and append them to the routes list below.
+// Every GoRoute sets `caseSensitive: false`: go_router 15 made paths case
+// sensitive by default, and links like /Diamonds used to open.
 final GoRouter appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: AppRouteNames.home,

@@ -49,12 +49,10 @@ class JewelryShopOrdersScreen extends ConsumerWidget {
             tooltip: context.tr(JewelryReviewL10n.title),
             badge: ref
                 .watch(jewelrySellerReviewStatsProvider)
-                .valueOrNull
+                .value
                 ?.unanswered,
             onPressed: () => context.push(
-              AppRouteNames.jewelryShopReviewsPath(
-                show: 'unanswered',
-              ),
+              AppRouteNames.jewelryShopReviewsPath(show: 'unanswered'),
             ),
           ),
         ],

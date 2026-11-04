@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../domain/models/jewelry_filter_state.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 Set<String> _toggle(Set<String> current, String value) {
   final next = Set<String>.from(current);
@@ -8,7 +10,8 @@ Set<String> _toggle(Set<String> current, String value) {
   return next;
 }
 
-class JewelryFilterNotifier extends Notifier<JewelryFilterState> {
+class JewelryFilterNotifier extends Notifier<JewelryFilterState>
+    with DisposeTolerantNotifier<JewelryFilterState> {
   @override
   JewelryFilterState build() => const JewelryFilterState();
 
@@ -84,7 +87,8 @@ final jewelryViewModeProvider = StateProvider<JewelryViewMode>(
   (ref) => JewelryViewMode.grid,
 );
 
-class JewelryFilterDraftNotifier extends Notifier<JewelryFilterState> {
+class JewelryFilterDraftNotifier extends Notifier<JewelryFilterState>
+    with DisposeTolerantNotifier<JewelryFilterState> {
   @override
   JewelryFilterState build() => ref.watch(jewelryFilterProvider);
 

@@ -46,17 +46,21 @@ class _PolicyDetailScreenState extends State<PolicyDetailScreen> {
   }
 
   void _reload() {
-    _future = PoliciesRepository.loadById(
-      widget.policyId,
-      _locale ?? Localizations.localeOf(context),
-    ).then((doc) {
-      if (doc != null && mounted) {
-        setState(() {
-          _sectionKeys = List.generate(doc.sections.length, (_) => GlobalKey());
+    _future =
+        PoliciesRepository.loadById(
+          widget.policyId,
+          _locale ?? Localizations.localeOf(context),
+        ).then((doc) {
+          if (doc != null && mounted) {
+            setState(() {
+              _sectionKeys = List.generate(
+                doc.sections.length,
+                (_) => GlobalKey(),
+              );
+            });
+          }
+          return doc;
         });
-      }
-      return doc;
-    });
     setState(() {});
   }
 
@@ -81,9 +85,7 @@ class _PolicyDetailScreenState extends State<PolicyDetailScreen> {
         : widget.policyId == 'terms'
         ? GemCut.emerald
         : GemCut.cushion;
-    final look = widget.policyId == 'privacy'
-        ? GemLook.ice
-        : GemLook.champagne;
+    final look = widget.policyId == 'privacy' ? GemLook.ice : GemLook.champagne;
 
     return AppScaffold(
       backgroundColor: p.canvas,
@@ -137,16 +139,10 @@ class _PolicyDetailScreenState extends State<PolicyDetailScreen> {
                 )
               else ...[
                 if (doc!.sections.length > 3) ...[
-                  PolicySectionRail(
-                    sections: doc.sections,
-                    onSelect: _jumpTo,
-                  ),
+                  PolicySectionRail(sections: doc.sections, onSelect: _jumpTo),
                   const SizedBox(height: 12),
                 ],
-                PolicyDocumentBody(
-                  document: doc,
-                  sectionKeys: _sectionKeys,
-                ),
+                PolicyDocumentBody(document: doc, sectionKeys: _sectionKeys),
                 const SizedBox(height: 6),
                 AtelierCard(
                   child: Column(

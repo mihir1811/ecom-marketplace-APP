@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 
 import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
@@ -40,12 +41,14 @@ class DiamondProjectListNotifier
 
   Future<void> remove(String id) async {
     final result = await ref.read(diamondProjectRepositoryProvider).remove(id);
+    if (!ref.mounted) return;
     if (result is ResultFailure<void, Failure>) {
       throw result.failure;
     }
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null) {
       await loadFirstPage();
+      if (!ref.mounted) return;
       return;
     }
     state = AsyncData(

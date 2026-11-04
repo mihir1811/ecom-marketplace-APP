@@ -94,7 +94,11 @@ abstract final class DiamondDisplay {
     };
   }
 
-  static String? boolLabel(bool? value, {String yes = 'Yes', String no = 'No'}) {
+  static String? boolLabel(
+    bool? value, {
+    String yes = 'Yes',
+    String no = 'No',
+  }) {
     if (value == null) return null;
     return value ? yes : no;
   }
@@ -108,13 +112,17 @@ abstract final class DiamondDisplay {
   }
 
   static String _titleCaseWords(String input) {
-    return input.split(RegExp(r'\s+')).map((word) {
-      if (word.isEmpty) return word;
-      // Keep known short grade-like tokens uppercase when already short.
-      if (word.length <= 4 && RegExp(r'^[a-z0-9.]+$', caseSensitive: false).hasMatch(word)) {
-        return word.toUpperCase();
-      }
-      return '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}';
-    }).join(' ');
+    return input
+        .split(RegExp(r'\s+'))
+        .map((word) {
+          if (word.isEmpty) return word;
+          // Keep known short grade-like tokens uppercase when already short.
+          if (word.length <= 4 &&
+              RegExp(r'^[a-z0-9.]+$', caseSensitive: false).hasMatch(word)) {
+            return word.toUpperCase();
+          }
+          return '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}';
+        })
+        .join(' ');
   }
 }

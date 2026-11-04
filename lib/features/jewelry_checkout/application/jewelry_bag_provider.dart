@@ -8,6 +8,7 @@ import '../data/jewelry_bag_store.dart';
 import '../data/repositories/jewelry_checkout_repository_impl.dart';
 import '../domain/models/bag_line.dart';
 import '../domain/models/marketplace_quote.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 final jewelryBagStoreProvider = Provider<JewelryBagStore>(
   (ref) => const JewelryBagStore(),
@@ -18,7 +19,8 @@ enum BagAddIssue { full, maxQuantity }
 
 /// The on-device jewellery bag. Loaded from storage on first read and
 /// written back on every change.
-class JewelryBagNotifier extends Notifier<List<BagLine>> {
+class JewelryBagNotifier extends Notifier<List<BagLine>>
+    with DisposeTolerantNotifier<List<BagLine>> {
   bool _loaded = false;
   final _ready = Completer<void>();
 
@@ -37,6 +39,7 @@ class JewelryBagNotifier extends Notifier<List<BagLine>> {
   Future<void> _load() async {
     if (_loaded) return;
     final saved = await _store.read();
+    if (!ref.mounted) return;
     _loaded = true;
     if (!_ready.isCompleted) _ready.complete();
     // Lines added before storage answered win over the stored copy.

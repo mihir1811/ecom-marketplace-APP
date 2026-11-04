@@ -5,6 +5,7 @@ import '../../../core/error/result.dart';
 import '../data/repositories/seller_insights_repository_impl.dart';
 import '../domain/models/seller_insights.dart';
 import '../domain/repositories/seller_insights_repository.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 class SellerDashboardState {
   const SellerDashboardState({
@@ -39,7 +40,8 @@ class SellerDashboardState {
   }
 }
 
-class SellerDashboardNotifier extends Notifier<SellerDashboardState> {
+class SellerDashboardNotifier extends Notifier<SellerDashboardState>
+    with DisposeTolerantNotifier<SellerDashboardState> {
   /// Id of the newest request; older responses are dropped so a slow
   /// monthly response can never land under a newer "Daily" selection.
   int _generation = 0;
@@ -66,11 +68,13 @@ class SellerDashboardNotifier extends Notifier<SellerDashboardState> {
     _params = params;
     state = state.copyWith(params: params);
     await _load();
+    if (!ref.mounted) return;
   }
 
   Future<void> refresh() async {
     _repo.invalidateCache();
     await _load();
+    if (!ref.mounted) return;
   }
 
   Future<void> _load() async {
@@ -85,6 +89,7 @@ class SellerDashboardNotifier extends Notifier<SellerDashboardState> {
 
     // Identical in-flight queries are shared by the repository cache.
     final result = await _repo.getDashboard(params: params);
+    if (!ref.mounted) return;
     if (generation != _generation) return;
     switch (result) {
       case Success(:final value):
@@ -129,8 +134,13 @@ class SellerAnalyticsState {
   }
 }
 
-class SellerAnalyticsNotifier
-    extends FamilyNotifier<SellerAnalyticsState, AnalyticsWindow> {
+class SellerAnalyticsNotifier extends Notifier<SellerAnalyticsState>
+    with DisposeTolerantNotifier<SellerAnalyticsState> {
+  SellerAnalyticsNotifier(this.arg);
+
+  /// The family argument this notifier was created for.
+  final AnalyticsWindow arg;
+
   bool _started = false;
   Future<void>? _inFlight;
   SellerAnalyticsState _latest = const SellerAnalyticsState(isLoading: true);
@@ -140,7 +150,7 @@ class SellerAnalyticsNotifier
       ref.read(sellerInsightsRepositoryProvider);
 
   @override
-  SellerAnalyticsState build(AnalyticsWindow arg) {
+  SellerAnalyticsState build() {
     final userId = ref.watch(authProvider.select((s) => s.user?.id));
     if (userId != _boundUserId) {
       _boundUserId = userId;
@@ -171,6 +181,7 @@ class SellerAnalyticsNotifier
     _inFlight = done;
     try {
       await done;
+      if (!ref.mounted) return;
     } finally {
       if (identical(_inFlight, done)) _inFlight = null;
     }
@@ -187,6 +198,7 @@ class SellerAnalyticsNotifier
       from: arg.from,
       to: arg.to,
     );
+    if (!ref.mounted) return;
     switch (result) {
       case Success(:final value):
         _latest = SellerAnalyticsState(snapshot: value);

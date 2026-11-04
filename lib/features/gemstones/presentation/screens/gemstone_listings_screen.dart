@@ -54,7 +54,7 @@ class _GemstoneListingsScreenState extends ConsumerState<GemstoneListingsScreen>
 
   @override
   bool get listingCanLoadMore {
-    final s = ref.read(gemstoneListProvider).valueOrNull;
+    final s = ref.read(gemstoneListProvider).value;
     return s != null &&
         s.hasMore &&
         !s.isLoadingMore &&
@@ -68,7 +68,7 @@ class _GemstoneListingsScreenState extends ConsumerState<GemstoneListingsScreen>
 
   @override
   int get listingItemCount =>
-      ref.read(gemstoneListProvider).valueOrNull?.gemstones.length ?? 0;
+      ref.read(gemstoneListProvider).value?.gemstones.length ?? 0;
 
   @override
   LuxeViewMode get listingViewMode =>
@@ -200,7 +200,7 @@ class _GemstoneListingsScreenState extends ConsumerState<GemstoneListingsScreen>
   List<Widget> _content(BuildContext context) {
     final stateAsync = ref.watch(gemstoneListProvider);
     final grid = ref.watch(gemstoneViewModeProvider) == GemstoneViewMode.grid;
-    final state = stateAsync.valueOrNull;
+    final state = stateAsync.value;
     final error =
         stateAsync.whenOrNull(error: (e, _) => e.toString()) ??
         state?.errorMessage;
@@ -256,7 +256,7 @@ class _CountLine extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final total = ref.watch(
       gemstoneListProvider.select((v) {
-        final s = v.valueOrNull;
+        final s = v.value;
         if (s == null || s.isInitialLoading) return null;
         return s.totalCount;
       }),

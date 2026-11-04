@@ -503,11 +503,10 @@ class _CheckoutModel {
     final totals = ref.watch(cartTotalsProvider);
     final merchandiseUsd = ref.watch(cartAvailableMerchandiseUsdProvider);
     final items = ref.watch(cartProvider.select((s) => s.items));
-    final fees =
-        ref.watch(activeFeesProvider).valueOrNull ?? FeeRulesCatalog.empty;
+    final fees = ref.watch(activeFeesProvider).value ?? FeeRulesCatalog.empty;
     ref.watch(exchangeRateProvider);
     final walletAsync = ref.watch(walletProvider);
-    final rewards = ref.watch(rewardsProvider).valueOrNull;
+    final rewards = ref.watch(rewardsProvider).value;
 
     final estimate = CartOrderEstimate.compute(
       merchandiseUsd: merchandiseUsd,
@@ -524,7 +523,7 @@ class _CheckoutModel {
       ],
     );
 
-    final walletBalance = walletAsync.valueOrNull?.balance ?? 0;
+    final walletBalance = walletAsync.value?.balance ?? 0;
     final useWallet = checkout.useWallet;
     final usePoints = checkout.usePoints && (rewards?.canSpend ?? false);
     final split = CheckoutSplitPreview.compute(
@@ -648,8 +647,8 @@ class _WalletPayOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = walletAsync.isLoading && walletAsync.valueOrNull == null;
-    final hasError = walletAsync.hasError && walletAsync.valueOrNull == null;
+    final isLoading = walletAsync.isLoading && walletAsync.value == null;
+    final hasError = walletAsync.hasError && walletAsync.value == null;
     final enabled = !busy && !isLoading && !hasError;
 
     String subtitle;

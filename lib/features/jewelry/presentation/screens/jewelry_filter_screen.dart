@@ -143,7 +143,7 @@ class _JewelryFilterScreenState extends ConsumerState<JewelryFilterScreen>
     JewelryFilterSummary summary,
     AsyncValue<MarketplaceFacets> facetsAsync,
   ) {
-    final facets = facetsAsync.valueOrNull;
+    final facets = facetsAsync.value;
     final Widget child;
     if (facets == null) {
       child = facetsAsync.hasError

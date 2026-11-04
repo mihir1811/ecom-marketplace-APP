@@ -31,27 +31,32 @@ import '../reference/presentation/screens/buyer_references_screen.dart';
 /// common screens wrapped in the buyer shell; everything else is buyer-only.
 final List<RouteBase> buyerRoutes = [
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.buyerProfile,
     builder: (context, state) =>
         const MaisonLayout(scrollsBehindDock: true, child: ProfileScreen()),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.buyerOrders,
     builder: (context, state) =>
         const VerifiedAccountGate(child: BuyerOrdersScreen()),
   ),
   GoRoute(
+    caseSensitive: false,
     path: '/buyer/orders/:orderId',
     builder: (context, state) => VerifiedAccountGate(
       child: BuyerOrderDetailScreen(orderId: state.pathParameters['orderId']!),
     ),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.buyerRefunds,
     builder: (context, state) =>
         const VerifiedAccountGate(child: BuyerRefundsScreen()),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.buyerOffers,
     builder: (context, state) => VerifiedAccountGate(
       child: BuyerOffersScreen(
@@ -61,19 +66,23 @@ final List<RouteBase> buyerRoutes = [
     ),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.buyerReferences,
     builder: (context, state) => const BuyerReferencesScreen(),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.buyerInquiries,
     builder: (context, state) => const BuyerInquiriesScreen(),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.buyerInquiryNew,
     builder: (context, state) =>
         const MaisonLayout(detail: true, child: SellerInquiryFormScreen()),
   ),
   GoRoute(
+    caseSensitive: false,
     path: '/buyer/inquiries/:category/:inquiryId',
     builder: (context, state) => BuyerLayout(
       title: context.tr(AccountCommerceL10n.inquiry),
@@ -84,23 +93,28 @@ final List<RouteBase> buyerRoutes = [
     ),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.buyerHelpCenter,
     builder: (context, state) =>
         const MaisonLayout(detail: true, child: HelpCenterScreen()),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.buyerWishlist,
     builder: (context, state) => const BuyerWishlistScreen(),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.buyerRecentlyViewed,
     builder: (context, state) => const BuyerRecentlyViewedScreen(),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.buyerReviews,
     builder: (context, state) => const BuyerReviewsScreen(),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.buyerMessages,
     builder: (context, state) => const MaisonLayout(
       detail: true,
@@ -114,6 +128,7 @@ final List<RouteBase> buyerRoutes = [
     ),
   ),
   GoRoute(
+    caseSensitive: false,
     path: '/buyer/messages/:chatId',
     builder: (context, state) => MaisonLayout(
       detail: true,
@@ -127,31 +142,38 @@ final List<RouteBase> buyerRoutes = [
     ),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.buyerSettings,
     builder: (context, state) => const BuyerSettingsScreen(),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.buyerNotifications,
     builder: (context, state) =>
         const MaisonLayout(detail: true, child: NotificationsScreen()),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.buyerAbout,
     builder: (context, state) => const BuyerAboutScreen(),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.buyerPrivacy,
     builder: (context, state) => const BuyerPrivacyScreen(),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.buyerTerms,
     builder: (context, state) => const BuyerTermsScreen(),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.buyerPolicies,
     builder: (context, state) => const BuyerPoliciesHubScreen(),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.buyerPolicyDetail,
     builder: (context, state) => BuyerPolicyDetailScreen(
       policyId: state.pathParameters['policyId'] ?? '',

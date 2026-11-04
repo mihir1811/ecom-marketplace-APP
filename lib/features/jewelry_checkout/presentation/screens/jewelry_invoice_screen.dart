@@ -67,7 +67,7 @@ class _JewelryInvoiceScreenState extends ConsumerState<JewelryInvoiceScreen> {
   Widget _build(BuildContext context) {
     final p = LuxePalette.of(context);
     final async = ref.watch(jewelryInvoiceProvider(widget.orderId));
-    final invoice = async.valueOrNull;
+    final invoice = async.value;
     return AppScaffold(
       backgroundColor: p.canvas,
       appBar: LuxeTopBar(title: context.tr(JewelryMarketL10n.taxInvoice)),

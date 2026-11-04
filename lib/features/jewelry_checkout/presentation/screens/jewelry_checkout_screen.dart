@@ -203,7 +203,7 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
   Widget _build(BuildContext context) {
     final p = LuxePalette.of(context);
     final busy = ref.watch(jewelryCheckoutProvider);
-    final quote = ref.watch(jewelryBagQuoteProvider).valueOrNull;
+    final quote = ref.watch(jewelryBagQuoteProvider).value;
     final lines = ref.watch(jewelryBagProvider);
     final pieces = lines.fold(0, (s, l) => s + l.quantity);
     final ready = quote != null && quote.ready;
@@ -224,7 +224,7 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
     final countriesAsync = ref.watch(
       jewelryLocationsProvider((country: null, state: null)),
     );
-    final loadedCountries = countriesAsync.valueOrNull ?? const [];
+    final loadedCountries = countriesAsync.value ?? const [];
     final countries = loadedCountries.isEmpty
         ? const <JewelryLocation>[(code: 'IN', name: 'India')]
         : loadedCountries;
@@ -234,7 +234,7 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
     final statesAsync = ref.watch(
       jewelryLocationsProvider((country: _country, state: null)),
     );
-    final states = statesAsync.valueOrNull ?? const <JewelryLocation>[];
+    final states = statesAsync.value ?? const <JewelryLocation>[];
     final typedState = _state.text.trim().toLowerCase();
     final stateCode =
         _stateCode ??
@@ -247,7 +247,7 @@ class _JewelryCheckoutScreenState extends ConsumerState<JewelryCheckoutScreen> {
         : ref.watch(
             jewelryLocationsProvider((country: _country, state: stateCode)),
           );
-    final cities = citiesAsync?.valueOrNull ?? const <JewelryLocation>[];
+    final cities = citiesAsync?.value ?? const <JewelryLocation>[];
     final pickCity = cities.isNotEmpty && !_cityTyped;
 
     String? stateCheck(String? v) {

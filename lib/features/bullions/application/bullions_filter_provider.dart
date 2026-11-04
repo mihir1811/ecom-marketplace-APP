@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../domain/models/bullions_filter_state.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 Set<String> _toggle(Set<String> current, String value) {
   final next = Set<String>.from(current);
@@ -8,7 +10,8 @@ Set<String> _toggle(Set<String> current, String value) {
   return next;
 }
 
-class BullionsFilterNotifier extends Notifier<BullionsFilterState> {
+class BullionsFilterNotifier extends Notifier<BullionsFilterState>
+    with DisposeTolerantNotifier<BullionsFilterState> {
   @override
   BullionsFilterState build() => const BullionsFilterState();
 
@@ -57,7 +60,8 @@ final bullionsSortProvider = StateProvider<BullionsSortOption>(
   (ref) => BullionsSortOption.featured,
 );
 
-class BullionsFilterDraftNotifier extends Notifier<BullionsFilterState> {
+class BullionsFilterDraftNotifier extends Notifier<BullionsFilterState>
+    with DisposeTolerantNotifier<BullionsFilterState> {
   @override
   BullionsFilterState build() => ref.watch(bullionsFilterProvider);
 

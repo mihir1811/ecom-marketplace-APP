@@ -7,6 +7,7 @@ import '../../../core/error/result.dart';
 import '../../payment/data/repositories/payment_repository_impl.dart';
 import '../../payment/domain/models/payment_models.dart';
 import '../domain/models/buyer_order.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 BuyerOrder buyerOrderFromPayment(PaymentOrder order) {
   return BuyerOrder(
@@ -79,7 +80,8 @@ class BuyerOrdersListState {
   }
 }
 
-class BuyerOrdersNotifier extends Notifier<BuyerOrdersListState> {
+class BuyerOrdersNotifier extends Notifier<BuyerOrdersListState>
+    with DisposeTolerantNotifier<BuyerOrdersListState> {
   static const _pageSize = 20;
 
   @override
@@ -97,6 +99,7 @@ class BuyerOrdersNotifier extends Notifier<BuyerOrdersListState> {
     final result = await ref
         .read(paymentRepositoryProvider)
         .listOrders(page: 1, limit: _pageSize);
+    if (!ref.mounted) return;
     switch (result) {
       case Success(:final value):
         state = BuyerOrdersListState(
@@ -116,6 +119,7 @@ class BuyerOrdersNotifier extends Notifier<BuyerOrdersListState> {
     final result = await ref
         .read(paymentRepositoryProvider)
         .listOrders(page: nextPage, limit: _pageSize);
+    if (!ref.mounted) return;
     switch (result) {
       case Success(:final value):
         state = state.copyWith(

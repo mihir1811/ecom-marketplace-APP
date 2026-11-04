@@ -34,18 +34,16 @@ abstract final class SharedProductDetailMapper {
         CartProductType.diamond => _diamond(map, melee: false),
         CartProductType.meleeDiamond => _diamond(map, melee: true),
         CartProductType.gemstone => gemstoneProductDetail(
-            GemstoneMapper.toDomain(GemstoneDto.fromJson(map)),
-          ),
-        CartProductType.jewellery ||
-        CartProductType.marketplaceJewellery => jewelryProductDetail(
-            JewelryMapper.fromJson(map),
-          ),
+          GemstoneMapper.toDomain(GemstoneDto.fromJson(map)),
+        ),
+        CartProductType.jewellery || CartProductType.marketplaceJewellery =>
+          jewelryProductDetail(JewelryMapper.fromJson(map)),
         CartProductType.watch => watchProductDetail(
-            WatchMapper.toDomain(WatchDto.fromJson(map)),
-          ),
+          WatchMapper.toDomain(WatchDto.fromJson(map)),
+        ),
         CartProductType.bullion => bullionProductDetail(
-            BullionMapper.toDomain(BullionDto.fromJson(map)),
-          ),
+          BullionMapper.toDomain(BullionDto.fromJson(map)),
+        ),
         _ => null,
       };
     } catch (_) {

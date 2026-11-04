@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/error/result.dart';
 import '../data/repositories/live_show_repository_impl.dart';
 import '../domain/models/live_show_models.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 class LiveShowsState {
   const LiveShowsState({
@@ -27,7 +28,8 @@ final liveShowsProvider =
       LiveShowsNotifier.new,
     );
 
-class LiveShowsNotifier extends AutoDisposeNotifier<LiveShowsState> {
+class LiveShowsNotifier extends Notifier<LiveShowsState>
+    with DisposeTolerantNotifier<LiveShowsState> {
   static const _linger = Duration(minutes: 2);
 
   Future<void>? _inFlight;
@@ -54,6 +56,7 @@ class LiveShowsNotifier extends AutoDisposeNotifier<LiveShowsState> {
 
   Future<void> _fetch() async {
     final result = await ref.read(liveShowRepositoryProvider).shows();
+    if (!ref.mounted) return;
     if (_disposed) return;
     state = switch (result) {
       Success(:final value) => LiveShowsState(

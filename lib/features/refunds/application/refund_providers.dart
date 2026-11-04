@@ -8,6 +8,7 @@ import '../data/repositories/refund_repository_impl.dart';
 import '../domain/models/refund_list_page.dart';
 import '../domain/models/refund_request.dart';
 import '../domain/repositories/refund_repository.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 class RefundListState {
   const RefundListState({
@@ -50,7 +51,8 @@ class RefundListState {
   }
 }
 
-abstract class _RefundListNotifier extends Notifier<RefundListState> {
+abstract class _RefundListNotifier extends Notifier<RefundListState>
+    with DisposeTolerantNotifier<RefundListState> {
   CancelToken? _cancelToken;
 
   RefundRepository get _repo => ref.read(refundRepositoryProvider);
@@ -195,7 +197,8 @@ final orderRefundsProvider = FutureProvider.autoDispose
       };
     });
 
-class RefundMutationNotifier extends Notifier<AsyncValue<void>> {
+class RefundMutationNotifier extends Notifier<AsyncValue<void>>
+    with DisposeTolerantNotifier<AsyncValue<void>> {
   @override
   AsyncValue<void> build() => const AsyncValue.data(null);
 

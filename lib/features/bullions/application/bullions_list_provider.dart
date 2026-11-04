@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../core/error/failure.dart';
 import '../../../core/pagination/paginated_async_notifier.dart';
@@ -36,17 +38,17 @@ void presentPrefetchedBullions(
 
 final bullionsListProvider =
     AsyncNotifierProvider<BullionsListNotifier, BullionsListState>(
-  BullionsListNotifier.new,
-);
+      BullionsListNotifier.new,
+    );
 
 class BullionsListNotifier extends PaginatedAsyncNotifier<Bullion> {
   CancelToken? _cancelToken;
 
   @override
   Iterable<ProviderListenable<Object?>> get reloadTriggers => [
-        bullionsFilterProvider,
-        bullionsSortProvider,
-      ];
+    bullionsFilterProvider,
+    bullionsSortProvider,
+  ];
 
   @override
   void onResetPagination() {
@@ -56,7 +58,6 @@ class BullionsListNotifier extends PaginatedAsyncNotifier<Bullion> {
     }
     _cancelToken = CancelToken();
   }
-
 
   @override
   void onBeforePageLoad({required int page, required bool isFirstPage}) {
@@ -84,12 +85,12 @@ class BullionsListNotifier extends PaginatedAsyncNotifier<Bullion> {
     );
     return switch (result) {
       Success(value: final response) => Success(
-          PaginatedPage<Bullion>(
-            items: response.bullions,
-            hasMore: response.hasMore,
-            totalCount: response.totalCount,
-          ),
+        PaginatedPage<Bullion>(
+          items: response.bullions,
+          hasMore: response.hasMore,
+          totalCount: response.totalCount,
         ),
+      ),
       ResultFailure(failure: final failure) => ResultFailure(failure),
     };
   }

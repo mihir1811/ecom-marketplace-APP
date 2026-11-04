@@ -6,6 +6,7 @@ import 'presentation/screens/home_screen.dart';
 /// Spreads easily into the central root GoRouter configuration.
 final List<RouteBase> homeRoutes = [
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.home,
     builder: (context, state) => const HomeScreen(),
   ),

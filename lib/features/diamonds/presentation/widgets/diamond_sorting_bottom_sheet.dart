@@ -771,10 +771,7 @@ class _AddFieldTile extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 5,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                 decoration: ShapeDecoration(
                   color: p.accentSoft,
                   shape: const StadiumBorder(),

@@ -240,12 +240,15 @@ class _ClubLadder extends StatelessWidget {
                             club.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: AtelierType.label(
-                              reached ? p.onOnyx : soft,
-                              size: 11,
-                            ).copyWith(
-                              fontWeight: isCurrent ? FontWeight.w700 : null,
-                            ),
+                            style:
+                                AtelierType.label(
+                                  reached ? p.onOnyx : soft,
+                                  size: 11,
+                                ).copyWith(
+                                  fontWeight: isCurrent
+                                      ? FontWeight.w700
+                                      : null,
+                                ),
                           ),
                         ),
                       ],

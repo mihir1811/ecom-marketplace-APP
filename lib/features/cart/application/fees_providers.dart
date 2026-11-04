@@ -7,6 +7,7 @@ import '../../../core/error/result.dart';
 import '../data/repositories/fees_repository_impl.dart';
 import '../domain/models/fee_rule.dart';
 import '../domain/repositories/fees_repository.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// Active checkout fee rules for the signed-in session.
 final activeFeesProvider =
@@ -14,7 +15,8 @@ final activeFeesProvider =
       ActiveFeesNotifier.new,
     );
 
-class ActiveFeesNotifier extends AsyncNotifier<FeeRulesCatalog> {
+class ActiveFeesNotifier extends AsyncNotifier<FeeRulesCatalog>
+    with DisposeTolerantAsyncNotifier<FeeRulesCatalog> {
   CancelToken? _cancelToken;
 
   FeesRepository get _repo => ref.read(feesRepositoryProvider);
@@ -50,6 +52,7 @@ class ActiveFeesNotifier extends AsyncNotifier<FeeRulesCatalog> {
     _cancelToken?.cancel('refresh');
     _cancelToken = CancelToken();
     final result = await _repo.listActive(cancelToken: _cancelToken);
+    if (!ref.mounted) return;
     state = switch (result) {
       Success(value: final catalog) => AsyncValue.data(catalog),
       ResultFailure(failure: final failure) =>

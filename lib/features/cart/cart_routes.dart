@@ -6,6 +6,7 @@ import 'presentation/screens/cart_screen.dart';
 
 final List<RouteBase> cartRoutes = [
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.cart,
     builder: (context, state) => const VerifiedAccountGate(child: CartScreen()),
   ),

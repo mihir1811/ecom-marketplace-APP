@@ -25,7 +25,7 @@ final spotlightProvider = FutureProvider.autoDispose
 /// The ads of [query] of type [T] (blocks only draw their own shape).
 List<T> spotlightItemsOf<T extends SpotlightItem>(
   AsyncValue<List<SpotlightItem>> value,
-) => value.valueOrNull?.whereType<T>().toList() ?? const [];
+) => value.value?.whereType<T>().toList() ?? const [];
 
 /// Counts views and clicks and sends them in batches.
 ///

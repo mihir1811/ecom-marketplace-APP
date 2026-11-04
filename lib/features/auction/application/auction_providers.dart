@@ -9,6 +9,7 @@ import '../../cart/application/cart_provider.dart';
 import '../data/auction_socket_client.dart';
 import '../data/repositories/auction_repository_impl.dart';
 import '../domain/models/auction_models.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 enum AuctionFeedKind { live, wins, activity, seller }
 
@@ -87,8 +88,13 @@ final auctionFeedProvider =
       AuctionFeedQuery
     >(AuctionFeedNotifier.new);
 
-class AuctionFeedNotifier
-    extends FamilyNotifier<AuctionFeedState, AuctionFeedQuery> {
+class AuctionFeedNotifier extends Notifier<AuctionFeedState>
+    with DisposeTolerantNotifier<AuctionFeedState> {
+  AuctionFeedNotifier(this.arg);
+
+  /// The family argument this notifier was created for.
+  final AuctionFeedQuery arg;
+
   StreamSubscription<AuctionSocketEvent>? _socketSub;
   StreamSubscription<void>? _resyncSub;
   AuctionSocketClient? _socket;
@@ -96,7 +102,7 @@ class AuctionFeedNotifier
   var _watchingLive = false;
 
   @override
-  AuctionFeedState build(AuctionFeedQuery arg) {
+  AuctionFeedState build() {
     ref.onDispose(_stopSocket);
     _startSocket();
     Future<void>.microtask(refresh);
@@ -167,6 +173,7 @@ class AuctionFeedNotifier
   /// Reloads the first page without the full-screen loading state.
   Future<void> refreshQuiet() async {
     final result = await _load(page: 1);
+    if (!ref.mounted) return;
     switch (result) {
       case Success(:final value):
         state = state.copyWith(
@@ -183,6 +190,7 @@ class AuctionFeedNotifier
   Future<void> refresh() async {
     state = state.copyWith(isLoading: true, clearError: true);
     final result = await _load(page: 1);
+    if (!ref.mounted) return;
     switch (result) {
       case Success(:final value):
         state = AuctionFeedState(
@@ -201,6 +209,7 @@ class AuctionFeedNotifier
     if (state.isLoading || state.isLoadingMore || !state.hasMore) return;
     state = state.copyWith(isLoadingMore: true, clearError: true);
     final result = await _load(page: state.page + 1);
+    if (!ref.mounted) return;
     switch (result) {
       case Success(:final value):
         state = state.copyWith(
@@ -308,15 +317,20 @@ final auctionDetailProvider = NotifierProvider.autoDispose
       AuctionDetailNotifier.new,
     );
 
-class AuctionDetailNotifier
-    extends AutoDisposeFamilyNotifier<AuctionDetailState, String> {
+class AuctionDetailNotifier extends Notifier<AuctionDetailState>
+    with DisposeTolerantNotifier<AuctionDetailState> {
+  AuctionDetailNotifier(this.arg);
+
+  /// The family argument this notifier was created for.
+  final String arg;
+
   StreamSubscription<AuctionSocketEvent>? _socketSub;
   StreamSubscription<void>? _resyncSub;
   Timer? _socketRefresh;
   Timer? _deadlineRefresh;
 
   @override
-  AuctionDetailState build(String arg) {
+  AuctionDetailState build() {
     final socket = ref.read(auctionSocketProvider);
     socket.watchAuction(arg);
     socket.watchLive();
@@ -369,6 +383,7 @@ class AuctionDetailNotifier
       );
     }
     final result = await ref.read(auctionRepositoryProvider).byId(arg);
+    if (!ref.mounted) return;
     switch (result) {
       case Success(:final value):
         final current = state.auction;

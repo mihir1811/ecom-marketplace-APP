@@ -9,6 +9,7 @@ import '../domain/models/jewelry.dart';
 import '../domain/models/jewelry_filter_state.dart';
 import '../domain/models/jewelry_premium.dart';
 import '../domain/repositories/jewelry_repository.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// The first Premium pieces for the home strip. The threshold is read on
 /// every load (GemWorld can change it); unavailable or empty hides the
@@ -69,15 +70,21 @@ final jewelryPremiumProvider = NotifierProvider.autoDispose
       JewelryPremiumNotifier.new,
     );
 
-class JewelryPremiumNotifier
-    extends
-        AutoDisposeFamilyNotifier<JewelryPremiumState, JewelryPremiumQuery> {
+class JewelryPremiumNotifier extends Notifier<JewelryPremiumState>
+    with DisposeTolerantNotifier<JewelryPremiumState> {
+  JewelryPremiumNotifier(this.arg);
+
+  /// The family argument this notifier was created for.
+  final JewelryPremiumQuery arg;
+
+  JewelryPremiumQuery get query => arg;
+
   CancelToken? _cancel;
   int _page = 1;
   int _epoch = 0;
 
   @override
-  JewelryPremiumState build(JewelryPremiumQuery query) {
+  JewelryPremiumState build() {
     ref.onDispose(() {
       _epoch++;
       _cancel?.cancel();
@@ -98,6 +105,7 @@ class JewelryPremiumNotifier
           : const PaginatedListState(isInitialLoading: true),
     );
     final result = await _fetch(1);
+    if (!ref.mounted) return;
     if (epoch != _epoch) return;
     state = switch (result) {
       Success(value: final r) => JewelryPremiumState(
@@ -127,6 +135,7 @@ class JewelryPremiumNotifier
     final epoch = _epoch;
     state = state.copyWith(pieces: current.copyWith(isLoadingMore: true));
     final result = await _fetch(_page + 1);
+    if (!ref.mounted) return;
     if (epoch != _epoch) return;
     switch (result) {
       case Success(value: final r):

@@ -5,6 +5,7 @@ import '../../../core/error/result.dart';
 import '../data/repositories/promotions_repository_impl.dart';
 import '../domain/models/promotion.dart';
 import '../domain/repositories/promotions_repository.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 class SellerPromotionsState {
   const SellerPromotionsState({
@@ -39,7 +40,8 @@ class SellerPromotionsState {
   }
 }
 
-class SellerPromotionsNotifier extends Notifier<SellerPromotionsState> {
+class SellerPromotionsNotifier extends Notifier<SellerPromotionsState>
+    with DisposeTolerantNotifier<SellerPromotionsState> {
   PromotionsRepository get _repo => ref.read(promotionsRepositoryProvider);
 
   @override
@@ -51,13 +53,12 @@ class SellerPromotionsNotifier extends Notifier<SellerPromotionsState> {
   Future<void> refresh() async {
     state = state.copyWith(isLoading: true, clearError: true);
     final discountsResult = await _repo.listDiscounts();
+    if (!ref.mounted) return;
     final promoResult = await _repo.listPromoCodes();
+    if (!ref.mounted) return;
     switch ((discountsResult, promoResult)) {
       case (Success(value: final discounts), Success(value: final promos)):
-        state = SellerPromotionsState(
-          discounts: discounts,
-          promoCodes: promos,
-        );
+        state = SellerPromotionsState(discounts: discounts, promoCodes: promos);
       case (ResultFailure(failure: final f), _):
         state = SellerPromotionsState(errorMessage: f.message);
       case (_, ResultFailure(failure: final f)):
@@ -142,5 +143,5 @@ class SellerPromotionsNotifier extends Notifier<SellerPromotionsState> {
 
 final sellerPromotionsProvider =
     NotifierProvider<SellerPromotionsNotifier, SellerPromotionsState>(
-  SellerPromotionsNotifier.new,
-);
+      SellerPromotionsNotifier.new,
+    );

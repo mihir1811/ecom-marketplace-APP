@@ -330,7 +330,7 @@ class _RecentCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final palette = HomePalette.of(context);
     final entries =
-        ref.watch(recentlyViewedListProvider).valueOrNull?.items ??
+        ref.watch(recentlyViewedListProvider).value?.items ??
         const <RecentlyViewedEntry>[];
     final visible = entries.take(10).toList();
 

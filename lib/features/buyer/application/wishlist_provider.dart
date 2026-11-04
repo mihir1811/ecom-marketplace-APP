@@ -7,6 +7,7 @@ import '../data/local_wishlist_store.dart';
 import '../data/repositories/favorites_repository_impl.dart';
 import '../domain/models/wishlist_item.dart';
 import '../domain/repositories/favorites_repository.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// Local + remote wishlist snapshot for heart toggles and the wishlist screen.
 class WishlistUiState {
@@ -34,7 +35,8 @@ class WishlistUiState {
   }
 }
 
-class WishlistNotifier extends Notifier<WishlistUiState> {
+class WishlistNotifier extends Notifier<WishlistUiState>
+    with DisposeTolerantNotifier<WishlistUiState> {
   static const _pageSize = 50;
 
   FavoritesRepository get _repo => ref.read(favoritesRepositoryProvider);
@@ -63,6 +65,7 @@ class WishlistNotifier extends Notifier<WishlistUiState> {
 
   Future<void> _loadLocal() async {
     final local = await _local.read();
+    if (!ref.mounted) return;
     if (local.isEmpty) return;
     final ids = {for (final i in state.items) i.id};
     state = state.copyWith(
@@ -84,6 +87,7 @@ class WishlistNotifier extends Notifier<WishlistUiState> {
 
     state = state.copyWith(isLoading: true, clearError: true);
     final local = await _local.read();
+    if (!ref.mounted) return;
 
     final all = <WishlistItem>[];
     var page = 1;
@@ -91,6 +95,7 @@ class WishlistNotifier extends Notifier<WishlistUiState> {
 
     while (hasMore && page <= 20) {
       final result = await _repo.list(page: page, limit: _pageSize);
+      if (!ref.mounted) return;
       switch (result) {
         case Success(:final value):
           all.addAll(value.items);
@@ -126,6 +131,7 @@ class WishlistNotifier extends Notifier<WishlistUiState> {
     if (_isLocal(item.productType)) {
       state = state.copyWith(items: [...state.items, item], clearError: true);
       await _local.write(_localItems);
+      if (!ref.mounted) return;
       return;
     }
     if (!ref.read(authProvider).isAuthenticated) return;
@@ -135,6 +141,7 @@ class WishlistNotifier extends Notifier<WishlistUiState> {
       productId: item.id,
       productType: item.productType,
     );
+    if (!ref.mounted) return;
     switch (result) {
       case Success(:final value):
         state = state.copyWith(
@@ -182,11 +189,13 @@ class WishlistNotifier extends Notifier<WishlistUiState> {
     final type = productType ?? previous.productType;
     if (_isLocal(type)) {
       await _local.write(_localItems);
+      if (!ref.mounted) return;
       return;
     }
     if (!ref.read(authProvider).isAuthenticated) return;
 
     final result = await _repo.remove(productId: id, productType: type);
+    if (!ref.mounted) return;
     switch (result) {
       case Success():
         return;

@@ -8,6 +8,7 @@ import '../data/repositories/suggested_seller_products_repository_impl.dart';
 import '../domain/models/listing_seller_info.dart';
 import '../domain/models/product_detail.dart';
 import '../domain/repositories/suggested_seller_products_repository.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// Query key for same-seller suggestions on a product detail screen.
 @immutable
@@ -78,11 +79,13 @@ final suggestedSellerProductsProvider =
     >(SuggestedSellerProductsNotifier.new);
 
 class SuggestedSellerProductsNotifier
-    extends
-        FamilyNotifier<
-          SuggestedSellerProductsState,
-          SuggestedSellerProductsQuery
-        > {
+    extends Notifier<SuggestedSellerProductsState>
+    with DisposeTolerantNotifier<SuggestedSellerProductsState> {
+  SuggestedSellerProductsNotifier(this.arg);
+
+  /// The family argument this notifier was created for.
+  final SuggestedSellerProductsQuery arg;
+
   CancelToken? _cancelToken;
   int _page = 1;
   Future<void>? _inFlightNext;
@@ -91,7 +94,7 @@ class SuggestedSellerProductsNotifier
       ref.read(suggestedSellerProductsRepositoryProvider);
 
   @override
-  SuggestedSellerProductsState build(SuggestedSellerProductsQuery arg) {
+  SuggestedSellerProductsState build() {
     ref.onDispose(() {
       final token = _cancelToken;
       if (token != null && !token.isCancelled) {
@@ -128,6 +131,7 @@ class SuggestedSellerProductsNotifier
       pageSize: SuggestedSellerProductsPageSize.defaultSize,
       cancelToken: _cancelToken,
     );
+    if (!ref.mounted) return;
 
     switch (result) {
       case Success(value: final page):
@@ -172,6 +176,7 @@ class SuggestedSellerProductsNotifier
         pageSize: SuggestedSellerProductsPageSize.defaultSize,
         cancelToken: _cancelToken,
       );
+      if (!ref.mounted) return;
 
       switch (result) {
         case Success(value: final page):

@@ -139,10 +139,7 @@ class WatchFilterState {
     'Sold',
   ];
 
-  static const withMediaOptions = [
-    'With Images',
-    'With Video',
-  ];
+  static const withMediaOptions = ['With Images', 'With Video'];
 
   static const caseMaterialOptions = [
     'Stainless Steel',
@@ -560,14 +557,14 @@ enum WatchSortOption {
 
 extension WatchSortOptionLabel on WatchSortOption {
   String get label => switch (this) {
-        WatchSortOption.featured => 'Default Sorting',
-        WatchSortOption.priceLowToHigh => 'Price: Low to High',
-        WatchSortOption.priceHighToLow => 'Price: High to Low',
-        WatchSortOption.newest => 'Newest Arrivals',
-        WatchSortOption.oldest => 'Oldest Arrivals',
-        WatchSortOption.brandAz => 'Brand Name (A-Z)',
-        WatchSortOption.brandZa => 'Brand Name (Z-A)',
-      };
+    WatchSortOption.featured => 'Default Sorting',
+    WatchSortOption.priceLowToHigh => 'Price: Low to High',
+    WatchSortOption.priceHighToLow => 'Price: High to Low',
+    WatchSortOption.newest => 'Newest Arrivals',
+    WatchSortOption.oldest => 'Oldest Arrivals',
+    WatchSortOption.brandAz => 'Brand Name (A-Z)',
+    WatchSortOption.brandZa => 'Brand Name (Z-A)',
+  };
 }
 
 enum WatchViewMode { grid, list }

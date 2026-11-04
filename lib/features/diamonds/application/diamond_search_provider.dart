@@ -3,9 +3,11 @@ import '../domain/models/diamond_catalog_type.dart';
 import '../domain/models/diamond_filter_state.dart';
 import '../domain/models/sieve_size.dart';
 import 'diamond_results_handoff.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// Notifier responsible for managing the diamond search query and filter settings.
-class DiamondSearchNotifier extends Notifier<DiamondFilterState> {
+class DiamondSearchNotifier extends Notifier<DiamondFilterState>
+    with DisposeTolerantNotifier<DiamondFilterState> {
   @override
   DiamondFilterState build() {
     // A fresh (e.g. lab-grown scoped) finder starts from a pending hand-off.

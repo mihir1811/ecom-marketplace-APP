@@ -40,12 +40,12 @@ class SellerSpotlightScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ads = ref.watch(sellerSpotlightAdsProvider);
     final overview = ref.watch(spotlightOverviewProvider);
-    final list = ads.valueOrNull ?? const <SpotlightSellerAd>[];
+    final list = ads.value ?? const <SpotlightSellerAd>[];
     final live = list.where((a) => a.state == SpotlightAdState.live).length;
     final views = list.fold<int>(0, (s, a) => s + a.views);
     final clicks = list.fold<int>(0, (s, a) => s + a.clicks);
     final loaded = ads.hasValue;
-    final canBook = overview.valueOrNull?.canBook ?? false;
+    final canBook = overview.value?.canBook ?? false;
 
     void book() => context.push(AppRouteNames.sellerSpotlightNew);
 

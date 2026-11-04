@@ -7,11 +7,13 @@ import 'presentation/screens/saved_diamond_projects_screen.dart';
 
 final List<RouteBase> diamondProjectsRoutes = [
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.diamondProject,
     builder: (context, state) =>
         const SellerOnlyGate(child: DiamondProjectStatsScreen()),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.savedDiamondProjects,
     builder: (context, state) =>
         const SellerOnlyGate(child: SavedDiamondProjectsScreen()),

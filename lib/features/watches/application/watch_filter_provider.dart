@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../domain/models/watch_filter_state.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 Set<String> _toggle(Set<String> current, String value) {
   final next = Set<String>.from(current);
@@ -9,7 +11,8 @@ Set<String> _toggle(Set<String> current, String value) {
 }
 
 /// Shared mutators for applied/draft watch filter notifiers.
-abstract class WatchFilterStateMutator extends Notifier<WatchFilterState> {
+abstract class WatchFilterStateMutator extends Notifier<WatchFilterState>
+    with DisposeTolerantNotifier<WatchFilterState> {
   void toggleBrand(String v) =>
       state = state.copyWith(brands: _toggle(state.brands, v));
 
@@ -84,8 +87,9 @@ abstract class WatchFilterStateMutator extends Notifier<WatchFilterState> {
   void togglePowerReserve(String v) =>
       state = state.copyWith(powerReserves: _toggle(state.powerReserves, v));
 
-  void toggleWaterResistance(String v) => state =
-      state.copyWith(waterResistances: _toggle(state.waterResistances, v));
+  void toggleWaterResistance(String v) => state = state.copyWith(
+    waterResistances: _toggle(state.waterResistances, v),
+  );
 
   void toggleModelYear(String v) =>
       state = state.copyWith(modelYears: _toggle(state.modelYears, v));
@@ -106,8 +110,8 @@ abstract class WatchFilterStateMutator extends Notifier<WatchFilterState> {
       state = state.copyWith(materials: _toggle(state.materials, v));
 
   void togglePreciousStoneType(String v) => state = state.copyWith(
-        preciousStoneTypes: _toggle(state.preciousStoneTypes, v),
-      );
+    preciousStoneTypes: _toggle(state.preciousStoneTypes, v),
+  );
 
   void toggleIndexes(String v) =>
       state = state.copyWith(indexes: _toggle(state.indexes, v));
@@ -119,8 +123,7 @@ abstract class WatchFilterStateMutator extends Notifier<WatchFilterState> {
   void setWarrantyCardIncluded(bool v) =>
       state = state.copyWith(warrantyCardIncluded: v);
 
-  void setFullSetIncluded(bool v) =>
-      state = state.copyWith(fullSetIncluded: v);
+  void setFullSetIncluded(bool v) => state = state.copyWith(fullSetIncluded: v);
 
   /// Restores a previous draft (e.g. undo after reset).
   void replaceDraft(WatchFilterState next) => state = next;
@@ -131,7 +134,8 @@ abstract class WatchFilterStateMutator extends Notifier<WatchFilterState> {
   }
 }
 
-class WatchFilterNotifier extends Notifier<WatchFilterState> {
+class WatchFilterNotifier extends Notifier<WatchFilterState>
+    with DisposeTolerantNotifier<WatchFilterState> {
   @override
   WatchFilterState build() => const WatchFilterState();
 
@@ -162,14 +166,16 @@ class WatchFilterNotifier extends Notifier<WatchFilterState> {
 
 final watchFilterProvider =
     NotifierProvider<WatchFilterNotifier, WatchFilterState>(
-  WatchFilterNotifier.new,
+      WatchFilterNotifier.new,
+    );
+
+final watchSortProvider = StateProvider<WatchSortOption>(
+  (ref) => WatchSortOption.featured,
 );
 
-final watchSortProvider =
-    StateProvider<WatchSortOption>((ref) => WatchSortOption.featured);
-
-final watchViewModeProvider =
-    StateProvider<WatchViewMode>((ref) => WatchViewMode.grid);
+final watchViewModeProvider = StateProvider<WatchViewMode>(
+  (ref) => WatchViewMode.grid,
+);
 
 /// Draft filters edited on the full-screen filter sheet before "SHOW RESULTS".
 class WatchFilterDraftNotifier extends WatchFilterStateMutator {
@@ -194,5 +200,5 @@ class WatchFilterDraftNotifier extends WatchFilterStateMutator {
 
 final watchFilterDraftProvider =
     NotifierProvider<WatchFilterDraftNotifier, WatchFilterState>(
-  WatchFilterDraftNotifier.new,
-);
+      WatchFilterDraftNotifier.new,
+    );

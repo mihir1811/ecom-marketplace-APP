@@ -4,6 +4,7 @@ import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
 import '../data/feedback_repository.dart';
 import '../domain/app_feedback.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// Feedback the buyer already sent about [orderId] (newest first).
 final orderFeedbackProvider = FutureProvider.autoDispose
@@ -18,7 +19,8 @@ final orderFeedbackProvider = FutureProvider.autoDispose
     });
 
 /// `true` while a feedback submission is in flight.
-class FeedbackSubmitNotifier extends Notifier<bool> {
+class FeedbackSubmitNotifier extends Notifier<bool>
+    with DisposeTolerantNotifier<bool> {
   @override
   bool build() => false;
 

@@ -57,9 +57,7 @@ class _JewelryHouseScreenState extends ConsumerState<JewelryHouseScreen> {
   void _openCollection(String category) {
     context.push(
       AppRouteNames.jewelryHouseCollectionPath(widget.slug, category),
-      extra:
-          ref.read(jewelryShopProvider(widget.slug)).valueOrNull ??
-          widget.preview,
+      extra: ref.read(jewelryShopProvider(widget.slug)).value ?? widget.preview,
     );
   }
 
@@ -80,7 +78,7 @@ class _JewelryHouseScreenState extends ConsumerState<JewelryHouseScreen> {
   Widget _buildScaffold(BuildContext context) {
     final p = LuxePalette.of(context);
     final houseAsync = ref.watch(jewelryShopProvider(widget.slug));
-    final house = houseAsync.valueOrNull ?? widget.preview;
+    final house = houseAsync.value ?? widget.preview;
     final topInset = MediaQuery.paddingOf(context).top + 64;
 
     return AppScaffold(
@@ -121,7 +119,7 @@ class _JewelryHouseScreenState extends ConsumerState<JewelryHouseScreen> {
                   SliverToBoxAdapter(
                     child: _Hero(
                       house: house,
-                      details: houseAsync.valueOrNull,
+                      details: houseAsync.value,
                       preview: widget.preview,
                       topInset: topInset,
                     ),

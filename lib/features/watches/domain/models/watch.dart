@@ -99,8 +99,7 @@ class Watch {
 
   String get detailLine => '$collection · $year';
 
-  String get specsLine =>
-      '${caseSizeMm}mm · $caseMaterial · $dialColor Dial';
+  String get specsLine => '${caseSizeMm}mm · $caseMaterial · $dialColor Dial';
 }
 
 class WatchListResponse {

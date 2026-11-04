@@ -205,7 +205,9 @@ class AboutUsScreen extends StatelessWidget {
           const SizedBox(height: 8),
           reveal(
             Text(
-              context.tr(RemainingL10n.gemworldBringsTogetherNaturalDiamondsLab),
+              context.tr(
+                RemainingL10n.gemworldBringsTogetherNaturalDiamondsLab,
+              ),
               style: AtelierType.body(p.inkSoft, size: 15),
             ),
           ),
@@ -327,16 +329,14 @@ class AboutUsScreen extends StatelessWidget {
                         label: context.tr(AccountCommerceL10n.termsConditions),
                         variant: AtelierButtonVariant.secondary,
                         icon: Icons.gavel_outlined,
-                        onPressed: () => context.openRoute(
-                          AppRouteNames.termsAndConditions,
-                        ),
+                        onPressed: () =>
+                            context.openRoute(AppRouteNames.termsAndConditions),
                       ),
                       AtelierButton(
                         label: context.tr(RemainingL10n.sellOnGemWorld),
                         variant: AtelierButtonVariant.ghost,
                         icon: Icons.storefront_outlined,
-                        onPressed: () =>
-                            context.openRoute(AppRouteNames.login),
+                        onPressed: () => context.openRoute(AppRouteNames.login),
                       ),
                     ],
                   ),

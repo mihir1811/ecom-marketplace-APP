@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/models/gemstone_filter_state.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// Notifier responsible for managing the gemstone search query and filter settings.
-class GemstoneSearchNotifier extends Notifier<GemstoneFilterState> {
+class GemstoneSearchNotifier extends Notifier<GemstoneFilterState>
+    with DisposeTolerantNotifier<GemstoneFilterState> {
   @override
   GemstoneFilterState build() {
     return const GemstoneFilterState();

@@ -7,9 +7,11 @@ import '../domain/diamond_project_stats_calculator.dart';
 import '../domain/models/diamond_project.dart';
 import 'diamond_project_list_provider.dart';
 import 'diamond_project_selection_provider.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// Saves the in-memory selection as a diamond project (create or update).
-class DiamondProjectSaveNotifier extends AutoDisposeAsyncNotifier<void> {
+class DiamondProjectSaveNotifier extends AsyncNotifier<void>
+    with DisposeTolerantAsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
@@ -55,6 +57,6 @@ class DiamondProjectSaveNotifier extends AutoDisposeAsyncNotifier<void> {
 }
 
 final diamondProjectSaveProvider =
-    AutoDisposeAsyncNotifierProvider<DiamondProjectSaveNotifier, void>(
+    AsyncNotifierProvider<DiamondProjectSaveNotifier, void>(
       DiamondProjectSaveNotifier.new,
     );

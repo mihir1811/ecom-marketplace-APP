@@ -15,7 +15,9 @@ class LabGrownDiamondScope extends StatelessWidget {
   Widget build(BuildContext context) {
     return ProviderScope(
       overrides: [
-        diamondCatalogTypeProvider.overrideWithValue(DiamondCatalogType.labGrown),
+        diamondCatalogTypeProvider.overrideWithValue(
+          DiamondCatalogType.labGrown,
+        ),
         diamondSearchProvider.overrideWith(DiamondSearchNotifier.new),
         // Derived providers must be re-scoped alongside what they watch,
         // otherwise Riverpod throws when they resolve across containers.

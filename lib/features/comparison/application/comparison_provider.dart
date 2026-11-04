@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/auth/auth_providers.dart';
 import '../domain/models/compare_category.dart';
 import '../domain/models/compare_item.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// Result of attempting to add an item to the comparison tray.
 sealed class CompareAddResult {
@@ -62,7 +63,8 @@ class ComparisonState {
   }
 }
 
-class ComparisonNotifier extends Notifier<ComparisonState> {
+class ComparisonNotifier extends Notifier<ComparisonState>
+    with DisposeTolerantNotifier<ComparisonState> {
   @override
   ComparisonState build() {
     ref.watch(authProvider.select((s) => s.user?.id));

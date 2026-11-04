@@ -10,6 +10,7 @@ import 'presentation/screens/spotlight_shop_section_screen.dart';
 /// seller shell (see `seller_routes.dart`).
 final List<RouteBase> spotlightRoutes = [
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.sellerShop,
     builder: (context, state) {
       final extra = state.extra;
@@ -21,6 +22,7 @@ final List<RouteBase> spotlightRoutes = [
   ),
   // Shop "View all": one section of the seller's pieces.
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.sellerShopSection,
     redirect: (context, state) {
       final slug = state.pathParameters['segment'];

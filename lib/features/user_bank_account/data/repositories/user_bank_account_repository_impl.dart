@@ -11,8 +11,7 @@ import '../../domain/models/user_bank_account.dart';
 import '../../domain/repositories/user_bank_account_repository.dart';
 import '../mappers/user_bank_account_mapper.dart';
 
-final userBankAccountRepositoryProvider =
-    Provider<UserBankAccountRepository>(
+final userBankAccountRepositoryProvider = Provider<UserBankAccountRepository>(
   (ref) => UserBankAccountRepositoryImpl(ref.watch(dioProvider)),
 );
 
@@ -51,9 +50,7 @@ class UserBankAccountRepositoryImpl implements UserBankAccountRepository {
       );
       final data = ResponseParser.entity(response.data);
       if (data == null) {
-        return Result.failure(
-          const NetworkFailure('Bank account not found.'),
-        );
+        return Result.failure(const NetworkFailure('Bank account not found.'));
       }
       return Result.success(UserBankAccountMapper.fromJson(data));
     } on DioException catch (e) {

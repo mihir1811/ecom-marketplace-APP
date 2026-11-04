@@ -127,11 +127,7 @@ class _DeliveryAddressSheetState extends State<_DeliveryAddressSheet> {
           ),
           _field(_line2, context.tr(AccountCommerceL10n.addressLine2)),
           pair(
-            _field(
-              _city,
-              context.tr(AccountCommerceL10n.city),
-              required: true,
-            ),
+            _field(_city, context.tr(AccountCommerceL10n.city), required: true),
             _field(
               _state,
               context.tr(AccountCommerceL10n.state),

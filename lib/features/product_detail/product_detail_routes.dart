@@ -16,6 +16,7 @@ import 'presentation/transition/product_sheet_screen.dart';
 
 final List<RouteBase> productDetailRoutes = [
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.productDetail,
     pageBuilder: (context, state) {
       final extra = state.extra;

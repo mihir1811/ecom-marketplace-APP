@@ -6,6 +6,7 @@ import '../../../core/error/result.dart';
 import '../data/repositories/help_center_repository_impl.dart';
 import '../domain/models/help_question.dart';
 import '../domain/repositories/help_center_repository.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 class HelpQuestionListState {
   const HelpQuestionListState({
@@ -48,7 +49,8 @@ class HelpQuestionListState {
   }
 }
 
-class HelpQuestionListNotifier extends Notifier<HelpQuestionListState> {
+class HelpQuestionListNotifier extends Notifier<HelpQuestionListState>
+    with DisposeTolerantNotifier<HelpQuestionListState> {
   CancelToken? _cancelToken;
 
   @override
@@ -69,6 +71,7 @@ class HelpQuestionListNotifier extends Notifier<HelpQuestionListState> {
       page: 1,
       cancelToken: _cancelToken,
     );
+    if (!ref.mounted) return;
 
     switch (result) {
       case Success(value: final page):
@@ -91,6 +94,7 @@ class HelpQuestionListNotifier extends Notifier<HelpQuestionListState> {
     final nextPage = state.currentPage + 1;
 
     final result = await _repo.listMyQuestions(page: nextPage);
+    if (!ref.mounted) return;
 
     switch (result) {
       case Success(value: final page):
@@ -115,7 +119,8 @@ final helpQuestionListProvider =
       HelpQuestionListNotifier.new,
     );
 
-class HelpCenterMutationNotifier extends Notifier<AsyncValue<void>> {
+class HelpCenterMutationNotifier extends Notifier<AsyncValue<void>>
+    with DisposeTolerantNotifier<AsyncValue<void>> {
   @override
   AsyncValue<void> build() => const AsyncValue.data(null);
 

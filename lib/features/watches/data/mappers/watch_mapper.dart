@@ -83,7 +83,9 @@ abstract final class WatchMapper {
   static String _mapLugWidth(String? raw) {
     final cleaned = _clean(raw);
     if (cleaned == null) return '';
-    final mm = int.tryParse(RegExp(r'(\d+)').firstMatch(cleaned)?.group(1) ?? '');
+    final mm = int.tryParse(
+      RegExp(r'(\d+)').firstMatch(cleaned)?.group(1) ?? '',
+    );
     if (mm == null) return cleaned;
     if (mm < 18) return 'Under 18 mm';
     if (mm <= 20) return '18–20 mm';

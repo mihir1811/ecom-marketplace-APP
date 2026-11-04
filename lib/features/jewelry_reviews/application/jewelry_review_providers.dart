@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
 import '../data/jewelry_review_repository.dart';
 import '../domain/models/jewelry_review.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// A review list: a piece's or shop's public list ([source] set), or the
 /// signed-in shop's own list ([source] null, [slug] empty).
@@ -73,16 +75,19 @@ final jewelryReviewListProvider = NotifierProvider.autoDispose
 
 /// Pages through a review list. Changing the star filter, sort or "show"
 /// starts again at page 1; "Show more" appends the next page.
-class JewelryReviewListNotifier
-    extends
-        AutoDisposeFamilyNotifier<
-          JewelryReviewListState,
-          JewelryReviewListKey
-        > {
+class JewelryReviewListNotifier extends Notifier<JewelryReviewListState>
+    with DisposeTolerantNotifier<JewelryReviewListState> {
+  JewelryReviewListNotifier(this.arg);
+
+  /// The family argument this notifier was created for.
+  final JewelryReviewListKey arg;
+
+  JewelryReviewListKey get key => arg;
+
   int _epoch = 0;
 
   @override
-  JewelryReviewListState build(JewelryReviewListKey key) {
+  JewelryReviewListState build() {
     ref.onDispose(() => _epoch++);
     Future.microtask(() => _load(1));
     return const JewelryReviewListState();
@@ -114,6 +119,7 @@ class JewelryReviewListNotifier
   Future<void> _load(int page) async {
     final epoch = ++_epoch;
     final result = await _fetch(page);
+    if (!ref.mounted) return;
     if (epoch != _epoch) return;
     state = switch (result) {
       Success(value: final p) => state.copyWith(

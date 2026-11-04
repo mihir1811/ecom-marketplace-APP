@@ -104,7 +104,7 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
 
   @override
   bool get listingCanLoadMore {
-    final s = ref.read(diamondListProvider).valueOrNull;
+    final s = ref.read(diamondListProvider).value;
     return s != null &&
         s.hasMore &&
         !s.isLoadingMore &&
@@ -118,7 +118,7 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
 
   @override
   int get listingItemCount =>
-      (ref.read(diamondListProvider).valueOrNull?.diamonds.length ?? 0) +
+      (ref.read(diamondListProvider).value?.diamonds.length ?? 0) +
       _sponsoredCount;
 
   @override
@@ -212,7 +212,7 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
   List<Widget> _content(BuildContext context) {
     final stateAsync = ref.watch(diamondListProvider);
     final grid = ref.watch(diamondViewModeProvider) == ViewMode.grid;
-    final state = stateAsync.valueOrNull;
+    final state = stateAsync.value;
     final error =
         stateAsync.whenOrNull(error: (e, _) => e.toString()) ??
         state?.errorMessage;
@@ -227,7 +227,7 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
     );
     final sponsored = key == null || listed.isEmpty
         ? const <SponsoredDiamond>[]
-        : ref.watch(sponsoredDiamondResultsProvider(key)).valueOrNull ??
+        : ref.watch(sponsoredDiamondResultsProvider(key)).value ??
               const <SponsoredDiamond>[];
     _sponsoredCount = sponsored.length;
     final sponsoredStones = [for (final s in sponsored) s.diamond];
@@ -308,7 +308,7 @@ class _CountLine extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final total = ref.watch(
       diamondListProvider.select((v) {
-        final s = v.valueOrNull;
+        final s = v.value;
         if (s == null || s.isInitialLoading) return null;
         return s.totalCount;
       }),

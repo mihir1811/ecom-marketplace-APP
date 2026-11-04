@@ -468,9 +468,10 @@ class RefPersonRow extends StatelessWidget {
     final name = party?.displayName ?? request.partyLabel;
     final email = party?.email.trim() ?? '';
     final when = _clean(request.acceptedAtLabel ?? request.createdAtLabel);
-    final meta = [if (email.isNotEmpty && email != name) email, when]
-        .where((e) => e.isNotEmpty)
-        .join(' · ');
+    final meta = [
+      if (email.isNotEmpty && email != name) email,
+      when,
+    ].where((e) => e.isNotEmpty).join(' · ');
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -901,7 +902,8 @@ class _SponsorSheetBodyState extends ConsumerState<_SponsorSheetBody> {
           RefList(
             empty: '',
             children: [
-              for (final r in history) RefPersonRow(request: r, showStatus: true),
+              for (final r in history)
+                RefPersonRow(request: r, showStatus: true),
             ],
           ),
         ],

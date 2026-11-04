@@ -13,42 +13,46 @@ import '../domain/models/product_share.dart';
 /// Prefers a full catalog fetch (richer specs) when possible, then applies the
 /// share visibility flags from `GET /product-share/{token}`. Falls back to the
 /// embedded share payload when catalog lookup is unavailable.
-final sharedProductDetailProvider =
-    FutureProvider.autoDispose.family<ProductDetail, String>((ref, token) async {
-  final clean = _normalizeShareToken(token);
-  if (clean.isEmpty) {
-    throw const NetworkFailure('This share link is invalid.');
-  }
+final sharedProductDetailProvider = FutureProvider.autoDispose
+    .family<ProductDetail, String>((ref, token) async {
+      final clean = _normalizeShareToken(token);
+      if (clean.isEmpty) {
+        throw const NetworkFailure('This share link is invalid.');
+      }
 
-  final shareResult =
-      await ref.read(productShareRepositoryProvider).getByToken(token: clean);
-  late final SharedProductPayload payload;
-  switch (shareResult) {
-    case Success(value: final value):
-      payload = value;
-    case ResultFailure(failure: final failure):
-      throw failure;
-  }
+      final shareResult = await ref
+          .read(productShareRepositoryProvider)
+          .getByToken(token: clean);
+      late final SharedProductPayload payload;
+      switch (shareResult) {
+        case Success(value: final value):
+          payload = value;
+        case ResultFailure(failure: final failure):
+          throw failure;
+      }
 
-  final fetched = await CatalogProductDetailLoader.load(
-    ref.read,
-    productType: payload.productType,
-    productId: payload.productId,
-  );
-  if (fetched != null) {
-    return SharedProductDetailMapper.applyShareVisibility(
-      SharedProductDetailMapper.withProductName(fetched, payload.productName),
-      includePrice: payload.includePrice,
-      includeImages: payload.includeImages,
-      includeVideos: payload.includeVideos,
-    );
-  }
+      final fetched = await CatalogProductDetailLoader.load(
+        ref.read,
+        productType: payload.productType,
+        productId: payload.productId,
+      );
+      if (fetched != null) {
+        return SharedProductDetailMapper.applyShareVisibility(
+          SharedProductDetailMapper.withProductName(
+            fetched,
+            payload.productName,
+          ),
+          includePrice: payload.includePrice,
+          includeImages: payload.includeImages,
+          includeVideos: payload.includeVideos,
+        );
+      }
 
-  final fromPayload = SharedProductDetailMapper.toProductDetail(payload);
-  if (fromPayload != null) return fromPayload;
+      final fromPayload = SharedProductDetailMapper.toProductDetail(payload);
+      if (fromPayload != null) return fromPayload;
 
-  throw const NetworkFailure('This shared product could not be opened.');
-});
+      throw const NetworkFailure('This shared product could not be opened.');
+    });
 
 String _normalizeShareToken(String raw) {
   var value = raw.trim();

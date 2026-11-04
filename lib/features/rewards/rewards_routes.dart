@@ -8,6 +8,7 @@ import 'presentation/screens/rewards_screen.dart';
 /// Buyer reward points route.
 final List<RouteBase> rewardsRoutes = [
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.buyerRewards,
     builder: (context, state) =>
         const MaisonLayout(child: VerifiedAccountGate(child: RewardsScreen())),

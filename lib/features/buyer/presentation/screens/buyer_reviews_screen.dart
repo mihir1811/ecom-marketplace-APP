@@ -149,7 +149,7 @@ class _BuyerReviewsScreenState extends ConsumerState<BuyerReviewsScreen> {
   Widget build(BuildContext context) {
     final p = context.atelier;
     final async = ref.watch(mySellerReviewsProvider);
-    final reviews = async.valueOrNull ?? const <SellerReview>[];
+    final reviews = async.value ?? const <SellerReview>[];
     final lenses = [
       for (final l in _ReviewLens.values)
         if (l != _ReviewLens.hidden || reviews.any(l.matches)) l,

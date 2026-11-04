@@ -71,7 +71,7 @@ class _BuyerRecentlyViewedScreenState
   }
 
   Future<void> _loadMore() async {
-    final page = ref.read(recentlyViewedListProvider).valueOrNull;
+    final page = ref.read(recentlyViewedListProvider).value;
     if (_loadingMore || page == null || !page.hasMore) return;
     setState(() {
       _loadingMore = true;
@@ -79,7 +79,7 @@ class _BuyerRecentlyViewedScreenState
     });
     await ref.read(recentlyViewedListProvider.notifier).loadMore();
     if (!mounted) return;
-    final after = ref.read(recentlyViewedListProvider).valueOrNull;
+    final after = ref.read(recentlyViewedListProvider).value;
     setState(() {
       _loadingMore = false;
       if (after != null &&
@@ -203,7 +203,7 @@ class _BuyerRecentlyViewedScreenState
   Widget build(BuildContext context) {
     final p = context.atelier;
     final async = ref.watch(recentlyViewedListProvider);
-    final page = async.valueOrNull;
+    final page = async.value;
     final items = page?.items ?? const <RecentlyViewedEntry>[];
     final present = [
       for (final c in WishlistCategory.values)
@@ -353,7 +353,7 @@ class _BuyerRecentlyViewedScreenState
       ];
     }
 
-    final page = async.valueOrNull;
+    final page = async.value;
     final hasMore = page?.hasMore ?? false;
     final side = math.max(gutter, (width - 1040) / 2);
     final slivers = <Widget>[];

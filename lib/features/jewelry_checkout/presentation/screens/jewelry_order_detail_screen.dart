@@ -57,7 +57,7 @@ class JewelryOrderDetailScreen extends ConsumerWidget {
   Widget _build(BuildContext context, WidgetRef ref) {
     final p = LuxePalette.of(context);
     final orderAsync = ref.watch(jewelryOrderProvider(orderId));
-    final order = orderAsync.valueOrNull;
+    final order = orderAsync.value;
     return AppScaffold(
       backgroundColor: p.canvas,
       appBar: LuxeTopBar(

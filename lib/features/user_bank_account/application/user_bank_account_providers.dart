@@ -6,6 +6,7 @@ import '../../../core/error/result.dart';
 import '../data/repositories/user_bank_account_repository_impl.dart';
 import '../domain/models/user_bank_account.dart';
 import '../domain/repositories/user_bank_account_repository.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 class UserBankAccountState {
   const UserBankAccountState({
@@ -22,8 +23,7 @@ class UserBankAccountState {
   final bool isSaving;
   final String? errorMessage;
 
-  bool get hasAccount =>
-      status?.hasBankAccount == true || account != null;
+  bool get hasAccount => status?.hasBankAccount == true || account != null;
 
   UserBankAccountState copyWith({
     UserBankAccountStatus? status,
@@ -44,7 +44,8 @@ class UserBankAccountState {
   }
 }
 
-class UserBankAccountNotifier extends Notifier<UserBankAccountState> {
+class UserBankAccountNotifier extends Notifier<UserBankAccountState>
+    with DisposeTolerantNotifier<UserBankAccountState> {
   UserBankAccountRepository get _repo =>
       ref.read(userBankAccountRepositoryProvider);
 
@@ -61,10 +62,12 @@ class UserBankAccountNotifier extends Notifier<UserBankAccountState> {
   Future<void> load() async {
     state = state.copyWith(isLoading: true, clearError: true);
     final statusResult = await _repo.getStatus();
+    if (!ref.mounted) return;
     switch (statusResult) {
       case Success(value: final status):
         if (status.hasBankAccount) {
           final accountResult = await _repo.getAccount();
+          if (!ref.mounted) return;
           switch (accountResult) {
             case Success(value: final account):
               state = UserBankAccountState(status: status, account: account);
@@ -82,7 +85,9 @@ class UserBankAccountNotifier extends Notifier<UserBankAccountState> {
     }
   }
 
-  Future<Result<UserBankAccount, Failure>> save(UserBankAccountInput input) async {
+  Future<Result<UserBankAccount, Failure>> save(
+    UserBankAccountInput input,
+  ) async {
     state = state.copyWith(isSaving: true, clearError: true);
     final result = await _repo.upsert(input);
     switch (result) {
@@ -117,5 +122,5 @@ class UserBankAccountNotifier extends Notifier<UserBankAccountState> {
 
 final userBankAccountProvider =
     NotifierProvider<UserBankAccountNotifier, UserBankAccountState>(
-  UserBankAccountNotifier.new,
-);
+      UserBankAccountNotifier.new,
+    );

@@ -13,12 +13,14 @@ import 'presentation/screens/auctions_list_screen.dart';
 // [AppNavigation.back] instead.
 final List<RouteBase> auctionRoutes = [
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.auctions,
     builder: (context, state) => const AppSystemBackScope(
       child: AuctionsListScreen(kind: AuctionFeedKind.live, title: 'Auctions'),
     ),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.auctionActivity,
     builder: (context, state) => const AppSystemBackScope(
       child: VerifiedAccountGate(
@@ -31,6 +33,7 @@ final List<RouteBase> auctionRoutes = [
     ),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.auctionWins,
     builder: (context, state) => const AppSystemBackScope(
       child: VerifiedAccountGate(
@@ -39,6 +42,7 @@ final List<RouteBase> auctionRoutes = [
     ),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.auctionDetail,
     builder: (context, state) => AppSystemBackScope(
       child: AuctionDetailScreen(auctionId: state.pathParameters['auctionId']!),

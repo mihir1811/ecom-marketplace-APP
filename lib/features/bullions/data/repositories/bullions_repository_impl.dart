@@ -87,7 +87,8 @@ class BullionsRepositoryImpl implements BullionsRepository {
       return Result.success(
         BullionsCatalogResponse(
           bullions: bullions,
-          totalCount: total ??
+          totalCount:
+              total ??
               (hasMore
                   ? (page * limit) + 1
                   : ((page - 1) * limit) + bullions.length),

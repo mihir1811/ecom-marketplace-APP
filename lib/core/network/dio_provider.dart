@@ -3,13 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../auth/auth_token_store.dart';
 import 'dio_client.dart';
+import '../riverpod/dispose_tolerant.dart';
 
 /// Bumped when a protected API returns 401 so [AuthController] can clear state.
 final authSessionInvalidatorProvider =
     NotifierProvider<AuthSessionInvalidator, int>(AuthSessionInvalidator.new);
 
 /// Increments when the auth interceptor clears an expired/invalid session.
-class AuthSessionInvalidator extends Notifier<int> {
+class AuthSessionInvalidator extends Notifier<int>
+    with DisposeTolerantNotifier<int> {
   @override
   int build() => 0;
 

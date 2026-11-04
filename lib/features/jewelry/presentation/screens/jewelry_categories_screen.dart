@@ -505,7 +505,7 @@ class _Styles extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final live = ref.watch(jewelleryCategoriesProvider).valueOrNull;
+    final live = ref.watch(jewelleryCategoriesProvider).value;
     if (live == null) return const SizedBox.shrink();
     final seen = <String>{};
     final styles = [
@@ -644,7 +644,7 @@ class _PremiumStrip extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final page = ref.watch(jewelryPremiumStripProvider).valueOrNull;
+    final page = ref.watch(jewelryPremiumStripProvider).value;
     if (page == null || !page.isVisible) return const SizedBox.shrink();
     final items = page.items;
     final width = LuxeListingMetrics.gridCell(context);

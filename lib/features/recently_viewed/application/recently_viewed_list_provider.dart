@@ -5,9 +5,11 @@ import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
 import '../data/repositories/recently_viewed_repository_impl.dart';
 import '../domain/models/recently_viewed.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// Paginated list of full [RecentlyViewedEntry] items for the dedicated screen.
-class RecentlyViewedListNotifier extends AsyncNotifier<RecentlyViewedListPage> {
+class RecentlyViewedListNotifier extends AsyncNotifier<RecentlyViewedListPage>
+    with DisposeTolerantAsyncNotifier<RecentlyViewedListPage> {
   @override
   Future<RecentlyViewedListPage> build() async {
     final userId = ref.watch(authProvider.select((s) => s.user?.id));
@@ -33,10 +35,11 @@ class RecentlyViewedListNotifier extends AsyncNotifier<RecentlyViewedListPage> {
   }
 
   Future<void> loadMore() async {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null || !current.hasMore) return;
     try {
       final next = await _fetch(page: current.currentPage + 1);
+      if (!ref.mounted) return;
       state = AsyncData(
         RecentlyViewedListPage(
           items: [...current.items, ...next.items],
@@ -53,6 +56,7 @@ class RecentlyViewedListNotifier extends AsyncNotifier<RecentlyViewedListPage> {
   Future<void> refresh() async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() => _fetch(page: 1));
+    if (!ref.mounted) return;
   }
 
   Future<int> clearAll() async {

@@ -10,6 +10,7 @@ import '../data/repositories/live_show_repository_impl.dart';
 import '../domain/live_format.dart';
 import '../domain/models/live_show_models.dart';
 import '../domain/repositories/live_show_repository.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// One line of the stage feed: a comment, or an auction moment built from
 /// lot pushes.
@@ -163,8 +164,13 @@ final liveShowRoomProvider = NotifierProvider.autoDispose
 /// Everything one open show screen needs: the show (polled every 15 s),
 /// its auction on the server clock, the viewer's wallet and leads, the
 /// comment feed and hearts, all kept live by the show's socket room.
-class LiveShowRoomController
-    extends AutoDisposeFamilyNotifier<LiveShowRoomState, String> {
+class LiveShowRoomController extends Notifier<LiveShowRoomState>
+    with DisposeTolerantNotifier<LiveShowRoomState> {
+  LiveShowRoomController(this.arg);
+
+  /// The family argument this notifier was created for.
+  final String arg;
+
   static const _showPoll = Duration(seconds: 15);
   static const _feedLimit = 60;
   static const _heartFlushAt = 25;
@@ -196,7 +202,7 @@ class LiveShowRoomController
   Stream<int> get hearts => _hearts.stream;
 
   @override
-  LiveShowRoomState build(String arg) {
+  LiveShowRoomState build() {
     _socket = ref.read(liveShowSocketFactoryProvider)(arg);
     _subs
       ..add(_socket.events.listen(_onEvent))
@@ -229,7 +235,9 @@ class LiveShowRoomController
 
   Future<void> _load() async {
     await Future.wait([refreshShow(), refreshAuction(), _loadChat()]);
+    if (!ref.mounted) return;
     await refreshMe();
+    if (!ref.mounted) return;
   }
 
   Future<void> retry() {
@@ -239,7 +247,9 @@ class LiveShowRoomController
 
   Future<void> _resync() async {
     await Future.wait([refreshShow(), refreshAuction(), _loadChat()]);
+    if (!ref.mounted) return;
     await refreshMe();
+    if (!ref.mounted) return;
   }
 
   void _startPolling() {
@@ -252,6 +262,7 @@ class LiveShowRoomController
 
   Future<void> refreshShow() async {
     final result = await _repo.show(arg);
+    if (!ref.mounted) return;
     switch (result) {
       case Success(:final value):
         state = state.copyWith(show: value, isLoading: false, clearError: true);
@@ -266,6 +277,7 @@ class LiveShowRoomController
 
   Future<void> refreshAuction() async {
     final result = await _repo.auction(arg);
+    if (!ref.mounted) return;
     if (result case Success(:final value)) {
       state = state.copyWith(
         auction: value,
@@ -277,6 +289,7 @@ class LiveShowRoomController
   Future<void> refreshMe() async {
     if (!_signedIn) return;
     final result = await _repo.me(arg);
+    if (!ref.mounted) return;
     if (result case Success(:final value)) {
       state = state.copyWith(me: value);
     }
@@ -284,6 +297,7 @@ class LiveShowRoomController
 
   Future<void> _loadChat() async {
     final result = await _repo.chat(arg);
+    if (!ref.mounted) return;
     if (result case Success(:final value)) {
       final moments = state.feed.where((f) => f.isMoment);
       final chat = [for (final m in value) _fromMessage(m)];
@@ -394,8 +408,10 @@ class LiveShowRoomController
   Future<void> _refreshMeForWin(String lotId) async {
     for (var i = 0; i < 4; i++) {
       await refreshMe();
+      if (!ref.mounted) return;
       if (state.me?.winFor(lotId) != null) return;
       await Future<void>.delayed(const Duration(milliseconds: 1500));
+      if (!ref.mounted) return;
     }
   }
 

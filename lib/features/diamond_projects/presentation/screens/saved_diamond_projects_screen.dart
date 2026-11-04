@@ -52,7 +52,7 @@ class _SavedDiamondProjectsScreenState
   void _onScroll() {
     if (!_scrollController.hasClients) return;
     _offset.value = _scrollController.offset;
-    final state = ref.read(diamondProjectListProvider).valueOrNull;
+    final state = ref.read(diamondProjectListProvider).value;
     if (state == null || !state.hasMore || state.isLoadingMore) return;
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 240) {

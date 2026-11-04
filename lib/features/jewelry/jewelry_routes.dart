@@ -12,10 +12,12 @@ import 'presentation/screens/jewelry_premium_screen.dart';
 
 final List<RouteBase> jewelryRoutes = [
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.jewelry,
     builder: (context, state) => const JewelryCategoriesScreen(),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.jewelryListing,
     builder: (context, state) {
       final params = state.uri.queryParameters;
@@ -27,6 +29,7 @@ final List<RouteBase> jewelryRoutes = [
     },
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.jewelryFilters,
     builder: (context, state) => JewelryFilterScreen(
       scope: state.extra is JewelryFilterScope
@@ -35,14 +38,17 @@ final List<RouteBase> jewelryRoutes = [
     ),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.jewelryPremium,
     builder: (context, state) => const JewelryPremiumScreen(),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.jewelryHouses,
     builder: (context, state) => const JewelryHousesScreen(),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.jewelryHouseCollection,
     builder: (context, state) => JewelryHouseCollectionScreen(
       shop: state.pathParameters['slug'] ?? '',
@@ -53,6 +59,7 @@ final List<RouteBase> jewelryRoutes = [
     ),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.jewelryHouse,
     builder: (context, state) => JewelryHouseScreen(
       slug: state.pathParameters['slug'] ?? '',

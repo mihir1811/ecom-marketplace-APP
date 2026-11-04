@@ -38,7 +38,7 @@ class JewelryBagScreen extends ConsumerWidget {
     final p = LuxePalette.of(context);
     final lines = ref.watch(jewelryBagProvider);
     final quoteAsync = ref.watch(jewelryBagQuoteProvider);
-    final quote = quoteAsync.valueOrNull;
+    final quote = quoteAsync.value;
     final signedIn = ref.watch(authProvider.select((s) => s.isAuthenticated));
 
     return AppScaffold(

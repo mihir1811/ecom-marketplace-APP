@@ -5,6 +5,7 @@ import 'presentation/screens/payment_confirmation_screen.dart';
 
 final List<RouteBase> paymentRoutes = [
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.paymentConfirmation,
     builder: (context, state) => PaymentConfirmationScreen(
       orderId: state.pathParameters['orderId'] ?? '',

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/melee_purchase_math.dart';
 import '../domain/models/product_detail.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// Partial melee purchase selected on product detail (pieces and carat).
 class MeleeQtyDraft {
@@ -36,9 +37,17 @@ class MeleeQtyDraft {
   };
 }
 
-class MeleeQtyDraftNotifier extends FamilyNotifier<MeleeQtyDraft?, String> {
+class MeleeQtyDraftNotifier extends Notifier<MeleeQtyDraft?>
+    with DisposeTolerantNotifier<MeleeQtyDraft?> {
+  MeleeQtyDraftNotifier(this.arg);
+
+  /// The family argument this notifier was created for.
+  final String arg;
+
+  String get productId => arg;
+
   @override
-  MeleeQtyDraft? build(String productId) => null;
+  MeleeQtyDraft? build() => null;
 
   void ensureSeeded(ProductMeleeQty qty) {
     if (state != null) return;

@@ -9,10 +9,10 @@ abstract final class RefundMapper {
     final resolvedAt = _parseDate(json['resolvedAt']);
 
     // Refunds settle via Razorpay in INR — API `amount` is always INR.
-    final amountInr = _asDouble(json['amountInr']) ??
-        _asDouble(json['amount']) ??
-        0;
-    final amountUsd = _asDouble(json['amountUsd']) ??
+    final amountInr =
+        _asDouble(json['amountInr']) ?? _asDouble(json['amount']) ?? 0;
+    final amountUsd =
+        _asDouble(json['amountUsd']) ??
         (amountInr > 0 ? inrToUsd(amountInr) : 0);
 
     return RefundRequest(
@@ -42,12 +42,14 @@ abstract final class RefundMapper {
     required int limit,
   }) {
     final dataNode = root?['data'];
-    final payload =
-        dataNode is Map<String, dynamic> ? dataNode : const <String, dynamic>{};
+    final payload = dataNode is Map<String, dynamic>
+        ? dataNode
+        : const <String, dynamic>{};
     final itemsJson = payload['data'];
     final metaJson = payload['meta'];
-    final meta =
-        metaJson is Map<String, dynamic> ? metaJson : const <String, dynamic>{};
+    final meta = metaJson is Map<String, dynamic>
+        ? metaJson
+        : const <String, dynamic>{};
 
     final list = itemsJson is List ? itemsJson : const [];
     final items = <RefundRequest>[];

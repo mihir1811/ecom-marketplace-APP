@@ -188,15 +188,14 @@ class _JewelryHouseCollectionScreenState
   Widget _buildScaffold(BuildContext context) {
     final p = LuxePalette.of(context);
     final house =
-        ref.watch(jewelryShopProvider(widget.shop)).valueOrNull ??
-        widget.preview;
-    final categories = ref.watch(jewelleryCategoriesProvider).valueOrNull;
+        ref.watch(jewelryShopProvider(widget.shop)).value ?? widget.preview;
+    final categories = ref.watch(jewelleryCategoriesProvider).value;
     final collection = categories == null
         ? null
         : MarketplaceCategory.find(categories, widget.category);
     final name = collection?.name ?? '';
     final cover = _coverOf(
-      ref.watch(jewelryHouseCollectionsProvider(widget.shop)).valueOrNull,
+      ref.watch(jewelryHouseCollectionsProvider(widget.shop)).value,
     );
     final ownStyles = ref
         .watch(
@@ -205,7 +204,7 @@ class _JewelryHouseCollectionScreenState
             category: widget.category,
           )),
         )
-        .valueOrNull;
+        .value;
     final styles = [
       for (final s in collection?.children ?? const <MarketplaceCategory>[])
         if (ownStyles != null && ownStyles.contains(s.slug)) s,

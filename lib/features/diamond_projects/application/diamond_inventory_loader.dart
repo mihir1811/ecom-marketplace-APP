@@ -20,7 +20,7 @@ abstract final class DiamondInventoryLoader {
     WidgetRef ref, {
     CancelToken? cancelToken,
   }) async {
-    final listed = ref.read(diamondListProvider).valueOrNull;
+    final listed = ref.read(diamondListProvider).value;
     if (listed != null && !listed.hasMore && !listed.isInitialLoading) {
       return Success(listed.diamonds);
     }

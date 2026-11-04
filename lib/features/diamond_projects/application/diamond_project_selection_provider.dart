@@ -10,6 +10,7 @@ import '../domain/diamond_project_stats_calculator.dart';
 import '../domain/models/diamond_project.dart';
 import '../domain/models/diamond_project_item.dart';
 import '../domain/models/diamond_project_stats.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// In-memory selection for the current diamond project (no network).
 class DiamondProjectSelection {
@@ -47,8 +48,8 @@ class DiamondProjectSelection {
   }
 }
 
-class DiamondProjectSelectionNotifier
-    extends Notifier<DiamondProjectSelection> {
+class DiamondProjectSelectionNotifier extends Notifier<DiamondProjectSelection>
+    with DisposeTolerantNotifier<DiamondProjectSelection> {
   @override
   DiamondProjectSelection build() => const DiamondProjectSelection();
 

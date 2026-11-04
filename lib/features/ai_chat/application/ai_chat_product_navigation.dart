@@ -94,13 +94,13 @@ abstract final class AiChatProductNavigation {
         // Marketplace pages are looked up by slug: the last segment of a
         // `/product/{slug}` link, else the id itself.
         final segments = Uri.tryParse(product.href)?.pathSegments ?? const [];
-        final slug = segments.length >= 2 && segments[segments.length - 2] ==
-                'product'
+        final slug =
+            segments.length >= 2 && segments[segments.length - 2] == 'product'
             ? segments.last
             : id;
-        final result = await ref.read(jewelryRepositoryProvider).getListing(
-          slug,
-        );
+        final result = await ref
+            .read(jewelryRepositoryProvider)
+            .getListing(slug);
         return switch (result) {
           Success(value: final jewelry) => jewelryProductDetail(jewelry),
           ResultFailure() => null,

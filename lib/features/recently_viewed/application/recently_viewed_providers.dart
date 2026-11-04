@@ -4,9 +4,11 @@ import '../../../core/auth/auth_providers.dart';
 import '../../../core/error/result.dart';
 import '../data/repositories/recently_viewed_repository_impl.dart';
 import '../../cart/domain/models/cart_product_type.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// Product IDs the current user has recently viewed (for listing highlights).
-class RecentlyViewedIdsNotifier extends Notifier<Set<String>> {
+class RecentlyViewedIdsNotifier extends Notifier<Set<String>>
+    with DisposeTolerantNotifier<Set<String>> {
   @override
   Set<String> build() {
     final userId = ref.watch(authProvider.select((s) => s.user?.id));
@@ -21,6 +23,7 @@ class RecentlyViewedIdsNotifier extends Notifier<Set<String>> {
       return;
     }
     final result = await ref.read(recentlyViewedRepositoryProvider).listIds();
+    if (!ref.mounted) return;
     switch (result) {
       case Success(:final value):
         state = {

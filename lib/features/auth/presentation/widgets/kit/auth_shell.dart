@@ -140,8 +140,10 @@ class _AuthColumn extends StatelessWidget {
                   padding: padding,
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
-                      minHeight: (viewport.maxHeight - padding.vertical)
-                          .clamp(0.0, double.infinity),
+                      minHeight: (viewport.maxHeight - padding.vertical).clamp(
+                        0.0,
+                        double.infinity,
+                      ),
                     ),
                     child: Center(
                       child: ConstrainedBox(

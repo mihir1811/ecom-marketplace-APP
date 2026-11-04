@@ -104,9 +104,7 @@ class ProductShareRepositoryImpl implements ProductShareRepository {
       );
       final data = response.data?['data'];
       if (data is! Map<String, dynamic>) {
-        return Result.failure(
-          const NetworkFailure('Share link not found.'),
-        );
+        return Result.failure(const NetworkFailure('Share link not found.'));
       }
       return Result.success(ProductShareMapper.sharedFromJson(data));
     } on DioException catch (e) {

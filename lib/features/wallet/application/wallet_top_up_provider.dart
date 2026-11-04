@@ -8,6 +8,7 @@ import '../data/repositories/wallet_repository_impl.dart';
 import '../domain/models/wallet.dart';
 import '../domain/repositories/wallet_repository.dart';
 import 'wallet_provider.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 enum WalletTopUpPhase {
   idle,
@@ -52,7 +53,8 @@ class WalletTopUpState {
 }
 
 /// Create top-up order → Razorpay Checkout → verify.
-class WalletTopUpNotifier extends Notifier<WalletTopUpState> {
+class WalletTopUpNotifier extends Notifier<WalletTopUpState>
+    with DisposeTolerantNotifier<WalletTopUpState> {
   static const minAmountInr = 1.0;
   static const maxAmountInr = 100000.0;
 

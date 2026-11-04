@@ -7,6 +7,7 @@ import '../../../core/error/result.dart';
 import '../data/repositories/seller_product_repository_impl.dart';
 import '../domain/models/seller_product.dart';
 import '../domain/models/seller_product_column.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 class SellerProductsState {
   const SellerProductsState({
@@ -83,8 +84,8 @@ final sellerProductsCatalogProvider =
     );
 
 /// Live seller catalog loaded from `/diamond` and `/melee-diamond`.
-class SellerProductsCatalogNotifier
-    extends Notifier<SellerProductsCatalogState> {
+class SellerProductsCatalogNotifier extends Notifier<SellerProductsCatalogState>
+    with DisposeTolerantNotifier<SellerProductsCatalogState> {
   CancelToken? _cancelToken;
   var _hasLoaded = false;
 
@@ -103,6 +104,7 @@ class SellerProductsCatalogNotifier
   Future<void> loadIfNeeded() async {
     if (_hasLoaded) return;
     await refresh();
+    if (!ref.mounted) return;
   }
 
   Future<void> refresh() async {
@@ -123,6 +125,7 @@ class SellerProductsCatalogNotifier
     final result = await ref
         .read(sellerProductRepositoryProvider)
         .listProducts(sellerId: sellerId, cancelToken: _cancelToken);
+    if (!ref.mounted) return;
     switch (result) {
       case Success(:final value):
         state = SellerProductsCatalogState(products: value);
@@ -171,7 +174,8 @@ class SellerProductsCatalogNotifier
   }
 }
 
-class SellerProductsController extends Notifier<SellerProductsState> {
+class SellerProductsController extends Notifier<SellerProductsState>
+    with DisposeTolerantNotifier<SellerProductsState> {
   @override
   SellerProductsState build() {
     return SellerProductsState(

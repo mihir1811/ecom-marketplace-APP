@@ -12,9 +12,7 @@ abstract class ApiShareRepository {
     CancelToken? cancelToken,
   });
 
-  Future<Result<List<ApiShareKey>, Failure>> list({
-    CancelToken? cancelToken,
-  });
+  Future<Result<List<ApiShareKey>, Failure>> list({CancelToken? cancelToken});
 
   Future<Result<ApiShareKey, Failure>> updatePermissions({
     required String id,

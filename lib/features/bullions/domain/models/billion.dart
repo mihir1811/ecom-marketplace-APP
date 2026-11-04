@@ -1,11 +1,5 @@
 /// Domain model for a single bullion listing (metal bar/coin).
-enum BullionMetal {
-  gold,
-  silver,
-  platinum,
-  palladium,
-  copper;
-}
+enum BullionMetal { gold, silver, platinum, palladium, copper }
 
 /// Clean domain model used by UI and providers.
 class Bullion {

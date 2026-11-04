@@ -87,15 +87,14 @@ class ProductOfferRepositoryImpl implements ProductOfferRepository {
     int limit = 20,
     String? statusFilter,
     CancelToken? cancelToken,
-  }) =>
-      _listPage(
-        ApiEndpoints.productOfferMineAll,
-        page: page,
-        limit: limit,
-        defaultLimit: 20,
-        statusFilter: statusFilter,
-        cancelToken: cancelToken,
-      );
+  }) => _listPage(
+    ApiEndpoints.productOfferMineAll,
+    page: page,
+    limit: limit,
+    defaultLimit: 20,
+    statusFilter: statusFilter,
+    cancelToken: cancelToken,
+  );
 
   @override
   Future<Result<ProductOfferListPage, Failure>> listSeller({
@@ -103,15 +102,14 @@ class ProductOfferRepositoryImpl implements ProductOfferRepository {
     int limit = 10,
     String? statusFilter,
     CancelToken? cancelToken,
-  }) =>
-      _listPage(
-        ApiEndpoints.productOfferSeller,
-        page: page,
-        limit: limit,
-        defaultLimit: 10,
-        statusFilter: statusFilter,
-        cancelToken: cancelToken,
-      );
+  }) => _listPage(
+    ApiEndpoints.productOfferSeller,
+    page: page,
+    limit: limit,
+    defaultLimit: 10,
+    statusFilter: statusFilter,
+    cancelToken: cancelToken,
+  );
 
   /// Paged offer list; `status` filters by an own column of the offer.
   Future<Result<ProductOfferListPage, Failure>> _listPage(

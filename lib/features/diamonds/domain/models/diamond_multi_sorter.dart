@@ -30,8 +30,9 @@ class DiamondMultiSorter {
   static int _compareField(Diamond a, Diamond b, String fieldKey) {
     return switch (fieldKey) {
       'price' => a.price.compareTo(b.price),
-      'pricePerCarat' => (a.pricePerCarat ?? _ppc(a))
-          .compareTo(b.pricePerCarat ?? _ppc(b)),
+      'pricePerCarat' => (a.pricePerCarat ?? _ppc(a)).compareTo(
+        b.pricePerCarat ?? _ppc(b),
+      ),
       'carat' => a.carat.compareTo(b.carat),
       _ => 0,
     };

@@ -38,7 +38,9 @@ class BirthstoneMonthCard extends StatelessWidget {
               : AppColors.card(context),
           borderRadius: BorderRadius.circular(AppSpacing.r8),
           border: Border.all(
-            color: isSelected ? AppColors.selectedFill(context) : AppColors.border(context),
+            color: isSelected
+                ? AppColors.selectedFill(context)
+                : AppColors.border(context),
             width: isSelected ? 1.5 : 1.0,
           ),
         ),

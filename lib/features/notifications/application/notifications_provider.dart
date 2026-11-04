@@ -13,6 +13,7 @@ import '../domain/repositories/notification_repository.dart';
 import 'chat_message_alerts.dart';
 import 'in_app_notification_provider.dart';
 import 'push_messaging_service.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// Badge count for the bell. `0` when signed out.
 final notificationUnreadCountProvider =
@@ -20,7 +21,8 @@ final notificationUnreadCountProvider =
       NotificationUnreadCountNotifier.new,
     );
 
-class NotificationUnreadCountNotifier extends Notifier<int> {
+class NotificationUnreadCountNotifier extends Notifier<int>
+    with DisposeTolerantNotifier<int> {
   @override
   int build() {
     final signedIn = ref.watch(authProvider.select((s) => s.isAuthenticated));
@@ -40,6 +42,7 @@ class NotificationUnreadCountNotifier extends Notifier<int> {
       return;
     }
     final result = await ref.read(notificationRepositoryProvider).unreadCount();
+    if (!ref.mounted) return;
     if (result case Success(:final value)) state = value;
   }
 }
@@ -94,7 +97,8 @@ final notificationListProvider =
       NotificationListNotifier.new,
     );
 
-class NotificationListNotifier extends Notifier<NotificationListState> {
+class NotificationListNotifier extends Notifier<NotificationListState>
+    with DisposeTolerantNotifier<NotificationListState> {
   CancelToken? _cancelToken;
 
   @override
@@ -123,6 +127,7 @@ class NotificationListNotifier extends Notifier<NotificationListState> {
       unreadOnly: filter,
       cancelToken: _cancelToken,
     );
+    if (!ref.mounted) return;
     switch (result) {
       case Success(:final value):
         state = NotificationListState(
@@ -148,6 +153,7 @@ class NotificationListNotifier extends Notifier<NotificationListState> {
       page: state.currentPage + 1,
       unreadOnly: state.unreadOnly,
     );
+    if (!ref.mounted) return;
     switch (result) {
       case Success(:final value):
         state = state.copyWith(

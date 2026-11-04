@@ -114,9 +114,8 @@ class _PoliciesHubScreenState extends State<PoliciesHubScreen> {
                       label: context.tr(AccountCommerceL10n.termsConditions),
                       icon: Icons.gavel_outlined,
                       variant: AtelierButtonVariant.secondary,
-                      onPressed: () => context.openRoute(
-                        AppRouteNames.termsAndConditions,
-                      ),
+                      onPressed: () =>
+                          context.openRoute(AppRouteNames.termsAndConditions),
                     ),
                   ],
                 ),

@@ -31,7 +31,7 @@ class CartTotalsSection extends ConsumerWidget {
     final availableItems = items.where((i) => i.isAvailable).toList();
     final merchandiseUsd = ref.watch(cartAvailableMerchandiseUsdProvider);
     final feesAsync = ref.watch(activeFeesProvider);
-    final fees = feesAsync.valueOrNull ?? FeeRulesCatalog.empty;
+    final fees = feesAsync.value ?? FeeRulesCatalog.empty;
     final wantVerification = ref.watch(
       paymentCheckoutProvider.select((s) => s.wantGemworldVerification),
     );
@@ -41,8 +41,8 @@ class CartTotalsSection extends ConsumerWidget {
     final usePoints = ref.watch(
       paymentCheckoutProvider.select((s) => s.usePoints),
     );
-    final walletBalance = ref.watch(walletProvider).valueOrNull?.balance ?? 0;
-    final rewards = ref.watch(rewardsProvider).valueOrNull;
+    final walletBalance = ref.watch(walletProvider).value?.balance ?? 0;
+    final rewards = ref.watch(rewardsProvider).value;
 
     final lines = availableItems
         .map(

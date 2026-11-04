@@ -7,6 +7,7 @@ import '../domain/models/watch_filter_state.dart';
 import '../domain/repositories/watch_repository.dart';
 import 'brand_watch_filter_provider.dart';
 import '../../recently_viewed/application/recently_viewed_providers.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 class BrandWatchListState {
   const BrandWatchListState({
@@ -45,7 +46,8 @@ class BrandWatchListState {
 }
 
 /// Brand-scoped watch list — same API filters as main catalog, brand locked.
-class BrandWatchListNotifier extends AsyncNotifier<BrandWatchListState> {
+class BrandWatchListNotifier extends AsyncNotifier<BrandWatchListState>
+    with DisposeTolerantAsyncNotifier<BrandWatchListState> {
   int _currentPage = 1;
   String _brandName = '';
 
@@ -93,24 +95,29 @@ class BrandWatchListNotifier extends AsyncNotifier<BrandWatchListState> {
       pageSize: WatchPageSize.defaultSize,
       sort: sort,
     );
+    if (!ref.mounted) return;
 
     switch (result) {
       case Success(value: final response):
-        state = AsyncData(BrandWatchListState(
-          watches: response.watches,
-          hasMore: response.hasMore,
-          totalCount: response.totalCount,
-        ));
+        state = AsyncData(
+          BrandWatchListState(
+            watches: response.watches,
+            hasMore: response.hasMore,
+            totalCount: response.totalCount,
+          ),
+        );
       case ResultFailure(failure: final failure):
-        state = AsyncData(BrandWatchListState(
-          errorMessage: failure.message,
-          isInitialLoading: false,
-        ));
+        state = AsyncData(
+          BrandWatchListState(
+            errorMessage: failure.message,
+            isInitialLoading: false,
+          ),
+        );
     }
   }
 
   Future<void> loadNextPage() async {
-    final current = state.valueOrNull;
+    final current = state.value;
     if (current == null || !current.hasMore || current.isLoadingMore) return;
 
     state = AsyncData(current.copyWith(isLoadingMore: true));
@@ -125,29 +132,32 @@ class BrandWatchListNotifier extends AsyncNotifier<BrandWatchListState> {
       pageSize: WatchPageSize.defaultSize,
       sort: sort,
     );
+    if (!ref.mounted) return;
 
     switch (result) {
       case Success(value: final response):
-        state = AsyncData(BrandWatchListState(
-          watches: [...current.watches, ...response.watches],
-          hasMore: response.hasMore,
-          totalCount: response.totalCount,
-        ));
+        state = AsyncData(
+          BrandWatchListState(
+            watches: [...current.watches, ...response.watches],
+            hasMore: response.hasMore,
+            totalCount: response.totalCount,
+          ),
+        );
       case ResultFailure(failure: final failure):
         _currentPage--;
-        state = AsyncData(current.copyWith(
-          isLoadingMore: false,
-          errorMessage: failure.message,
-        ));
+        state = AsyncData(
+          current.copyWith(isLoadingMore: false, errorMessage: failure.message),
+        );
     }
   }
 
   Future<void> refresh() async {
     await _loadFirstPage();
+    if (!ref.mounted) return;
   }
 }
 
 final brandWatchListProvider =
     AsyncNotifierProvider<BrandWatchListNotifier, BrandWatchListState>(
-  BrandWatchListNotifier.new,
-);
+      BrandWatchListNotifier.new,
+    );

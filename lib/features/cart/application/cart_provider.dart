@@ -13,6 +13,7 @@ import '../domain/models/cart_summary.dart';
 import '../domain/models/delivery_address.dart';
 import '../domain/repositories/cart_repository.dart';
 import '../domain/repositories/delivery_repository.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// Display totals derived from cart summary + optional FX rate.
 class CartTotals {
@@ -154,7 +155,8 @@ enum CartLoadMode {
   full,
 }
 
-class CartNotifier extends Notifier<CartState> {
+class CartNotifier extends Notifier<CartState>
+    with DisposeTolerantNotifier<CartState> {
   CancelToken? _loadToken;
   Future<void>? _inFlight;
   CartLoadMode? _inFlightMode;

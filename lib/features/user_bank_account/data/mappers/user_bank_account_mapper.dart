@@ -21,9 +21,7 @@ abstract final class UserBankAccountMapper {
     final bankRaw = map['bankAccount'];
     return UserBankAccountStatus(
       hasBankAccount: map['hasBankAccount'] == true,
-      bankAccount: bankRaw is Map<String, dynamic>
-          ? fromJson(bankRaw)
-          : null,
+      bankAccount: bankRaw is Map<String, dynamic> ? fromJson(bankRaw) : null,
     );
   }
 

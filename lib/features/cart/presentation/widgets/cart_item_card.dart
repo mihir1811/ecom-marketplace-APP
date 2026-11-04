@@ -112,11 +112,7 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _Thumb(
-                  item: item,
-                  opening: _opening,
-                  dimmed: !available,
-                ),
+                _Thumb(item: item, opening: _opening, dimmed: !available),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
@@ -132,15 +128,16 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                                 item.title,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: LuxeType.display(
-                                  19,
-                                  available ? p.ink : p.inkMuted,
-                                ).copyWith(
-                                  height: 1.1,
-                                  decoration: available
-                                      ? null
-                                      : TextDecoration.lineThrough,
-                                ),
+                                style:
+                                    LuxeType.display(
+                                      19,
+                                      available ? p.ink : p.inkMuted,
+                                    ).copyWith(
+                                      height: 1.1,
+                                      decoration: available
+                                          ? null
+                                          : TextDecoration.lineThrough,
+                                    ),
                               ),
                             ),
                           ),
@@ -252,19 +249,22 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                                         item.listedPriceUsd! >
                                             item.displayPriceUsd)
                                       TextSpan(
-                                        text: '  ${AppCurrency.format(item.listedPriceUsd!.toStringAsFixed(2))}',
-                                        style: LuxeType.label(
-                                          p.inkFaint,
-                                          size: 12,
-                                        ).copyWith(
-                                          decoration:
-                                              TextDecoration.lineThrough,
-                                          decorationColor: p.inkFaint,
-                                        ),
+                                        text:
+                                            '  ${AppCurrency.format(item.listedPriceUsd!.toStringAsFixed(2))}',
+                                        style:
+                                            LuxeType.label(
+                                              p.inkFaint,
+                                              size: 12,
+                                            ).copyWith(
+                                              decoration:
+                                                  TextDecoration.lineThrough,
+                                              decorationColor: p.inkFaint,
+                                            ),
                                       ),
                                     if (item.isOfferLine)
                                       TextSpan(
-                                        text: '  ${context.tr(DiamondFlowL10n.offerPriceTag)}',
+                                        text:
+                                            '  ${context.tr(DiamondFlowL10n.offerPriceTag)}',
                                         style: LuxeType.label(
                                           p.positive,
                                           size: 11.5,
@@ -272,15 +272,16 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                                       ),
                                   ],
                                 ),
-                                style: LuxeType.figure(
-                                  available ? p.ink : p.inkFaint,
-                                  size: 17,
-                                ).copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  decoration: available
-                                      ? null
-                                      : TextDecoration.lineThrough,
-                                ),
+                                style:
+                                    LuxeType.figure(
+                                      available ? p.ink : p.inkFaint,
+                                      size: 17,
+                                    ).copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      decoration: available
+                                          ? null
+                                          : TextDecoration.lineThrough,
+                                    ),
                               ),
                             ),
                           ),

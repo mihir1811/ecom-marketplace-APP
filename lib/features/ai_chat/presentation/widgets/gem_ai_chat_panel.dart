@@ -94,8 +94,7 @@ class _GemAiChatPanelState extends ConsumerState<GemAiChatPanel> {
     final padding = MediaQuery.paddingOf(context);
     final keyboard = MediaQuery.viewInsetsOf(context).bottom;
     final panelWidth = size.width < 480 ? size.width - 20.0 : 420.0;
-    final bottomGap =
-        (keyboard > 0 ? keyboard : padding.bottom) + 10.0;
+    final bottomGap = (keyboard > 0 ? keyboard : padding.bottom) + 10.0;
     final panelHeight = (size.height - bottomGap - padding.top - 16).clamp(
       260.0,
       size.height * 0.86,
@@ -289,9 +288,7 @@ class _Header extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: LuxeStage.obsidian,
-              border: Border.all(
-                color: LuxeStage.gold.withValues(alpha: 0.5),
-              ),
+              border: Border.all(color: LuxeStage.gold.withValues(alpha: 0.5)),
             ),
             alignment: Alignment.center,
             child: const GemView(size: 34, spin: 0.6, tilt: 0.5),
@@ -528,10 +525,7 @@ class _ErrorBanner extends StatelessWidget {
           Icon(Icons.error_outline_rounded, color: p.caution, size: 18),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              message,
-              style: LuxeType.label(p.caution, size: 12.5),
-            ),
+            child: Text(message, style: LuxeType.label(p.caution, size: 12.5)),
           ),
           IconButton(
             tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
@@ -907,10 +901,7 @@ class _MessageBubble extends StatelessWidget {
                     ],
                     SelectableText(
                       message.content,
-                      style: LuxeType.body(
-                        isUser ? p.canvas : p.ink,
-                        size: 14,
-                      ),
+                      style: LuxeType.body(isUser ? p.canvas : p.ink, size: 14),
                     ),
                   ],
                 ),
@@ -1106,10 +1097,7 @@ class _HistorySessionCard extends StatelessWidget {
                     ),
                     if (when != null) ...[
                       const SizedBox(height: 5),
-                      Text(
-                        when,
-                        style: LuxeType.label(p.inkFaint, size: 11),
-                      ),
+                      Text(when, style: LuxeType.label(p.inkFaint, size: 11)),
                     ],
                   ],
                 ),
@@ -1191,40 +1179,52 @@ class _Composer extends StatelessWidget {
           if (pendingImageName != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 6, left: 4),
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(8, 4, 2, 4),
-                decoration: ShapeDecoration(
-                  color: p.accentSoft,
-                  shape: const StadiumBorder(),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.image_outlined, size: 15, color: p.accent),
-                    const SizedBox(width: 5),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 200),
-                      child: Text(
-                        pendingImageName!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: LuxeType.label(p.ink, size: 12),
+              child:
+                  Container(
+                        padding: const EdgeInsets.fromLTRB(8, 4, 2, 4),
+                        decoration: ShapeDecoration(
+                          color: p.accentSoft,
+                          shape: const StadiumBorder(),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.image_outlined,
+                              size: 15,
+                              color: p.accent,
+                            ),
+                            const SizedBox(width: 5),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 200),
+                              child: Text(
+                                pendingImageName!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: LuxeType.label(p.ink, size: 12),
+                              ),
+                            ),
+                            IconButton(
+                              visualDensity: VisualDensity.compact,
+                              tooltip: MaterialLocalizations.of(
+                                context,
+                              ).deleteButtonTooltip,
+                              onPressed: onClearImage,
+                              icon: Icon(
+                                Icons.close_rounded,
+                                size: 15,
+                                color: p.ink,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                      .animate()
+                      .fadeIn(duration: 200.ms)
+                      .scale(
+                        begin: const Offset(0.9, 0.9),
+                        alignment: Alignment.centerLeft,
                       ),
-                    ),
-                    IconButton(
-                      visualDensity: VisualDensity.compact,
-                      tooltip: MaterialLocalizations.of(
-                        context,
-                      ).deleteButtonTooltip,
-                      onPressed: onClearImage,
-                      icon: Icon(Icons.close_rounded, size: 15, color: p.ink),
-                    ),
-                  ],
-                ),
-              ).animate().fadeIn(duration: 200.ms).scale(
-                begin: const Offset(0.9, 0.9),
-                alignment: Alignment.centerLeft,
-              ),
             ),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,

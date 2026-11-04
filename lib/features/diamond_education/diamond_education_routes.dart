@@ -6,6 +6,7 @@ import 'presentation/screens/diamond_education_screen.dart';
 /// Diamond education page.
 final List<RouteBase> diamondEducationRoutes = [
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.diamondEducation,
     builder: (context, state) => const DiamondEducationScreen(),
   ),

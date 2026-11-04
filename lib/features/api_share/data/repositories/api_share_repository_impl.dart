@@ -82,9 +82,7 @@ class ApiShareRepositoryImpl implements ApiShareRepository {
     try {
       final response = await _dio.patch<Map<String, dynamic>>(
         ApiEndpoints.apiShareById(id),
-        data: {
-          'permissions': permissions.map((p) => p.apiValue).toList(),
-        },
+        data: {'permissions': permissions.map((p) => p.apiValue).toList()},
         cancelToken: cancelToken,
       );
       final data = response.data?['data'];

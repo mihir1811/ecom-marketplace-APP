@@ -26,23 +26,27 @@ String? _signedInOnly(BuildContext context, GoRouterState state) {
 final List<RouteBase> jewelryCheckoutRoutes = [
   // Signed in only; checkout and orders also need a verified account.
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.jewelryBag,
     redirect: _signedInOnly,
     builder: (context, state) => const JewelryBagScreen(),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.jewelryCheckout,
     redirect: _signedInOnly,
     builder: (context, state) =>
         const VerifiedAccountGate(child: JewelryCheckoutScreen()),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.jewelryOrders,
     redirect: _signedInOnly,
     builder: (context, state) =>
         const VerifiedAccountGate(child: JewelryOrdersScreen()),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.jewelryOrderDetail,
     redirect: _signedInOnly,
     builder: (context, state) => VerifiedAccountGate(
@@ -52,6 +56,7 @@ final List<RouteBase> jewelryCheckoutRoutes = [
     ),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.jewelryOrderInvoice,
     redirect: _signedInOnly,
     builder: (context, state) => VerifiedAccountGate(
@@ -63,6 +68,7 @@ final List<RouteBase> jewelryCheckoutRoutes = [
   // Seller studio → orders for jewellery shops; the API rejects other
   // accounts with its own message, which the screen shows.
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.jewelryShopOrders,
     redirect: _signedInOnly,
     builder: (context, state) =>
@@ -70,6 +76,7 @@ final List<RouteBase> jewelryCheckoutRoutes = [
   ),
   // Seller studio → reviews; `r` is the review a push points at.
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.jewelryShopReviews,
     redirect: _signedInOnly,
     builder: (context, state) => JewelrySellerReviewsScreen(

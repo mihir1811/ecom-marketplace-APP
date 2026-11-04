@@ -150,9 +150,7 @@ abstract final class ProductPurchaseActions {
         : CartButtonKind.add;
     final showOffer = detail.canMakeAnOffer && !own;
     final eligibility = showOffer && auth.isAuthenticated
-        ? ref
-              .watch(productOfferEligibilityProvider(offerKey(detail)))
-              .valueOrNull
+        ? ref.watch(productOfferEligibilityProvider(offerKey(detail))).value
         : null;
     final offers = eligibility ?? ProductOfferEligibility.empty;
     return PurchaseState(

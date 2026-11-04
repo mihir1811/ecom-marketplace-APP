@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../core/error/failure.dart';
 import '../../../core/pagination/paginated_async_notifier.dart';
@@ -21,9 +23,7 @@ extension WatchListStateX on WatchListState {
 
 /// First page fetched outside the screen (e.g. Gem Agent), served once.
 final watchPrefetchProvider =
-    StateProvider<PrefetchedFirstPage<WatchFilterState, Watch>?>(
-      (ref) => null,
-    );
+    StateProvider<PrefetchedFirstPage<WatchFilterState, Watch>?>((ref) => null);
 
 /// Applies [prefetched]'s filters; the list reloads and shows its page.
 void presentPrefetchedWatches(
@@ -36,8 +36,8 @@ void presentPrefetchedWatches(
 
 final watchListProvider =
     AsyncNotifierProvider<WatchListNotifier, WatchListState>(
-  WatchListNotifier.new,
-);
+      WatchListNotifier.new,
+    );
 
 class WatchListNotifier extends PaginatedAsyncNotifier<Watch> {
   CancelToken? _cancelToken;
@@ -56,7 +56,6 @@ class WatchListNotifier extends PaginatedAsyncNotifier<Watch> {
     }
     _cancelToken = CancelToken();
   }
-
 
   @override
   void onBeforePageLoad({required int page, required bool isFirstPage}) {
@@ -84,12 +83,12 @@ class WatchListNotifier extends PaginatedAsyncNotifier<Watch> {
     );
     return switch (result) {
       Success(value: final response) => Success(
-          PaginatedPage<Watch>(
-            items: response.watches,
-            hasMore: response.hasMore,
-            totalCount: response.totalCount,
-          ),
+        PaginatedPage<Watch>(
+          items: response.watches,
+          hasMore: response.hasMore,
+          totalCount: response.totalCount,
         ),
+      ),
       ResultFailure(failure: final failure) => ResultFailure(failure),
     };
   }

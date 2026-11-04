@@ -36,7 +36,7 @@ class _SponsoredDiamondsStripState
   @override
   Widget build(BuildContext context) {
     final stones =
-        ref.watch(sponsoredDiamondsAnyKindProvider).valueOrNull ?? const [];
+        ref.watch(sponsoredDiamondsAnyKindProvider).value ?? const [];
     if (stones.isEmpty) return const SizedBox.shrink();
 
     final p = LuxePalette.of(context);

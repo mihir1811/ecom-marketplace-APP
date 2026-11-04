@@ -5,6 +5,7 @@ import 'presentation/screens/comparison_screen.dart';
 
 final List<RouteBase> comparisonRoutes = [
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.comparison,
     builder: (context, state) => const ComparisonScreen(),
   ),

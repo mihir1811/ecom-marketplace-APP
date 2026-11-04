@@ -35,12 +35,7 @@ class WatchCatalogBrands {
       'Grand Complications',
     ],
     'Audemars Piguet': ['Royal Oak', 'Royal Oak Offshore', 'Code 11.59'],
-    'Cartier': [
-      'Santos de Cartier',
-      'Tank',
-      'Ballon Bleu',
-      'Drive de Cartier',
-    ],
+    'Cartier': ['Santos de Cartier', 'Tank', 'Ballon Bleu', 'Drive de Cartier'],
     'Omega': [
       'Speedmaster Professional',
       'Seamaster',

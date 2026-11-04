@@ -56,7 +56,8 @@ abstract final class ProductShareUrls {
   }
 
   static bool _isHttpOrigin(Uri uri) {
-    return (uri.scheme == 'http' || uri.scheme == 'https') && uri.host.isNotEmpty;
+    return (uri.scheme == 'http' || uri.scheme == 'https') &&
+        uri.host.isNotEmpty;
   }
 
   static bool _isLoopback(String host) {
@@ -81,7 +82,9 @@ abstract final class ProductShareUrls {
     if (fragment.isNotEmpty) {
       final fragPath = fragment.startsWith('/') ? fragment : '/$fragment';
       final fragUri = Uri.tryParse(fragPath);
-      final fromFrag = _tokenFromPathSegments(fragUri?.pathSegments ?? const []);
+      final fromFrag = _tokenFromPathSegments(
+        fragUri?.pathSegments ?? const [],
+      );
       if (fromFrag.isNotEmpty) return fromFrag;
     }
 

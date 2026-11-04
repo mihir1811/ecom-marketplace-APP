@@ -598,8 +598,7 @@ class _RippleScope extends InheritedWidget {
   final _FoldSignal signal;
 
   @override
-  bool updateShouldNotify(_RippleScope oldWidget) =>
-      oldWidget.signal != signal;
+  bool updateShouldNotify(_RippleScope oldWidget) => oldWidget.signal != signal;
 }
 
 class _RippleTarget extends SingleChildRenderObjectWidget {
@@ -683,10 +682,22 @@ class _RenderFold extends RenderProxyBox {
     final oy = cy - g.dy;
     // Column-major.
     return Matrix4(
-      1, 0, 0, 0, //
-      ox * wy, oy * wy + (y1 - y0) / h, 0, wy, //
-      0, 0, 1, 0, //
-      ox * w0 - ox, oy * w0 + y0, 0, w0, //
+      1,
+      0,
+      0,
+      0, //
+      ox * wy,
+      oy * wy + (y1 - y0) / h,
+      0,
+      wy, //
+      0,
+      0,
+      1,
+      0, //
+      ox * w0 - ox,
+      oy * w0 + y0,
+      0,
+      w0, //
     );
   }
 

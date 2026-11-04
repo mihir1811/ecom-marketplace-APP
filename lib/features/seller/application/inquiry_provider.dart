@@ -8,6 +8,7 @@ import '../data/mappers/inquiry_request_mapper.dart';
 import '../data/repositories/inquiry_repository_impl.dart';
 import '../domain/models/seller_inquiry.dart';
 import '../domain/repositories/inquiry_repository.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 String _inquiryCacheKey(InquiryCategory category, String id) =>
     '${category.name}:$id';
@@ -66,12 +67,19 @@ class InquiryListState {
   }
 }
 
-class InquiryListNotifier
-    extends FamilyNotifier<InquiryListState, InquiryCategory> {
+class InquiryListNotifier extends Notifier<InquiryListState>
+    with DisposeTolerantNotifier<InquiryListState> {
+  InquiryListNotifier(this.arg);
+
+  /// The family argument this notifier was created for.
+  final InquiryCategory arg;
+
+  InquiryCategory get category => arg;
+
   CancelToken? _cancelToken;
 
   @override
-  InquiryListState build(InquiryCategory category) {
+  InquiryListState build() {
     ref.watch(authProvider.select((s) => s.user?.id));
     ref.onDispose(() => _cancelToken?.cancel());
     Future.microtask(refresh);
@@ -96,6 +104,7 @@ class InquiryListNotifier
       page: 1,
       cancelToken: _cancelToken,
     );
+    if (!ref.mounted) return;
 
     switch (result) {
       case Success(value: final page):
@@ -119,6 +128,7 @@ class InquiryListNotifier
     final nextPage = state.currentPage + 1;
 
     final result = await _repo.listInquiries(category: arg, page: nextPage);
+    if (!ref.mounted) return;
 
     switch (result) {
       case Success(value: final page):
@@ -173,7 +183,8 @@ final inquiryDetailProvider = FutureProvider.autoDispose
       }
     });
 
-class InquiryMutationNotifier extends Notifier<AsyncValue<void>> {
+class InquiryMutationNotifier extends Notifier<AsyncValue<void>>
+    with DisposeTolerantNotifier<AsyncValue<void>> {
   @override
   AsyncValue<void> build() => const AsyncValue.data(null);
 

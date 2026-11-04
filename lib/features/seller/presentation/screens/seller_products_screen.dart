@@ -707,10 +707,7 @@ class _PaginationBar extends StatelessWidget {
               onTap: () => _pickRows(context),
               semanticLabel: context.tr(RemainingL10n.rowsPerPage),
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 6,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 decoration: BoxDecoration(
                   color: p.sunken,
                   borderRadius: BorderRadius.circular(AtelierRadius.pill),

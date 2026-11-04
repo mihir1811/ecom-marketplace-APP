@@ -169,9 +169,8 @@ class OfferExchangeLine extends StatelessWidget {
   Widget build(BuildContext context) {
     if (offer.history.isEmpty) return const SizedBox.shrink();
     final p = context.atelier;
-    String who(bool fromSeller) => fromSeller == asSeller
-        ? 'You'
-        : (fromSeller ? 'Seller' : 'Buyer');
+    String who(bool fromSeller) =>
+        fromSeller == asSeller ? 'You' : (fromSeller ? 'Seller' : 'Buyer');
     final moves = [
       for (final m in offer.history)
         '${who(m.fromSeller)} ${atelierMoney(m.amount, decimals: 2)}',

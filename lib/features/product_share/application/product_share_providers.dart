@@ -5,13 +5,14 @@ import '../../../core/error/result.dart';
 import '../data/repositories/product_share_repository_impl.dart';
 import '../domain/models/product_share.dart';
 import '../domain/repositories/product_share_repository.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
-class ProductShareController extends Notifier<AsyncValue<void>> {
+class ProductShareController extends Notifier<AsyncValue<void>>
+    with DisposeTolerantNotifier<AsyncValue<void>> {
   @override
   AsyncValue<void> build() => const AsyncValue.data(null);
 
-  ProductShareRepository get _repo =>
-      ref.read(productShareRepositoryProvider);
+  ProductShareRepository get _repo => ref.read(productShareRepositoryProvider);
 
   Future<Result<ProductShareLink, Failure>> create({
     required String productType,
@@ -32,8 +33,10 @@ class ProductShareController extends Notifier<AsyncValue<void>> {
     );
     state = switch (result) {
       Success() => const AsyncValue.data(null),
-      ResultFailure(failure: final failure) =>
-        AsyncValue.error(failure, StackTrace.current),
+      ResultFailure(failure: final failure) => AsyncValue.error(
+        failure,
+        StackTrace.current,
+      ),
     };
     return result;
   }
@@ -51,8 +54,10 @@ class ProductShareController extends Notifier<AsyncValue<void>> {
     );
     state = switch (result) {
       Success() => const AsyncValue.data(null),
-      ResultFailure(failure: final failure) =>
-        AsyncValue.error(failure, StackTrace.current),
+      ResultFailure(failure: final failure) => AsyncValue.error(
+        failure,
+        StackTrace.current,
+      ),
     };
     return result;
   }
@@ -60,5 +65,5 @@ class ProductShareController extends Notifier<AsyncValue<void>> {
 
 final productShareControllerProvider =
     NotifierProvider<ProductShareController, AsyncValue<void>>(
-  ProductShareController.new,
-);
+      ProductShareController.new,
+    );

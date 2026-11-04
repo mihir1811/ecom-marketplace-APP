@@ -14,7 +14,8 @@ abstract final class BullionMapper {
     final design = _clean(dto.design);
     final stock = _clean(dto.stockNumber);
 
-    final name = design ??
+    final name =
+        design ??
         [
           if (weight > 0) _weightLabel(weight),
           if (metalName.isNotEmpty) _titleCase(metalName),

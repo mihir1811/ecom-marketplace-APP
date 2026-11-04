@@ -6,13 +6,15 @@ import '../../../core/error/result.dart';
 import '../data/repositories/wallet_repository_impl.dart';
 import '../domain/models/wallet.dart';
 import '../domain/repositories/wallet_repository.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 final walletProvider = AsyncNotifierProvider<WalletNotifier, Wallet>(
   WalletNotifier.new,
 );
 
 /// Loads GET /wallet for the authenticated user.
-class WalletNotifier extends AsyncNotifier<Wallet> {
+class WalletNotifier extends AsyncNotifier<Wallet>
+    with DisposeTolerantAsyncNotifier<Wallet> {
   WalletRepository get _repo => ref.read(walletRepositoryProvider);
 
   @override
@@ -37,6 +39,7 @@ class WalletNotifier extends AsyncNotifier<Wallet> {
 
   Future<void> refresh() async {
     state = await AsyncValue.guard(_fetch);
+    if (!ref.mounted) return;
   }
 }
 
@@ -78,7 +81,8 @@ class WalletTransactionsState {
 }
 
 /// Paginated GET /wallet/transactions.
-class WalletTransactionsNotifier extends Notifier<WalletTransactionsState> {
+class WalletTransactionsNotifier extends Notifier<WalletTransactionsState>
+    with DisposeTolerantNotifier<WalletTransactionsState> {
   static const pageSize = 20;
 
   WalletRepository get _repo => ref.read(walletRepositoryProvider);
@@ -96,6 +100,7 @@ class WalletTransactionsNotifier extends Notifier<WalletTransactionsState> {
   Future<void> loadInitial() async {
     state = state.copyWith(isLoading: true, clearError: true);
     final result = await _repo.getTransactions(page: 1, limit: pageSize);
+    if (!ref.mounted) return;
     switch (result) {
       case Success(:final value):
         state = WalletTransactionsState(
@@ -113,6 +118,7 @@ class WalletTransactionsNotifier extends Notifier<WalletTransactionsState> {
     state = state.copyWith(isLoadingMore: true, clearError: true);
     final nextPage = state.page + 1;
     final result = await _repo.getTransactions(page: nextPage, limit: pageSize);
+    if (!ref.mounted) return;
     switch (result) {
       case Success(:final value):
         state = state.copyWith(

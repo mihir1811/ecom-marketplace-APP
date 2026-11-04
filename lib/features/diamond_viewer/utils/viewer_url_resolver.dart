@@ -5,8 +5,7 @@ abstract final class ViewerUrlResolver {
   static const String s3Base =
       'https://diamondshow.s3.ap-south-1.amazonaws.com';
   static const String workshopViewBase = 'https://workshop.360view.link/view';
-  static const String stillCdnBase =
-      'https://data1.360view.link/data/1/imaged';
+  static const String stillCdnBase = 'https://data1.360view.link/data/1/imaged';
 
   /// Returns a sanitized absolute URL, or `null` when the input is unusable.
   static String? resolve(String? raw, {bool httpsOnly = true}) {
@@ -58,10 +57,10 @@ abstract final class ViewerUrlResolver {
     if (!isStillAssetUrl(url)) return null;
     final uri = Uri.tryParse(url!.trim());
     if (uri == null) return null;
-    final segments =
-        uri.pathSegments.where((s) => s.trim().isNotEmpty).toList();
-    final imagedIdx =
-        segments.indexWhere((s) => s.toLowerCase() == 'imaged');
+    final segments = uri.pathSegments
+        .where((s) => s.trim().isNotEmpty)
+        .toList();
+    final imagedIdx = segments.indexWhere((s) => s.toLowerCase() == 'imaged');
     if (imagedIdx >= 0 && imagedIdx + 1 < segments.length) {
       final id = segments[imagedIdx + 1].trim();
       if (id.isNotEmpty && !_looksLikeFileName(id)) {
@@ -81,8 +80,9 @@ abstract final class ViewerUrlResolver {
     final uri = Uri.tryParse(resolved);
     if (uri == null) return null;
     final host = uri.host.toLowerCase();
-    final segments =
-        uri.pathSegments.where((s) => s.trim().isNotEmpty).toList();
+    final segments = uri.pathSegments
+        .where((s) => s.trim().isNotEmpty)
+        .toList();
 
     // diamondshow S3 viewer HTML lives at `/{id}` — still is `/StillImage/{id}.jpg`.
     if (host == CdnImageUrl.diamondshowS3Host) {

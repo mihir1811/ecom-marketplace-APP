@@ -8,13 +8,15 @@ import '../../../core/error/result.dart';
 import '../data/repositories/user_profile_repository_impl.dart';
 import '../domain/models/user_profile.dart';
 import '../domain/repositories/user_profile_repository.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 final userProfileProvider =
     AsyncNotifierProvider.autoDispose<UserProfileNotifier, UserProfile>(
       UserProfileNotifier.new,
     );
 
-class UserProfileNotifier extends AutoDisposeAsyncNotifier<UserProfile> {
+class UserProfileNotifier extends AsyncNotifier<UserProfile>
+    with DisposeTolerantAsyncNotifier<UserProfile> {
   UserProfileRepository get _repo => ref.read(userProfileRepositoryProvider);
 
   @override

@@ -9,6 +9,7 @@ import 'presentation/screens/wallet_screen.dart';
 /// the seller shell.
 final List<RouteBase> walletRoutes = [
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.buyerWallet,
     builder: (context, state) =>
         const MaisonLayout(child: VerifiedAccountGate(child: WalletScreen())),

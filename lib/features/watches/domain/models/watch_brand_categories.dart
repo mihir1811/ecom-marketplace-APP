@@ -1,9 +1,6 @@
 /// Alphabetical brand directory data (not drawer filters).
 class WatchBrandLetterGroup {
-  const WatchBrandLetterGroup({
-    required this.letter,
-    required this.brands,
-  });
+  const WatchBrandLetterGroup({required this.letter, required this.brands});
 
   final String letter;
   final List<String> brands;
@@ -256,7 +253,14 @@ const watchBrandCategories = <WatchBrandLetterGroup>[
   ),
   WatchBrandLetterGroup(
     letter: 'S',
-    brands: ['Seiko', 'SevenFriday', 'Sinn', 'Speake-Marin', 'Squale', 'Swatch'],
+    brands: [
+      'Seiko',
+      'SevenFriday',
+      'Sinn',
+      'Speake-Marin',
+      'Squale',
+      'Swatch',
+    ],
   ),
   WatchBrandLetterGroup(
     letter: 'T',
@@ -279,12 +283,6 @@ const watchBrandCategories = <WatchBrandLetterGroup>[
     letter: 'W',
     brands: ['Waltham', 'Weiss Watch Company', 'Wempe', 'Wittnauer'],
   ),
-  WatchBrandLetterGroup(
-    letter: 'Y',
-    brands: ['Yema'],
-  ),
-  WatchBrandLetterGroup(
-    letter: 'Z',
-    brands: ['Zenith', 'Zodiac'],
-  ),
+  WatchBrandLetterGroup(letter: 'Y', brands: ['Yema']),
+  WatchBrandLetterGroup(letter: 'Z', brands: ['Zenith', 'Zodiac']),
 ];

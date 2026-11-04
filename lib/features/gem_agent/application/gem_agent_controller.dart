@@ -15,12 +15,14 @@ import '../engine/system_prompt_builder.dart';
 import 'gem_agent_providers.dart';
 import 'gem_agent_state.dart';
 import 'speech_input_service.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// Drives one Gem Agent session: voice capture → engine turn → effects.
 final gemAgentControllerProvider =
     NotifierProvider<GemAgentController, GemAgentState>(GemAgentController.new);
 
-class GemAgentController extends Notifier<GemAgentState> {
+class GemAgentController extends Notifier<GemAgentState>
+    with DisposeTolerantNotifier<GemAgentState> {
   CancelToken? _turn;
   Timer? _flashTimer;
   int _listenSession = 0;
@@ -69,6 +71,7 @@ class GemAgentController extends Notifier<GemAgentState> {
     _turn = null;
     _listenSession++;
     await ref.read(gemAgentSpeechProvider).cancel();
+    if (!ref.mounted) return;
     state = state.copyWith(
       isOpen: false,
       phase: state.isBusy ? GemAgentPhase.idle : state.phase,
@@ -96,6 +99,7 @@ class GemAgentController extends Notifier<GemAgentState> {
     _heard = '';
     _failStreak = 0;
     await _listen();
+    if (!ref.mounted) return;
   }
 
   /// One recognizer session. Platform recognizers end a session after a
@@ -107,6 +111,7 @@ class GemAgentController extends Notifier<GemAgentState> {
     if (!await speech.ensureReady()) {
       if (session != _listenSession) return;
       final permitted = await speech.hasPermission();
+      if (!ref.mounted) return;
       state = state.copyWith(
         // Keep the mic button so a denied permission can be retried.
         voiceAvailable: !permitted,
@@ -149,6 +154,7 @@ class GemAgentController extends Notifier<GemAgentState> {
         if (live()) state = state.copyWith(soundLevel: level);
       },
     );
+    if (!ref.mounted) return;
   }
 
   /// Ends capture; the recognizer then delivers its final words.
@@ -158,11 +164,13 @@ class GemAgentController extends Notifier<GemAgentState> {
     if (speech.isListening) {
       final session = _listenSession;
       await speech.stop();
+      if (!ref.mounted) return;
       // Some recognizers never report back after a stop.
       Timer(_stopGrace, () => _onListeningEnded(session, null));
     } else {
       // Between sessions (mic reopening): nothing will report back.
       await _onListeningEnded(_listenSession, null);
+      if (!ref.mounted) return;
     }
   }
 
@@ -176,7 +184,9 @@ class GemAgentController extends Notifier<GemAgentState> {
   /// Opens a page from an answer card (row or button).
   Future<void> openFromCard(String route) async {
     await close();
+    if (!ref.mounted) return;
     await OpenPageEffect(route).apply(ref);
+    if (!ref.mounted) return;
   }
 
   Future<void> _onListeningEnded(int session, SpeechFailure? failure) async {
@@ -187,6 +197,7 @@ class GemAgentController extends Notifier<GemAgentState> {
       if (heard.isNotEmpty) return _submit(heard, viaVoice: true);
       _listenSession++;
       await ref.read(gemAgentSpeechProvider).cancel();
+      if (!ref.mounted) return;
       state = state.copyWith(phase: GemAgentPhase.idle, soundLevel: 0);
       return;
     }
@@ -229,14 +240,17 @@ class GemAgentController extends Notifier<GemAgentState> {
     // Drop late events from the session being replaced.
     final next = ++_listenSession;
     await ref.read(gemAgentSpeechProvider).cancel();
+    if (!ref.mounted) return;
     // Recognizers report busy if reopened right after a cancel.
     await Future<void>.delayed(_restartDelay * (1 + backoff));
+    if (!ref.mounted) return;
     if (next != _listenSession ||
         state.phase != GemAgentPhase.listening ||
         !state.isOpen) {
       return;
     }
     await _listen();
+    if (!ref.mounted) return;
   }
 
   static String _join(String a, String b) =>
@@ -245,6 +259,7 @@ class GemAgentController extends Notifier<GemAgentState> {
   Future<void> _endListening(String notice) async {
     _listenSession++;
     await ref.read(gemAgentSpeechProvider).cancel();
+    if (!ref.mounted) return;
     state = state.copyWith(
       phase: GemAgentPhase.idle,
       notice: notice,
@@ -291,9 +306,11 @@ class GemAgentController extends Notifier<GemAgentState> {
             };
           },
         );
+    if (!ref.mounted) return;
     if (!identical(_turn, token)) return;
     _turn = null;
     await _handle(outcome);
+    if (!ref.mounted) return;
   }
 
   Future<void> _handle(AgentOutcome outcome) async {
@@ -329,6 +346,7 @@ class GemAgentController extends Notifier<GemAgentState> {
         );
         for (final effect in effects) {
           await effect.apply(ref);
+          if (!ref.mounted) return;
         }
         _showFlash(summary);
       case AgentFailed(:final message):

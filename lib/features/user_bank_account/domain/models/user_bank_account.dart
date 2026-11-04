@@ -39,10 +39,7 @@ class UserBankAccount {
 }
 
 class UserBankAccountStatus {
-  const UserBankAccountStatus({
-    required this.hasBankAccount,
-    this.bankAccount,
-  });
+  const UserBankAccountStatus({required this.hasBankAccount, this.bankAccount});
 
   final bool hasBankAccount;
   final UserBankAccount? bankAccount;
@@ -66,11 +63,11 @@ class UserBankAccountInput {
   final String? upiId;
 
   Map<String, dynamic> toJson() => {
-        'accountHolderName': accountHolderName.trim(),
-        'accountNumber': accountNumber.trim(),
-        'ifscCode': ifscCode.trim(),
-        'bankName': bankName.trim(),
-        if (accountType != null) 'accountType': accountType!.apiValue,
-        if (upiId != null && upiId!.trim().isNotEmpty) 'upiId': upiId!.trim(),
-      };
+    'accountHolderName': accountHolderName.trim(),
+    'accountNumber': accountNumber.trim(),
+    'ifscCode': ifscCode.trim(),
+    'bankName': bankName.trim(),
+    if (accountType != null) 'accountType': accountType!.apiValue,
+    if (upiId != null && upiId!.trim().isNotEmpty) 'upiId': upiId!.trim(),
+  };
 }

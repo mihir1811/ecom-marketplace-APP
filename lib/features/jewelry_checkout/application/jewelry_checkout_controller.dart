@@ -10,6 +10,7 @@ import '../domain/models/marketplace_order.dart';
 import '../domain/repositories/jewelry_checkout_repository.dart';
 import 'jewelry_bag_provider.dart';
 import 'jewelry_orders_provider.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// How a checkout attempt ended.
 sealed class JewelryCheckoutOutcome {
@@ -43,7 +44,8 @@ class JewelryCheckoutFailed extends JewelryCheckoutOutcome {
 /// verify the Razorpay payment. Only the API marks an order paid: after a
 /// Razorpay error or a failed verify the order is read again, because the
 /// API may already have found the payment.
-class JewelryCheckoutController extends Notifier<bool> {
+class JewelryCheckoutController extends Notifier<bool>
+    with DisposeTolerantNotifier<bool> {
   final RazorpayCheckoutService _razorpay = RazorpayCheckoutService();
 
   JewelryCheckoutRepository get _repo =>

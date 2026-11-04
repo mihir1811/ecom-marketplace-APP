@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// Seller multi-select on the diamond listing before opening a project.
 ///
@@ -7,7 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 ///
 /// Picks persist across navigation and list reloads so sellers can accumulate
 /// stones, leave for analysis, and return without losing the selection.
-class DiamondProjectListingPickNotifier extends Notifier<Set<String>> {
+class DiamondProjectListingPickNotifier extends Notifier<Set<String>>
+    with DisposeTolerantNotifier<Set<String>> {
   @override
   Set<String> build() => const {};
 

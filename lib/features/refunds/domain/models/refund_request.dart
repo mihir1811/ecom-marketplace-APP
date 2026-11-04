@@ -91,9 +91,8 @@ class RefundRequest {
   /// Legacy alias for [amountInr].
   double get amount => amountInr;
 
-  String get buyerLabel => user?.name.trim().isNotEmpty == true
-      ? user!.name
-      : 'Buyer';
+  String get buyerLabel =>
+      user?.name.trim().isNotEmpty == true ? user!.name : 'Buyer';
 
   String get sellerLabel {
     final name = seller?.companyName?.trim();

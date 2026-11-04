@@ -107,13 +107,13 @@ class JewelryStyleChips extends ConsumerWidget {
     if (shop == null || shop.isEmpty) {
       return live.whenData((c) => (c, null));
     }
-    final all = live.valueOrNull;
+    final all = live.value;
     if (all == null) return live.whenData((c) => (c, null));
     final parent = MarketplaceCategory.find(all, category);
     if (parent == null) {
       final house = ref.watch(jewelryHouseCollectionsProvider(shop));
       if (house.isLoading) return const AsyncLoading();
-      final own = house.valueOrNull;
+      final own = house.value;
       return AsyncData((
         own == null ? all : [for (final c in own) c.category],
         null,
@@ -123,7 +123,7 @@ class JewelryStyleChips extends ConsumerWidget {
       jewelryHouseStylesProvider((shop: shop, category: parent.slug)),
     );
     if (styles.isLoading) return const AsyncLoading();
-    return AsyncData((all, styles.valueOrNull));
+    return AsyncData((all, styles.value));
   }
 }
 

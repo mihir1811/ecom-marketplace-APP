@@ -199,8 +199,9 @@ class DiamondDto {
       fluorescenceIntensity: json['fluorescenceIntensity']?.toString(),
       fluorescenceIntensityFrom:
           json['fluoreScenceIntensityFrom']?.toString() ??
-              json['fluorescenceIntensityFrom']?.toString(),
-      fluorescenceColor: json['fluorescenceColor']?.toString() ??
+          json['fluorescenceIntensityFrom']?.toString(),
+      fluorescenceColor:
+          json['fluorescenceColor']?.toString() ??
           json['fluoreScenceColorFrom']?.toString(),
       measurement: json['measurement']?.toString(),
       measurementMin: json['measurementMin']?.toString(),
@@ -209,9 +210,10 @@ class DiamondDto {
       table: json['table']?.toString(),
       depth: json['depth']?.toString(),
       shade: json['shade']?.toString(),
-      fancyColor: json['fancyColor']?.toString() ??
-          json['fancyColorFrom']?.toString(),
-      fancyIntencity: json['fancyIntencity']?.toString() ??
+      fancyColor:
+          json['fancyColor']?.toString() ?? json['fancyColorFrom']?.toString(),
+      fancyIntencity:
+          json['fancyIntencity']?.toString() ??
           json['fancyIntencityFrom']?.toString(),
       fancyOvertone: json['fancyOvertone']?.toString(),
       origin: json['origin']?.toString(),

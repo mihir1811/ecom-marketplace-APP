@@ -7,15 +7,15 @@ abstract final class ProductOfferMapper {
     final productMap = product is Map<String, dynamic> ? product : null;
     final buyer = json['buyer'] ?? json['user'];
     final buyerMap = buyer is Map<String, dynamic> ? buyer : null;
-    final productId = json['productId']?.toString() ??
-        productMap?['id']?.toString() ??
-        '';
+    final productId =
+        json['productId']?.toString() ?? productMap?['id']?.toString() ?? '';
     final createdAt = _parseDate(json['createdAt']);
 
     return ProductOffer(
       id: json['id']?.toString() ?? '',
       productId: productId,
-      productType: json['productType']?.toString() ??
+      productType:
+          json['productType']?.toString() ??
           productMap?['productType']?.toString() ??
           '',
       buyerId: json['buyerId']?.toString() ?? '',
@@ -32,13 +32,16 @@ abstract final class ProductOfferMapper {
       paymentWithGemworld: json['paymentWithGemworld'] == true,
       belowMinimum: json['belowMinimum'] == true,
       productLabel: _productLabel(productMap, json),
-      stockNumber: _nullableString(productMap?['stockNumber']) ??
+      stockNumber:
+          _nullableString(productMap?['stockNumber']) ??
           _nullableString(json['stockNumber']),
-      listPrice: _asDouble(productMap?['listedPrice']) ??
+      listPrice:
+          _asDouble(productMap?['listedPrice']) ??
           _asDouble(productMap?['totalPrice']) ??
           _asDouble(productMap?['price']) ??
           _asDouble(json['listPrice']),
-      buyerName: _nullableString(buyerMap?['name']) ??
+      buyerName:
+          _nullableString(buyerMap?['name']) ??
           _nullableString(buyerMap?['fullName']),
       buyerEmail: _nullableString(buyerMap?['email']),
       imageUrl: _imageUrl(productMap) ?? _imageUrl(json),
@@ -75,12 +78,14 @@ abstract final class ProductOfferMapper {
     required int limit,
   }) {
     final dataNode = root?['data'];
-    final payload =
-        dataNode is Map<String, dynamic> ? dataNode : const <String, dynamic>{};
+    final payload = dataNode is Map<String, dynamic>
+        ? dataNode
+        : const <String, dynamic>{};
     final itemsJson = payload['data'];
     final metaJson = payload['meta'];
-    final meta =
-        metaJson is Map<String, dynamic> ? metaJson : const <String, dynamic>{};
+    final meta = metaJson is Map<String, dynamic>
+        ? metaJson
+        : const <String, dynamic>{};
 
     final list = itemsJson is List ? itemsJson : const [];
     final items = <ProductOffer>[];
@@ -121,7 +126,8 @@ abstract final class ProductOfferMapper {
       if (shape != null && carat != null) {
         return '${_formatNum(carat)} ct $shape';
       }
-      final title = _nullableString(product['title']) ??
+      final title =
+          _nullableString(product['title']) ??
           _nullableString(product['name']) ??
           _nullableString(product['productName']);
       if (title != null) return title;
@@ -152,10 +158,12 @@ abstract final class ProductOfferMapper {
 
   static String? _certificateLabel(Map<String, dynamic>? product) {
     if (product == null) return null;
-    final lab = _nullableString(product['certificateCompanyName']) ??
+    final lab =
+        _nullableString(product['certificateCompanyName']) ??
         _nullableString(product['lab']) ??
         _nullableString(product['certificateCompany']);
-    final number = _nullableString(product['certificateNumber']) ??
+    final number =
+        _nullableString(product['certificateNumber']) ??
         _nullableString(product['certificateNo']);
     if (lab != null && number != null) return '$lab · $number';
     return lab ?? number;
@@ -182,8 +190,8 @@ abstract final class ProductOfferMapper {
           final url = _nullableString(item);
           if (url != null) return url;
         } else if (item is Map<String, dynamic>) {
-          final url = _nullableString(item['url']) ??
-              _nullableString(item['imageUrl']);
+          final url =
+              _nullableString(item['url']) ?? _nullableString(item['imageUrl']);
           if (url != null) return url;
         }
       }

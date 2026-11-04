@@ -19,7 +19,8 @@ class DiamondViewerWebEmbed extends StatelessWidget {
     BuildContext context,
     String message,
     VoidCallback retry,
-  )? errorBuilder;
+  )?
+  errorBuilder;
   final ValueChanged<DiamondViewerLoadState>? onLoadStateChanged;
   final VoidCallback? onRetry;
 

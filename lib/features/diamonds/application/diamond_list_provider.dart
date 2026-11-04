@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../core/error/failure.dart';
 import '../../../core/error/result.dart';
@@ -102,6 +104,7 @@ class DiamondListNotifier extends PaginatedAsyncNotifier<Diamond> {
 
   Future<void> applyFiltersAndSort() async {
     await loadFirstPage();
+    if (!ref.mounted) return;
   }
 
   /// Clears search filters and reloads page 1.
@@ -109,5 +112,6 @@ class DiamondListNotifier extends PaginatedAsyncNotifier<Diamond> {
     ref.read(diamondSearchProvider.notifier).reset();
     ref.read(diamondSortingProvider.notifier).state = const [];
     await loadFirstPage();
+    if (!ref.mounted) return;
   }
 }

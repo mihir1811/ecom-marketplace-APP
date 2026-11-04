@@ -63,9 +63,7 @@ abstract final class JewelryReviewMapper {
     return JewelryReviewSummary(
       average: _J.decimal(j['average']),
       count: _J.asInt(j['count']),
-      breakdown: {
-        for (var s = 1; s <= 5; s++) s: _J.asInt(breakdown['$s']),
-      },
+      breakdown: {for (var s = 1; s <= 5; s++) s: _J.asInt(breakdown['$s'])},
       unanswered: _J.intOrNull(j['unanswered']),
       hidden: _J.intOrNull(j['hidden']),
     );

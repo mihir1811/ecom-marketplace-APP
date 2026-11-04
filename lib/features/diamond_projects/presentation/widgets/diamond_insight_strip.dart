@@ -93,7 +93,7 @@ class _DiamondInsightStripState extends ConsumerState<DiamondInsightStrip>
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
-    final list = ref.watch(diamondListProvider).valueOrNull;
+    final list = ref.watch(diamondListProvider).value;
     final loaded = list?.diamonds ?? const <Diamond>[];
     final settled = list != null && !list.isInitialLoading;
     final total = settled ? list.totalCount : 0;
@@ -399,7 +399,7 @@ class _DiamondAnalyticsLinkState extends ConsumerState<DiamondAnalyticsLink>
       // the loaded page.
       final known = {for (final d in ref.read(pickedDiamondsProvider)) d.id: d};
       for (final d
-          in ref.read(diamondListProvider).valueOrNull?.diamonds ??
+          in ref.read(diamondListProvider).value?.diamonds ??
               const <Diamond>[]) {
         if (picks.contains(d.id)) known.putIfAbsent(d.id, () => d);
       }

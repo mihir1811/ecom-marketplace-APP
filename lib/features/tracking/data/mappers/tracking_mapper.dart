@@ -77,9 +77,7 @@ abstract final class TrackingMapper {
     );
   }
 
-  static List<TrackingComment> commentsFromResponse(
-    Map<String, dynamic> root,
-  ) {
+  static List<TrackingComment> commentsFromResponse(Map<String, dynamic> root) {
     final data = root['data'];
     final list = <dynamic>[];
     if (data is List) {

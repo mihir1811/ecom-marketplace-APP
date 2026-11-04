@@ -57,8 +57,9 @@ class WatchRepositoryImpl implements WatchRepository {
           : const <String, dynamic>{};
       final itemsJson = payload['data'];
       final metaJson = payload['meta'];
-      final meta =
-          metaJson is Map<String, dynamic> ? metaJson : const <String, dynamic>{};
+      final meta = metaJson is Map<String, dynamic>
+          ? metaJson
+          : const <String, dynamic>{};
 
       final list = itemsJson is List ? itemsJson : const [];
       final watches = <Watch>[];
@@ -86,7 +87,8 @@ class WatchRepositoryImpl implements WatchRepository {
       return Result.success(
         WatchListResponse(
           watches: watches,
-          totalCount: total ??
+          totalCount:
+              total ??
               (hasMore
                   ? (page * limit) + 1
                   : ((page - 1) * limit) + watches.length),

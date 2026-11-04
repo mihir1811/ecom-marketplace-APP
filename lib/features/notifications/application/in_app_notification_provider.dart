@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/models/app_notification.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// Foreground push banner queue plus a tap waiting for the app to be ready.
 class InAppNotificationState {
@@ -32,7 +33,8 @@ final inAppNotificationProvider =
 /// One event can reach the app twice (a chat message arrives on the socket
 /// and as an FCM push), possibly after the first banner was closed, so the
 /// ids of recently shown events are remembered.
-class InAppNotificationController extends Notifier<InAppNotificationState> {
+class InAppNotificationController extends Notifier<InAppNotificationState>
+    with DisposeTolerantNotifier<InAppNotificationState> {
   static const maxQueued = 3;
   static const _recentLimit = 64;
 

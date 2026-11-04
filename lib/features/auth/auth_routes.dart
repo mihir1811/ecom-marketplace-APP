@@ -13,10 +13,12 @@ import 'presentation/screens/verify_otp_screen.dart';
 /// Modular routes list for the Auth feature.
 final List<RouteBase> authRoutes = [
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.login,
     builder: (context, state) => const LoginScreen(),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.register,
     builder: (context, state) {
       final type = state.uri.queryParameters['type']?.trim().toLowerCase();
@@ -30,6 +32,7 @@ final List<RouteBase> authRoutes = [
     },
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.forgotPassword,
     builder: (context, state) => const AppSystemBackScope(
       fallbackLocation: AppRouteNames.login,
@@ -37,6 +40,7 @@ final List<RouteBase> authRoutes = [
     ),
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.verifyOtp,
     builder: (context, state) {
       final email = state.uri.queryParameters['email'];
@@ -47,6 +51,7 @@ final List<RouteBase> authRoutes = [
     },
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.resetPassword,
     builder: (context, state) {
       final token =
@@ -59,6 +64,7 @@ final List<RouteBase> authRoutes = [
     },
   ),
   GoRoute(
+    caseSensitive: false,
     path: AppRouteNames.recoverAccount,
     builder: (context, state) {
       final token = state.uri.queryParameters['token'];

@@ -18,10 +18,7 @@ final class DiamondViewerReady extends DiamondViewerLoadState {
 }
 
 final class DiamondViewerFailed extends DiamondViewerLoadState {
-  const DiamondViewerFailed({
-    required this.message,
-    this.canRetry = true,
-  });
+  const DiamondViewerFailed({required this.message, this.canRetry = true});
 
   final String message;
   final bool canRetry;

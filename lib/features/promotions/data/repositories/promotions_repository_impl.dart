@@ -28,9 +28,7 @@ class PromotionsRepositoryImpl implements PromotionsRepository {
         ApiEndpoints.promotionsDiscounts,
         cancelToken: cancelToken,
       );
-      return Result.success(
-        PromotionsMapper.discountsFromRoot(response.data),
-      );
+      return Result.success(PromotionsMapper.discountsFromRoot(response.data));
     } on DioException catch (e) {
       return Result.failure(ApiError.fromDio(e));
     } catch (e) {
@@ -122,9 +120,7 @@ class PromotionsRepositoryImpl implements PromotionsRepository {
         ApiEndpoints.promotionsPromoCodes,
         cancelToken: cancelToken,
       );
-      return Result.success(
-        PromotionsMapper.promoCodesFromRoot(response.data),
-      );
+      return Result.success(PromotionsMapper.promoCodesFromRoot(response.data));
     } on DioException catch (e) {
       return Result.failure(ApiError.fromDio(e));
     } catch (e) {
@@ -217,9 +213,7 @@ class PromotionsRepositoryImpl implements PromotionsRepository {
         ApiEndpoints.promotionsPublic(sellerId),
         cancelToken: cancelToken,
       );
-      return Result.success(
-        PromotionsMapper.publicFromRoot(response.data),
-      );
+      return Result.success(PromotionsMapper.publicFromRoot(response.data));
     } on DioException catch (e) {
       return Result.failure(ApiError.fromDio(e));
     } catch (e) {

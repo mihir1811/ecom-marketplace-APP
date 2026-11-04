@@ -10,6 +10,7 @@ import '../domain/models/jewelry_filter_state.dart';
 import '../domain/models/marketplace_listing.dart';
 import '../domain/repositories/jewelry_repository.dart';
 import 'jewellery_categories_provider.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// One house's pieces: filters (with the shop slug set) and sort.
 typedef JewelryHouseQuery = ({
@@ -25,18 +26,21 @@ final jewelryHousePiecesProvider = NotifierProvider.autoDispose
       JewelryHouseQuery
     >(JewelryHousePiecesNotifier.new);
 
-class JewelryHousePiecesNotifier
-    extends
-        AutoDisposeFamilyNotifier<
-          PaginatedListState<Jewelry>,
-          JewelryHouseQuery
-        > {
+class JewelryHousePiecesNotifier extends Notifier<PaginatedListState<Jewelry>>
+    with DisposeTolerantNotifier<PaginatedListState<Jewelry>> {
+  JewelryHousePiecesNotifier(this.arg);
+
+  /// The family argument this notifier was created for.
+  final JewelryHouseQuery arg;
+
+  JewelryHouseQuery get query => arg;
+
   CancelToken? _cancel;
   int _page = 1;
   int _epoch = 0;
 
   @override
-  PaginatedListState<Jewelry> build(JewelryHouseQuery query) {
+  PaginatedListState<Jewelry> build() {
     ref.onDispose(() {
       _epoch++;
       _cancel?.cancel();
@@ -55,6 +59,7 @@ class JewelryHousePiecesNotifier
         ? state.copyWith(isRefreshing: true)
         : const PaginatedListState(isInitialLoading: true);
     final result = await _fetch(1);
+    if (!ref.mounted) return;
     if (epoch != _epoch) return;
     state = switch (result) {
       Success(value: final r) => PaginatedListState(
@@ -79,6 +84,7 @@ class JewelryHousePiecesNotifier
     final epoch = _epoch;
     state = current.copyWith(isLoadingMore: true);
     final result = await _fetch(_page + 1);
+    if (!ref.mounted) return;
     if (epoch != _epoch) return;
     switch (result) {
       case Success(value: final r):

@@ -61,7 +61,7 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen>
 
   @override
   bool get listingCanLoadMore {
-    final s = ref.read(watchListProvider).valueOrNull;
+    final s = ref.read(watchListProvider).value;
     return s != null &&
         s.hasMore &&
         !s.isLoadingMore &&
@@ -74,7 +74,7 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen>
 
   @override
   int get listingItemCount =>
-      ref.read(watchListProvider).valueOrNull?.watches.length ?? 0;
+      ref.read(watchListProvider).value?.watches.length ?? 0;
 
   @override
   LuxeViewMode get listingViewMode =>
@@ -147,7 +147,7 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen>
           builder: (context, ref, _) => WatchCountLine(
             total: ref.watch(
               watchListProvider.select((v) {
-                final s = v.valueOrNull;
+                final s = v.value;
                 return s == null || s.isInitialLoading ? null : s.totalCount;
               }),
             ),
@@ -212,7 +212,7 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen>
   List<Widget> _content(BuildContext context) {
     final stateAsync = ref.watch(watchListProvider);
     final grid = ref.watch(watchViewModeProvider) == WatchViewMode.grid;
-    final state = stateAsync.valueOrNull;
+    final state = stateAsync.value;
     final error =
         stateAsync.whenOrNull(error: (e, _) => e.toString()) ??
         state?.errorMessage;

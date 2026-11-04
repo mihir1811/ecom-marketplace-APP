@@ -148,9 +148,8 @@ class _BuyerPoliciesHubScreenState extends State<BuyerPoliciesHubScreen> {
                               ),
                               icon: Icons.privacy_tip_outlined,
                               variant: AtelierButtonVariant.gold,
-                              onPressed: () => context.openRoute(
-                                AppRouteNames.buyerPrivacy,
-                              ),
+                              onPressed: () =>
+                                  context.openRoute(AppRouteNames.buyerPrivacy),
                             ),
                             AtelierButton(
                               label: context.tr(

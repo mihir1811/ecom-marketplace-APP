@@ -5,6 +5,7 @@ import '../../../core/error/result.dart';
 import '../../tracking/application/order_shipments_provider.dart';
 import '../../tracking/data/repositories/tracking_repository_impl.dart';
 import '../../tracking/domain/models/shipment_models.dart';
+import '../../../core/riverpod/dispose_tolerant.dart';
 
 /// The seller's shipments for one marketplace order.
 ///
@@ -26,7 +27,8 @@ final sellerOrderShipmentsProvider = FutureProvider.autoDispose
     });
 
 /// `true` while a shipment create / update is in flight.
-class SellerShipmentActionsNotifier extends Notifier<bool> {
+class SellerShipmentActionsNotifier extends Notifier<bool>
+    with DisposeTolerantNotifier<bool> {
   @override
   bool build() => false;
 

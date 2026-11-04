@@ -43,7 +43,8 @@ extension RecentPiece on RecentlyViewedEntry {
   }
 
   /// Day bucket for the timeline: Today, Yesterday or the date.
-  String get dayGroup => viewedAt == null ? 'Earlier' : maisonDayLabel(viewedAt);
+  String get dayGroup =>
+      viewedAt == null ? 'Earlier' : maisonDayLabel(viewedAt);
 
   RecentAvailability get availabilityState =>
       RecentAvailability.of(availability);

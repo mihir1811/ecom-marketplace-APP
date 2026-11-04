@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../domain/models/watch_filter_state.dart';
 import 'watch_filter_provider.dart';
@@ -6,11 +7,12 @@ import 'watch_filter_provider.dart';
 /// Applied filters for a brand catalog page (brand is injected at list load).
 final brandWatchFilterProvider =
     NotifierProvider<WatchFilterNotifier, WatchFilterState>(
-  WatchFilterNotifier.new,
-);
+      WatchFilterNotifier.new,
+    );
 
-final brandWatchSortProvider =
-    StateProvider<WatchSortOption>((ref) => WatchSortOption.priceHighToLow);
+final brandWatchSortProvider = StateProvider<WatchSortOption>(
+  (ref) => WatchSortOption.priceHighToLow,
+);
 
 /// Draft filters for the brand full-screen filter sheet.
 class BrandWatchFilterDraftNotifier extends WatchFilterStateMutator {
@@ -32,8 +34,8 @@ class BrandWatchFilterDraftNotifier extends WatchFilterStateMutator {
 
 final brandWatchFilterDraftProvider =
     NotifierProvider<BrandWatchFilterDraftNotifier, WatchFilterState>(
-  BrandWatchFilterDraftNotifier.new,
-);
+      BrandWatchFilterDraftNotifier.new,
+    );
 
 /// Sort choices shown on the brand watch screen.
 const brandWatchSortOptions = <WatchSortOption>[
