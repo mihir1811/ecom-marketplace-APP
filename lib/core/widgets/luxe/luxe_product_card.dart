@@ -9,17 +9,23 @@ import 'luxe_card_reveal.dart';
 /// Text block height of [LuxeProductGridCard] for a given text scale, so
 /// grids can use fixed extents (fast layout, exact scroll restore).
 double luxeGridCardTextExtent(TextScaler scaler) =>
-    9 +
-    14 +
+    // Text block padding (top 8, bottom 10).
+    8 +
+    10 +
+    // Title.
     scaler.scale(19 * 1.1) +
-    6 +
+    5 +
+    // Subtitle.
     scaler.scale(12.5 * 1.25) +
     2 +
-    scaler.scale(11.5 * 1.25) +
-    12 +
+    // Meta line, sized for its tallest leading badge (the jewellery rating
+    // chip's count uses body style at 1.5 line height) so every card fits.
+    scaler.scale(11.5 * 1.5) +
+    8 +
+    // Price.
     scaler.scale(15 * 1.2) +
-    // Safety for font metrics that exceed the nominal line height.
-    6;
+    // Sub-pixel rounding.
+    2;
 
 /// Corner overlays placed over a card's media.
 class LuxeMediaOverlays {
