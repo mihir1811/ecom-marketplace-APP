@@ -1,9 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:octo_image/octo_image.dart';
 
 import '../theme/app_colors.dart';
 import '../utils/cdn_image_url.dart';
+import 'fit_resize_image.dart';
 
 /// Shared network image with shimmer-style placeholder and graceful fallback.
 ///
@@ -22,6 +24,7 @@ class AppNetworkImage extends StatelessWidget {
     this.memCacheWidth,
     this.error,
     this.placeholder,
+    this.fullResolution = false,
   });
 
   final String url;
@@ -36,6 +39,11 @@ class AppNetworkImage extends StatelessWidget {
 
   /// Shown while loading; defaults to a small spinner.
   final Widget? placeholder;
+
+  /// Keep the full-resolution decode, for zoomable viewers. Otherwise, when
+  /// [memCacheWidth] is not given, the image is decoded at the size it is
+  /// laid out at (see [FitResizeImage]).
+  final bool fullResolution;
 
   @override
   Widget build(BuildContext context) {
@@ -97,6 +105,42 @@ class AppNetworkImage extends StatelessWidget {
   }
 
   Widget _nativeImage(String imageUrl) {
+    if (memCacheWidth == null && !fullResolution) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final w = width ?? constraints.maxWidth;
+          final h = height ?? constraints.maxHeight;
+          if (!w.isFinite || !h.isFinite || w <= 0 || h <= 0) {
+            return _cachedImage(imageUrl);
+          }
+          final dpr = MediaQuery.devicePixelRatioOf(context);
+          // Same widget and settings CachedNetworkImage uses internally, with
+          // the decode sized to the box.
+          return OctoImage(
+            image: FitResizeImage(
+              CachedNetworkImageProvider(imageUrl),
+              width: (w * dpr).ceil(),
+              height: (h * dpr).ceil(),
+              fit: fit,
+            ),
+            placeholderBuilder: (context) => _placeholder(context),
+            errorBuilder: (context, _, _) => error ?? _fallback(context),
+            fadeOutDuration: const Duration(milliseconds: 1000),
+            fadeOutCurve: Curves.easeOut,
+            fadeInDuration: const Duration(milliseconds: 280),
+            fadeInCurve: Curves.easeIn,
+            width: width,
+            height: height,
+            fit: fit,
+            filterQuality: FilterQuality.low,
+          );
+        },
+      );
+    }
+    return _cachedImage(imageUrl);
+  }
+
+  Widget _cachedImage(String imageUrl) {
     return CachedNetworkImage(
       imageUrl: imageUrl,
       fit: fit,

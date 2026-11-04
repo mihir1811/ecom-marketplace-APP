@@ -507,6 +507,7 @@ class _PhotoViewerState extends State<_PhotoViewer> {
                   maxScale: 4,
                   child: Center(
                     child: AppNetworkImage(
+                      fullResolution: true,
                       url: widget.urls[i],
                       fit: BoxFit.contain,
                       error: const Icon(

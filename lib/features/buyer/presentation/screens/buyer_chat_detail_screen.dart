@@ -862,6 +862,7 @@ class _ImageViewerState extends State<_ImageViewer>
                   maxScale: 5,
                   child: Center(
                     child: AppNetworkImage(
+                      fullResolution: true,
                       url: widget.url,
                       fit: BoxFit.contain,
                     ),

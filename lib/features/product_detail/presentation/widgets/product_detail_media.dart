@@ -212,7 +212,7 @@ class _Frame extends StatelessWidget {
     if (!image.isAsset) {
       return ColoredBox(
         color: AppColors.surface(context),
-        child: AppNetworkImage(url: image.path, fit: fit),
+        child: AppNetworkImage(fullResolution: true, url: image.path, fit: fit),
       );
     }
     if (image.path == CatalogMissingImage.assetPath ||

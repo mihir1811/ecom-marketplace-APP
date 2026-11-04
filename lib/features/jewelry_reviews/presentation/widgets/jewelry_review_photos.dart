@@ -5,7 +5,11 @@ import '../../../../core/widgets/app_network_image.dart';
 
 /// Review photo thumbnails; a tap opens them full screen.
 class JewelryReviewPhotoStrip extends StatelessWidget {
-  const JewelryReviewPhotoStrip({required this.urls, this.size = 64, super.key});
+  const JewelryReviewPhotoStrip({
+    required this.urls,
+    this.size = 64,
+    super.key,
+  });
 
   final List<String> urls;
   final double size;
@@ -91,6 +95,7 @@ class _PhotoViewerState extends State<_PhotoViewer> {
               maxScale: 4,
               child: Center(
                 child: AppNetworkImage(
+                  fullResolution: true,
                   url: widget.urls[i],
                   fit: BoxFit.contain,
                 ),

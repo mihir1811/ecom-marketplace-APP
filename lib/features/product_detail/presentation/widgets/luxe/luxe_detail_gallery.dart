@@ -257,7 +257,7 @@ class _Picture extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!image.isAsset) {
-      return AppNetworkImage(url: image.path, fit: fit);
+      return AppNetworkImage(fullResolution: true, url: image.path, fit: fit);
     }
     if (image.path == CatalogMissingImage.assetPath) {
       return const CatalogMissingImage(showLabel: false);
