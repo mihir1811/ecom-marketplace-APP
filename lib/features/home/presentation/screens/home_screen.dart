@@ -11,6 +11,7 @@ import '../../../../core/widgets/navigation/top_bar/section_top_bar.dart';
 import '../../../../core/widgets/app_system_back_scope.dart';
 import '../../../../core/widgets/luxe/scroll_reveal.dart';
 import '../../../../core/widgets/navigation/start_selling_flow.dart';
+import '../../../../core/widgets/pause_when_offscreen.dart';
 import '../../../ai_chat/application/ai_chat_providers.dart';
 import '../../../live_shows/presentation/widgets/home_live_shows.dart';
 import '../theme/home_tokens.dart';
@@ -138,14 +139,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       HomeSectionHeading(title: title, trailing: tag),
                 ),
               ),
-              const SliverToBoxAdapter(child: HomeLiveShows()),
-              const SliverToBoxAdapter(child: HomeLiveAuctions()),
-              SliverToBoxAdapter(child: HomeAiSearchCard(onAsk: _askGemAi)),
+              // Looping shimmers / pulses / ambient motion pause while these
+              // sections are scrolled away, so an idle home stops redrawing.
+              const SliverToBoxAdapter(
+                child: PauseWhenOffscreen(child: HomeLiveShows()),
+              ),
+              const SliverToBoxAdapter(
+                child: PauseWhenOffscreen(child: HomeLiveAuctions()),
+              ),
+              SliverToBoxAdapter(
+                child: PauseWhenOffscreen(
+                  child: HomeAiSearchCard(onAsk: _askGemAi),
+                ),
+              ),
               if (!auth.isSeller)
                 SliverToBoxAdapter(
-                  child: HomeSellCard(
-                    isAuthenticatedIndividual: auth.isAuthenticated,
-                    onTap: () => startSellingFlow(context, ref),
+                  child: PauseWhenOffscreen(
+                    child: HomeSellCard(
+                      isAuthenticatedIndividual: auth.isAuthenticated,
+                      onTap: () => startSellingFlow(context, ref),
+                    ),
                   ),
                 ),
               // Last stage fills the viewport and runs to the screen's bottom

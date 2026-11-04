@@ -1,7 +1,7 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
 import '../theme/home_tokens.dart';
@@ -210,13 +210,20 @@ class _TypewriterField extends StatefulWidget {
   State<_TypewriterField> createState() => _TypewriterFieldState();
 }
 
-class _TypewriterFieldState extends State<_TypewriterField> {
+class _TypewriterFieldState extends State<_TypewriterField>
+    with SingleTickerProviderStateMixin {
   static const _prompts = [
     HomeL10n.aiSearchPrompt1,
     HomeL10n.aiSearchPrompt2,
     HomeL10n.aiSearchPrompt3,
   ];
-  Timer? _timer;
+
+  /// One typing step every 42 ms, as before. Driven by a [Ticker] rather than
+  /// a periodic timer so it stops with the screen: covered routes, scrolled
+  /// away (PauseWhenOffscreen) and app in background.
+  static const _stepEvery = Duration(milliseconds: 42);
+  late final Ticker _ticker = createTicker(_onTick);
+  Duration _lastStep = Duration.zero;
   int _prompt = 0;
   int _chars = 0;
   bool _erasing = false;
@@ -227,40 +234,55 @@ class _TypewriterFieldState extends State<_TypewriterField> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _static = MediaQuery.disableAnimationsOf(context);
-    _timer?.cancel();
-    if (!_static) {
-      _timer = Timer.periodic(const Duration(milliseconds: 42), _step);
+    if (_static) {
+      _ticker.stop();
+    } else if (!_ticker.isActive) {
+      _lastStep = Duration.zero;
+      _ticker.start();
     }
   }
 
-  void _step(Timer _) {
-    if (!mounted) return;
-    final full = context.tr(_prompts[_prompt]).characters.length;
+  void _onTick(Duration elapsed) {
+    var steps = 0;
+    while (elapsed - _lastStep >= _stepEvery && steps < 3) {
+      _lastStep += _stepEvery;
+      steps++;
+    }
+    // Back from a pause: carry on from here instead of fast-forwarding.
+    if (elapsed - _lastStep >= _stepEvery) _lastStep = elapsed;
+    if (steps == 0) return;
     setState(() {
-      if (_hold > 0) {
-        _hold--;
-      } else if (!_erasing) {
-        _chars++;
-        if (_chars >= full) {
-          _chars = full;
-          _erasing = true;
-          _hold = 45;
-        }
-      } else {
-        _chars -= 2;
-        if (_chars <= 0) {
-          _chars = 0;
-          _erasing = false;
-          _prompt = (_prompt + 1) % _prompts.length;
-          _hold = 8;
-        }
+      for (var i = 0; i < steps; i++) {
+        _step();
       }
     });
   }
 
+  void _step() {
+    final full = context.tr(_prompts[_prompt]).characters.length;
+    if (_hold > 0) {
+      _hold--;
+    } else if (!_erasing) {
+      _chars++;
+      if (_chars >= full) {
+        _chars = full;
+        _erasing = true;
+        _hold = 45;
+      }
+    } else {
+      _chars -= 2;
+      if (_chars <= 0) {
+        _chars = 0;
+        _erasing = false;
+        _prompt = (_prompt + 1) % _prompts.length;
+        _hold = 8;
+      }
+    }
+  }
+
   @override
   void dispose() {
-    _timer?.cancel();
+    _ticker.dispose();
     super.dispose();
   }
 
