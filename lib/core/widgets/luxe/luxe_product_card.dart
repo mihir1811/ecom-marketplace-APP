@@ -144,7 +144,7 @@ class LuxeProductGridCard extends StatelessWidget {
                 else
                   Row(
                     children: [
-                      metaLeading!,
+                      _BadgeTextScale(child: metaLeading!),
                       const SizedBox(width: 5),
                       Expanded(child: metaText),
                     ],
@@ -263,7 +263,7 @@ class LuxeProductListCard extends StatelessWidget {
                       Row(
                         children: [
                           if (detailLeading != null) ...[
-                            detailLeading!,
+                            _BadgeTextScale(child: detailLeading!),
                             const SizedBox(width: 5),
                           ],
                           Expanded(
@@ -507,19 +507,34 @@ class LuxePriceRow extends StatelessWidget {
         ],
         if (discountPercent != null) ...[
           const SizedBox(width: 5),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-            decoration: ShapeDecoration(
-              color: p.caution.withValues(alpha: 0.12),
-              shape: const StadiumBorder(),
-            ),
-            child: Text(
-              '−${formatDiscountPercent(discountPercent!)}%',
-              style: LuxeType.figure(p.caution, size: 11),
+          _BadgeTextScale(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+              decoration: ShapeDecoration(
+                color: p.caution.withValues(alpha: 0.12),
+                shape: const StadiumBorder(),
+              ),
+              child: Text(
+                '−${formatDiscountPercent(discountPercent!)}%',
+                style: LuxeType.figure(p.caution, size: 11),
+              ),
             ),
           ),
         ],
       ],
     );
   }
+}
+
+/// Small badges (discount, Sponsored, rating) follow the system text size up
+/// to 1.3x. They sit beside flexible text in tight rows, and at the largest
+/// accessibility sizes they would otherwise push the row off the card.
+class _BadgeTextScale extends StatelessWidget {
+  const _BadgeTextScale({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) =>
+      MediaQuery.withClampedTextScaling(maxScaleFactor: 1.3, child: child);
 }

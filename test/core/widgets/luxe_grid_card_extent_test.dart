@@ -82,9 +82,7 @@ void main() {
     ),
   };
 
-  // 2.0 is left out: at that scale the price / meta rows already overflow
-  // horizontally (pre-existing, separate from the cell height).
-  for (final scale in [1.0, 1.3]) {
+  for (final scale in [1.0, 1.3, 2.0]) {
     for (final entry in variants.entries) {
       testWidgets('${entry.key} card fits its cell at text scale $scale', (
         tester,
