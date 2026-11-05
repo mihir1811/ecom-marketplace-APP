@@ -284,8 +284,14 @@ class _MeleeQtyFieldState extends ConsumerState<_MeleeQtyField> {
 
   static String _formatCarat(double value) {
     if (value <= 0) return '';
-    return value.toStringAsFixed(4).replaceFirst(RegExp(r'\.?0+$'), '');
+    return value.toStringAsFixed(4).replaceFirst(_trailingZeros, '');
   }
+
+  static final _trailingZeros = RegExp(r'\.?0+$');
+  static final _caratInput = FilteringTextInputFormatter.allow(
+    RegExp(r'[0-9.]'),
+  );
+  static final _piecesInput = FilteringTextInputFormatter.digitsOnly;
 
   void _setUnit(bool inCarat) {
     _notifier.setUnit(inCarat: inCarat, qty: widget.qty);
@@ -365,11 +371,7 @@ class _MeleeQtyFieldState extends ConsumerState<_MeleeQtyField> {
               focusNode: _focus,
               keyboardType: TextInputType.numberWithOptions(decimal: inCarat),
               textInputAction: TextInputAction.done,
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(
-                  inCarat ? RegExp(r'[0-9.]') : RegExp(r'[0-9]'),
-                ),
-              ],
+              inputFormatters: [inCarat ? _caratInput : _piecesInput],
               style: LuxeType.figure(
                 p.ink,
                 size: 15,
