@@ -55,9 +55,9 @@ String? _unitPrice(Diamond d, MeleeLotFigures? m, {required bool inPcs}) {
 /// too long for a card, so melee shows its carat line instead.
 String? _measure(Diamond d, MeleeLotFigures? m) => m != null
     ? null
-    : DiamondDisplay.optional(
-        d.measurement,
-      )?.replaceAll(RegExp(r'\s*[xX]\s*'), ' × ');
+    : DiamondDisplay.optional(d.measurement)?.replaceAll(_times, ' × ');
+
+final _times = RegExp(r'\s*[xX]\s*');
 
 /// Melee "0.01 ct/pc · 5.00 ct total"; per piece from lot totals when both
 /// are known (seller per-piece is often stale).

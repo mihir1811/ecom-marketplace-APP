@@ -52,7 +52,13 @@ class MeleeLotFigures {
   /// Carat-mode figures (total carat / price per carat) are estimates.
   bool get caratApprox => totalCaratApprox || pricePerCaratApprox;
 
-  static MeleeLotFigures of(Diamond d) {
+  /// Figures per diamond instance. Diamonds are immutable and cards rebuild
+  /// often while scrolling, so each lot is worked out once.
+  static final _memo = Expando<MeleeLotFigures>('MeleeLotFigures');
+
+  static MeleeLotFigures of(Diamond d) => _memo[d] ??= _compute(d);
+
+  static MeleeLotFigures _compute(Diamond d) {
     final price = d.price;
     final sellerPcs = (d.totalPcs ?? 0) > 0 ? d.totalPcs : null;
     // The mapper falls back to carat-per-piece for `carat`, so only trust
@@ -138,22 +144,31 @@ class MeleeLotFigures {
     return parts.reduce((a, b) => a + b) / parts.length;
   }
 
+  static final _spaces = RegExp(r'\s+');
+  static final _bareNumber = RegExp(r'^\d+(\.\d+)?$');
+  static final _number = RegExp(r'\d+(\.\d+)?');
+
   static String _norm(String s) =>
-      s.replaceAll('/', ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
+      s.replaceAll('/', ' ').replaceAll(_spaces, ' ').trim();
+
+  /// The sieve chart normalised once: (name, name split on spaces, carat).
+  static final _chart = [
+    for (final s in SieveSize.defaultSieves)
+      (_norm(s.sieve), _norm(s.sieve).split(' '), s.carat),
+  ];
 
   /// Matches "+2 -2.5", "+2", "-2.5" or a bare "2" against the chart.
   static double? _sieveFor(String part) {
     final p = _norm(part);
     if (p.isEmpty) return null;
-    for (final s in SieveSize.defaultSieves) {
-      if (_norm(s.sieve) == p) return s.carat;
+    for (final (name, _, carat) in _chart) {
+      if (name == p) return carat;
     }
     if (p.toLowerCase().contains('mm')) return _mmFor(p);
-    final bare = RegExp(r'^\d+(\.\d+)?$').hasMatch(p) ? '+$p' : p;
-    for (final s in SieveSize.defaultSieves) {
-      final bits = _norm(s.sieve).split(' ');
-      if (bare.startsWith('+') && bits.first == bare) return s.carat;
-      if (bare.startsWith('-') && bits.last == bare) return s.carat;
+    final bare = _bareNumber.hasMatch(p) ? '+$p' : p;
+    for (final (_, bits, carat) in _chart) {
+      if (bare.startsWith('+') && bits.first == bare) return carat;
+      if (bare.startsWith('-') && bits.last == bare) return carat;
     }
     return null;
   }
@@ -161,7 +176,7 @@ class MeleeLotFigures {
   /// Carat per stone for a diameter in mm (first number in [raw]).
   static double? _mmFor(String? raw) {
     if (raw == null) return null;
-    final m = RegExp(r'\d+(\.\d+)?').firstMatch(raw);
+    final m = _number.firstMatch(raw);
     final mm = m == null ? null : double.tryParse(m.group(0)!);
     if (mm == null || mm <= 0) return null;
     for (final s in SieveSize.defaultSieves) {

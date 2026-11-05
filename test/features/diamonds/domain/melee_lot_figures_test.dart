@@ -70,4 +70,20 @@ void main() {
     expect(f.caratPerPcs, 0.02);
     expect(f.caratPerPcsApprox, isFalse);
   });
+
+  test('worked out once per diamond, fresh for a new diamond', () {
+    final d = _melee(totalPcs: 50, totalCarat: 1, sieve: '+2 -2.5');
+    expect(identical(MeleeLotFigures.of(d), MeleeLotFigures.of(d)), isTrue);
+    final other = _melee(totalPcs: 25, totalCarat: 1);
+    expect(MeleeLotFigures.of(other).caratPerPcs, 0.04);
+  });
+
+  test('sieve chart lookup: full name, bare number and mm', () {
+    expect(
+      MeleeLotFigures.sieveCaratPerPcs(_melee(sieve: '+2 -2.5')),
+      isNotNull,
+    );
+    expect(MeleeLotFigures.sieveCaratPerPcs(_melee(sieve: '2')), isNotNull);
+    expect(MeleeLotFigures.sieveCaratPerPcs(_melee(sieve: 'abc')), isNull);
+  });
 }
