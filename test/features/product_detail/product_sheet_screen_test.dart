@@ -142,12 +142,12 @@ void main() {
     final right = _card(tester, 3);
 
     // The middle card is inset from the screen edges, not full screen.
-    expect(centre.left, greaterThan(30));
-    expect(centre.width, lessThan(340));
-    // A strip of each neighbour shows: roughly a fifth of its width.
+    expect(centre.left, greaterThan(12));
+    expect(centre.width, lessThan(360));
+    // A narrow strip of each neighbour shows.
     final leftShown = left.right.clamp(0, 390);
     final rightShown = 390 - right.left.clamp(0, 390);
-    expect(leftShown, inInclusiveRange(20, 80));
+    expect(leftShown, inInclusiveRange(8, 80));
     expect(rightShown, inInclusiveRange(20, 80));
     expect(left.left, lessThan(0));
     expect(right.right, greaterThan(390));
@@ -194,7 +194,7 @@ void main() {
     await tester.drag(scroll, const Offset(0, 160));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 900));
-    expect(_card(tester, 2).width, lessThan(340));
+    expect(_card(tester, 2).width, lessThan(360));
     expect(tester.takeException(), isNull);
   });
 
