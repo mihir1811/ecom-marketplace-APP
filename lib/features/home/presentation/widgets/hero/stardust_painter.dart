@@ -3,7 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:gemstone/core/theme/app_fonts.dart';
+import 'package:gemworld/core/theme/app_fonts.dart';
 
 import 'stardust_field.dart';
 

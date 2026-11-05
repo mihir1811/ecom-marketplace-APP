@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/auth/auth_user.dart';
-import 'package:gemstone/core/auth/seller_account_snapshot.dart';
-import 'package:gemstone/features/auth/application/user_profile_providers.dart';
-import 'package:gemstone/features/auth/domain/models/user_profile.dart';
+import 'package:gemworld/core/auth/auth_user.dart';
+import 'package:gemworld/core/auth/seller_account_snapshot.dart';
+import 'package:gemworld/features/auth/application/user_profile_providers.dart';
+import 'package:gemworld/features/auth/domain/models/user_profile.dart';
 
 void main() {
   test('userProfileFromAuth copies login sellerData onto own profile', () {

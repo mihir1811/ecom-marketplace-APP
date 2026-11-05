@@ -1,18 +1,18 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/pagination/paginated_async_notifier.dart';
-import 'package:gemstone/core/pagination/prefetched_first_page.dart';
-import 'package:gemstone/core/utils/active_filter_labels.dart';
-import 'package:gemstone/features/bullions/domain/models/bullions_filter_state.dart';
-import 'package:gemstone/features/gem_agent/domain/agent_tool.dart';
-import 'package:gemstone/features/gem_agent/domain/tool_result.dart';
-import 'package:gemstone/features/gem_agent/tools/bullion_search/bullion_search_tool.dart';
-import 'package:gemstone/features/gem_agent/tools/catalog/catalog_args.dart';
-import 'package:gemstone/features/gem_agent/tools/gem_agent_tools.dart';
-import 'package:gemstone/features/gem_agent/tools/gemstone_search/gemstone_search_tool.dart';
-import 'package:gemstone/features/gem_agent/tools/jewelry_search/jewelry_search_tool.dart';
-import 'package:gemstone/features/gem_agent/tools/watch_search/watch_search_tool.dart';
+import 'package:gemworld/core/pagination/paginated_async_notifier.dart';
+import 'package:gemworld/core/pagination/prefetched_first_page.dart';
+import 'package:gemworld/core/utils/active_filter_labels.dart';
+import 'package:gemworld/features/bullions/domain/models/bullions_filter_state.dart';
+import 'package:gemworld/features/gem_agent/domain/agent_tool.dart';
+import 'package:gemworld/features/gem_agent/domain/tool_result.dart';
+import 'package:gemworld/features/gem_agent/tools/bullion_search/bullion_search_tool.dart';
+import 'package:gemworld/features/gem_agent/tools/catalog/catalog_args.dart';
+import 'package:gemworld/features/gem_agent/tools/gem_agent_tools.dart';
+import 'package:gemworld/features/gem_agent/tools/gemstone_search/gemstone_search_tool.dart';
+import 'package:gemworld/features/gem_agent/tools/jewelry_search/jewelry_search_tool.dart';
+import 'package:gemworld/features/gem_agent/tools/watch_search/watch_search_tool.dart';
 
 final _refProvider = Provider<Ref>((ref) => ref);
 

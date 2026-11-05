@@ -2,17 +2,17 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/auth/auth_controller.dart';
-import 'package:gemstone/core/auth/auth_providers.dart';
-import 'package:gemstone/core/auth/auth_state.dart';
-import 'package:gemstone/core/auth/auth_user.dart';
-import 'package:gemstone/core/error/failure.dart';
-import 'package:gemstone/core/error/result.dart';
-import 'package:gemstone/features/live_shows/application/live_show_room.dart';
-import 'package:gemstone/features/live_shows/data/live_show_socket.dart';
-import 'package:gemstone/features/live_shows/data/repositories/live_show_repository_impl.dart';
-import 'package:gemstone/features/live_shows/domain/models/live_show_models.dart';
-import 'package:gemstone/features/live_shows/domain/repositories/live_show_repository.dart';
+import 'package:gemworld/core/auth/auth_controller.dart';
+import 'package:gemworld/core/auth/auth_providers.dart';
+import 'package:gemworld/core/auth/auth_state.dart';
+import 'package:gemworld/core/auth/auth_user.dart';
+import 'package:gemworld/core/error/failure.dart';
+import 'package:gemworld/core/error/result.dart';
+import 'package:gemworld/features/live_shows/application/live_show_room.dart';
+import 'package:gemworld/features/live_shows/data/live_show_socket.dart';
+import 'package:gemworld/features/live_shows/data/repositories/live_show_repository_impl.dart';
+import 'package:gemworld/features/live_shows/domain/models/live_show_models.dart';
+import 'package:gemworld/features/live_shows/domain/repositories/live_show_repository.dart';
 
 const _showId = 'show-1';
 

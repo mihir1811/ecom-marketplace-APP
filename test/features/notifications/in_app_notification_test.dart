@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/auth/auth_controller.dart';
-import 'package:gemstone/core/auth/auth_providers.dart';
-import 'package:gemstone/core/auth/auth_state.dart';
-import 'package:gemstone/core/theme/app_theme.dart';
-import 'package:gemstone/features/notifications/application/in_app_notification_provider.dart';
-import 'package:gemstone/features/notifications/data/mappers/notification_mapper.dart';
-import 'package:gemstone/features/notifications/domain/models/app_notification.dart';
-import 'package:gemstone/features/notifications/presentation/widgets/in_app_notification_host.dart';
+import 'package:gemworld/core/auth/auth_controller.dart';
+import 'package:gemworld/core/auth/auth_providers.dart';
+import 'package:gemworld/core/auth/auth_state.dart';
+import 'package:gemworld/core/theme/app_theme.dart';
+import 'package:gemworld/features/notifications/application/in_app_notification_provider.dart';
+import 'package:gemworld/features/notifications/data/mappers/notification_mapper.dart';
+import 'package:gemworld/features/notifications/domain/models/app_notification.dart';
+import 'package:gemworld/features/notifications/presentation/widgets/in_app_notification_host.dart';
 
 AppNotification _push(String id, {String? thread, String title = 'Title'}) {
   return NotificationMapper.fromPush(

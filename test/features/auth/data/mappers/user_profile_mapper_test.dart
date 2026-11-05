@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/network/response_parser.dart';
-import 'package:gemstone/features/auth/data/mappers/user_profile_mapper.dart';
+import 'package:gemworld/core/network/response_parser.dart';
+import 'package:gemworld/features/auth/data/mappers/user_profile_mapper.dart';
 
 void main() {
   test('maps nested data.user envelope used by GET /user/profile', () {

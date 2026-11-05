@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/diamonds/domain/models/diamond.dart';
-import 'package:gemstone/features/seller/application/seller_diamond_project_provider.dart';
+import 'package:gemworld/features/diamonds/domain/models/diamond.dart';
+import 'package:gemworld/features/seller/application/seller_diamond_project_provider.dart';
 
 Diamond _d({
   String shape = 'ROUND',

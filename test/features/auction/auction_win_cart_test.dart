@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/router/route_names.dart';
-import 'package:gemstone/features/auction/data/mappers/auction_mapper.dart';
-import 'package:gemstone/features/auction/domain/models/auction_models.dart';
-import 'package:gemstone/features/cart/data/mappers/cart_mapper.dart';
-import 'package:gemstone/features/notifications/domain/models/app_notification.dart';
-import 'package:gemstone/features/notifications/domain/notification_open_target.dart';
+import 'package:gemworld/core/router/route_names.dart';
+import 'package:gemworld/features/auction/data/mappers/auction_mapper.dart';
+import 'package:gemworld/features/auction/domain/models/auction_models.dart';
+import 'package:gemworld/features/cart/data/mappers/cart_mapper.dart';
+import 'package:gemworld/features/notifications/domain/models/app_notification.dart';
+import 'package:gemworld/features/notifications/domain/notification_open_target.dart';
 
 /// Auction wins are paid from the cart (app API guide, Oct 28 2026).
 void main() {

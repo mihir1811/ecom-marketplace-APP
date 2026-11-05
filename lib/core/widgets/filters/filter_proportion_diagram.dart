@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:gemstone/core/theme/app_fonts.dart';
+import 'package:gemworld/core/theme/app_fonts.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';

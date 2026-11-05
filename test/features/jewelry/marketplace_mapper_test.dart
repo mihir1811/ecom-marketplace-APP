@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/jewelry/data/mappers/jewelry_list_query_mapper.dart';
-import 'package:gemstone/features/jewelry/data/mappers/jewelry_mapper.dart';
-import 'package:gemstone/features/jewelry/data/mappers/marketplace_mapper.dart';
-import 'package:gemstone/features/jewelry/domain/models/jewelry_filter_state.dart';
-import 'package:gemstone/features/jewelry/domain/models/marketplace_enums.dart';
-import 'package:gemstone/features/product_detail/domain/adapters/jewelry_product_detail.dart';
+import 'package:gemworld/features/jewelry/data/mappers/jewelry_list_query_mapper.dart';
+import 'package:gemworld/features/jewelry/data/mappers/jewelry_mapper.dart';
+import 'package:gemworld/features/jewelry/data/mappers/marketplace_mapper.dart';
+import 'package:gemworld/features/jewelry/domain/models/jewelry_filter_state.dart';
+import 'package:gemworld/features/jewelry/domain/models/marketplace_enums.dart';
+import 'package:gemworld/features/product_detail/domain/adapters/jewelry_product_detail.dart';
 
 /// A trimmed card from the live `GET /marketplace/listings` response.
 Map<String, dynamic> _card({int totalStock = 6, bool madeToOrder = true}) => {

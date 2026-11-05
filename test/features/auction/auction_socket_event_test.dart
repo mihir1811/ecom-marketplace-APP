@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/auction/data/auction_socket_client.dart';
-import 'package:gemstone/features/auction/data/mappers/auction_mapper.dart';
-import 'package:gemstone/features/auction/domain/models/auction_models.dart';
+import 'package:gemworld/features/auction/data/auction_socket_client.dart';
+import 'package:gemworld/features/auction/data/mappers/auction_mapper.dart';
+import 'package:gemworld/features/auction/domain/models/auction_models.dart';
 
 void main() {
   test('parses AUCTION_BID payload with a uuid auction id', () {

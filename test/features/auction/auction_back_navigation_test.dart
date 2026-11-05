@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/router/route_names.dart';
-import 'package:gemstone/core/widgets/app_system_back_scope.dart';
+import 'package:gemworld/core/router/route_names.dart';
+import 'package:gemworld/core/widgets/app_system_back_scope.dart';
 import 'package:go_router/go_router.dart';
 
 /// Mirrors the auction route shape: list + detail wrapped in

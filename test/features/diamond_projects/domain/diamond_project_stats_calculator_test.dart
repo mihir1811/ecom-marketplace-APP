@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/diamond_projects/domain/diamond_project_stats_calculator.dart';
-import 'package:gemstone/features/diamond_projects/domain/models/diamond_project_item.dart';
+import 'package:gemworld/features/diamond_projects/domain/diamond_project_stats_calculator.dart';
+import 'package:gemworld/features/diamond_projects/domain/models/diamond_project_item.dart';
 
 void main() {
   DiamondProjectItem item({

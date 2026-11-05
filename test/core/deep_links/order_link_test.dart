@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/deep_links/order_link.dart';
-import 'package:gemstone/features/jewelry_checkout/data/mappers/jewelry_checkout_mapper.dart';
+import 'package:gemworld/core/deep_links/order_link.dart';
+import 'package:gemworld/features/jewelry_checkout/data/mappers/jewelry_checkout_mapper.dart';
 
 void main() {
   const id = '3f2b8c1e-9a4d-4e6f-8b2a-1c3d5e7f9a0b';

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/theme/app_colors.dart';
-import 'package:gemstone/core/theme/app_palette.dart';
-import 'package:gemstone/core/theme/app_theme.dart';
-import 'package:gemstone/core/theme/atelier_palette.dart';
-import 'package:gemstone/core/theme/luxe_tokens.dart';
-import 'package:gemstone/core/theme/theme_preference_provider.dart';
+import 'package:gemworld/core/theme/app_colors.dart';
+import 'package:gemworld/core/theme/app_palette.dart';
+import 'package:gemworld/core/theme/app_theme.dart';
+import 'package:gemworld/core/theme/atelier_palette.dart';
+import 'package:gemworld/core/theme/luxe_tokens.dart';
+import 'package:gemworld/core/theme/theme_preference_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

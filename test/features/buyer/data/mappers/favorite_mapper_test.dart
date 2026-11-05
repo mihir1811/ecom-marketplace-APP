@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/buyer/data/mappers/favorite_mapper.dart';
+import 'package:gemworld/features/buyer/data/mappers/favorite_mapper.dart';
 
 void main() {
   test('bullion card uses metal weight, not stock id or nested id map', () {

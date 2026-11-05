@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/utils/price_weight_sync.dart';
+import 'package:gemworld/core/utils/price_weight_sync.dart';
 
 void main() {
   late TextEditingController carat;

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/l10n/app_localizations.dart';
-import 'package:gemstone/core/widgets/luxe/product_card_anchor.dart';
-import 'package:gemstone/features/product_detail/domain/models/product_detail.dart';
-import 'package:gemstone/features/product_detail/presentation/transition/product_gem_dock.dart';
-import 'package:gemstone/features/product_detail/presentation/transition/product_sheet_launch.dart';
-import 'package:gemstone/features/product_detail/presentation/transition/product_sheet_screen.dart';
+import 'package:gemworld/core/l10n/app_localizations.dart';
+import 'package:gemworld/core/widgets/luxe/product_card_anchor.dart';
+import 'package:gemworld/features/product_detail/domain/models/product_detail.dart';
+import 'package:gemworld/features/product_detail/presentation/transition/product_gem_dock.dart';
+import 'package:gemworld/features/product_detail/presentation/transition/product_sheet_launch.dart';
+import 'package:gemworld/features/product_detail/presentation/transition/product_sheet_screen.dart';
 
 const _shapes = ['Round', 'Heart', 'Pear', 'Oval', 'Emerald', 'Marquise'];
 

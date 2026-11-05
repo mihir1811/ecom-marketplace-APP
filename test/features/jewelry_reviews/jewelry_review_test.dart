@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/router/route_names.dart';
-import 'package:gemstone/features/jewelry/data/mappers/jewelry_mapper.dart';
-import 'package:gemstone/features/jewelry/data/mappers/marketplace_mapper.dart';
-import 'package:gemstone/features/jewelry_checkout/data/mappers/jewelry_checkout_mapper.dart';
-import 'package:gemstone/features/jewelry_reviews/data/jewelry_review_mapper.dart';
-import 'package:gemstone/features/notifications/domain/models/app_notification.dart';
-import 'package:gemstone/features/notifications/domain/notification_open_target.dart';
+import 'package:gemworld/core/router/route_names.dart';
+import 'package:gemworld/features/jewelry/data/mappers/jewelry_mapper.dart';
+import 'package:gemworld/features/jewelry/data/mappers/marketplace_mapper.dart';
+import 'package:gemworld/features/jewelry_checkout/data/mappers/jewelry_checkout_mapper.dart';
+import 'package:gemworld/features/jewelry_reviews/data/jewelry_review_mapper.dart';
+import 'package:gemworld/features/notifications/domain/models/app_notification.dart';
+import 'package:gemworld/features/notifications/domain/notification_open_target.dart';
 
 void main() {
   test('maps a public review page (guide sample)', () {

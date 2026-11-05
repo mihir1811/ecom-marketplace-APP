@@ -6,8 +6,8 @@
 // `assets/models/gems.bin`. Re-run after adding or replacing a model.
 import 'dart:io';
 
-import 'package:gemstone/core/widgets/gem3d/diamond_mesh.dart';
-import 'package:gemstone/core/widgets/gem3d/gem_glb.dart';
+import 'package:gemworld/core/widgets/gem3d/diamond_mesh.dart';
+import 'package:gemworld/core/widgets/gem3d/gem_glb.dart';
 
 void main() {
   final sources =

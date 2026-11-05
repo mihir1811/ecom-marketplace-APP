@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/diamonds/data/mappers/diamond_search_request_mapper.dart';
-import 'package:gemstone/features/diamonds/domain/models/diamond_active_filters.dart';
-import 'package:gemstone/features/diamonds/domain/models/diamond_catalog_type.dart';
-import 'package:gemstone/features/diamonds/domain/models/diamond_filter_state.dart';
-import 'package:gemstone/features/diamonds/domain/models/diamond_filter_summary.dart';
-import 'package:gemstone/features/gem_agent/tools/diamond_search/diamond_search_query.dart';
+import 'package:gemworld/features/diamonds/data/mappers/diamond_search_request_mapper.dart';
+import 'package:gemworld/features/diamonds/domain/models/diamond_active_filters.dart';
+import 'package:gemworld/features/diamonds/domain/models/diamond_catalog_type.dart';
+import 'package:gemworld/features/diamonds/domain/models/diamond_filter_state.dart';
+import 'package:gemworld/features/diamonds/domain/models/diamond_filter_summary.dart';
+import 'package:gemworld/features/gem_agent/tools/diamond_search/diamond_search_query.dart';
 
 void main() {
   test('normalizes loose model arguments', () {

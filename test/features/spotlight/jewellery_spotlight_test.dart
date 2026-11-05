@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/router/route_names.dart';
-import 'package:gemstone/features/jewelry/domain/models/jewelry_filter_state.dart';
-import 'package:gemstone/features/notifications/domain/models/app_notification.dart';
-import 'package:gemstone/features/notifications/domain/notification_open_target.dart';
-import 'package:gemstone/features/spotlight/application/sponsored_jewellery_provider.dart';
-import 'package:gemstone/features/spotlight/data/spotlight_repository.dart';
-import 'package:gemstone/features/spotlight/domain/spotlight_models.dart';
+import 'package:gemworld/core/router/route_names.dart';
+import 'package:gemworld/features/jewelry/domain/models/jewelry_filter_state.dart';
+import 'package:gemworld/features/notifications/domain/models/app_notification.dart';
+import 'package:gemworld/features/notifications/domain/notification_open_target.dart';
+import 'package:gemworld/features/spotlight/application/sponsored_jewellery_provider.dart';
+import 'package:gemworld/features/spotlight/data/spotlight_repository.dart';
+import 'package:gemworld/features/spotlight/domain/spotlight_models.dart';
 
 AppNotification _push(String link, Map<String, String> data) => AppNotification(
   id: 'n1',

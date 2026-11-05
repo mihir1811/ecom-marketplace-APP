@@ -21,7 +21,7 @@ val keystoreProperties = Properties().apply {
 val hasReleaseKeystore = keystoreProperties.getProperty("storeFile") != null
 
 android {
-    namespace = "com.example.gemstone"
+    namespace = "com.example.gemworld"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 

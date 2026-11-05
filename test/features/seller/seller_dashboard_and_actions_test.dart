@@ -4,18 +4,18 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/auth/auth_controller.dart';
-import 'package:gemstone/core/auth/auth_providers.dart';
-import 'package:gemstone/core/auth/auth_state.dart';
-import 'package:gemstone/core/auth/auth_user.dart';
-import 'package:gemstone/core/error/failure.dart';
-import 'package:gemstone/core/error/result.dart';
-import 'package:gemstone/features/seller/application/seller_insights_provider.dart';
-import 'package:gemstone/features/seller/data/repositories/seller_insights_repository_impl.dart';
-import 'package:gemstone/features/seller/domain/models/seller_insights.dart';
-import 'package:gemstone/features/seller/domain/repositories/seller_insights_repository.dart';
-import 'package:gemstone/features/seller/presentation/atelier/atelier_components.dart';
-import 'package:gemstone/features/seller/presentation/widgets/seller_order_decision.dart';
+import 'package:gemworld/core/auth/auth_controller.dart';
+import 'package:gemworld/core/auth/auth_providers.dart';
+import 'package:gemworld/core/auth/auth_state.dart';
+import 'package:gemworld/core/auth/auth_user.dart';
+import 'package:gemworld/core/error/failure.dart';
+import 'package:gemworld/core/error/result.dart';
+import 'package:gemworld/features/seller/application/seller_insights_provider.dart';
+import 'package:gemworld/features/seller/data/repositories/seller_insights_repository_impl.dart';
+import 'package:gemworld/features/seller/domain/models/seller_insights.dart';
+import 'package:gemworld/features/seller/domain/repositories/seller_insights_repository.dart';
+import 'package:gemworld/features/seller/presentation/atelier/atelier_components.dart';
+import 'package:gemworld/features/seller/presentation/widgets/seller_order_decision.dart';
 
 class _SignedInAuth extends AuthController {
   @override

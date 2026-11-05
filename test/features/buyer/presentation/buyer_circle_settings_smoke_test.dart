@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/l10n/app_localizations.dart';
-import 'package:gemstone/core/theme/app_palette.dart';
-import 'package:gemstone/features/buyer/presentation/widgets/settings/settings_parts.dart';
-import 'package:gemstone/features/reference/domain/models/reference_models.dart';
-import 'package:gemstone/features/reference/presentation/widgets/reference_compact.dart';
+import 'package:gemworld/core/l10n/app_localizations.dart';
+import 'package:gemworld/core/theme/app_palette.dart';
+import 'package:gemworld/features/buyer/presentation/widgets/settings/settings_parts.dart';
+import 'package:gemworld/features/reference/domain/models/reference_models.dart';
+import 'package:gemworld/features/reference/presentation/widgets/reference_compact.dart';
 
 const _long =
     'An exceptionally long collector name that keeps going to test wrapping '

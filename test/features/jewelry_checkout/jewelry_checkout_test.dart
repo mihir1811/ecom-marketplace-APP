@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/jewelry_checkout/data/mappers/jewelry_checkout_mapper.dart';
-import 'package:gemstone/features/jewelry_checkout/domain/models/bag_line.dart';
+import 'package:gemworld/features/jewelry_checkout/data/mappers/jewelry_checkout_mapper.dart';
+import 'package:gemworld/features/jewelry_checkout/domain/models/bag_line.dart';
 
 void main() {
   const engraved = BagLine(

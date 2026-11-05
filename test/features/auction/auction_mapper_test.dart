@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/auction/data/mappers/auction_mapper.dart';
+import 'package:gemworld/features/auction/data/mappers/auction_mapper.dart';
 
 void main() {
   test('maps live auction page envelope', () {

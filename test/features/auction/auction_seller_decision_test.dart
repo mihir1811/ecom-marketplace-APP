@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/auction/data/mappers/auction_mapper.dart';
-import 'package:gemstone/features/auction/domain/models/auction_models.dart';
-import 'package:gemstone/features/auction/presentation/auction_seller_outcome.dart';
+import 'package:gemworld/features/auction/data/mappers/auction_mapper.dart';
+import 'package:gemworld/features/auction/domain/models/auction_models.dart';
+import 'package:gemworld/features/auction/presentation/auction_seller_outcome.dart';
 
 /// Seller decides once bidding closes: accept the highest eligible bidder,
 /// pick another one, or reject.

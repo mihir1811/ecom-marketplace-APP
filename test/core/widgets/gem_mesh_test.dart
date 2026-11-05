@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/widgets/gem3d/gem_mesh.dart';
+import 'package:gemworld/core/widgets/gem3d/gem_mesh.dart';
 
 void main() {
   for (final cut in GemCut.values) {

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/diamonds/domain/models/diamond.dart';
-import 'package:gemstone/features/diamonds/domain/models/diamond_listing_summary_stats.dart';
+import 'package:gemworld/features/diamonds/domain/models/diamond.dart';
+import 'package:gemworld/features/diamonds/domain/models/diamond_listing_summary_stats.dart';
 
 Diamond _d({required double carat, required double price}) {
   return Diamond(

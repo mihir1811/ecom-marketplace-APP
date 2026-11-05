@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/app.dart';
+import 'package:gemworld/app.dart';
 
 void main() {
   testWidgets('GemWorld App smoke test', (WidgetTester tester) async {

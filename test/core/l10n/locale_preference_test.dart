@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/l10n/app_localizations.dart';
-import 'package:gemstone/core/widgets/language_menu_button.dart';
+import 'package:gemworld/core/l10n/app_localizations.dart';
+import 'package:gemworld/core/widgets/language_menu_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

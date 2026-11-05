@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/widgets/keyboard_aware.dart';
+import 'package:gemworld/core/widgets/keyboard_aware.dart';
 
 void main() {
   test('overlayBottomGap includes keyboard inset and FAB gap', () {

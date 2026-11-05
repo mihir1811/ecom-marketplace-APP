@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/widgets/navigation/top_bar/top_bar_registry.dart';
+import 'package:gemworld/core/widgets/navigation/top_bar/top_bar_registry.dart';
 
 void main() {
   TopBarSection section(String path) => TopBarRegistry.sectionFor(path);

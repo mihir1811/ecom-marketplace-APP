@@ -2,10 +2,10 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/haptics/app_haptics.dart';
-import 'package:gemstone/core/widgets/luxe/luxe_shape_dial.dart';
-import 'package:gemstone/core/widgets/luxe/luxe_shape_picker.dart';
-import 'package:gemstone/core/widgets/luxe/luxe_wheel.dart';
+import 'package:gemworld/core/haptics/app_haptics.dart';
+import 'package:gemworld/core/widgets/luxe/luxe_shape_dial.dart';
+import 'package:gemworld/core/widgets/luxe/luxe_shape_picker.dart';
+import 'package:gemworld/core/widgets/luxe/luxe_wheel.dart';
 
 const _shapes = [
   LuxeShapeOption(value: 'Round', label: 'Round'),

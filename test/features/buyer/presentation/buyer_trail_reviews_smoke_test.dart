@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/buyer/presentation/widgets/reviews/buyer_review_card.dart';
-import 'package:gemstone/features/buyer/presentation/widgets/reviews/review_ledger.dart';
-import 'package:gemstone/features/recently_viewed/domain/models/recently_viewed.dart';
-import 'package:gemstone/features/recently_viewed/presentation/widgets/recent/recent_piece.dart';
-import 'package:gemstone/features/recently_viewed/presentation/widgets/recent/recent_piece_card.dart';
-import 'package:gemstone/features/recently_viewed/presentation/widgets/recent/recent_resume_card.dart';
-import 'package:gemstone/features/seller/domain/models/seller_review.dart';
+import 'package:gemworld/features/buyer/presentation/widgets/reviews/buyer_review_card.dart';
+import 'package:gemworld/features/buyer/presentation/widgets/reviews/review_ledger.dart';
+import 'package:gemworld/features/recently_viewed/domain/models/recently_viewed.dart';
+import 'package:gemworld/features/recently_viewed/presentation/widgets/recent/recent_piece.dart';
+import 'package:gemworld/features/recently_viewed/presentation/widgets/recent/recent_piece_card.dart';
+import 'package:gemworld/features/recently_viewed/presentation/widgets/recent/recent_resume_card.dart';
+import 'package:gemworld/features/seller/domain/models/seller_review.dart';
 
 const _long =
     'An exceptionally long piece name that keeps going to test wrapping, '

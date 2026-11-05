@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/comparison/domain/models/compare_category.dart';
-import 'package:gemstone/features/comparison/domain/models/compare_insights.dart';
-import 'package:gemstone/features/comparison/domain/models/compare_item.dart';
-import 'package:gemstone/features/comparison/domain/models/compare_spec.dart';
-import 'package:gemstone/features/comparison/presentation/widgets/vitrine/vitrine_rail.dart';
-import 'package:gemstone/features/comparison/presentation/widgets/vitrine/vitrine_specs.dart';
+import 'package:gemworld/features/comparison/domain/models/compare_category.dart';
+import 'package:gemworld/features/comparison/domain/models/compare_insights.dart';
+import 'package:gemworld/features/comparison/domain/models/compare_item.dart';
+import 'package:gemworld/features/comparison/domain/models/compare_spec.dart';
+import 'package:gemworld/features/comparison/presentation/widgets/vitrine/vitrine_rail.dart';
+import 'package:gemworld/features/comparison/presentation/widgets/vitrine/vitrine_specs.dart';
 
 CompareItem _diamond(String id, String shape, double carat, double price) =>
     CompareItem(

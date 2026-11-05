@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/theme/app_fonts.dart';
-import 'package:gemstone/core/theme/bundled_fonts.dart';
+import 'package:gemworld/core/theme/app_fonts.dart';
+import 'package:gemworld/core/theme/bundled_fonts.dart';
 
 void main() {
   final declared = RegExp(r'^    - family: (\S+)$', multiLine: true)

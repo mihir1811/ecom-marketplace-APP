@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/seller/data/mappers/seller_insights_aggregator.dart';
-import 'package:gemstone/features/seller/data/mappers/seller_stats_mapper.dart';
-import 'package:gemstone/features/seller/domain/models/seller_insights.dart';
-import 'package:gemstone/features/seller/domain/models/seller_stats.dart';
+import 'package:gemworld/features/seller/data/mappers/seller_insights_aggregator.dart';
+import 'package:gemworld/features/seller/data/mappers/seller_stats_mapper.dart';
+import 'package:gemworld/features/seller/domain/models/seller_insights.dart';
+import 'package:gemworld/features/seller/domain/models/seller_stats.dart';
 
 SellerStatsChart chart(List<String> labels, List<double> values) =>
     SellerStatsChart(labels: labels, values: values);

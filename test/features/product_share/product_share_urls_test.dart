@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:gemstone/core/network/api_config.dart';
-import 'package:gemstone/features/product_share/domain/product_share_urls.dart';
+import 'package:gemworld/core/network/api_config.dart';
+import 'package:gemworld/features/product_share/domain/product_share_urls.dart';
 
 void main() {
   test('rewriteApiShareUrl is an absolute http(s) URL', () {

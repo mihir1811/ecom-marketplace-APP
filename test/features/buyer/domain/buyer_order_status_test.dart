@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/buyer/domain/buyer_order_status.dart';
-import 'package:gemstone/features/buyer/domain/models/buyer_order.dart';
+import 'package:gemworld/features/buyer/domain/buyer_order_status.dart';
+import 'package:gemworld/features/buyer/domain/models/buyer_order.dart';
 
 BuyerOrder _order(
   String id, {

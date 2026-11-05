@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gemstone/core/theme/app_fonts.dart';
+import 'package:gemworld/core/theme/app_fonts.dart';
 
 import '../../../../core/widgets/navigation/top_bar/top_bar_create_action.dart';
 import '../../../../core/auth/auth_validators.dart';

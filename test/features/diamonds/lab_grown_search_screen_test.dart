@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/diamonds/presentation/screens/lab_grown_diamond_search_screen.dart';
-import 'package:gemstone/features/diamonds/presentation/widgets/lab_grown_diamond_scope.dart';
+import 'package:gemworld/features/diamonds/presentation/screens/lab_grown_diamond_search_screen.dart';
+import 'package:gemworld/features/diamonds/presentation/widgets/lab_grown_diamond_scope.dart';
 
 void main() {
   testWidgets('lab grown finder shows primary action, lab controls and reset',

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/haptics/app_haptics.dart';
-import 'package:gemstone/core/router/route_names.dart';
-import 'package:gemstone/core/widgets/luxe/luxe_spring.dart';
-import 'package:gemstone/core/widgets/navigation/bottom_nav/app_bottom_nav_bar.dart';
-import 'package:gemstone/core/widgets/navigation/bottom_nav/app_bottom_nav_destinations.dart';
+import 'package:gemworld/core/haptics/app_haptics.dart';
+import 'package:gemworld/core/router/route_names.dart';
+import 'package:gemworld/core/widgets/luxe/luxe_spring.dart';
+import 'package:gemworld/core/widgets/navigation/bottom_nav/app_bottom_nav_bar.dart';
+import 'package:gemworld/core/widgets/navigation/bottom_nav/app_bottom_nav_destinations.dart';
 
 void main() {
   setUp(() => AppHaptics.debugDisable = true);

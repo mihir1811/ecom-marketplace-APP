@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/router/app_navigation.dart';
-import 'package:gemstone/core/router/route_names.dart';
-import 'package:gemstone/core/router/workspace_mode.dart';
+import 'package:gemworld/core/router/app_navigation.dart';
+import 'package:gemworld/core/router/route_names.dart';
+import 'package:gemworld/core/router/workspace_mode.dart';
 
 void main() {
   group('workspaceForPath', () {

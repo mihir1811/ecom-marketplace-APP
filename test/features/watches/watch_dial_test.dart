@@ -4,8 +4,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/watches/presentation/widgets/brand_dials/watch_dial.dart';
-import 'package:gemstone/features/watches/presentation/widgets/watch_brand_assets.dart';
+import 'package:gemworld/features/watches/presentation/widgets/brand_dials/watch_dial.dart';
+import 'package:gemworld/features/watches/presentation/widgets/watch_brand_assets.dart';
 
 void main() {
   test('every featured brand has a flagship dial', () {

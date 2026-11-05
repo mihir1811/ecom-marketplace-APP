@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/utils/app_currency.dart';
-import 'package:gemstone/features/jewelry/data/mappers/marketplace_mapper.dart';
-import 'package:gemstone/features/jewelry_checkout/data/mappers/jewelry_checkout_mapper.dart';
-import 'package:gemstone/features/jewelry_checkout/domain/models/marketplace_order.dart';
-import 'package:gemstone/features/jewelry_checkout/presentation/jewelry_checkout_format.dart';
-import 'package:gemstone/features/jewelry_checkout/presentation/jewelry_invoice_pdf.dart';
+import 'package:gemworld/core/utils/app_currency.dart';
+import 'package:gemworld/features/jewelry/data/mappers/marketplace_mapper.dart';
+import 'package:gemworld/features/jewelry_checkout/data/mappers/jewelry_checkout_mapper.dart';
+import 'package:gemworld/features/jewelry_checkout/domain/models/marketplace_order.dart';
+import 'package:gemworld/features/jewelry_checkout/presentation/jewelry_checkout_format.dart';
+import 'package:gemworld/features/jewelry_checkout/presentation/jewelry_invoice_pdf.dart';
 
 void main() {
   const r = AppCurrency.inrSymbol;

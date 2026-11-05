@@ -4,12 +4,12 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/error/result.dart';
-import 'package:gemstone/features/gem_agent/application/gem_agent_controller.dart';
-import 'package:gemstone/features/gem_agent/application/gem_agent_providers.dart';
-import 'package:gemstone/features/gem_agent/application/gem_agent_state.dart';
-import 'package:gemstone/features/gem_agent/application/speech_input_service.dart';
-import 'package:gemstone/features/gem_agent/domain/llm_client.dart';
+import 'package:gemworld/core/error/result.dart';
+import 'package:gemworld/features/gem_agent/application/gem_agent_controller.dart';
+import 'package:gemworld/features/gem_agent/application/gem_agent_providers.dart';
+import 'package:gemworld/features/gem_agent/application/gem_agent_state.dart';
+import 'package:gemworld/features/gem_agent/application/speech_input_service.dart';
+import 'package:gemworld/features/gem_agent/domain/llm_client.dart';
 
 /// Recognizer the test drives by hand.
 class _FakeSpeech implements SpeechInputService {

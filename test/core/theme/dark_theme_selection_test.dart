@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/theme/app_colors.dart';
-import 'package:gemstone/core/theme/app_palette.dart';
-import 'package:gemstone/core/theme/app_theme.dart';
-import 'package:gemstone/core/theme/theme_preference_provider.dart';
-import 'package:gemstone/core/widgets/dark_theme_scope.dart';
-import 'package:gemstone/core/widgets/filters/filter_chip.dart';
-import 'package:gemstone/core/widgets/filters/filter_text_segmented_control.dart';
-import 'package:gemstone/core/widgets/filters/filter_quick_range_chip.dart';
+import 'package:gemworld/core/theme/app_colors.dart';
+import 'package:gemworld/core/theme/app_palette.dart';
+import 'package:gemworld/core/theme/app_theme.dart';
+import 'package:gemworld/core/theme/theme_preference_provider.dart';
+import 'package:gemworld/core/widgets/dark_theme_scope.dart';
+import 'package:gemworld/core/widgets/filters/filter_chip.dart';
+import 'package:gemworld/core/widgets/filters/filter_text_segmented_control.dart';
+import 'package:gemworld/core/widgets/filters/filter_quick_range_chip.dart';
 
 Widget _harness({required bool dark, required Widget child}) {
   return MaterialApp(

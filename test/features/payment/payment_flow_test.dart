@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/error/failure.dart';
-import 'package:gemstone/core/error/result.dart';
-import 'package:gemstone/features/payment/presentation/payment_flow.dart';
+import 'package:gemworld/core/error/failure.dart';
+import 'package:gemworld/core/error/result.dart';
+import 'package:gemworld/features/payment/presentation/payment_flow.dart';
 
 const _summary = PurchaseSummary(
   item: '1 item',

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/auth/auth_controller.dart';
-import 'package:gemstone/core/auth/auth_providers.dart';
-import 'package:gemstone/core/auth/auth_state.dart';
-import 'package:gemstone/core/haptics/app_haptics.dart';
-import 'package:gemstone/core/l10n/app_localizations.dart';
-import 'package:gemstone/core/theme/app_palette.dart';
-import 'package:gemstone/core/theme/app_theme.dart';
-import 'package:gemstone/features/jewelry_education/presentation/screens/jewelry_education_screen.dart';
+import 'package:gemworld/core/auth/auth_controller.dart';
+import 'package:gemworld/core/auth/auth_providers.dart';
+import 'package:gemworld/core/auth/auth_state.dart';
+import 'package:gemworld/core/haptics/app_haptics.dart';
+import 'package:gemworld/core/l10n/app_localizations.dart';
+import 'package:gemworld/core/theme/app_palette.dart';
+import 'package:gemworld/core/theme/app_theme.dart';
+import 'package:gemworld/features/jewelry_education/presentation/screens/jewelry_education_screen.dart';
 
 class _SignedOut extends AuthController {
   @override

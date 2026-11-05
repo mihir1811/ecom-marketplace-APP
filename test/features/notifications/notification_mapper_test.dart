@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/router/route_names.dart';
-import 'package:gemstone/features/notifications/data/mappers/notification_mapper.dart';
-import 'package:gemstone/features/notifications/domain/models/app_notification.dart';
-import 'package:gemstone/features/notifications/domain/notification_open_target.dart';
+import 'package:gemworld/core/router/route_names.dart';
+import 'package:gemworld/features/notifications/data/mappers/notification_mapper.dart';
+import 'package:gemworld/features/notifications/domain/models/app_notification.dart';
+import 'package:gemworld/features/notifications/domain/notification_open_target.dart';
 
 void main() {
   test('maps inbox envelope and unread count', () {

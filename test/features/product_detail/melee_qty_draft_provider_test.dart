@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:gemstone/features/product_detail/application/melee_qty_draft_provider.dart';
-import 'package:gemstone/features/product_detail/domain/models/product_detail.dart';
+import 'package:gemworld/features/product_detail/application/melee_qty_draft_provider.dart';
+import 'package:gemworld/features/product_detail/domain/models/product_detail.dart';
 
 void main() {
   const qty = ProductMeleeQty(

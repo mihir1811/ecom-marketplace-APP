@@ -1,23 +1,23 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/error/failure.dart';
-import 'package:gemstone/core/error/result.dart';
-import 'package:gemstone/features/diamonds/data/repositories/diamond_repository_impl.dart';
-import 'package:gemstone/features/diamonds/domain/models/diamond.dart';
-import 'package:gemstone/features/diamonds/domain/models/diamond_catalog_type.dart';
-import 'package:gemstone/features/diamonds/domain/models/diamond_filter_state.dart';
-import 'package:gemstone/features/diamonds/domain/models/sorting_criteria.dart';
-import 'package:gemstone/features/diamonds/domain/repositories/diamond_repository.dart';
-import 'package:gemstone/features/gem_agent/domain/agent_message.dart';
-import 'package:gemstone/features/gem_agent/domain/agent_outcome.dart';
-import 'package:gemstone/features/gem_agent/domain/llm_client.dart';
-import 'package:gemstone/features/gem_agent/engine/agent_engine.dart';
-import 'package:gemstone/features/gem_agent/engine/conversation_memory.dart';
-import 'package:gemstone/features/gem_agent/engine/local_router.dart';
-import 'package:gemstone/features/gem_agent/engine/system_prompt_builder.dart';
-import 'package:gemstone/features/gem_agent/engine/tool_registry.dart';
-import 'package:gemstone/features/gem_agent/tools/gem_agent_tools.dart';
+import 'package:gemworld/core/error/failure.dart';
+import 'package:gemworld/core/error/result.dart';
+import 'package:gemworld/features/diamonds/data/repositories/diamond_repository_impl.dart';
+import 'package:gemworld/features/diamonds/domain/models/diamond.dart';
+import 'package:gemworld/features/diamonds/domain/models/diamond_catalog_type.dart';
+import 'package:gemworld/features/diamonds/domain/models/diamond_filter_state.dart';
+import 'package:gemworld/features/diamonds/domain/models/sorting_criteria.dart';
+import 'package:gemworld/features/diamonds/domain/repositories/diamond_repository.dart';
+import 'package:gemworld/features/gem_agent/domain/agent_message.dart';
+import 'package:gemworld/features/gem_agent/domain/agent_outcome.dart';
+import 'package:gemworld/features/gem_agent/domain/llm_client.dart';
+import 'package:gemworld/features/gem_agent/engine/agent_engine.dart';
+import 'package:gemworld/features/gem_agent/engine/conversation_memory.dart';
+import 'package:gemworld/features/gem_agent/engine/local_router.dart';
+import 'package:gemworld/features/gem_agent/engine/system_prompt_builder.dart';
+import 'package:gemworld/features/gem_agent/engine/tool_registry.dart';
+import 'package:gemworld/features/gem_agent/tools/gem_agent_tools.dart';
 
 /// Replays scripted model turns and records what it was sent.
 class _ScriptedLlm implements LlmClient {

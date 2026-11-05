@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/refunds/domain/models/refund_request.dart';
-import 'package:gemstone/features/seller/domain/models/seller_order.dart';
-import 'package:gemstone/features/seller/domain/seller_order_board.dart';
+import 'package:gemworld/features/refunds/domain/models/refund_request.dart';
+import 'package:gemworld/features/seller/domain/models/seller_order.dart';
+import 'package:gemworld/features/seller/domain/seller_order_board.dart';
 
 SellerOrder _order(
   String id, {

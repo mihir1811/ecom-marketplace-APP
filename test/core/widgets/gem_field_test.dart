@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/haptics/app_haptics.dart';
-import 'package:gemstone/core/widgets/gem3d/gem_field.dart';
-import 'package:gemstone/core/widgets/gem3d/gem_mesh.dart';
-import 'package:gemstone/core/widgets/gem3d/gem_view.dart';
+import 'package:gemworld/core/haptics/app_haptics.dart';
+import 'package:gemworld/core/widgets/gem3d/gem_field.dart';
+import 'package:gemworld/core/widgets/gem3d/gem_mesh.dart';
+import 'package:gemworld/core/widgets/gem3d/gem_view.dart';
 
 void main() {
   setUp(() => AppHaptics.debugDisable = true);

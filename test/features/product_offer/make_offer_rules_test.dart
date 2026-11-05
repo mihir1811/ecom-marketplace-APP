@@ -1,13 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/error/failure.dart';
-import 'package:gemstone/core/network/api_error.dart';
-import 'package:gemstone/core/router/route_names.dart';
-import 'package:gemstone/features/notifications/domain/models/app_notification.dart';
-import 'package:gemstone/features/notifications/domain/notification_open_target.dart';
-import 'package:gemstone/features/payment/application/payment_checkout_provider.dart';
-import 'package:gemstone/features/product_offer/data/mappers/product_offer_mapper.dart';
-import 'package:gemstone/features/product_offer/domain/models/product_offer.dart';
+import 'package:gemworld/core/error/failure.dart';
+import 'package:gemworld/core/network/api_error.dart';
+import 'package:gemworld/core/router/route_names.dart';
+import 'package:gemworld/features/notifications/domain/models/app_notification.dart';
+import 'package:gemworld/features/notifications/domain/notification_open_target.dart';
+import 'package:gemworld/features/payment/application/payment_checkout_provider.dart';
+import 'package:gemworld/features/product_offer/data/mappers/product_offer_mapper.dart';
+import 'package:gemworld/features/product_offer/domain/models/product_offer.dart';
 
 /// Make an Offer API guide, Oct 30 2026.
 void main() {

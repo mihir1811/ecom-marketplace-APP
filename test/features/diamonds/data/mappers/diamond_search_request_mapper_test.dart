@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/diamonds/data/mappers/diamond_search_request_mapper.dart';
-import 'package:gemstone/features/diamonds/domain/models/diamond_catalog_type.dart';
-import 'package:gemstone/features/diamonds/domain/models/diamond_filter_state.dart';
-import 'package:gemstone/features/gemstones/data/mappers/gemstone_search_request_mapper.dart';
-import 'package:gemstone/features/gemstones/domain/models/gemstone_filter_state.dart';
+import 'package:gemworld/features/diamonds/data/mappers/diamond_search_request_mapper.dart';
+import 'package:gemworld/features/diamonds/domain/models/diamond_catalog_type.dart';
+import 'package:gemworld/features/diamonds/domain/models/diamond_filter_state.dart';
+import 'package:gemworld/features/gemstones/data/mappers/gemstone_search_request_mapper.dart';
+import 'package:gemworld/features/gemstones/domain/models/gemstone_filter_state.dart';
 
 void main() {
   group('DiamondSearchRequestMapper', () {

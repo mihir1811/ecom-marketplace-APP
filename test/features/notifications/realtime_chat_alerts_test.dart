@@ -3,22 +3,22 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/auth/auth_controller.dart';
-import 'package:gemstone/core/auth/auth_providers.dart';
-import 'package:gemstone/core/auth/auth_state.dart';
-import 'package:gemstone/core/auth/auth_user.dart';
-import 'package:gemstone/core/error/failure.dart';
-import 'package:gemstone/core/error/result.dart';
-import 'package:gemstone/core/router/route_names.dart';
-import 'package:gemstone/features/chat/data/repositories/chat_repository_impl.dart';
-import 'package:gemstone/features/chat/domain/models/chat_message.dart';
-import 'package:gemstone/features/chat/domain/models/chat_product_type.dart';
-import 'package:gemstone/features/chat/domain/models/chat_thread.dart';
-import 'package:gemstone/features/chat/domain/repositories/chat_repository.dart';
-import 'package:gemstone/features/notifications/application/chat_message_alerts.dart';
-import 'package:gemstone/features/notifications/application/in_app_notification_provider.dart';
-import 'package:gemstone/features/notifications/data/mappers/notification_mapper.dart';
-import 'package:gemstone/features/notifications/domain/notification_open_target.dart';
+import 'package:gemworld/core/auth/auth_controller.dart';
+import 'package:gemworld/core/auth/auth_providers.dart';
+import 'package:gemworld/core/auth/auth_state.dart';
+import 'package:gemworld/core/auth/auth_user.dart';
+import 'package:gemworld/core/error/failure.dart';
+import 'package:gemworld/core/error/result.dart';
+import 'package:gemworld/core/router/route_names.dart';
+import 'package:gemworld/features/chat/data/repositories/chat_repository_impl.dart';
+import 'package:gemworld/features/chat/domain/models/chat_message.dart';
+import 'package:gemworld/features/chat/domain/models/chat_product_type.dart';
+import 'package:gemworld/features/chat/domain/models/chat_thread.dart';
+import 'package:gemworld/features/chat/domain/repositories/chat_repository.dart';
+import 'package:gemworld/features/notifications/application/chat_message_alerts.dart';
+import 'package:gemworld/features/notifications/application/in_app_notification_provider.dart';
+import 'package:gemworld/features/notifications/data/mappers/notification_mapper.dart';
+import 'package:gemworld/features/notifications/domain/notification_open_target.dart';
 
 class _SignedIn extends AuthController {
   @override

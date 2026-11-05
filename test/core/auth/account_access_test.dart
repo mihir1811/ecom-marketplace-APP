@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/auth/account_access.dart';
-import 'package:gemstone/core/auth/auth_state.dart';
-import 'package:gemstone/core/auth/auth_user.dart';
+import 'package:gemworld/core/auth/account_access.dart';
+import 'package:gemworld/core/auth/auth_state.dart';
+import 'package:gemworld/core/auth/auth_user.dart';
 
 void main() {
   AuthUser user({required bool verified}) => AuthUser(

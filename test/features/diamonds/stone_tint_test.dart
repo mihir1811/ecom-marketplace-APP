@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/diamonds/presentation/widgets/stone_tint.dart';
+import 'package:gemworld/features/diamonds/presentation/widgets/stone_tint.dart';
 
 void main() {
   double hue(Color c) => HSLColor.fromColor(c).hue;

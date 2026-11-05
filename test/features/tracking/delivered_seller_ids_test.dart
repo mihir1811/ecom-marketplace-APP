@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/tracking/domain/models/shipment_models.dart';
+import 'package:gemworld/features/tracking/domain/models/shipment_models.dart';
 
 Shipment _s(String seller, String status) => Shipment(
   id: '$seller-$status',

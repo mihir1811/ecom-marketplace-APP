@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/auth/auth_user.dart';
+import 'package:gemworld/core/auth/auth_user.dart';
 
 void main() {
   test('fromJson reads isVerified false and _id', () {

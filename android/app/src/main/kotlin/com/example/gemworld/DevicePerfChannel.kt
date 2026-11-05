@@ -1,4 +1,4 @@
-package com.example.gemstone
+package com.example.gemworld
 
 import android.app.ActivityManager
 import android.content.Context

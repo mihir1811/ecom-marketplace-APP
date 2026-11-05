@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/rewards/data/mappers/rewards_mapper.dart';
-import 'package:gemstone/features/rewards/domain/models/rewards.dart';
-import 'package:gemstone/features/rewards/domain/reward_points_preview.dart';
+import 'package:gemworld/features/rewards/data/mappers/rewards_mapper.dart';
+import 'package:gemworld/features/rewards/domain/models/rewards.dart';
+import 'package:gemworld/features/rewards/domain/reward_points_preview.dart';
 
 void main() {
   const settings = RewardSettings(

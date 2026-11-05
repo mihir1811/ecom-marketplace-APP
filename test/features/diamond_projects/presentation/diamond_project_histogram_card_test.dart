@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/diamond_projects/domain/models/diamond_project_stats.dart';
-import 'package:gemstone/features/diamond_projects/presentation/widgets/diamond_project_histogram_card.dart';
+import 'package:gemworld/features/diamond_projects/domain/models/diamond_project_stats.dart';
+import 'package:gemworld/features/diamond_projects/presentation/widgets/diamond_project_histogram_card.dart';
 
 void main() {
 

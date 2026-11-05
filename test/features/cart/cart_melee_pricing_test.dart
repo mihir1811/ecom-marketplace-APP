@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:gemstone/core/utils/melee_purchase_math.dart';
-import 'package:gemstone/features/cart/data/mappers/cart_mapper.dart';
-import 'package:gemstone/features/cart/domain/models/cart_summary.dart';
+import 'package:gemworld/core/utils/melee_purchase_math.dart';
+import 'package:gemworld/features/cart/data/mappers/cart_mapper.dart';
+import 'package:gemworld/features/cart/domain/models/cart_summary.dart';
 
 void main() {
   test('proportional lot price matches detail 10/23 of 234.34', () {

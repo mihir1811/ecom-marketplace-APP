@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/network/retry_interceptor.dart';
+import 'package:gemworld/core/network/retry_interceptor.dart';
 
 /// Answers each request from [responses] in order and counts calls.
 class _ScriptedAdapter implements HttpClientAdapter {

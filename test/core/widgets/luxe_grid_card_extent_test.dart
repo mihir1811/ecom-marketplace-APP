@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/l10n/app_localizations.dart';
-import 'package:gemstone/core/theme/app_palette.dart';
-import 'package:gemstone/core/theme/app_theme.dart';
-import 'package:gemstone/core/widgets/luxe/luxe_listing.dart';
-import 'package:gemstone/core/widgets/luxe/luxe_product_card.dart';
-import 'package:gemstone/features/jewelry_reviews/presentation/widgets/jewelry_review_stars.dart';
-import 'package:gemstone/features/spotlight/presentation/widgets/spotlight_tag.dart';
+import 'package:gemworld/core/l10n/app_localizations.dart';
+import 'package:gemworld/core/theme/app_palette.dart';
+import 'package:gemworld/core/theme/app_theme.dart';
+import 'package:gemworld/core/widgets/luxe/luxe_listing.dart';
+import 'package:gemworld/core/widgets/luxe/luxe_product_card.dart';
+import 'package:gemworld/features/jewelry_reviews/presentation/widgets/jewelry_review_stars.dart';
+import 'package:gemworld/features/spotlight/presentation/widgets/spotlight_tag.dart';
 
 /// The grid cell ([LuxeListingMetrics.gridExtent]) must fit every grid card
 /// variant without overflowing, and without leaving a visible empty band

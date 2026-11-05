@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/auth/auth_validators.dart';
+import 'package:gemworld/core/auth/auth_validators.dart';
 
 void main() {
   group('dateOfBirth helpers', () {

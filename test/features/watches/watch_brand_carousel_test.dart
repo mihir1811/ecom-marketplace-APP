@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/haptics/app_haptics.dart';
-import 'package:gemstone/features/watches/application/watch_filter_provider.dart';
-import 'package:gemstone/features/watches/presentation/widgets/brand_dials/watch_dial.dart';
-import 'package:gemstone/features/watches/presentation/widgets/watch_brand_carousel.dart';
+import 'package:gemworld/core/haptics/app_haptics.dart';
+import 'package:gemworld/features/watches/application/watch_filter_provider.dart';
+import 'package:gemworld/features/watches/presentation/widgets/brand_dials/watch_dial.dart';
+import 'package:gemworld/features/watches/presentation/widgets/watch_brand_carousel.dart';
 
 void main() {
   setUp(() => AppHaptics.debugDisable = true);

@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/diamonds/application/diamond_search_provider.dart';
+import 'package:gemworld/features/diamonds/application/diamond_search_provider.dart';
 
 void main() {
   test('selecting two sieve rows selects the inclusive range', () {

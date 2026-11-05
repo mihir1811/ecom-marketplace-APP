@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/features/live_shows/data/mappers/live_show_mapper.dart';
-import 'package:gemstone/features/live_shows/domain/models/live_show_models.dart';
+import 'package:gemworld/features/live_shows/data/mappers/live_show_mapper.dart';
+import 'package:gemworld/features/live_shows/domain/models/live_show_models.dart';
 
 void main() {
   test('provider names parse whatever their spelling', () {

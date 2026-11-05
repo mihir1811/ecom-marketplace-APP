@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gemstone/core/theme/app_fonts.dart';
+import 'package:gemworld/core/theme/app_fonts.dart';
 
 /// Typography tokens for the GemWorld design system.
 /// Headings use [AppFonts.primary]; body/UI text uses [AppFonts.secondary].

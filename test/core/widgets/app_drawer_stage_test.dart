@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/haptics/app_haptics.dart';
-import 'package:gemstone/core/widgets/app_drawer_button.dart';
-import 'package:gemstone/core/widgets/navigation/app_drawer_stage.dart';
+import 'package:gemworld/core/haptics/app_haptics.dart';
+import 'package:gemworld/core/widgets/app_drawer_button.dart';
+import 'package:gemworld/core/widgets/navigation/app_drawer_stage.dart';
 
 void main() {
   setUp(() => AppHaptics.debugDisable = true);

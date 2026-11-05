@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemstone/core/widgets/fit_resize_image.dart';
+import 'package:gemworld/core/widgets/fit_resize_image.dart';
 
 void main() {
   final provider = MemoryImage(Uint8List(4));

@@ -4,12 +4,12 @@ import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import 'package:gemstone/core/widgets/filters/filter_chip.dart';
-import 'package:gemstone/core/widgets/filters/filter_group_card.dart';
+import 'package:gemworld/core/widgets/filters/filter_chip.dart';
+import 'package:gemworld/core/widgets/filters/filter_group_card.dart';
 import '../../../diamonds/presentation/widgets/filter_color_selector.dart';
-import 'package:gemstone/core/widgets/filters/filter_scrollable_chips.dart';
-import 'package:gemstone/core/widgets/filters/filter_section_divider.dart';
-import 'package:gemstone/core/widgets/filters/filter_section_header.dart';
+import 'package:gemworld/core/widgets/filters/filter_scrollable_chips.dart';
+import 'package:gemworld/core/widgets/filters/filter_section_divider.dart';
+import 'package:gemworld/core/widgets/filters/filter_section_header.dart';
 import '../../application/gemstone_search_provider.dart';
 import '../../domain/models/gemstone_filter_state.dart';
 
