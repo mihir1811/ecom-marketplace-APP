@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../device/device_tier.dart';
 import '../../theme/luxe_tokens.dart';
 
 /// Product-card scroll entrance modelled on the lusion.co work grid.
@@ -19,6 +20,10 @@ import '../../theme/luxe_tokens.dart';
 ///
 /// While the list scrolls, cards assemble from the wide corners on
 /// their side and retreat back out of view ([LuxeScrollAssemble]).
+///
+/// Cards show plainly, with none of the above, when the system asks for
+/// reduced motion and on budget phones / battery saver
+/// ([DeviceTier.reduceEffects]), so scrolling stays smooth there.
 class LuxeCardReveal extends StatefulWidget {
   const LuxeCardReveal({required this.index, required this.child, super.key});
 
@@ -61,6 +66,25 @@ class _LuxeCardRevealState extends State<LuxeCardReveal>
   bool _playing = false;
   bool _reduced = false;
 
+  /// No entrance at all: reduced motion, or a budget phone.
+  bool get _static => _reduced || DeviceTier.reduceEffects.value;
+
+  @override
+  void initState() {
+    super.initState();
+    DeviceTier.reduceEffects.addListener(_onTierChanged);
+  }
+
+  void _onTierChanged() {
+    if (!mounted) return;
+    setState(() {
+      // Either way the card counts as already shown: switching tier never
+      // replays the entrance on cards in view.
+      _playing = true;
+      _clock.animation.value = 1;
+    });
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -94,7 +118,7 @@ class _LuxeCardRevealState extends State<LuxeCardReveal>
   }
 
   void _check() {
-    if (!mounted || _reduced) return;
+    if (!mounted || _static) return;
     final box = context.findRenderObject();
     if (box is! RenderBox || !box.attached || !box.hasSize) return;
     final viewport = _position?.context.notificationContext?.findRenderObject();
@@ -118,6 +142,7 @@ class _LuxeCardRevealState extends State<LuxeCardReveal>
 
   @override
   void dispose() {
+    DeviceTier.reduceEffects.removeListener(_onTierChanged);
     _position?.removeListener(_scheduleCheck);
     _clock.animation.dispose();
     super.dispose();
@@ -125,7 +150,7 @@ class _LuxeCardRevealState extends State<LuxeCardReveal>
 
   @override
   Widget build(BuildContext context) {
-    if (_reduced) return widget.child;
+    if (_static) return widget.child;
     // The window and zoom run in paint only: no widget rebuilds per frame,
     // and the boundary lets the card's raster be reused while it animates.
     return _ClockScope(
@@ -667,7 +692,6 @@ class _RollPainter extends CustomPainter {
   bool shouldRepaint(_RollPainter old) =>
       old.layout != layout || old.clock != clock;
 }
-
 
 /// Scroll-scrubbed corner assembly for the [LuxeCardReveal] cards below it.
 ///
