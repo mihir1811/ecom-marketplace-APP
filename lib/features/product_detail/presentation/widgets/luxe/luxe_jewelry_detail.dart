@@ -114,8 +114,6 @@ class _LuxeJewelryPurchasePanelState
     final n = ref.read(jewelryConfigDraftProvider(detail.id).notifier);
     final labels = jewelryPriceLabels(context, detail, draft);
     final sku = _selectedSku(j, draft);
-    final qty = draft?.quantity ?? 1;
-    final maxQty = j.maxQuantityFor(sku);
     final selected = draft?.selected ?? const <String, String>{};
     final hasOptions = j.variations.isNotEmpty;
 
@@ -251,48 +249,6 @@ class _LuxeJewelryPurchasePanelState
                   onChanged: (v) => n.setCustomValue(name, v),
                 ),
               ],
-              const SizedBox(height: 14),
-              Divider(height: 1, color: p.hairline),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          context.tr(CatalogL10n.quantity),
-                          style: LuxeType.label(p.ink, size: 14),
-                        ),
-                        AnimatedSize(
-                          duration: LuxeMotion.medium,
-                          curve: LuxeMotion.settle,
-                          alignment: Alignment.topLeft,
-                          child: qty > 1 && sku != null
-                              ? Padding(
-                                  padding: const EdgeInsets.only(top: 2),
-                                  child: Text(
-                                    jewelryPriceLabels(
-                                      context,
-                                      detail,
-                                      draft,
-                                      quantity: qty,
-                                    ).sale,
-                                    style: LuxeType.figure(p.accent, size: 13),
-                                  ),
-                                )
-                              : const SizedBox(width: double.infinity),
-                        ),
-                      ],
-                    ),
-                  ),
-                  LuxeQuantityStepper(
-                    value: qty,
-                    max: maxQty < 1 ? 1 : maxQty,
-                    onChanged: (v) => n.setQuantity(v, max: maxQty),
-                  ),
-                ],
-              ),
             ],
           ),
         ),
@@ -953,8 +909,9 @@ class LuxeJewelryPurchaseBar extends ConsumerWidget {
             ),
           );
 
-    final unit = jewelryPriceLabels(context, detail, draft);
     final total = jewelryPriceLabels(context, detail, draft, quantity: qty);
+    final n = ref.read(jewelryConfigDraftProvider(detail.id).notifier);
+    final showStepper = !own && sku != null && !soldOut;
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
       decoration: BoxDecoration(
@@ -963,50 +920,18 @@ class LuxeJewelryPurchaseBar extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          Expanded(
-            flex: 4,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AnimatedSwitcher(
-                  duration: LuxeMotion.medium,
-                  switchInCurve: LuxeMotion.settle,
-                  layoutBuilder: (current, previous) => Stack(
-                    alignment: Alignment.centerLeft,
-                    children: [...previous, ?current],
-                  ),
-                  child: FittedBox(
-                    key: ValueKey(total.sale),
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      total.sale,
-                      style: LuxeType.figure(
-                        p.ink,
-                        size: 18,
-                      ).copyWith(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ),
-                if (qty > 1 && sku != null)
-                  Text(
-                    context.tr(JewelryFlowL10n.lineTotal, {
-                      'count': qty,
-                      'price': unit.sale,
-                    }),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: LuxeType.label(p.inkMuted, size: 11.5),
-                  ),
-              ],
+          if (showStepper) ...[
+            LuxeQuantityStepper(
+              value: qty,
+              max: max < 1 ? 1 : max,
+              onChanged: (v) => n.setQuantity(v, max: max),
             ),
-          ),
-          const SizedBox(width: 6),
+            const SizedBox(width: 8),
+          ],
           Expanded(
-            flex: 5,
             child: LuxeButton(
               label: label,
+              sublabel: inBag ? null : total.sale,
               expand: true,
               icon: icon,
               onPressed: onPressed,

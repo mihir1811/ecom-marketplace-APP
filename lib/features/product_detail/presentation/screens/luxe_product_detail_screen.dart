@@ -25,7 +25,6 @@ import '../../domain/models/product_price_labels.dart';
 import '../widgets/luxe/luxe_detail_parts.dart';
 import '../widgets/luxe/luxe_jewelry_detail.dart';
 import '../widgets/luxe/luxe_purchase_bar.dart';
-import '../widgets/product_detail_natural_specs.dart';
 import '../widgets/product_detail_seller_panel.dart';
 import '../widgets/product_detail_suggested_products.dart';
 import '../../../spotlight/domain/spotlight_models.dart';
@@ -421,7 +420,7 @@ ProductTabbedSpecs? _bullionTabs(ProductBullionDetail? bullion) {
   );
 }
 
-/// Melee quantity, spec tabs, seller and note.
+/// Spec tabs, seller and note.
 class _Record extends StatelessWidget {
   const _Record({required this.detail, required this.isSeller});
 
@@ -435,15 +434,7 @@ class _Record extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (specs?.meleeQty != null) ...[
-          const SizedBox(height: 12),
-          ProductMeleeQtySelector(
-            productId: detail.id,
-            qty: specs!.meleeQty!,
-            lotPrice: detail.price.displayAmount,
-            currencySymbol: detail.price.currencySymbol,
-          ),
-        ],
+        // Melee pcs / ct entry lives in the sticky purchase bar.
         if (detail.jewelryDetail != null) ...[
           const SizedBox(height: 20),
           ScrollReveal(child: LuxeJewelryRecord(detail: detail)),

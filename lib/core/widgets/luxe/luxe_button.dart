@@ -21,6 +21,7 @@ class LuxeButton extends StatefulWidget {
     this.expand = false,
     this.height = 54,
     this.badge,
+    this.sublabel,
   });
 
   final String label;
@@ -35,6 +36,9 @@ class LuxeButton extends StatefulWidget {
   /// Small count bubble shown after the label (e.g. active filters).
   final int? badge;
 
+  /// Quiet second line under the label (e.g. the price on a cart button).
+  final String? sublabel;
+
   @override
   State<LuxeButton> createState() => _LuxeButtonState();
 }
@@ -43,6 +47,38 @@ class _LuxeButtonState extends State<LuxeButton> {
   bool _down = false;
 
   bool get _enabled => widget.onPressed != null && !widget.loading;
+
+  /// Stacks [sublabel] under the label row; the line cross-fades when it
+  /// changes (a cart total following the quantity).
+  Widget _withSublabel(Color color, Widget row) {
+    final sub = widget.sublabel;
+    if (sub == null) {
+      return KeyedSubtree(key: const ValueKey('label'), child: row);
+    }
+    return Column(
+      key: const ValueKey('label'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        row,
+        const SizedBox(height: 1),
+        AnimatedSwitcher(
+          duration: LuxeMotion.fast,
+          child: FittedBox(
+            key: ValueKey(sub),
+            fit: BoxFit.scaleDown,
+            child: Text(
+              sub,
+              maxLines: 1,
+              style: LuxeType.figure(
+                color.withValues(alpha: 0.82),
+                size: 12.5,
+              ).copyWith(fontWeight: FontWeight.w600, height: 1.1),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,58 +111,62 @@ class _LuxeButtonState extends State<LuxeButton> {
               height: 20,
               child: CircularProgressIndicator(strokeWidth: 2, color: text),
             )
-          : Row(
-              key: const ValueKey('label'),
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (widget.icon != null) ...[
-                  Icon(widget.icon, size: 18, color: text),
-                  const SizedBox(width: 6),
-                ],
-                Flexible(
-                  child: Text(
-                    widget.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: LuxeType.label(text, size: 14.5),
-                  ),
-                ),
-                if (widget.badge != null && widget.badge! > 0) ...[
-                  const SizedBox(width: 6),
-                  Container(
-                    constraints: const BoxConstraints(minWidth: 20),
-                    padding: const EdgeInsets.symmetric(horizontal: 5),
-                    height: 20,
-                    alignment: Alignment.center,
-                    decoration: ShapeDecoration(
-                      color: widget.variant == LuxeButtonVariant.primary
-                          ? p.accent
-                          : p.ink,
-                      shape: const StadiumBorder(),
-                    ),
+          : _withSublabel(
+              text,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.icon != null) ...[
+                    Icon(widget.icon, size: 18, color: text),
+                    const SizedBox(width: 6),
+                  ],
+                  Flexible(
                     child: Text(
-                      '${widget.badge}',
-                      style: LuxeType.figure(
-                        widget.variant == LuxeButtonVariant.primary
-                            ? p.onAccent
-                            : p.canvas,
-                        size: 11,
+                      widget.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: LuxeType.label(text, size: 14.5),
+                    ),
+                  ),
+                  if (widget.badge != null && widget.badge! > 0) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      constraints: const BoxConstraints(minWidth: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      height: 20,
+                      alignment: Alignment.center,
+                      decoration: ShapeDecoration(
+                        color: widget.variant == LuxeButtonVariant.primary
+                            ? p.accent
+                            : p.ink,
+                        shape: const StadiumBorder(),
+                      ),
+                      child: Text(
+                        '${widget.badge}',
+                        style: LuxeType.figure(
+                          widget.variant == LuxeButtonVariant.primary
+                              ? p.onAccent
+                              : p.canvas,
+                          size: 11,
+                        ),
                       ),
                     ),
-                  ),
+                  ],
+                  if (widget.trailingIcon != null) ...[
+                    const SizedBox(width: 6),
+                    Icon(widget.trailingIcon, size: 18, color: text),
+                  ],
                 ],
-                if (widget.trailingIcon != null) ...[
-                  const SizedBox(width: 6),
-                  Icon(widget.trailingIcon, size: 18, color: text),
-                ],
-              ],
+              ),
             ),
     );
 
     return Semantics(
       button: true,
       enabled: _enabled,
-      label: widget.label,
+      label: widget.sublabel == null
+          ? widget.label
+          : '${widget.label}, ${widget.sublabel}',
       excludeSemantics: true,
       child: GestureDetector(
         onTapDown: _enabled ? (_) => setState(() => _down = true) : null,
