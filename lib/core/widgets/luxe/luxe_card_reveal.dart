@@ -17,9 +17,8 @@ import '../../theme/luxe_tokens.dart';
 /// * small text lines type in with scrambled characters — see
 ///   [LuxeScrambleText].
 ///
-/// While the list scrolls, the screen folds into a drum ([LuxeScrollRipple]):
-/// cards rise from the near bottom edge, sink to the centre and lift out
-/// toward the viewer at the top.
+/// While the list scrolls, cards assemble from the wide corners on
+/// their side and retreat back out of view ([LuxeScrollAssemble]).
 class LuxeCardReveal extends StatefulWidget {
   const LuxeCardReveal({required this.index, required this.child, super.key});
 
@@ -131,7 +130,7 @@ class _LuxeCardRevealState extends State<LuxeCardReveal>
     // and the boundary lets the card's raster be reused while it animates.
     return _ClockScope(
       clock: _clock,
-      child: _RippleTarget(
+      child: _AssembleTarget(
         child: _RevealWindow(
           animation: _clock.animation,
           child: RepaintBoundary(child: widget.child),
@@ -669,25 +668,24 @@ class _RollPainter extends CustomPainter {
       old.layout != layout || old.clock != clock;
 }
 
-/// Folds the screen into a concave drum while the list scrolls, for the
-/// [LuxeCardReveal] cards below it.
+
+/// Scroll-scrubbed corner assembly for the [LuxeCardReveal] cards below it.
 ///
-/// The viewport is wrapped onto the inside of a horizontal cylinder seen
-/// through one perspective camera at the viewport centre (the
-/// scroll-velocity bend used by WebGL galleries such as lusion.co, done on
-/// the CPU per card). Cards entering at the bottom start near the viewer and
-/// sink into the screen toward the centre; past the centre they lift back
-/// toward the viewer and leave over the top edge.
+/// Every card's pose follows its place on screen, so the motion tracks the
+/// finger exactly and runs backwards when the list scrolls the other way:
+/// * entering at the bottom, each card flies in from the wide bottom corner
+///   on its own side (left column from bottom-left, right column from
+///   bottom-right), starting pushed deep into the screen, turned so its
+///   inner, centre-facing edge leans away and tipped back, then comes
+///   forward and settles flat into its cell,
+/// * leaving under the top, it lifts back out the same way toward the top
+///   corner on its side, a little softer so the rows above stay readable.
 ///
-/// Each card is laid on the chord between the drum points of its own top and
-/// bottom edge, and every card shares the same camera, so neighbours in a
-/// row stay apart sideways and rows never cross.
-///
-/// Scroll speed is smoothed and mapped through a soft curve: a slow drag
-/// already folds the screen about half way, a fling folds it fully. The fold
-/// rises in ~0.15s and relaxes over ~1s after the list stops.
-class LuxeScrollRipple extends StatefulWidget {
-  const LuxeScrollRipple({
+/// Scrolling up replays both in reverse: cards near the bottom disassemble
+/// and retreat to their corners, cards coming back in at the top assemble.
+/// Full-width list cards keep the depth and tilt with no sideways throw.
+class LuxeScrollAssemble extends StatefulWidget {
+  const LuxeScrollAssemble({
     required this.controller,
     required this.child,
     super.key,
@@ -697,55 +695,35 @@ class LuxeScrollRipple extends StatefulWidget {
   final Widget child;
 
   @override
-  State<LuxeScrollRipple> createState() => _LuxeScrollRippleState();
+  State<LuxeScrollAssemble> createState() => _LuxeScrollAssembleState();
 }
 
-/// Fold amount and viewport rectangle published to the cards each frame.
-class _FoldSignal extends ChangeNotifier {
-  double bend = 0;
-  Rect viewport = Rect.zero;
+/// Pings the cards on every scroll and tells them where the viewport is.
+class _AssembleSignal extends ChangeNotifier {
+  _AssembleSignal(this._viewportOf);
 
-  void update(double nextBend, Rect nextViewport) {
-    bend = nextBend;
-    viewport = nextViewport;
-    notifyListeners();
-  }
+  final Rect Function() _viewportOf;
+
+  Rect get viewport => _viewportOf();
+
+  void ping() => notifyListeners();
 }
 
-class _LuxeScrollRippleState extends State<LuxeScrollRipple>
-    with SingleTickerProviderStateMixin {
-  // Viewport heights per second at which the fold reaches ~63%.
-  static const _speedScale = 0.4;
-  static const _speedSmoothing = 0.08;
-  static const _riseTime = 0.12;
-  static const _relaxTime = 0.32;
-
-  final _signal = _FoldSignal();
-  late final Ticker _ticker = createTicker(_tick);
-  Duration _last = Duration.zero;
-  double? _lastPixels;
-  double _speed = 0;
-  double _bend = 0;
+class _LuxeScrollAssembleState extends State<LuxeScrollAssemble> {
+  late final _signal = _AssembleSignal(_viewport);
 
   @override
   void initState() {
     super.initState();
-    widget.controller.addListener(_onScroll);
+    widget.controller.addListener(_signal.ping);
   }
 
   @override
-  void didUpdateWidget(LuxeScrollRipple oldWidget) {
+  void didUpdateWidget(LuxeScrollAssemble oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.removeListener(_onScroll);
-      widget.controller.addListener(_onScroll);
-    }
-  }
-
-  void _onScroll() {
-    if (!_ticker.isActive && !MediaQuery.disableAnimationsOf(context)) {
-      _last = Duration.zero;
-      _ticker.start();
+      oldWidget.controller.removeListener(_signal.ping);
+      widget.controller.addListener(_signal.ping);
     }
   }
 
@@ -755,87 +733,82 @@ class _LuxeScrollRippleState extends State<LuxeScrollRipple>
     return box.localToGlobal(Offset.zero) & box.size;
   }
 
-  void _tick(Duration elapsed) {
-    final dt = _last == Duration.zero
-        ? 1 / 60
-        : ((elapsed - _last).inMicroseconds / 1e6).clamp(1 / 240, 1 / 20);
-    _last = elapsed;
-    final c = widget.controller;
-    if (!c.hasClients || c.positions.length != 1) return;
-    final pos = c.position;
-    final pixels = pos.pixels;
-    final vh = pos.viewportDimension <= 0 ? 1.0 : pos.viewportDimension;
-    final delta = _lastPixels == null ? 0.0 : (pixels - _lastPixels!).abs();
-    _lastPixels = pixels;
-
-    final raw = delta / vh / dt;
-    _speed += (raw - _speed) * (1 - math.exp(-dt / _speedSmoothing));
-    final target = 1 - math.exp(-_speed / _speedScale);
-    final tau = target > _bend ? _riseTime : _relaxTime;
-    _bend += (target - _bend) * (1 - math.exp(-dt / tau));
-
-    if (raw == 0 && _speed < 0.01 && _bend < 0.002) {
-      _speed = 0;
-      _bend = 0;
-      _lastPixels = null;
-      _signal.update(0, _viewport());
-      _ticker.stop();
-      return;
-    }
-    _signal.update(_bend, _viewport());
-  }
-
   @override
   void dispose() {
-    widget.controller.removeListener(_onScroll);
-    _ticker.dispose();
+    widget.controller.removeListener(_signal.ping);
     _signal.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) =>
-      _RippleScope(signal: _signal, child: widget.child);
+      _AssembleScope(signal: _signal, child: widget.child);
 }
 
-class _RippleScope extends InheritedWidget {
-  const _RippleScope({required this.signal, required super.child});
+class _AssembleScope extends InheritedWidget {
+  const _AssembleScope({required this.signal, required super.child});
 
-  final _FoldSignal signal;
+  final _AssembleSignal signal;
 
   @override
-  bool updateShouldNotify(_RippleScope oldWidget) => oldWidget.signal != signal;
+  bool updateShouldNotify(_AssembleScope oldWidget) =>
+      oldWidget.signal != signal;
 }
 
-class _RippleTarget extends SingleChildRenderObjectWidget {
-  const _RippleTarget({required Widget super.child});
+class _AssembleTarget extends SingleChildRenderObjectWidget {
+  const _AssembleTarget({required Widget super.child});
 
   @override
-  RenderObject createRenderObject(BuildContext context) => _RenderFold(
-    context.dependOnInheritedWidgetOfExactType<_RippleScope>()?.signal,
+  RenderObject createRenderObject(BuildContext context) => _RenderAssemble(
+    context.dependOnInheritedWidgetOfExactType<_AssembleScope>()?.signal,
   );
 
   @override
-  void updateRenderObject(BuildContext context, _RenderFold renderObject) {
+  void updateRenderObject(BuildContext context, _RenderAssemble renderObject) {
     renderObject.signal = context
-        .dependOnInheritedWidgetOfExactType<_RippleScope>()
+        .dependOnInheritedWidgetOfExactType<_AssembleScope>()
         ?.signal;
   }
 }
 
-/// Lays its child on the drum described by [LuxeScrollRipple].
-class _RenderFold extends RenderProxyBox {
-  _RenderFold(this._signal);
+/// Poses its child for [LuxeScrollAssemble] from its place in the viewport.
+class _RenderAssemble extends RenderProxyBox {
+  _RenderAssemble(this._signal);
 
-  /// Drum angle at the viewport edges at full fold (~34°).
-  static const _edgeAngle = 0.6;
+  /// Pinned listing toolbar the cards slide under.
+  static const _topInset = 56.0;
 
-  /// Camera distance in viewport heights; sets how strongly near edges grow.
-  static const _camera = 2.0;
+  /// Viewport share a card travels past the bottom edge before it lands.
+  static const _enterTail = 0.14;
 
-  _FoldSignal? _signal;
+  /// Card heights over which a card lifts out under the top.
+  static const _leaveSpan = 0.8;
 
-  set signal(_FoldSignal? value) {
+  /// Exit strength relative to the entrance.
+  static const _leaveAmount = 0.7;
+
+  /// Sideways throw toward the corner, in viewport widths.
+  static const _spread = 0.34;
+
+  /// Vertical throw past the edge, in card heights.
+  static const _drop = 0.55;
+
+  /// Turn about the vertical axis, inner edge away (~41°).
+  static const _yaw = 0.72;
+
+  /// Tip about the horizontal axis, far edge away (~23°).
+  static const _pitch = 0.4;
+
+  /// Fan in the screen plane (~7°).
+  static const _roll = 0.12;
+
+  /// Push into the screen, in camera distances (~0.53x at full depth).
+  static const _depth = 0.9;
+
+  _AssembleSignal? _signal;
+  final _layer = LayerHandle<TransformLayer>();
+
+  set signal(_AssembleSignal? value) {
     if (value == _signal) return;
     if (attached) {
       _signal?.removeListener(markNeedsPaint);
@@ -857,69 +830,84 @@ class _RenderFold extends RenderProxyBox {
     super.detach();
   }
 
-  /// Local → local projective transform, or null while the screen is flat.
-  Matrix4? _fold() {
-    final s = _signal;
-    if (s == null || s.bend <= 0.001 || !hasSize || !attached) return null;
-    final v = s.viewport;
-    final h = size.height;
-    if (v.isEmpty || h <= 0) return null;
+  @override
+  void dispose() {
+    _layer.layer = null;
+    super.dispose();
+  }
 
-    final half = v.height / 2;
-    final cx = v.center.dx;
-    final cy = v.center.dy;
-    final radius = half / (_edgeAngle * s.bend);
-    final camera = v.height * _camera;
+  /// Local → local projective pose, or null once the card sits in place.
+  Matrix4? _pose() {
+    final s = _signal;
+    if (s == null || !hasSize || !attached) return null;
+    final v = s.viewport;
+    final w = size.width;
+    final h = size.height;
+    if (v.isEmpty || w <= 0 || h <= 0) return null;
     final g = localToGlobal(Offset.zero);
 
-    // Screen row → point on the drum (height from centre, depth toward the
-    // viewer); arc length equals the flat distance from the centre.
-    (double, double) drum(double y) {
-      final phi = ((y - cy) / radius).clamp(-1.45, 1.45);
-      return (radius * math.sin(phi), radius * (1 - math.cos(phi)));
-    }
-
-    final (y0, z0) = drum(g.dy);
-    final (y1, z1) = drum(g.dy + h);
-    // Homogeneous w = 1 - depth / camera along the card's chord.
-    final w0 = 1 - z0 / camera;
-    final wy = -(z1 - z0) / (camera * h);
-    final ox = cx - g.dx;
-    final oy = cy - g.dy;
-    // Column-major.
-    return Matrix4(
-      1,
-      0,
-      0,
-      0, //
-      ox * wy,
-      oy * wy + (y1 - y0) / h,
-      0,
-      wy, //
-      0,
-      0,
-      1,
-      0, //
-      ox * w0 - ox,
-      oy * w0 + y0,
-      0,
-      w0, //
+    // 0 = in its corner, 1 = in place; whichever edge is nearer wins.
+    final enter = _saturate((v.bottom - g.dy) / (h + v.height * _enterTail));
+    final leave = _saturate(
+      (g.dy + h - (v.top + _topInset)) / (h * _leaveSpan),
     );
+    final double amount;
+    final double dir; // +1 toward the bottom corners, -1 toward the top.
+    if (enter < 1) {
+      amount = (1 - enter) * (1 - enter);
+      dir = 1;
+    } else if (leave < 1) {
+      amount = (1 - leave) * (1 - leave) * _leaveAmount;
+      dir = -1;
+    } else {
+      return null;
+    }
+    if (amount < 0.0005) return null;
+
+    // -1 left column, +1 right column, 0 full-width row.
+    final side = ((g.dx + w / 2 - v.center.dx) / (v.width / 4)).clamp(
+      -1.0,
+      1.0,
+    );
+    final camera = math.max(w, h) * 2;
+    final cx = w / 2;
+    final cy = h / 2;
+    // Vanishing point on the screen's centre line, level with the card, so
+    // the inner edges recede toward the middle of the grid.
+    final px = v.center.dx - g.dx;
+    final dx = side * amount * v.width * _spread;
+    final dy = dir * amount * h * _drop;
+    final dz = amount * camera * _depth;
+
+    return Matrix4.translationValues(dx + px, dy + cy, 0)
+      ..multiply(Matrix4.identity()..setEntry(3, 2, 1 / camera))
+      ..multiply(Matrix4.translationValues(cx - px, 0, dz))
+      ..multiply(Matrix4.rotationZ(side * dir * amount * _roll))
+      ..multiply(Matrix4.rotationY(side * amount * _yaw))
+      ..multiply(Matrix4.rotationX(-dir * amount * _pitch))
+      ..multiply(Matrix4.translationValues(-cx, -cy, 0));
   }
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    final m = _fold();
+    final m = _pose();
     if (m == null) {
+      _layer.layer = null;
       super.paint(context, offset);
       return;
     }
-    context.pushTransform(needsCompositing, offset, m, super.paint);
+    _layer.layer = context.pushTransform(
+      needsCompositing,
+      offset,
+      m,
+      super.paint,
+      oldLayer: _layer.layer,
+    );
   }
 
   @override
   bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
-    final m = _fold();
+    final m = _pose();
     if (m == null) return super.hitTestChildren(result, position: position);
     return result.addWithPaintTransform(
       transform: m,
@@ -930,7 +918,7 @@ class _RenderFold extends RenderProxyBox {
 
   @override
   void applyPaintTransform(RenderBox child, Matrix4 transform) {
-    final m = _fold();
+    final m = _pose();
     if (m != null) transform.multiply(m);
   }
 }

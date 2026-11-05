@@ -51,17 +51,39 @@ String? _unitPrice(Diamond d, MeleeLotFigures? m, {required bool inPcs}) {
   return '$mark${AppCurrency.format(formatGroupedWhole(ppc.roundToDouble()))}/ct';
 }
 
-String? _measure(Diamond d) => DiamondDisplay.optional(
-  d.measurement,
-)?.replaceAll(RegExp(r'\s*[xX]\s*'), ' × ');
+/// Single stones only: melee size ranges ("1.28*1.28*0.79-1.32*…") are
+/// too long for a card, so melee shows its carat line instead.
+String? _measure(Diamond d, MeleeLotFigures? m) => m != null
+    ? null
+    : DiamondDisplay.optional(
+        d.measurement,
+      )?.replaceAll(RegExp(r'\s*[xX]\s*'), ' × ');
+
+/// Melee "0.01 ct/pc · 5.00 ct total"; per piece from lot totals when both
+/// are known (seller per-piece is often stale).
+String? _meleeCarats(MeleeLotFigures? m) {
+  if (m == null) return null;
+  final pcs = m.totalPcs ?? 0;
+  final ct = m.totalCarat ?? 0;
+  final cpp = pcs > 0 && ct > 0 ? ct / pcs : (m.caratPerPcs ?? 0);
+  final parts = [
+    if (cpp > 0)
+      '${m.caratPerPcsApprox || m.pcsApprox ? '≈' : ''}'
+          '${formatCaratPerPiece(cpp)} ct/pc',
+    if (ct > 0)
+      '${m.totalCaratApprox ? '≈' : ''}${ct.toStringAsFixed(2)} ct total',
+  ];
+  return parts.isEmpty ? null : parts.join(' · ');
+}
 
 /// "$8,191/ct · 7.21 × 5.10 × 3.18" — rounded, grouped, typographic ×.
-/// Melee lots carry the unit price in the title instead. Estimated melee
-/// figures end with "approx.".
+/// Melee lots carry the unit price in the title and show carat per piece
+/// and total here instead. Estimated melee figures end with "approx.".
 String? _metaLine(Diamond d, MeleeLotFigures? m, {required bool inPcs}) {
   final parts = [
     if (m == null) ?_unitPrice(d, m, inPcs: inPcs),
-    ?_measure(d),
+    ?_measure(d, m),
+    ?_meleeCarats(m),
     if (_approx(m, inPcs: inPcs)) 'approx.',
   ];
   return parts.isEmpty ? null : parts.join(' · ');
@@ -200,7 +222,8 @@ class DiamondLuxeListCard extends ConsumerWidget {
       // Sponsored cards lead with the stock number, right after the pill.
       if (sponsored && stock != null && stock.isNotEmpty) '#$stock',
       ?lab,
-      ?_measure(d),
+      ?_measure(d, m),
+      ?_meleeCarats(m),
       if (_approx(m, inPcs: inPcs)) 'approx.',
       if (!sponsored && stock != null && stock.isNotEmpty) '#$stock',
     ].join(' · ');

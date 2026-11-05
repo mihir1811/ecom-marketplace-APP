@@ -20,6 +20,8 @@ import '../../../jewelry_reviews/presentation/widgets/jewelry_reviews_section.da
 import '../../../product_share/presentation/widgets/product_share_sheet.dart';
 import '../../../recently_viewed/application/recently_viewed_providers.dart';
 import '../../../diamonds/application/diamond_search_provider.dart';
+import '../../../diamonds/domain/melee_lot_figures.dart'
+    show formatCaratPerPiece;
 import '../../application/melee_qty_draft_provider.dart';
 import '../../domain/adapters/jewelry_product_detail.dart';
 import '../../domain/models/product_bullion_detail.dart';
@@ -330,7 +332,13 @@ class _Summary extends ConsumerWidget {
     Widget enter(Widget child, int i) => luxeEnter(context, child, i);
     final (:title, :labels, :approx) = _meleeView(ref);
     if (detail.jewelryDetail == null) {
-      return _compact(context, title: title, labels: labels, approx: approx);
+      return _compact(
+        context,
+        title: title,
+        caratLine: _meleeCaratLine(),
+        labels: labels,
+        approx: approx,
+      );
     }
 
     return Column(
@@ -398,6 +406,7 @@ class _Summary extends ConsumerWidget {
   Widget _compact(
     BuildContext context, {
     required String title,
+    required String? caratLine,
     required ProductPriceLabels labels,
     required bool approx,
   }) {
@@ -431,6 +440,15 @@ class _Summary extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                       style: LuxeType.display(28, p.ink).copyWith(height: 1.1),
                     ),
+                    if (caratLine != null) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        caratLine,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: LuxeType.label(p.ink, size: 13),
+                      ),
+                    ],
                     const SizedBox(height: 3),
                     Text(
                       detail.subtitle,
@@ -544,6 +562,23 @@ class _Summary extends ConsumerWidget {
         ? null
         : '$mark${price.currencySymbol}${formatCatalogPrice(perPc)} per piece';
     return (title: title, labels: withUnit(unit), approx: approx);
+  }
+
+  /// Melee lots: "0.01 ct per piece · 5.00 ct total", in both pcs and ct
+  /// modes. Null when neither figure is known.
+  String? _meleeCaratLine() {
+    final lot = detail.meleeLot;
+    if (lot == null) return null;
+    final cpp = lot.resolvedCaratPerPcs;
+    final total = lot.totalCarat ?? 0;
+    final parts = [
+      if (cpp > 0)
+        '${lot.pcsApprox || lot.caratApprox ? '≈' : ''}'
+            '${formatCaratPerPiece(cpp)} ct per piece',
+      if (total > 0)
+        '${lot.caratApprox ? '≈' : ''}${total.toStringAsFixed(2)} ct total',
+    ];
+    return parts.isEmpty ? null : parts.join(' · ');
   }
 }
 

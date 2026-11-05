@@ -9,6 +9,16 @@ import 'models/sieve_size.dart';
 /// approximate so the UI can say so.
 ///
 /// Display only: cart and offer pricing keep using seller data.
+/// Melee carat per piece: up to 3 decimals, never below 2
+/// ("0.005", "0.01", "0.15").
+String formatCaratPerPiece(double ct) {
+  var s = ct.toStringAsFixed(3);
+  while (s.endsWith('0') && s.length - s.indexOf('.') > 3) {
+    s = s.substring(0, s.length - 1);
+  }
+  return s;
+}
+
 class MeleeLotFigures {
   const MeleeLotFigures({
     this.totalPcs,

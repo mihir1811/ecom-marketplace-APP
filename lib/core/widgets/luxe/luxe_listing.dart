@@ -895,7 +895,7 @@ class LuxeListingScrollView extends StatelessWidget {
           color: p.ink,
           backgroundColor: p.surface,
           onRefresh: onRefresh,
-          child: LuxeScrollRipple(
+          child: LuxeScrollAssemble(
             controller: controller,
             child: CustomScrollView(
               controller: controller,
