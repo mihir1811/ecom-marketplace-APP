@@ -97,8 +97,8 @@ class GemstoneDto {
     final sellerMap = seller is Map<String, dynamic>
         ? seller
         : seller is Map
-            ? seller.map((k, v) => MapEntry(k.toString(), v))
-            : null;
+        ? seller.map((k, v) => MapEntry(k.toString(), v))
+        : null;
 
     return GemstoneDto(
       id: json['id']?.toString() ?? '',

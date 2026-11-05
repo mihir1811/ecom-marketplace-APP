@@ -28,7 +28,7 @@ const double _kGrowDistance = 340;
 const double _kMaxContentWidth = 560;
 
 /// Share of the screen the centre pop-up takes when others peek in beside it.
-const double _kCardShare = 0.8;
+const double _kCardShare = 0.9;
 
 /// Scale of the pop-ups either side of the centre one.
 const double _kSideScale = 0.88;
@@ -38,7 +38,7 @@ const double _kSideScale = 0.88;
 const double _kShrinkBuffer = 64;
 
 /// Space between the centre pop-up and its neighbours.
-const double _kPeekGap = 10;
+const double _kPeekGap = 6;
 
 const Curve _kOpenCurve = Cubic(0.22, 1, 0.36, 1);
 const Curve _kCloseCurve = Cubic(0.4, 0, 0.2, 1);
@@ -67,7 +67,7 @@ class ProductSheetScreen extends ConsumerStatefulWidget {
 class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
     with TickerProviderStateMixin {
   late final ProductSwitchSet? _set = widget.launch.switchSet;
-  late final int _count = _set?.length ?? 1;
+  int get _count => _set?.length ?? 1;
   late final int _initial = _set?.initialIndex ?? 0;
   late int _index = _initial;
   late final ProductPager _pager = ProductPager(
@@ -75,8 +75,17 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
     count: _count,
     initial: _initial,
     onSettled: _onSettled,
-    onStep: (_) => AppHaptics.selection(),
+    onStep: (i) {
+      AppHaptics.selection();
+      // Mid-swipe too, so the next page is in by the time it is reached.
+      _set?.reached(i);
+    },
   );
+
+  void _onMoreProducts() {
+    if (!mounted) return;
+    setState(() => _pager.count = _count);
+  }
 
   /// Growth (0 pop-up … 1 full screen) read straight off the scroll offset.
   final _scrollGrowth = ValueNotifier<double>(0);
@@ -130,9 +139,12 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
       _pull.value =
           _pullFrom * (1 - Curves.easeOutCubic.transform(_pullBack.value));
     });
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _recordView(_detailAt(_index)),
-    );
+    _set?.lengthListenable.addListener(_onMoreProducts);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _recordView(_detailAt(_index));
+      // Opened near the end of what is loaded: fetch the next page now.
+      _set?.reached(_index);
+    });
   }
 
   @override
@@ -152,6 +164,7 @@ class _ProductSheetScreenState extends ConsumerState<ProductSheetScreen>
 
   @override
   void dispose() {
+    _set?.lengthListenable.removeListener(_onMoreProducts);
     _route.removeStatusListener(_onRouteStatus);
     _scrollGrowth.dispose();
     _growth.dispose();

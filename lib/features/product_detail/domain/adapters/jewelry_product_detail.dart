@@ -36,7 +36,6 @@ ProductDetail jewelryProductDetail(Jewelry j) {
     referenceValue: jewelryDetail.stockNumber ?? '',
     shapeKey: jewelryDetail.primaryShape,
     badges: [
-      const ProductBadge('Jewelry', tone: ProductBadgeTone.accent),
       if (jewelryDetail.gemstoneOrigin != null)
         ProductBadge(jewelryDetail.gemstoneOrigin!),
       if (jewelryDetail.isMadeToOrder)

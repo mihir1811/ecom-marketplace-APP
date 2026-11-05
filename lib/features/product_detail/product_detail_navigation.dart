@@ -71,11 +71,13 @@ void openProductDetail(
 }
 
 /// Typed openers. Pass the list the row came from as [among] to let the
-/// detail sheet switch between its products.
+/// detail sheet switch between its products, and [feed] to let it page in
+/// more of that list as the user swipes near the end.
 void openDiamondDetail(
   BuildContext context,
   Diamond diamond, {
   List<Diamond>? among,
+  ProductListFeed<Diamond>? feed,
 }) {
   final detail = diamondProductDetail(diamond);
   openProductDetail(
@@ -86,6 +88,7 @@ void openDiamondDetail(
       diamond,
       diamondProductDetail,
       detail,
+      feed: feed,
     ),
   );
 }
@@ -94,6 +97,7 @@ void openGemstoneDetail(
   BuildContext context,
   Gemstone gemstone, {
   List<Gemstone>? among,
+  ProductListFeed<Gemstone>? feed,
 }) {
   final detail = gemstoneProductDetail(gemstone);
   openProductDetail(
@@ -104,6 +108,7 @@ void openGemstoneDetail(
       gemstone,
       gemstoneProductDetail,
       detail,
+      feed: feed,
     ),
   );
 }
@@ -112,6 +117,7 @@ void openJewelryDetail(
   BuildContext context,
   Jewelry jewelry, {
   List<Jewelry>? among,
+  ProductListFeed<Jewelry>? feed,
 }) {
   final detail = jewelryProductDetail(jewelry);
   openProductDetail(
@@ -122,16 +128,28 @@ void openJewelryDetail(
       jewelry,
       jewelryProductDetail,
       detail,
+      feed: feed,
     ),
   );
 }
 
-void openWatchDetail(BuildContext context, Watch watch, {List<Watch>? among}) {
+void openWatchDetail(
+  BuildContext context,
+  Watch watch, {
+  List<Watch>? among,
+  ProductListFeed<Watch>? feed,
+}) {
   final detail = watchProductDetail(watch);
   openProductDetail(
     context,
     detail,
-    switchSet: ProductSwitchSet.of(among, watch, watchProductDetail, detail),
+    switchSet: ProductSwitchSet.of(
+      among,
+      watch,
+      watchProductDetail,
+      detail,
+      feed: feed,
+    ),
   );
 }
 
@@ -139,6 +157,7 @@ void openBullionDetail(
   BuildContext context,
   Bullion bullion, {
   List<Bullion>? among,
+  ProductListFeed<Bullion>? feed,
 }) {
   final detail = bullionProductDetail(bullion);
   openProductDetail(
@@ -149,6 +168,7 @@ void openBullionDetail(
       bullion,
       bullionProductDetail,
       detail,
+      feed: feed,
     ),
   );
 }

@@ -4,13 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../theme/luxe_tokens.dart';
+
 /// Product-card scroll entrance modelled on the lusion.co work grid.
 ///
 /// Each time a card scrolls into view (and again after it fully leaves):
-/// * the card grows from 92% inside its own cell (1.4s expo-out), so it never
-///   reaches into a neighbouring card,
-/// * its media opens from a 70% rounded window while the image settles from
-///   a 1.33x zoom (1.5s expo-out) — see [LuxeRevealMask] / [LuxeRevealZoom],
+/// * the whole card opens from a centred 70% rounded window while its
+///   content settles from a 1.33x zoom (1.5s expo-out); the clip keeps it
+///   inside its own cell,
 /// * the title rolls each letter down like a slot reel, centre letters first
 ///   — see [LuxeRollTitle],
 /// * small text lines type in with scrambled characters — see
@@ -38,7 +39,8 @@ class LuxeCardReveal extends StatefulWidget {
 class LuxeRevealClock {
   LuxeRevealClock._(this.animation);
 
-  static const total = 2.0;
+  /// Longest effect: the window / zoom (1.5s).
+  static const total = 1.5;
 
   /// Drives listeners every frame of the entrance.
   final AnimationController animation;
@@ -125,18 +127,14 @@ class _LuxeCardRevealState extends State<LuxeCardReveal>
   @override
   Widget build(BuildContext context) {
     if (_reduced) return widget.child;
+    // The window and zoom run in paint only: no widget rebuilds per frame,
+    // and the boundary lets the card's raster be reused while it animates.
     return _ClockScope(
       clock: _clock,
       child: _RippleTarget(
-        child: AnimatedBuilder(
+        child: _RevealWindow(
           animation: _clock.animation,
-          child: widget.child,
-          builder: (context, child) {
-            // Scales about the card's own centre and never above 1, so the
-            // card stays inside its grid cell.
-            final t = LuxeEase.expoOut(_clock.seconds / 1.4);
-            return Transform.scale(scale: 0.92 + 0.08 * t, child: child);
-          },
+          child: RepaintBoundary(child: widget.child),
         ),
       ),
     );
@@ -168,115 +166,317 @@ abstract final class LuxeEase {
 
 double _saturate(double v) => v.clamp(0.0, 1.0);
 
-/// Clips media to a centred rounded window that opens from 70% to full size.
-class LuxeRevealMask extends StatelessWidget {
-  const LuxeRevealMask({required this.radius, required this.child, super.key});
+class _RevealWindow extends SingleChildRenderObjectWidget {
+  const _RevealWindow({required this.animation, required Widget super.child});
 
-  final double radius;
-  final Widget child;
+  final Animation<double> animation;
 
   @override
-  Widget build(BuildContext context) {
-    final clock = LuxeCardReveal.clockOf(context);
-    if (clock == null) return child;
-    return AnimatedBuilder(
-      animation: clock.animation,
-      child: child,
-      builder: (context, child) {
-        final show = LuxeEase.expoOut(clock.seconds / 1.5);
-        return ClipRRect(
-          clipper: _CentredRRect(0.7 + 0.3 * show, radius),
-          child: child,
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderRevealWindow(animation);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderRevealWindow renderObject,
+  ) => renderObject.animation = animation;
+}
+
+/// Clips the card to a centred rounded window opening from 70% to full size
+/// while the content settles from a 1.33x zoom about its centre.
+class _RenderRevealWindow extends RenderProxyBox {
+  _RenderRevealWindow(this._animation);
+
+  static const _duration = 1.5;
+  static const _radius = Radius.circular(LuxeSpace.cardRadius);
+
+  Animation<double> _animation;
+
+  set animation(Animation<double> value) {
+    if (value == _animation) return;
+    if (attached) {
+      _animation.removeListener(markNeedsPaint);
+      value.addListener(markNeedsPaint);
+    }
+    _animation = value;
+    markNeedsPaint();
+  }
+
+  final _clip = LayerHandle<ClipRRectLayer>();
+  final _transform = LayerHandle<TransformLayer>();
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _animation.addListener(markNeedsPaint);
+  }
+
+  @override
+  void detach() {
+    _animation.removeListener(markNeedsPaint);
+    super.detach();
+  }
+
+  @override
+  void dispose() {
+    _clip.layer = null;
+    _transform.layer = null;
+    super.dispose();
+  }
+
+  double get _show =>
+      LuxeEase.expoOut(_animation.value * LuxeRevealClock.total / _duration);
+
+  /// Scale about the centre, or null once settled.
+  Matrix4? _zoom() {
+    final show = _show;
+    if (show >= 0.999 || !hasSize) return null;
+    final z = 1 / (0.75 + 0.25 * show);
+    final c = size.center(Offset.zero);
+    return Matrix4.diagonal3Values(z, z, 1)
+      ..setTranslationRaw(c.dx * (1 - z), c.dy * (1 - z), 0);
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final child = this.child;
+    if (child == null) return;
+    final show = _show;
+    if (show >= 0.999) {
+      _clip.layer = null;
+      _transform.layer = null;
+      context.paintChild(child, offset);
+      return;
+    }
+    final f = 0.7 + 0.3 * show;
+    final window = RRect.fromRectAndRadius(
+      Rect.fromCenter(
+        center: size.center(Offset.zero),
+        width: size.width * f,
+        height: size.height * f,
+      ),
+      _radius,
+    );
+    final zoom = _zoom()!;
+    _clip.layer = context.pushClipRRect(
+      needsCompositing,
+      offset,
+      window.outerRect,
+      window,
+      (context, offset) {
+        _transform.layer = context.pushTransform(
+          needsCompositing,
+          offset,
+          zoom,
+          (context, offset) => context.paintChild(child, offset),
+          oldLayer: _transform.layer,
         );
       },
+      oldLayer: _clip.layer,
     );
   }
-}
-
-class _CentredRRect extends CustomClipper<RRect> {
-  const _CentredRRect(this.fraction, this.radius);
-
-  final double fraction;
-  final double radius;
 
   @override
-  RRect getClip(Size size) => RRect.fromRectAndRadius(
-    Rect.fromCenter(
-      center: size.center(Offset.zero),
-      width: size.width * fraction,
-      height: size.height * fraction,
-    ),
-    Radius.circular(radius),
-  );
-
-  @override
-  bool shouldReclip(_CentredRRect oldClipper) =>
-      oldClipper.fraction != fraction || oldClipper.radius != radius;
-}
-
-/// Settles media from a 1.33x zoom to rest while the mask opens.
-class LuxeRevealZoom extends StatelessWidget {
-  const LuxeRevealZoom({required this.child, super.key});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final clock = LuxeCardReveal.clockOf(context);
-    if (clock == null) return child;
-    return AnimatedBuilder(
-      animation: clock.animation,
-      child: child,
-      builder: (context, child) {
-        final show = LuxeEase.expoOut(clock.seconds / 1.5);
-        return Transform.scale(scale: 1 / (0.75 + 0.25 * show), child: child);
-      },
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    final m = _zoom();
+    if (m == null) return super.hitTestChildren(result, position: position);
+    return result.addWithPaintTransform(
+      transform: m,
+      position: position,
+      hitTest: (result, p) => super.hitTestChildren(result, position: p),
     );
+  }
+
+  @override
+  void applyPaintTransform(RenderBox child, Matrix4 transform) {
+    final m = _zoom();
+    if (m != null) transform.multiply(m);
   }
 }
 
 /// Small text line that types in at 40 characters a second, the newest few
 /// shown as random glyphs.
-class LuxeScrambleText extends StatelessWidget {
+///
+/// The final text keeps the layout (hidden while typing) and the typing is
+/// painted over it on its own layer straight from the clock, so the card
+/// never relays out or repaints for it. The widget rebuilds only when typing
+/// starts or ends.
+class LuxeScrambleText extends StatefulWidget {
   const LuxeScrambleText(this.text, {required this.style, super.key});
+
+  final String text;
+  final TextStyle style;
+
+  @override
+  State<LuxeScrambleText> createState() => _LuxeScrambleTextState();
+}
+
+class _LuxeScrambleTextState extends State<LuxeScrambleText> {
+  LuxeRevealClock? _clock;
+  late _ScrambleTyping _typing;
+  bool _animating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _typing = _ScrambleTyping(widget.text);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final next = LuxeCardReveal.clockOf(context);
+    if (next != _clock) {
+      _clock?.animation.removeListener(_tick);
+      _clock = next;
+      _clock?.animation.addListener(_tick);
+    }
+    _animating = _typing.animating(_clock);
+  }
+
+  @override
+  void didUpdateWidget(LuxeScrambleText oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.text != widget.text) {
+      _typing.dispose();
+      _typing = _ScrambleTyping(widget.text);
+      _animating = _typing.animating(_clock);
+    }
+  }
+
+  @override
+  void dispose() {
+    _clock?.animation.removeListener(_tick);
+    _typing.dispose();
+    super.dispose();
+  }
+
+  void _tick() {
+    final next = _typing.animating(_clock);
+    if (next != _animating) setState(() => _animating = next);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Text(
+      widget.text,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: widget.style,
+    );
+    final clock = _clock;
+    if (clock == null) return text;
+    return RepaintBoundary(
+      child: CustomPaint(
+        foregroundPainter: _animating
+            ? _ScramblePainter(
+                typing: _typing,
+                clock: clock,
+                style: DefaultTextStyle.of(context).style.merge(widget.style),
+                scaler: MediaQuery.textScalerOf(context),
+                direction: Directionality.of(context),
+              )
+            : null,
+        child: Opacity(
+          opacity: _animating ? 0 : 1,
+          alwaysIncludeSemantics: true,
+          child: text,
+        ),
+      ),
+    );
+  }
+}
+
+/// Typing state of one line, shared by its painter across frames.
+class _ScrambleTyping {
+  _ScrambleTyping(this.text) : chars = text.characters.toList();
 
   static const _lettersPerSecond = 40;
   static const _randomTail = 5;
   static final _random = math.Random();
 
   final String text;
-  final TextStyle style;
+  final List<String> chars;
+  TextPainter? _painter;
+  int _typed = -1;
 
-  Text _text(String value) =>
-      Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: style);
+  int typedAt(LuxeRevealClock clock) =>
+      (_lettersPerSecond * clock.seconds).floor();
+
+  bool animating(LuxeRevealClock? clock) =>
+      clock != null &&
+      !clock.done &&
+      typedAt(clock) - _randomTail < chars.length;
+
+  /// Painter for the current typed count; rebuilt only when it moves.
+  TextPainter painterFor(
+    int typed,
+    TextStyle style,
+    TextScaler scaler,
+    TextDirection direction,
+  ) {
+    final cached = _painter;
+    if (cached != null && typed == _typed) return cached;
+    _typed = typed;
+    final settled = math.min(chars.length, typed - _randomTail);
+    final shown = math.min(chars.length, typed);
+    final b = StringBuffer();
+    for (var i = 0; i < settled; i++) {
+      b.write(chars[i]);
+    }
+    for (var i = math.max(0, settled); i < shown; i++) {
+      b.writeCharCode(33 + _random.nextInt(93));
+    }
+    cached?.dispose();
+    return _painter = TextPainter(
+      text: TextSpan(text: b.toString(), style: style),
+      maxLines: 1,
+      textDirection: direction,
+      textScaler: scaler,
+    )..layout();
+  }
+
+  void dispose() {
+    _painter?.dispose();
+    _painter = null;
+  }
+}
+
+class _ScramblePainter extends CustomPainter {
+  _ScramblePainter({
+    required this.typing,
+    required this.clock,
+    required this.style,
+    required this.scaler,
+    required this.direction,
+  }) : super(repaint: clock.animation);
+
+  final _ScrambleTyping typing;
+  final LuxeRevealClock clock;
+  final TextStyle style;
+  final TextScaler scaler;
+  final TextDirection direction;
 
   @override
-  Widget build(BuildContext context) {
-    final clock = LuxeCardReveal.clockOf(context);
-    if (clock == null) return _text(text);
-    final chars = text.characters.toList();
-    return AnimatedBuilder(
-      animation: clock.animation,
-      builder: (context, _) {
-        final typed = (_lettersPerSecond * clock.seconds).floor();
-        final settled = math.min(chars.length, typed - _randomTail);
-        if (clock.done || settled >= chars.length) return _text(text);
-        final shown = math.min(chars.length, typed);
-        final b = StringBuffer();
-        for (var i = 0; i < settled; i++) {
-          b.write(chars[i]);
-        }
-        for (var i = math.max(0, settled); i < shown; i++) {
-          b.writeCharCode(33 + _random.nextInt(93));
-        }
-        return Semantics(
-          label: text,
-          excludeSemantics: true,
-          child: _text(b.toString()),
-        );
-      },
-    );
+  void paint(Canvas canvas, Size size) {
+    final typed = typing.typedAt(clock);
+    if (typed <= 0) return;
+    // Random glyphs can run wider than the final text: clip to its box.
+    canvas.save();
+    canvas.clipRect(Offset.zero & size);
+    typing
+        .painterFor(typed, style, scaler, direction)
+        .paint(canvas, Offset.zero);
+    canvas.restore();
   }
+
+  @override
+  bool shouldRepaint(_ScramblePainter old) =>
+      old.typing != typing ||
+      old.clock != clock ||
+      old.style != style ||
+      old.scaler != scaler ||
+      old.direction != direction;
 }
 
 /// Card hover / press state published by the card frame.
@@ -350,30 +550,27 @@ class _LuxeRollTitleState extends State<LuxeRollTitle> {
   Widget build(BuildContext context) {
     final clock = LuxeCardReveal.clockOf(context);
     if (clock == null) return _plain;
-    return AnimatedBuilder(
-      animation: clock.animation,
-      builder: (context, _) {
-        // Edge letters finish last, at 1 / 0.8 seconds.
-        if (clock.done || clock.seconds >= 1.25) return _plain;
-        return LayoutBuilder(
+    // Painted straight from the clock: no rebuild or relayout per frame, and
+    // its own layer so the rolling letters never repaint the rest of the card.
+    return Semantics(
+      label: widget.text,
+      excludeSemantics: true,
+      child: RepaintBoundary(
+        child: LayoutBuilder(
           builder: (context, constraints) {
             final layout = _layoutFor(context, constraints.maxWidth);
-            return Semantics(
-              label: widget.text,
-              excludeSemantics: true,
-              child: CustomPaint(
-                size: Size(
-                  constraints.maxWidth.isFinite
-                      ? constraints.maxWidth
-                      : layout.painter.width,
-                  layout.painter.height,
-                ),
-                painter: _RollPainter(layout: layout, seconds: clock.seconds),
+            return CustomPaint(
+              size: Size(
+                constraints.maxWidth.isFinite
+                    ? constraints.maxWidth
+                    : layout.painter.width,
+                layout.painter.height,
               ),
+              painter: _RollPainter(layout: layout, clock: clock),
             );
           },
-        );
-      },
+        ),
+      ),
     );
   }
 }
@@ -427,15 +624,24 @@ class _RollLayout {
 }
 
 class _RollPainter extends CustomPainter {
-  _RollPainter({required this.layout, required this.seconds});
+  _RollPainter({required this.layout, required this.clock})
+    : super(repaint: clock.animation);
+
+  /// Edge letters finish last, at 1 / 0.8 seconds.
+  static const _end = 1.25;
 
   final _RollLayout layout;
-  final double seconds;
+  final LuxeRevealClock clock;
 
   @override
   void paint(Canvas canvas, Size size) {
     final tp = layout.painter;
     final line = tp.height;
+    final seconds = clock.seconds;
+    if (clock.done || seconds >= _end) {
+      tp.paint(canvas, Offset.zero);
+      return;
+    }
 
     canvas.save();
     canvas.clipRect(Offset.zero & Size(size.width, size.height));
@@ -460,7 +666,7 @@ class _RollPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_RollPainter old) =>
-      old.layout != layout || old.seconds != seconds;
+      old.layout != layout || old.clock != clock;
 }
 
 /// Folds the screen into a concave drum while the list scrolls, for the

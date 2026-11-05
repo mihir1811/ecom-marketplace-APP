@@ -29,7 +29,6 @@ ProductDetail watchProductDetail(Watch w) {
     referenceLabel: 'Stock ID',
     referenceValue: w.id,
     badges: [
-      const ProductBadge('Watch', tone: ProductBadgeTone.accent),
       ProductBadge(w.condition, tone: ProductBadgeTone.positive),
       if (w.fullSetIncluded) const ProductBadge('Full set'),
       if (markdown != null)

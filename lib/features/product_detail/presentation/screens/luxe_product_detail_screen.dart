@@ -383,8 +383,6 @@ class _Summary extends ConsumerWidget {
           // Jewelry is priced per chosen variant, so the card lives with
           // the configurator.
           enter(LuxeJewelryPurchasePanel(detail: detail), 4),
-          const SizedBox(height: 18),
-          enter(LuxeJewelryGlance(detail: detail), 5),
           const SizedBox(height: 12),
         ],
         if (detail.certification != null &&

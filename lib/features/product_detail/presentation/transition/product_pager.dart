@@ -27,7 +27,8 @@ class ProductPager {
     ratio: 1,
   );
 
-  final int count;
+  /// Number of products; grows when the listing loads another page.
+  int count;
 
   /// Called once the carousel rests on a product.
   final ValueChanged<int> onSettled;

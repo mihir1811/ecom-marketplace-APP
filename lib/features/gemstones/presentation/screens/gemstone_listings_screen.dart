@@ -13,6 +13,8 @@ import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../../../core/widgets/luxe/luxe_toggle_sort_sheet.dart';
 import '../../../../core/widgets/navigation/top_bar/top_bar_actions.dart';
+import '../../domain/models/gemstone.dart';
+import '../../../product_detail/presentation/transition/product_sheet_launch.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/gemstone_list_provider.dart';
 import '../../application/gemstone_search_provider.dart';
@@ -60,7 +62,7 @@ class _GemstoneListingsScreenState extends ConsumerState<GemstoneListingsScreen>
   }
 
   @override
-  void listingLoadMore() =>
+  Future<void> listingLoadMore() =>
       ref.read(gemstoneListProvider.notifier).loadNextPage();
 
   @override
@@ -193,6 +195,11 @@ class _GemstoneListingsScreenState extends ConsumerState<GemstoneListingsScreen>
         stateAsync.whenOrNull(error: (e, _) => e.toString()) ??
         state?.errorMessage;
     final listed = state?.gemstones ?? const [];
+    // Lets the detail sheet page in more results as the user swipes.
+    final feed = ProductListFeed<Gemstone>(
+      items: () => ref.read(gemstoneListProvider).value?.gemstones ?? const [],
+      loadMore: listingLoadMoreIfReady,
+    );
     return luxeResultSlivers(
       context: context,
       initialLoading:
@@ -205,11 +212,13 @@ class _GemstoneListingsScreenState extends ConsumerState<GemstoneListingsScreen>
       cardOf: (g, mode) => mode == LuxeViewMode.grid
           ? GemstoneLuxeGridCard(
               gemstone: g,
-              onTap: () => openGemstoneDetail(context, g, among: listed),
+              onTap: () =>
+                  openGemstoneDetail(context, g, among: listed, feed: feed),
             )
           : GemstoneLuxeListCard(
               gemstone: g,
-              onTap: () => openGemstoneDetail(context, g, among: listed),
+              onTap: () =>
+                  openGemstoneDetail(context, g, among: listed, feed: feed),
             ),
       loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),
       emptyView: LuxeStateView(
@@ -291,4 +300,3 @@ class _Toolbar extends ConsumerWidget {
     );
   }
 }
-

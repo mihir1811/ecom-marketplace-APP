@@ -16,6 +16,8 @@ import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../../../core/widgets/luxe/luxe_toggle_sort_sheet.dart';
 import '../../../../core/widgets/navigation/top_bar/top_bar_actions.dart';
+import '../../domain/models/billion.dart';
+import '../../../product_detail/presentation/transition/product_sheet_launch.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/bullions_filter_provider.dart';
 import '../../application/bullions_list_provider.dart';
@@ -70,7 +72,7 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen>
   }
 
   @override
-  void listingLoadMore() =>
+  Future<void> listingLoadMore() =>
       ref.read(bullionsListProvider.notifier).loadNextPage();
 
   @override
@@ -241,6 +243,11 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen>
         stateAsync.whenOrNull(error: (e, _) => e.toString()) ??
         state?.errorMessage;
     final listed = state?.bullions ?? const [];
+    // Lets the detail sheet page in more results as the user swipes.
+    final feed = ProductListFeed<Bullion>(
+      items: () => ref.read(bullionsListProvider).value?.bullions ?? const [],
+      loadMore: listingLoadMoreIfReady,
+    );
     return luxeResultSlivers(
       context: context,
       initialLoading:
@@ -253,11 +260,13 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen>
       cardOf: (b, mode) => mode == LuxeViewMode.grid
           ? BullionLuxeGridCard(
               bullion: b,
-              onTap: () => openBullionDetail(context, b, among: listed),
+              onTap: () =>
+                  openBullionDetail(context, b, among: listed, feed: feed),
             )
           : BullionLuxeListCard(
               bullion: b,
-              onTap: () => openBullionDetail(context, b, among: listed),
+              onTap: () =>
+                  openBullionDetail(context, b, among: listed, feed: feed),
             ),
       loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),
       emptyView: LuxeStateView(

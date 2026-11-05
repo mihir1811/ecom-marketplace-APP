@@ -316,7 +316,8 @@ bool luxeIsMissing(String value) {
       v.toLowerCase() == 'not certified';
 }
 
-/// Segment eyebrow with a tap-to-copy stock reference.
+/// Tap-to-copy stock reference above the title. No segment label: the
+/// buyer already knows which catalogue they came from.
 class LuxeDetailEyebrow extends StatelessWidget {
   const LuxeDetailEyebrow({required this.detail, super.key});
 
@@ -327,18 +328,8 @@ class LuxeDetailEyebrow extends StatelessWidget {
     final p = LuxePalette.of(context);
     return Row(
       children: [
-        Flexible(
-          child: Text(
-            detail.segment.label.toUpperCase(),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: LuxeType.eyebrow(p.accent),
-          ),
-        ),
-        Text('  ·  ', style: LuxeType.eyebrow(p.inkFaint)),
         // Long references (UUIDs) ellipsize instead of overflowing.
         Flexible(
-          flex: 2,
           child: Tooltip(
             message: detail.referenceLabel,
             child: InkWell(

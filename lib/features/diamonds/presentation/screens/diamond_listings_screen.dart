@@ -15,6 +15,7 @@ import '../../../ai_chat/application/ai_pending_filters.dart';
 import '../../../diamond_projects/application/diamond_project_listing_pick_provider.dart';
 import '../../../diamond_projects/application/diamond_selection.dart';
 import '../../../diamond_projects/presentation/widgets/diamond_insight_strip.dart';
+import '../../../product_detail/presentation/transition/product_sheet_launch.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../../spotlight/application/spotlight_providers.dart';
 import '../../../spotlight/application/sponsored_diamonds_provider.dart';
@@ -111,7 +112,7 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
   }
 
   @override
-  void listingLoadMore() =>
+  Future<void> listingLoadMore() =>
       ref.read(diamondListProvider.notifier).loadNextPage();
 
   @override
@@ -204,6 +205,12 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
         stateAsync.whenOrNull(error: (e, _) => e.toString()) ??
         state?.errorMessage;
     final listed = state?.diamonds ?? const [];
+    // Lets the detail sheet page in more results as the user swipes.
+    final feed = ProductListFeed<Diamond>(
+      items: () =>
+          ref.read(diamondListProvider).value?.diamonds ?? const <Diamond>[],
+      loadMore: listingLoadMoreIfReady,
+    );
 
     // Listing ads go first, as the screen's own cards (one row at most),
     // filtered by this screen's search. A sponsored stone may also appear
@@ -230,11 +237,13 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
         return mode == LuxeViewMode.grid
             ? DiamondLuxeGridCard(
                 diamond: d,
-                onTap: () => openDiamondDetail(context, d, among: listed),
+                onTap: () =>
+                    openDiamondDetail(context, d, among: listed, feed: feed),
               )
             : DiamondLuxeListCard(
                 diamond: d,
-                onTap: () => openDiamondDetail(context, d, among: listed),
+                onTap: () =>
+                    openDiamondDetail(context, d, among: listed, feed: feed),
               );
       }
       void open() {

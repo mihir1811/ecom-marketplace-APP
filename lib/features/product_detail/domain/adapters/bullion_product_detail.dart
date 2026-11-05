@@ -31,7 +31,6 @@ ProductDetail bullionProductDetail(Bullion b) {
     referenceValue: b.stockNumber ?? b.id,
     shapeKey: b.shape,
     badges: [
-      const ProductBadge('Bullion', tone: ProductBadgeTone.accent),
       if (b.certification.isNotEmpty)
         ProductBadge(b.certification, tone: ProductBadgeTone.positive),
       if (b.presetVariant.isNotEmpty) ProductBadge(b.presetVariant),

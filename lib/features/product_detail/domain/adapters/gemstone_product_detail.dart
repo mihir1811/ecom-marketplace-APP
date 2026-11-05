@@ -40,7 +40,6 @@ ProductDetail gemstoneProductDetail(Gemstone g) {
       species: g.type,
     ),
     badges: [
-      const ProductBadge('Gemstone', tone: ProductBadgeTone.accent),
       if (authority != null)
         ProductBadge('$authority certified', tone: ProductBadgeTone.positive),
       if (g.qualityGrade != null) ProductBadge(g.qualityGrade!),

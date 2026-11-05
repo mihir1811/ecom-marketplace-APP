@@ -80,7 +80,6 @@ class _ProductGemDockState extends State<ProductGemDock>
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     final pager = widget.pager;
-    final count = pager.count;
 
     return SizedBox(
       height: kProductGemDockHeight,
@@ -103,6 +102,8 @@ class _ProductGemDockState extends State<ProductGemDock>
                   animation: pager.listenable,
                   builder: (context, _) {
                     final pos = pager.position;
+                    // Read each frame: grows as more pages load.
+                    final count = pager.count;
                     final from = math.max(0, pos.floor() - 2);
                     final to = math.min(count - 1, pos.ceil() + 2);
                     // Far frames first so the centre one paints on top.

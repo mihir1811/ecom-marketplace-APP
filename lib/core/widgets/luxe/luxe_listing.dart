@@ -722,7 +722,14 @@ mixin LuxeListingMixin<W extends StatefulWidget> on State<W> {
 
   /// True when another page may be requested right now.
   bool get listingCanLoadMore;
-  void listingLoadMore();
+  Future<void> listingLoadMore();
+
+  /// Next page if one may be requested now; safe after the screen is gone.
+  /// Handed to the product detail sheet so swiping pages the list too.
+  Future<void> listingLoadMoreIfReady() async {
+    if (mounted && listingCanLoadMore) await listingLoadMore();
+  }
+
   int get listingItemCount;
   LuxeViewMode get listingViewMode;
   void listingApplyViewMode(LuxeViewMode mode);

@@ -11,7 +11,6 @@ import '../../../../../core/widgets/filters/filter_chip.dart';
 import '../../../../../core/widgets/luxe/luxe_button.dart';
 import '../../../../../core/widgets/luxe/luxe_dropdown_field.dart';
 import '../../../../../core/widgets/luxe/luxe_feedback.dart';
-import '../../../../../core/widgets/luxe/luxe_metal_swatch.dart';
 import '../../../../../core/widgets/luxe/luxe_quantity_stepper.dart';
 import '../../../../jewelry_checkout/application/jewelry_bag_provider.dart';
 import '../../../../jewelry_checkout/domain/models/bag_line.dart';
@@ -368,51 +367,6 @@ class _TextOptionState extends State<_TextOption> {
           onChanged: widget.onChanged,
           decoration: InputDecoration(hintText: widget.hint, counterText: ''),
         ),
-      ],
-    );
-  }
-}
-
-/// Four quiet tiles: metal, main stone, carat weight and weight.
-class LuxeJewelryGlance extends StatelessWidget {
-  const LuxeJewelryGlance({required this.detail, super.key});
-
-  final ProductDetail detail;
-
-  @override
-  Widget build(BuildContext context) {
-    final j = detail.jewelryDetail!;
-    final metal = [?j.metalPurity, ?j.metalType].join(' ');
-    final stone = [?j.gemstoneOrigin, ?j.primaryGemstone].join(' ');
-    final grams = j.grossWeightG ?? j.metalWeightG ?? 0;
-    final highlights = [
-      if (metal.trim().isNotEmpty)
-        ProductHighlight(context.tr(CatalogL10n.metal), metal),
-      if (stone.trim().isNotEmpty)
-        ProductHighlight(context.tr(CatalogL10n.stones), stone),
-      if ((j.totalCaratWeight ?? 0) > 0)
-        ProductHighlight(
-          context.tr(CatalogL10n.carat),
-          '${_fmt(j.totalCaratWeight!)}ct',
-        ),
-      if ((j.primaryShape ?? '').isNotEmpty && grams <= 0)
-        ProductHighlight(context.tr(CatalogL10n.shape), j.primaryShape!),
-      if (grams > 0)
-        ProductHighlight(context.tr(CatalogL10n.weight), '${_fmt(grams)}g'),
-    ];
-    if (highlights.isEmpty) return const SizedBox.shrink();
-    return Stack(
-      children: [
-        LuxeGlance(highlights: highlights.take(4).toList()),
-        if ((j.metalType ?? '').isNotEmpty)
-          Positioned(
-            right: 0,
-            top: 0,
-            child: LuxeMetalSwatch(
-              label: j.metalType == 'Sterling Silver' ? 'Silver' : j.metalType!,
-              size: 16,
-            ),
-          ),
       ],
     );
   }

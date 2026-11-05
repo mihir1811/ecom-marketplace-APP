@@ -97,30 +97,23 @@ class LuxeProductGridCard extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(LuxeSpace.cardRadius - 1),
               ),
-              child: LuxeRevealMask(
-                radius: LuxeSpace.cardRadius - 1,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    LuxeRevealZoom(child: media),
-                    if (overlays.topLeft != null)
-                      Positioned(top: 10, left: 10, child: overlays.topLeft!),
-                    if (overlays.topRight != null)
-                      Positioned(top: 6, right: 6, child: overlays.topRight!),
-                    if (overlays.bottomLeft != null)
-                      Positioned(
-                        left: 6,
-                        bottom: 6,
-                        child: overlays.bottomLeft!,
-                      ),
-                    if (overlays.bottomRight != null)
-                      Positioned(
-                        right: 6,
-                        bottom: 6,
-                        child: overlays.bottomRight!,
-                      ),
-                  ],
-                ),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  media,
+                  if (overlays.topLeft != null)
+                    Positioned(top: 10, left: 10, child: overlays.topLeft!),
+                  if (overlays.topRight != null)
+                    Positioned(top: 6, right: 6, child: overlays.topRight!),
+                  if (overlays.bottomLeft != null)
+                    Positioned(left: 6, bottom: 6, child: overlays.bottomLeft!),
+                  if (overlays.bottomRight != null)
+                    Positioned(
+                      right: 6,
+                      bottom: 6,
+                      child: overlays.bottomRight!,
+                    ),
+                ],
               ),
             ),
           ),
@@ -181,8 +174,8 @@ class LuxeProductListCard extends StatelessWidget {
     this.outlineColor,
   });
 
-  /// Layout height of the row before border; the row stride is this plus
-  /// the 2px border, 10px spare and gap (kept for scroll restore).
+  /// Base size; the row stride is this plus 12 (border and text overhang)
+  /// and the gap, used to restore scroll position.
   static const thumbSize = 112.0;
 
   /// Edge-to-edge thumbnail side: fills the old 5px inset on every side.
@@ -213,36 +206,35 @@ class LuxeProductListCard extends StatelessWidget {
       onTap: onTap,
       highlighted: highlighted,
       outlineColor: outlineColor,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      // The text sets the card height; the thumbnail fills it top to bottom
+      // so no strip shows under it.
+      child: Stack(
         children: [
-          // Thumbnail runs flush to the card's left, top and bottom edges.
-          SizedBox(
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
             width: thumbExtent,
-            height: thumbExtent,
             child: ClipRRect(
               borderRadius: const BorderRadius.horizontal(
                 left: Radius.circular(LuxeSpace.cardRadius - 1),
               ),
-              child: LuxeRevealMask(
-                radius: LuxeSpace.cardRadius - 1,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    LuxeRevealZoom(child: media),
-                    if (thumbTopLeft != null)
-                      Positioned(top: 9, left: 9, child: thumbTopLeft!),
-                    if (thumbBottomLeft != null)
-                      Positioned(bottom: 6, left: 6, child: thumbBottomLeft!),
-                  ],
-                ),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  media,
+                  if (thumbTopLeft != null)
+                    Positioned(top: 9, left: 9, child: thumbTopLeft!),
+                  if (thumbBottomLeft != null)
+                    Positioned(bottom: 6, left: 6, child: thumbBottomLeft!),
+                ],
               ),
             ),
           ),
-          const SizedBox(width: 10),
-          Expanded(
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: thumbExtent),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(0, 10, 9, 5),
+              padding: const EdgeInsets.fromLTRB(thumbExtent + 10, 6, 9, 3),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -280,7 +272,7 @@ class LuxeProductListCard extends StatelessWidget {
                       ],
                     ),
                   ],
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       Expanded(child: price),

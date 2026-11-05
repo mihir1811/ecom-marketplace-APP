@@ -75,7 +75,7 @@ ProductDetail diamondProductDetail(Diamond d) {
     apiProductType: d.isMelee
         ? CartProductType.meleeDiamond
         : CartProductType.diamond,
-    title: '$carat ct $shape',
+    title: lot == null ? '$carat ct $shape' : _meleeTitle(lot, carat, shape),
     subtitle: subtitleParts.isEmpty
         ? DiamondDisplay.missing
         : subtitleParts.join(' · '),
@@ -89,7 +89,6 @@ ProductDetail diamondProductDetail(Diamond d) {
       overtone: d.fancyOvertone,
     ),
     badges: [
-      ProductBadge(segment.label, tone: ProductBadgeTone.accent),
       if (authority != null)
         ProductBadge('$authority certified', tone: ProductBadgeTone.positive),
       if (belowList != null)
@@ -480,4 +479,18 @@ ProductAvailability _availability(Diamond d) {
       tone: ProductStockTone.limited,
     ),
   };
+}
+
+/// Parcel title that says it is a total: "Total 500 pcs · 5.00 ct Round"
+/// ("≈" marks sieve-chart estimates; pieces drop out when unknown).
+String _meleeTitle(MeleeLotFigures lot, String carat, String shape) {
+  final pcs = lot.totalPcs;
+  final parts = [
+    if (pcs != null && pcs > 0)
+      '${lot.pcsApprox ? '≈' : ''}${formatGroupedWhole(pcs.toDouble())} '
+          '${pcs == 1 ? 'pc' : 'pcs'}',
+    '${lot.caratApprox ? '≈' : ''}$carat ct',
+  ];
+  final size = 'Total ${parts.join(' · ')}';
+  return shape == DiamondDisplay.missing ? size : '$size $shape';
 }

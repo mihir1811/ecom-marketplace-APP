@@ -73,7 +73,7 @@ class _AuctionsListScreenState extends ConsumerState<AuctionsListScreen>
   }
 
   @override
-  void listingLoadMore() =>
+  Future<void> listingLoadMore() =>
       ref.read(auctionFeedProvider(_query).notifier).loadMore();
 
   @override

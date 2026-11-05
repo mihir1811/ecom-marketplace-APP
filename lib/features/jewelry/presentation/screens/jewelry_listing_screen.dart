@@ -15,6 +15,7 @@ import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../../../core/widgets/luxe/luxe_toggle_sort_sheet.dart';
 import '../../../../core/widgets/navigation/top_bar/top_bar_actions.dart';
+import '../../../product_detail/presentation/transition/product_sheet_launch.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/jewelry_filter_provider.dart';
 import '../../application/jewelry_list_provider.dart';
@@ -109,7 +110,7 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
   }
 
   @override
-  void listingLoadMore() =>
+  Future<void> listingLoadMore() =>
       ref.read(jewelryListProvider.notifier).loadNextPage();
 
   @override
@@ -266,6 +267,12 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
         stateAsync.whenOrNull(error: (e, _) => e.toString()) ??
         state?.errorMessage;
     final listed = state?.items ?? const <Jewelry>[];
+    // Lets the detail sheet page in more results as the user swipes.
+    final feed = ProductListFeed<Jewelry>(
+      items: () =>
+          ref.read(jewelryListProvider).value?.items ?? const <Jewelry>[],
+      loadMore: listingLoadMoreIfReady,
+    );
 
     // Listing ads lead the results as the screen's own cards (one row),
     // only pieces the marketplace returns for this screen's filters. Not
@@ -296,11 +303,13 @@ class _JewelryListingScreenState extends ConsumerState<JewelryListingScreen>
         return mode == LuxeViewMode.grid
             ? JewelryLuxeGridCard(
                 jewelry: j,
-                onTap: () => openJewelryDetail(context, j, among: listed),
+                onTap: () =>
+                    openJewelryDetail(context, j, among: listed, feed: feed),
               )
             : JewelryLuxeListCard(
                 jewelry: j,
-                onTap: () => openJewelryDetail(context, j, among: listed),
+                onTap: () =>
+                    openJewelryDetail(context, j, among: listed, feed: feed),
               );
       }
       void open() => openSpotlightPiece(

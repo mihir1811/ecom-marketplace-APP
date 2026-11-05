@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -49,12 +50,32 @@ class ProductSheetOrigin {
   }
 }
 
+/// Live source behind a [ProductSwitchSet]: the listing's current rows and
+/// a way to ask it for the next page (a no-op when nothing is left).
+class ProductListFeed<T> {
+  const ProductListFeed({required this.items, required this.loadMore});
+
+  final List<T> Function() items;
+  final Future<void> Function() loadMore;
+}
+
 /// Products the sheet can switch between (the list the tap came from).
 ///
 /// Details are adapted on demand and memoised, so handing over a thousand
-/// listing rows costs nothing until the dock scrolls past them.
+/// listing rows costs nothing until the dock scrolls past them. With a
+/// [ProductListFeed] the set grows as the listing loads more pages, and
+/// asks for the next page once the user nears the end.
 class ProductSwitchSet {
-  ProductSwitchSet._(this.length, this.initialIndex, this._resolve);
+  ProductSwitchSet._(
+    int length,
+    this.initialIndex,
+    this._resolve, [
+    this._liveLength,
+    this._loadMore,
+  ]) : _length = ValueNotifier<int>(length);
+
+  /// Pages left before the end at which the next page is requested.
+  static const _prefetch = 5;
 
   /// [adapt] maps one catalog row to its detail view model; [initial] is
   /// the already-resolved detail of the tapped row.
@@ -62,23 +83,70 @@ class ProductSwitchSet {
     List<T>? items,
     T tapped,
     ProductDetail Function(T) adapt,
-    ProductDetail initial,
-  ) {
+    ProductDetail initial, {
+    ProductListFeed<T>? feed,
+  }) {
     if (items == null || items.length < 2) return null;
     final index = items.indexOf(tapped);
     if (index < 0) return null;
-    final set = ProductSwitchSet._(items.length, index, (i) => adapt(items[i]));
+    // The live rows, or the tapped snapshot if the listing has gone or
+    // shrunk (a refresh) so indices already shown stay valid.
+    List<T> rows() {
+      if (feed == null) return items;
+      try {
+        final live = feed.items();
+        return live.length >= items.length ? live : items;
+      } catch (_) {
+        return items;
+      }
+    }
+
+    final set = ProductSwitchSet._(
+      items.length,
+      index,
+      (i) => adapt(rows()[i]),
+      feed == null ? null : () => rows().length,
+      feed?.loadMore,
+    );
     set._cache[index] = initial;
     return set;
   }
 
-  final int length;
+  final ValueNotifier<int> _length;
+  final int Function()? _liveLength;
+  final Future<void> Function()? _loadMore;
+  bool _loading = false;
+
   final int initialIndex;
   final ProductDetail Function(int index) _resolve;
   final Map<int, ProductDetail> _cache = {};
 
+  int get length => _length.value;
+
+  /// Fires when more products join the set.
+  ValueListenable<int> get lengthListenable => _length;
+
   ProductDetail detailAt(int index) =>
       _cache.putIfAbsent(index, () => _resolve(index));
+
+  /// Call as the carousel passes [index] (while dragging or animating too);
+  /// picks up rows the listing already has and requests the next page near
+  /// the end.
+  void reached(int index) {
+    _sync();
+    final load = _loadMore;
+    if (load == null || _loading || index < length - _prefetch) return;
+    _loading = true;
+    Future<void>.sync(load).catchError((Object _) {}).whenComplete(() {
+      _loading = false;
+      _sync();
+    });
+  }
+
+  void _sync() {
+    final n = _liveLength?.call() ?? 0;
+    if (n > _length.value) _length.value = n;
+  }
 }
 
 /// Everything the detail route needs to know about how it was opened.
