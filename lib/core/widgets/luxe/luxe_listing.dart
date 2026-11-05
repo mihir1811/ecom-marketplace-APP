@@ -344,67 +344,6 @@ class LuxeToolbarPill extends StatelessWidget {
   }
 }
 
-/// Horizontal strip of active-filter summaries plus a reset action.
-class LuxeActiveFilterPills extends StatelessWidget {
-  const LuxeActiveFilterPills({
-    required this.labels,
-    required this.onEdit,
-    required this.onReset,
-    required this.resetLabel,
-    super.key,
-  });
-
-  final List<String> labels;
-  final VoidCallback onEdit;
-  final VoidCallback onReset;
-  final String resetLabel;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = LuxePalette.of(context);
-    if (labels.isEmpty) return const SizedBox(height: 5);
-    return SizedBox(
-      height: 48,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(12, 6, 12, 4),
-        children: [
-          for (final label in labels) ...[
-            Material(
-              color: p.accentSoft,
-              shape: const StadiumBorder(),
-              child: InkWell(
-                customBorder: const StadiumBorder(),
-                onTap: onEdit,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 5,
-                  ),
-                  child: Text(label, style: LuxeType.label(p.ink, size: 12)),
-                ),
-              ),
-            ),
-            const SizedBox(width: 6),
-          ],
-          TextButton.icon(
-            onPressed: () {
-              AppHaptics.selection();
-              onReset();
-            },
-            style: TextButton.styleFrom(foregroundColor: p.accent),
-            icon: const Icon(Icons.close_rounded, size: 16),
-            label: Text(
-              resetLabel,
-              style: LuxeType.label(p.accent, size: 12.5),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 /// Small cross-fading line under a top-bar title (e.g. "1,284 results").
 class LuxeCountLine extends StatelessWidget {
   const LuxeCountLine({required this.text, super.key});
@@ -518,13 +457,14 @@ class LuxeListingSkeletons extends StatelessWidget {
     final size = MediaQuery.sizeOf(context);
     final cell = (size.width - padding * 2 - gap) / 2;
     final gridExtent = LuxeListingMetrics.gridExtent(context);
-    Widget block(double? w, double h, [double r = 8]) => Container(
+    Widget block(
+      double? w,
+      double h, [
+      BorderRadius radius = const BorderRadius.all(Radius.circular(8)),
+    ]) => Container(
       width: w,
       height: h,
-      decoration: BoxDecoration(
-        color: p.surfaceRaised,
-        borderRadius: BorderRadius.circular(r),
-      ),
+      decoration: BoxDecoration(color: p.surfaceRaised, borderRadius: radius),
     );
     Widget frame(Widget child) => DecoratedBox(
       decoration: BoxDecoration(
@@ -542,11 +482,13 @@ class LuxeListingSkeletons extends StatelessWidget {
           children: [
             AspectRatio(
               aspectRatio: 1,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
+              // Rounded fill, not a clip: same look, no clip layer.
+              child: block(
+                double.infinity,
+                double.infinity,
+                const BorderRadius.vertical(
                   top: Radius.circular(LuxeSpace.cardRadius - 1),
                 ),
-                child: block(double.infinity, double.infinity, 0),
               ),
             ),
             Padding(
@@ -572,11 +514,12 @@ class LuxeListingSkeletons extends StatelessWidget {
         padding: EdgeInsets.zero,
         child: Row(
           children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.horizontal(
+            block(
+              thumb,
+              thumb,
+              const BorderRadius.horizontal(
                 left: Radius.circular(LuxeSpace.cardRadius - 1),
               ),
-              child: block(thumb, thumb, 0),
             ),
             const SizedBox(width: 10),
             Expanded(
