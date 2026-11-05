@@ -158,6 +158,8 @@ class DiamondSizePriceFilters extends ConsumerWidget {
         if (showSieve) const FilterSieveSize(),
         if (melee)
           MeleeRangeFilters(
+            isPcsMode: state.meleeInPcs,
+            onModeChanged: notifier.setMeleeInPcs,
             caratPerPcsMin: state.minCaratPerPcs,
             caratPerPcsMax: state.maxCaratPerPcs,
             onCaratPerPcsChanged: notifier.updateCaratPerPcsRange,

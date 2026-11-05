@@ -274,6 +274,10 @@ class DiamondSearchNotifier extends Notifier<DiamondFilterState>
     state = state.copyWith(minTotalPcs: min, maxTotalPcs: max);
   }
 
+  void setMeleeInPcs(bool inPcs) {
+    state = state.copyWith(meleeInPcs: inPcs);
+  }
+
   void toggleCaratQuickRange(int index) {
     final current = List<int>.from(state.selectedCaratQuickRanges);
     if (current.isEmpty) {

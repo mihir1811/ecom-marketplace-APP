@@ -143,11 +143,6 @@ class _BrandWatchScreenState extends ConsumerState<BrandWatchScreen>
                 const SpotlightCategoryBlock(
                   category: SpotlightCategory.watches,
                 ),
-                WatchActiveFilterPills(
-                  provider: brandWatchFilterProvider,
-                  onEdit: _openFilters,
-                  onReset: _clearAll,
-                ),
               ],
             ),
           ),

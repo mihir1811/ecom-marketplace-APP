@@ -184,11 +184,6 @@ class _WatchesScreenState extends ConsumerState<WatchesScreen>
                 const WatchCategoryChips(),
                 const SizedBox(height: 14),
                 const WatchBrandCarousel(),
-                WatchActiveFilterPills(
-                  provider: watchFilterProvider,
-                  onEdit: _openFilters,
-                  onReset: _clearAll,
-                ),
               ],
             ),
           ),

@@ -317,11 +317,29 @@ class ProductSpecTab {
 
 /// Melee lot quantity picker shown under natural melee spec tabs.
 class ProductMeleeQty {
-  const ProductMeleeQty({this.totalPcs, this.totalCarat, this.caratPerPcs});
+  const ProductMeleeQty({
+    this.totalPcs,
+    this.totalCarat,
+    this.caratPerPcs,
+    this.pricePerPcs,
+    this.pricePerCarat,
+    this.pcsApprox = false,
+    this.caratApprox = false,
+  });
 
   final int? totalPcs;
   final double? totalCarat;
   final double? caratPerPcs;
+
+  /// Display only (lot header); purchase math uses the lot totals.
+  final double? pricePerPcs;
+  final double? pricePerCarat;
+
+  /// Pieces / per-piece figures estimated from the sieve chart.
+  final bool pcsApprox;
+
+  /// Carat / per-carat figures estimated from the sieve chart.
+  final bool caratApprox;
 
   /// Prefer lot totals for purchase math — `caratPerPcs` from API is often stale.
   double get resolvedCaratPerPcs {
@@ -419,6 +437,7 @@ class ProductDetail {
     this.isSold = false,
     this.isOnAuction = false,
     this.naturalSpecTabs,
+    this.meleeLot,
     this.jewelryDetail,
     this.bullionDetail,
   });
@@ -466,6 +485,9 @@ class ProductDetail {
 
   /// Overview / Advance for singles; Summary / Details for melee (natural + lab).
   final ProductTabbedSpecs? naturalSpecTabs;
+
+  /// Melee lot totals (separable or not), for pieces / carat display.
+  final ProductMeleeQty? meleeLot;
 
   /// Jewelry layout: choose-details + Details / Specifications / Care tabs.
   final ProductJewelryDetail? jewelryDetail;

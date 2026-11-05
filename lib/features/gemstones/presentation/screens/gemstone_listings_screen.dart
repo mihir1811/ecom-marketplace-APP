@@ -6,19 +6,16 @@ import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/luxe_scope.dart';
 import '../../../../core/theme/luxe_tokens.dart';
-import '../../../../core/utils/active_filter_labels.dart';
-import '../../../../core/utils/app_currency.dart';
-import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
+import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../../../core/widgets/luxe/luxe_toggle_sort_sheet.dart';
 import '../../../../core/widgets/navigation/top_bar/top_bar_actions.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/gemstone_list_provider.dart';
 import '../../application/gemstone_search_provider.dart';
-import '../../domain/models/gemstone_filter_state.dart';
 import '../../domain/models/gemstone_filter_summary.dart';
 import '../../domain/models/gemstone_sort_option.dart';
 import '../widgets/gemstone_luxe_cards.dart';
@@ -168,17 +165,8 @@ class _GemstoneListingsScreenState extends ConsumerState<GemstoneListingsScreen>
           SliverToBoxAdapter(
             child: KeyedSubtree(
               key: listingHeaderKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SpotlightCategoryBlock(
-                    category: SpotlightCategory.gemstones,
-                  ),
-                  _ActiveFilterPills(
-                    onEdit: _editFilters,
-                    onResetAll: _resetFilters,
-                  ),
-                ],
+              child: const SpotlightCategoryBlock(
+                category: SpotlightCategory.gemstones,
               ),
             ),
           ),
@@ -271,75 +259,6 @@ class _CountLine extends ConsumerWidget {
   }
 }
 
-/// Pills summarising which finder sections hold filters; tapping edits.
-class _ActiveFilterPills extends ConsumerWidget {
-  const _ActiveFilterPills({required this.onEdit, required this.onResetAll});
-
-  final VoidCallback onEdit;
-  final VoidCallback onResetAll;
-
-  static String _label(
-    BuildContext context,
-    GemstoneFinderSection s,
-  ) => context.tr(switch (s) {
-    GemstoneFinderSection.gemType => GemstoneFlowL10n.sectionGemType,
-    GemstoneFinderSection.shape => DiamondFlowL10n.sectionShape,
-    GemstoneFinderSection.sizePrice => DiamondFlowL10n.sectionSizePrice,
-    GemstoneFinderSection.colorQuality => GemstoneFlowL10n.sectionColorQuality,
-    GemstoneFinderSection.grading => GemstoneFlowL10n.sectionGrading,
-    GemstoneFinderSection.listing => DiamondFlowL10n.sectionListing,
-    GemstoneFinderSection.seller => DiamondFlowL10n.sectionSeller,
-    GemstoneFinderSection.measurements => DiamondFlowL10n.sectionMeasurements,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final f = ref.watch(gemstoneSearchProvider);
-    final summary = GemstoneFilterSummary.of(f);
-    const d = GemstoneFilterState();
-    // Applied values first (also what Gem Agent set), then counts for the rest.
-    final pills = ActiveFilterLabels<GemstoneFinderSection>()
-      ..values(GemstoneFinderSection.gemType, f.selectedGemstoneTypes)
-      ..values(GemstoneFinderSection.gemType, f.selectedBirthstoneMonths)
-      ..values(GemstoneFinderSection.shape, f.selectedShapes);
-    if (f.minTotalCarat != d.minTotalCarat ||
-        f.maxTotalCarat != d.maxTotalCarat) {
-      pills.add(
-        GemstoneFinderSection.sizePrice,
-        '${ActiveFilterLabels.number(f.minTotalCarat)}–'
-        '${ActiveFilterLabels.number(f.maxTotalCarat)} ct',
-      );
-    }
-    if (f.minTotalPrice != d.minTotalPrice ||
-        f.maxTotalPrice != d.maxTotalPrice) {
-      pills.add(
-        GemstoneFinderSection.sizePrice,
-        '${_price(f.minTotalPrice)}–${_price(f.maxTotalPrice)}',
-      );
-    }
-    pills
-      ..values(GemstoneFinderSection.colorQuality, f.selectedColors)
-      ..values(GemstoneFinderSection.colorQuality, f.selectedClarities)
-      ..values(GemstoneFinderSection.grading, f.selectedCutGrades, name: 'Cut')
-      ..values(GemstoneFinderSection.grading, f.selectedCertifications)
-      ..values(GemstoneFinderSection.grading, f.selectedTreatments)
-      ..values(GemstoneFinderSection.seller, f.selectedOriginCountries);
-    if (f.selectedQualityGrade != null) {
-      pills.add(GemstoneFinderSection.colorQuality, f.selectedQualityGrade!);
-    }
-    return LuxeActiveFilterPills(
-      labels: pills.build(
-        sections: GemstoneFinderSection.values,
-        count: summary.count,
-        title: (s) => _label(context, s),
-      ),
-      onEdit: onEdit,
-      onReset: onResetAll,
-      resetLabel: context.tr(DiamondFlowL10n.reset),
-    );
-  }
-}
-
 /// Pinned row: Filters (with count), Sort (current key) and view toggle.
 class _Toolbar extends ConsumerWidget {
   const _Toolbar({
@@ -373,4 +292,3 @@ class _Toolbar extends ConsumerWidget {
   }
 }
 
-String _price(double v) => AppCurrency.format(formatCatalogPriceWholeK(v));

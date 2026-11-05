@@ -770,6 +770,7 @@ class DiamondFilterState {
     this.maxPricePerPcs = pricePerPcsMaxLimit,
     this.minTotalPcs = totalPcsMinLimit,
     this.maxTotalPcs = totalPcsMaxLimit,
+    this.meleeInPcs = true,
     // Deprecated but kept for safety/backward compatibility
     this.minGirdle = 0.0,
     this.maxGirdle = 10.0,
@@ -878,6 +879,10 @@ class DiamondFilterState {
   final double minTotalPcs;
   final double maxTotalPcs;
 
+  /// Melee size/price mode: pieces (default) or carat. Display only —
+  /// listing cards show per-piece or per-carat figures to match.
+  final bool meleeInPcs;
+
   // Deprecated/Compatibility fields
   final double minGirdle;
   final double maxGirdle;
@@ -965,6 +970,7 @@ class DiamondFilterState {
     double? maxPricePerPcs,
     double? minTotalPcs,
     double? maxTotalPcs,
+    bool? meleeInPcs,
     double? minGirdle,
     double? maxGirdle,
     double? minCulet,
@@ -1059,6 +1065,7 @@ class DiamondFilterState {
       maxPricePerPcs: maxPricePerPcs ?? this.maxPricePerPcs,
       minTotalPcs: minTotalPcs ?? this.minTotalPcs,
       maxTotalPcs: maxTotalPcs ?? this.maxTotalPcs,
+      meleeInPcs: meleeInPcs ?? this.meleeInPcs,
       minGirdle: minGirdle ?? this.minGirdle,
       maxGirdle: maxGirdle ?? this.maxGirdle,
       minCulet: minCulet ?? this.minCulet,

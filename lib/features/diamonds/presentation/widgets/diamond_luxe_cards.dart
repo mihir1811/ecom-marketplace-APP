@@ -14,31 +14,72 @@ import '../../../product_detail/product_detail_navigation.dart';
 import '../../../recently_viewed/application/recently_viewed_providers.dart';
 import '../../../recently_viewed/presentation/widgets/recently_viewed_badge.dart';
 import '../../../spotlight/presentation/widgets/spotlight_tag.dart';
+import '../../application/diamond_search_provider.dart';
+import '../../domain/melee_lot_figures.dart';
 import '../../domain/models/diamond.dart';
 import '../../domain/models/diamond_display.dart';
 import 'diamond_cards.dart' show diamondGradesLine;
 import 'diamond_svg_data.dart';
 
+/// Melee lots follow the finder's Pieces / Carat toggle; single stones
+/// always read in carats. Null for single stones.
+MeleeLotFigures? _melee(Diamond d) => d.isMelee ? MeleeLotFigures.of(d) : null;
+
+bool _meleeInPcs(WidgetRef ref, MeleeLotFigures? m) =>
+    m != null &&
+    (m.totalPcs ?? 0) > 0 &&
+    ref.watch(diamondSearchProvider.select((s) => s.meleeInPcs));
+
+/// Melee values worked out from the sieve chart, not sent by the seller.
+bool _approx(MeleeLotFigures? m, {required bool inPcs}) =>
+    m != null && (inPcs ? m.pcsApprox : m.caratApprox);
+
+/// "$8,191/ct" or, for melee in pieces mode, "$37.50/pc"; "≈" when the
+/// value comes from the sieve chart.
+String? _unitPrice(Diamond d, MeleeLotFigures? m, {required bool inPcs}) {
+  final mark = _approx(m, inPcs: inPcs) ? '≈' : '';
+  if (inPcs) {
+    final ppp = m?.pricePerPcs;
+    if (ppp == null || ppp <= 0) return null;
+    return '$mark${AppCurrency.format(formatGroupedWhole(ppp))}/pc';
+  }
+  final ppc =
+      m?.pricePerCarat ??
+      d.pricePerCarat ??
+      (d.carat > 0 && d.price > 0 ? d.price / d.carat : null);
+  if (ppc == null || ppc <= 0) return null;
+  return '$mark${AppCurrency.format(formatGroupedWhole(ppc.roundToDouble()))}/ct';
+}
+
+String? _measure(Diamond d) => DiamondDisplay.optional(
+  d.measurement,
+)?.replaceAll(RegExp(r'\s*[xX]\s*'), ' × ');
+
 /// "$8,191/ct · 7.21 × 5.10 × 3.18" — rounded, grouped, typographic ×.
-String? _metaLine(Diamond d) {
-  final parts = <String>[];
-  final ppc = d.pricePerCarat;
-  if (ppc != null && ppc > 0) {
-    parts.add(
-      '${AppCurrency.format(formatGroupedWhole(ppc.roundToDouble()))}/ct',
-    );
-  }
-  final measure = DiamondDisplay.optional(d.measurement);
-  if (measure != null) {
-    parts.add(measure.replaceAll(RegExp(r'\s*[xX]\s*'), ' × '));
-  }
+/// Estimated melee figures end with "approx.".
+String? _metaLine(Diamond d, MeleeLotFigures? m, {required bool inPcs}) {
+  final parts = [
+    ?_unitPrice(d, m, inPcs: inPcs),
+    ?_measure(d),
+    if (_approx(m, inPcs: inPcs)) 'approx.',
+  ];
   return parts.isEmpty ? null : parts.join(' · ');
 }
 
-String _title(Diamond d) {
+/// "1.20 ct Round", or "120 pcs Round" for melee in pieces mode.
+String _title(Diamond d, MeleeLotFigures? m, {required bool inPcs}) {
   final shape = DiamondDisplay.shape(d.shape);
-  final carat = '${d.carat.toStringAsFixed(2)} ct';
-  return shape == DiamondDisplay.missing ? carat : '$carat $shape';
+  final mark = _approx(m, inPcs: inPcs) ? '≈' : '';
+  final String size;
+  if (inPcs) {
+    final pcs = m!.totalPcs!;
+    size =
+        '$mark${formatGroupedWhole(pcs.toDouble())} ${pcs == 1 ? 'pc' : 'pcs'}';
+  } else {
+    final carat = m?.totalCarat ?? d.carat;
+    size = '$mark${carat.toStringAsFixed(2)} ct';
+  }
+  return shape == DiamondDisplay.missing ? size : '$size $shape';
 }
 
 Widget _thumb(BuildContext context, Diamond d) {
@@ -102,17 +143,19 @@ class DiamondLuxeGridCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final d = diamond;
     final stock = d.stockNumber?.trim();
+    final m = _melee(d);
+    final inPcs = _meleeInPcs(ref, m);
     return LuxeProductGridCard(
       onTap: onTap,
       highlighted: ref.watch(isRecentlyViewedProvider(d.id)),
       outlineColor: sponsored ? SpotlightColors.blue(context) : null,
       media: _thumb(context, d),
-      title: _title(d),
+      title: _title(d, m, inPcs: inPcs),
       subtitle: diamondGradesLine(d) ?? DiamondDisplay.missing,
       metaLeading: sponsored ? const SpotlightTag(pill: true) : null,
       meta: sponsored && stock != null && stock.isNotEmpty
           ? '#$stock'
-          : _metaLine(d),
+          : _metaLine(d, m, inPcs: inPcs),
       price: _price(d),
       overlays: LuxeMediaOverlays(
         topLeft: AvailabilityStatusBadge(status: d.available),
@@ -144,12 +187,16 @@ class DiamondLuxeListCard extends ConsumerWidget {
     final d = diamond;
     final lab = DiamondDisplay.labBadge(d.lab ?? d.certificate);
     final stock = d.stockNumber?.trim();
-    final measure = DiamondDisplay.optional(d.measurement);
+    final m = _melee(d);
+    final inPcs = _meleeInPcs(ref, m);
     final detail = [
       // Sponsored cards lead with the stock number, right after the pill.
       if (sponsored && stock != null && stock.isNotEmpty) '#$stock',
+      // Melee rows price per piece or per carat to match the finder mode.
+      if (m != null) ?_unitPrice(d, m, inPcs: inPcs),
       ?lab,
-      if (measure != null) measure.replaceAll(RegExp(r'\s*[xX]\s*'), ' × '),
+      ?_measure(d),
+      if (_approx(m, inPcs: inPcs)) 'approx.',
       if (!sponsored && stock != null && stock.isNotEmpty) '#$stock',
     ].join(' · ');
 
@@ -159,7 +206,7 @@ class DiamondLuxeListCard extends ConsumerWidget {
       outlineColor: sponsored ? SpotlightColors.blue(context) : null,
       detailLeading: sponsored ? const SpotlightTag(pill: true) : null,
       media: _thumb(context, d),
-      title: _title(d),
+      title: _title(d, m, inPcs: inPcs),
       subtitle: diamondGradesLine(d) ?? DiamondDisplay.missing,
       detail: detail,
       price: _price(d, showList: true),

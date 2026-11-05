@@ -6,6 +6,7 @@ import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/luxe_scope.dart';
 import '../../../../core/theme/luxe_tokens.dart';
+import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/luxe/luxe_button.dart';
 import '../../../../core/widgets/luxe/scroll_reveal.dart';
 import '../../../buyer/application/wishlist_provider.dart';
@@ -18,6 +19,8 @@ import '../../../jewelry_reviews/presentation/widgets/jewelry_review_stars.dart'
 import '../../../jewelry_reviews/presentation/widgets/jewelry_reviews_section.dart';
 import '../../../product_share/presentation/widgets/product_share_sheet.dart';
 import '../../../recently_viewed/application/recently_viewed_providers.dart';
+import '../../../diamonds/application/diamond_search_provider.dart';
+import '../../application/melee_qty_draft_provider.dart';
 import '../../domain/adapters/jewelry_product_detail.dart';
 import '../../domain/models/product_bullion_detail.dart';
 import '../../domain/models/product_detail.dart';
@@ -315,23 +318,24 @@ class _HeaderActionsState extends ConsumerState<_HeaderActions> {
 }
 
 /// Title, grades, badges, price card, at-a-glance grid and certificate.
-class _Summary extends StatelessWidget {
+class _Summary extends ConsumerWidget {
   const _Summary({required this.detail, required this.labels});
 
   final ProductDetail detail;
   final ProductPriceLabels labels;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final p = LuxePalette.of(context);
     Widget enter(Widget child, int i) => luxeEnter(context, child, i);
+    final (:title, :labels, :approx) = _meleeView(ref);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         enter(LuxeDetailEyebrow(detail: detail), 0),
         const SizedBox(height: 6),
-        enter(Text(detail.title, style: LuxeType.display(36, p.ink)), 1),
+        enter(Text(title, style: LuxeType.display(36, p.ink)), 1),
         const SizedBox(height: 5),
         enter(
           Text(detail.subtitle, style: LuxeType.body(p.inkMuted, size: 15)),
@@ -381,6 +385,14 @@ class _Summary extends StatelessWidget {
           const SizedBox(height: 12),
         ] else ...[
           enter(LuxePriceCard(labels: labels), 4),
+          if (approx) ...[
+            const SizedBox(height: 6),
+            Text(
+              '≈ Approximate — estimated from sieve size; the seller did '
+              'not provide this value.',
+              style: LuxeType.body(p.inkMuted, size: 12),
+            ),
+          ],
           const SizedBox(height: 18),
           if (detail.highlights.isNotEmpty) ...[
             enter(LuxeGlance(highlights: detail.highlights), 5),
@@ -392,6 +404,68 @@ class _Summary extends StatelessWidget {
           enter(LuxeCertificateCard(cert: detail.certification!), 6),
       ],
     );
+  }
+
+  /// Melee lots read in pieces or carats: separable lots follow the
+  /// purchase bar's Pcs / CT toggle, others the finder's Pieces / Carat
+  /// mode. Pieces → "120 pcs Round" + per piece; carat → "5.00 ct Round"
+  /// (lot total) + per carat. `approx` when a shown figure was estimated
+  /// from the sieve chart because the seller did not send it.
+  ({String title, ProductPriceLabels labels, bool approx}) _meleeView(
+    WidgetRef ref,
+  ) {
+    final lot = detail.meleeLot;
+    if (lot == null) {
+      return (title: detail.title, labels: labels, approx: false);
+    }
+    final pcs = lot.totalPcs ?? 0;
+    final separable = detail.naturalSpecTabs?.meleeQty != null;
+    final inCarat = separable
+        ? ref.watch(meleeQtyDraftProvider(detail.id))?.inCarat ?? false
+        : !ref.watch(diamondSearchProvider.select((s) => s.meleeInPcs));
+    final pcsMode = !inCarat && pcs > 0;
+    final approx = pcsMode ? lot.pcsApprox : lot.caratApprox;
+    final mark = approx ? '≈' : '';
+
+    // Adapter title is "<carat> ct <shape>"; swap the size part.
+    String withSize(String size) =>
+        detail.title.replaceFirst(RegExp(r'^[\d.,]+\s*ct'), '$mark$size');
+
+    ProductPriceLabels withUnit(String? unit) => ProductPriceLabels(
+      sale: labels.sale,
+      list: labels.list,
+      discountPercent: labels.discountPercent,
+      unit: unit,
+      saveAmount: labels.saveAmount,
+      currencySymbol: labels.currencySymbol,
+    );
+
+    if (!pcsMode) {
+      final ct = lot.totalCarat;
+      final title = ct != null && ct > 0
+          ? withSize('${ct.toStringAsFixed(2)} ct')
+          : detail.title;
+      final unit = labels.unit;
+      return (
+        title: title,
+        labels: approx && unit != null ? withUnit('≈$unit') : labels,
+        approx: approx,
+      );
+    }
+
+    final title = withSize(
+      '${formatGroupedWhole(pcs.toDouble())} ${pcs == 1 ? 'pc' : 'pcs'}',
+    );
+    // No unit line (auction bid, on request) → leave the price card alone.
+    if (labels.unit == null) {
+      return (title: title, labels: labels, approx: approx);
+    }
+    final price = detail.price;
+    final perPc = lot.pricePerPcs ?? price.displayAmount / pcs;
+    final unit = price.isOnRequest || perPc <= 0
+        ? null
+        : '$mark${price.currencySymbol}${formatCatalogPrice(perPc)} per piece';
+    return (title: title, labels: withUnit(unit), approx: approx);
   }
 }
 

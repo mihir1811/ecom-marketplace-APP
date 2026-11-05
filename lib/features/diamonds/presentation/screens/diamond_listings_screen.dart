@@ -6,7 +6,6 @@ import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/luxe_scope.dart';
 import '../../../../core/theme/luxe_tokens.dart';
-import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
@@ -26,7 +25,6 @@ import '../../domain/models/diamond.dart';
 import '../../application/diamond_list_provider.dart';
 import '../../application/diamond_results_handoff.dart';
 import '../../application/diamond_search_provider.dart';
-import '../../domain/models/diamond_active_filters.dart';
 import '../../domain/models/diamond_catalog_type.dart';
 import '../../domain/models/diamond_filter_summary.dart';
 import '../../../../core/widgets/navigation/top_bar/top_bar_actions.dart';
@@ -171,22 +169,11 @@ class _DiamondListingsScreenState extends ConsumerState<DiamondListingsScreen>
           SliverToBoxAdapter(
             child: KeyedSubtree(
               key: listingHeaderKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Sponsored stones are drawn as result cards below, so
-                  // only the section banner goes here.
-                  const SpotlightCategoryBlock(
-                    category: SpotlightCategory.diamonds,
-                    sponsoredRow: false,
-                  ),
-                  _ActiveFilterPills(
-                    onEdit: _editFilters,
-                    onResetAll: () => ref
-                        .read(diamondListProvider.notifier)
-                        .resetFiltersAndReload(),
-                  ),
-                ],
+              // Sponsored stones are drawn as result cards below, so only
+              // the section banner goes here.
+              child: const SpotlightCategoryBlock(
+                category: SpotlightCategory.diamonds,
+                sponsoredRow: false,
               ),
             ),
           ),
@@ -319,52 +306,6 @@ class _CountLine extends ConsumerWidget {
           : context.tr(DiamondFlowL10n.resultsCount, {
               'count': formatGroupedWhole(total.toDouble()),
             }),
-    );
-  }
-}
-
-/// Pills summarising which finder sections hold filters; tapping edits.
-class _ActiveFilterPills extends ConsumerWidget {
-  const _ActiveFilterPills({required this.onEdit, required this.onResetAll});
-
-  final VoidCallback onEdit;
-  final VoidCallback onResetAll;
-
-  static String _label(
-    BuildContext context,
-    DiamondFinderSection s,
-  ) => context.tr(switch (s) {
-    DiamondFinderSection.shape => DiamondFlowL10n.sectionShape,
-    DiamondFinderSection.sizePrice => DiamondFlowL10n.sectionSizePrice,
-    DiamondFinderSection.colorClarity => DiamondFlowL10n.sectionColorClarity,
-    DiamondFinderSection.grading => DiamondFlowL10n.sectionGrading,
-    DiamondFinderSection.inclusions => DiamondFlowL10n.sectionInclusions,
-    DiamondFinderSection.listing => DiamondFlowL10n.sectionListing,
-    DiamondFinderSection.seller => DiamondFlowL10n.sectionSeller,
-    DiamondFinderSection.measurements => DiamondFlowL10n.sectionMeasurements,
-    DiamondFinderSection.proportions => DiamondFlowL10n.sectionProportions,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final filters = ref.watch(diamondSearchProvider);
-    final summary = DiamondFilterSummary.of(filters);
-    // Applied values first (also what Gem Agent set), then a count for any
-    // section filters that have no value pill.
-    final active = DiamondActiveFilters.of(
-      filters,
-      formatPrice: (v) => AppCurrency.format(formatCatalogPriceWholeK(v)),
-    );
-    return LuxeActiveFilterPills(
-      labels: [
-        ...active.labels,
-        for (final s in DiamondFinderSection.values)
-          if (summary.count(s) - active.covered(s) > 0)
-            '${_label(context, s)} · ${summary.count(s) - active.covered(s)}',
-      ],
-      onEdit: onEdit,
-      onReset: onResetAll,
-      resetLabel: context.tr(DiamondFlowL10n.reset),
     );
   }
 }

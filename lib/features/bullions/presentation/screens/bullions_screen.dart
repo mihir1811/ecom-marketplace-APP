@@ -8,8 +8,6 @@ import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/luxe_scope.dart';
 import '../../../../core/theme/luxe_tokens.dart';
-import '../../../../core/utils/active_filter_labels.dart';
-import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/app_system_back_scope.dart';
@@ -23,7 +21,6 @@ import '../../application/bullions_filter_provider.dart';
 import '../../application/bullions_list_provider.dart';
 import '../../domain/models/bullions_filter_state.dart';
 import '../../domain/models/bullions_filter_summary.dart';
-import '../widgets/bullion_filter_labels.dart';
 import '../widgets/bullion_luxe_cards.dart';
 import '../../../spotlight/domain/spotlight_models.dart';
 import '../../../spotlight/presentation/widgets/spotlight_category_block.dart';
@@ -218,7 +215,6 @@ class _BullionsScreenState extends ConsumerState<BullionsScreen>
                 ),
                 LuxeRowHeading(title: context.tr(CatalogFlowL10n.metal)),
                 const _MetalPresets(),
-                _ActiveFilterPills(onEdit: _openFilters, onReset: _clearAll),
               ],
             ),
           ),
@@ -362,52 +358,6 @@ class _CountLine extends ConsumerWidget {
           : context.tr(CatalogFlowL10n.bullionResults, {
               'count': formatGroupedWhole(total.toDouble()),
             }),
-    );
-  }
-}
-
-class _ActiveFilterPills extends ConsumerWidget {
-  const _ActiveFilterPills({required this.onEdit, required this.onReset});
-
-  final VoidCallback onEdit;
-  final VoidCallback onReset;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final f = ref.watch(bullionsFilterProvider);
-    final summary = BullionsFilterSummary.of(f);
-    // Applied values first (also what Gem Agent set), then counts for the rest.
-    final pills = ActiveFilterLabels<BullionsFilterSection>()
-      ..values(BullionsFilterSection.formWeight, f.shapes)
-      ..values(BullionsFilterSection.formWeight, f.weightChips)
-      ..range(
-        BullionsFilterSection.formWeight,
-        min: f.weightMin > 0 ? f.weightMin : null,
-        max: f.weightMax > 0 ? f.weightMax : null,
-        format: ActiveFilterLabels.number,
-        suffix: ' g',
-      )
-      ..range(
-        BullionsFilterSection.price,
-        min: f.priceMin > 0 ? f.priceMin : null,
-        max: f.priceMax > 0 ? f.priceMax : null,
-        format: (v) => AppCurrency.format(formatCatalogPriceWholeK(v)),
-      )
-      ..values(BullionsFilterSection.provenance, f.conditions)
-      ..values(BullionsFilterSection.provenance, f.certifications)
-      ..values(BullionsFilterSection.provenance, f.mintMarks);
-    return Padding(
-      padding: const EdgeInsets.only(top: 6),
-      child: LuxeActiveFilterPills(
-        labels: pills.build(
-          sections: BullionsFilterSection.values,
-          count: summary.count,
-          title: (s) => bullionSectionTitle(context, s),
-        ),
-        onEdit: onEdit,
-        onReset: onReset,
-        resetLabel: context.tr(DiamondFlowL10n.reset),
-      ),
     );
   }
 }

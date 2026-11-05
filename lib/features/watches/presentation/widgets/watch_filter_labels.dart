@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/utils/active_filter_labels.dart';
-import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../../../core/widgets/luxe/luxe_toggle_sort_sheet.dart';
@@ -28,54 +26,6 @@ String watchSectionTitle(BuildContext context, WatchFilterSection s) =>
 
 typedef WatchFilterProvider =
     NotifierProvider<WatchFilterNotifier, WatchFilterState>;
-
-/// Pills summarising which watch filter sections hold filters; tapping edits.
-class WatchActiveFilterPills extends ConsumerWidget {
-  const WatchActiveFilterPills({
-    required this.provider,
-    required this.onEdit,
-    required this.onReset,
-    super.key,
-  });
-
-  final WatchFilterProvider provider;
-  final VoidCallback onEdit;
-  final VoidCallback onReset;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final f = ref.watch(provider);
-    final summary = WatchFilterSummary.of(f);
-    // Applied values first (also what Gem Agent set), then counts for the rest.
-    final pills = ActiveFilterLabels<WatchFilterSection>()
-      ..values(WatchFilterSection.brandModel, f.brands)
-      ..values(WatchFilterSection.brandModel, f.models)
-      ..values(WatchFilterSection.style, f.categories)
-      ..values(WatchFilterSection.style, f.genders)
-      ..range(
-        WatchFilterSection.price,
-        min: f.priceMin > 0 ? f.priceMin : null,
-        max: f.priceMax > 0 ? f.priceMax : null,
-        format: _price,
-      )
-      ..values(WatchFilterSection.movement, f.movements)
-      ..values(WatchFilterSection.caseBezel, f.caseMaterials)
-      ..values(WatchFilterSection.caseBezel, f.caseSizeRanges)
-      ..values(WatchFilterSection.dial, f.dialColors, name: 'Dial')
-      ..values(WatchFilterSection.strap, f.strapMaterials, name: 'Strap')
-      ..values(WatchFilterSection.condition, f.conditions);
-    return LuxeActiveFilterPills(
-      labels: pills.build(
-        sections: WatchFilterSection.values,
-        count: summary.count,
-        title: (s) => watchSectionTitle(context, s),
-      ),
-      onEdit: onEdit,
-      onReset: onReset,
-      resetLabel: context.tr(DiamondFlowL10n.reset),
-    );
-  }
-}
 
 /// Pinned Filters / Sort / view toolbar for watch results.
 class WatchListingToolbar extends ConsumerWidget {
@@ -133,8 +83,6 @@ class WatchCountLine extends StatelessWidget {
     );
   }
 }
-
-String _price(double v) => AppCurrency.format(formatCatalogPriceWholeK(v));
 
 /// Sort fields for [showLuxeToggleSortSheet]; [only] limits the options
 /// (e.g. the brand page's shorter list).

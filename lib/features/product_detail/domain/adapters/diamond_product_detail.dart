@@ -5,6 +5,7 @@ import '../../../../core/utils/currency_rates.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../cart/domain/models/cart_product_type.dart';
+import '../../../diamonds/domain/melee_lot_figures.dart';
 import '../../../diamonds/domain/models/diamond.dart';
 import '../../../diamonds/domain/models/diamond_display.dart';
 import '../models/product_detail.dart';
@@ -19,8 +20,14 @@ ProductDetail diamondProductDetail(Diamond d) {
     d.lab ?? d.certificate,
     uppercase: true,
   );
-  final perCarat = d.pricePerCarat ?? (d.carat > 0 ? d.price / d.carat : null);
-  final carat = d.carat.toStringAsFixed(2);
+  // Melee: seller figures, gaps estimated from the sieve chart.
+  final lot = d.isMelee ? MeleeLotFigures.of(d) : null;
+  final perCarat =
+      lot?.pricePerCarat ??
+      d.pricePerCarat ??
+      (d.carat > 0 ? d.price / d.carat : null);
+  final carat = (lot?.totalCarat ?? d.carat).toStringAsFixed(2);
+  String approx(bool estimated) => estimated ? ' (approx.)' : '';
   final shape = DiamondDisplay.shape(d.shape);
   final color = DiamondDisplay.displayPrimaryColor(
     color: d.color,
@@ -159,18 +166,22 @@ ProductDetail diamondProductDetail(Diamond d) {
       specSection(ProductSpecGroup.essentials, {
         'Shape': shape,
         'Carat weight': '$carat ct',
-        if (d.isMelee)
+        if (lot != null)
           'Carat / pcs': DiamondDisplay.number(
-            d.caratPerPcs,
+            lot.caratPerPcs,
             decimals: 3,
-            suffix: ' ct',
+            suffix: ' ct${approx(lot.caratPerPcsApprox)}',
           ),
-        if (d.isMelee)
-          'Total pcs': DiamondDisplay.number(d.totalPcs, decimals: 0),
-        if (d.isMelee)
+        if (lot != null)
+          'Total pcs': DiamondDisplay.number(
+            lot.totalPcs,
+            decimals: 0,
+            suffix: approx(lot.totalPcsApprox),
+          ),
+        if (lot != null)
           'Total carat': DiamondDisplay.number(
-            d.totalCaratWeight,
-            suffix: ' ct',
+            lot.totalCarat,
+            suffix: ' ct${approx(lot.totalCaratApprox)}',
           ),
         'Origin type': d.isLabGrown ? 'Lab grown' : 'Natural',
         'Growth method': DiamondDisplay.optional(d.growthType, uppercase: true),
@@ -179,9 +190,12 @@ ProductDetail diamondProductDetail(Diamond d) {
             : DiamondDisplay.availability(d.available),
         'Price per carat': perCarat == null
             ? null
-            : AppCurrency.format(formatCatalogPrice(perCarat)),
-        if (d.isMelee && d.pricePerPcs != null)
-          'Price / pcs': AppCurrency.format(formatCatalogPrice(d.pricePerPcs!)),
+            : '${AppCurrency.format(formatCatalogPrice(perCarat))}'
+                  '${approx(lot?.pricePerCaratApprox ?? false)}',
+        if (lot?.pricePerPcs case final ppp?)
+          'Price / pcs':
+              '${AppCurrency.format(formatCatalogPrice(ppp))}'
+              '${approx(lot!.pricePerPcsApprox)}',
         'Make an offer': d.isMakeAnOfferAllowed ? 'Allowed' : null,
       }),
       specSection(ProductSpecGroup.quality, {
@@ -250,6 +264,17 @@ ProductDetail diamondProductDetail(Diamond d) {
     isSold: d.isSold,
     isOnAuction: d.isOnAuction,
     naturalSpecTabs: d.isMelee ? _meleeSpecTabs(d) : _singleSpecTabs(d),
+    meleeLot: lot == null
+        ? null
+        : ProductMeleeQty(
+            totalPcs: lot.totalPcs,
+            totalCarat: lot.totalCarat,
+            caratPerPcs: lot.caratPerPcs,
+            pricePerPcs: lot.pricePerPcs,
+            pricePerCarat: lot.pricePerCarat,
+            pcsApprox: lot.pcsApprox,
+            caratApprox: lot.caratApprox,
+          ),
   );
 }
 

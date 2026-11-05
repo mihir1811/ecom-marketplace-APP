@@ -36,6 +36,8 @@ class MeleeRangeFilters extends StatefulWidget {
     this.pricePerUnitLimits = const (0.0, 5000.0),
     this.pcsLimits = const (1.0, 100000.0),
     this.totalPriceLimits = const (0.0, 250000.0),
+    this.isPcsMode,
+    this.onModeChanged,
     super.key,
   });
 
@@ -64,12 +66,24 @@ class MeleeRangeFilters extends StatefulWidget {
   final (double, double) pcsLimits;
   final (double, double) totalPriceLimits;
 
+  /// Pieces vs carat mode. When set, the parent owns it (listing cards
+  /// follow it); otherwise the widget keeps its own.
+  final bool? isPcsMode;
+  final ValueChanged<bool>? onModeChanged;
+
   @override
   State<MeleeRangeFilters> createState() => _MeleeRangeFiltersState();
 }
 
 class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
-  bool _isPcsMode = true;
+  bool _localPcsMode = true;
+
+  bool get _isPcsMode => widget.isPcsMode ?? _localPcsMode;
+
+  void _setMode(bool pcs) {
+    setState(() => _localPcsMode = pcs);
+    widget.onModeChanged?.call(pcs);
+  }
 
   static Color get _gold => AppColors.bronze;
   static Color get _goldBorder => AppColors.bronzeLight;
@@ -113,10 +127,10 @@ class _MeleeRangeFiltersState extends State<MeleeRangeFilters> {
       child: Row(
         children: [
           _buildTab(context, context.tr(CatalogL10n.pieces), _isPcsMode, () {
-            setState(() => _isPcsMode = true);
+            _setMode(true);
           }),
           _buildTab(context, context.tr(CatalogL10n.carat), !_isPcsMode, () {
-            setState(() => _isPcsMode = false);
+            _setMode(false);
           }),
         ],
       ),
