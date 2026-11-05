@@ -198,7 +198,7 @@ class SpotlightProductCard extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(5),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(LuxeSpace.radius - 5),
+                borderRadius: BorderRadius.circular(LuxeSpace.cardRadius - 5),
                 child: Stack(
                   fit: StackFit.expand,
                   children: [

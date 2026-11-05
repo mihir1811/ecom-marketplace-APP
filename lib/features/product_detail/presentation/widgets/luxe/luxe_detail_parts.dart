@@ -501,6 +501,195 @@ class LuxePriceCard extends StatelessWidget {
   }
 }
 
+/// Right-aligned price block for the compact header: struck list price
+/// and saving, serif sale price, unit line.
+class LuxeCompactPrice extends StatelessWidget {
+  const LuxeCompactPrice({required this.labels, super.key});
+
+  final ProductPriceLabels labels;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        if (labels.hasDiscount)
+          Text(
+            labels.list!,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: LuxeType.label(p.inkFaint, size: 12).copyWith(
+              decoration: TextDecoration.lineThrough,
+              decorationColor: p.inkFaint,
+            ),
+          ),
+        // The figure rolls in when it changes.
+        AnimatedSwitcher(
+          duration: LuxeMotion.medium,
+          switchInCurve: LuxeMotion.settle,
+          layoutBuilder: (current, previous) => Stack(
+            alignment: Alignment.centerRight,
+            children: [...previous, ?current],
+          ),
+          child: FittedBox(
+            key: ValueKey(labels.sale),
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerRight,
+            child: Text(
+              labels.sale,
+              style: LuxeType.display(28, p.ink).copyWith(
+                height: 1.1,
+                fontFeatures: const [FontFeature.liningFigures()],
+              ),
+            ),
+          ),
+        ),
+        if (labels.unit != null)
+          Text(
+            labels.unit!,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.right,
+            style: LuxeType.label(p.inkMuted, size: 12),
+          ),
+        if (labels.hasDiscount && labels.saveAmount != null)
+          Text(
+            context.tr(DiamondFlowL10n.youSave, {
+              'amount':
+                  labels.currencySymbol +
+                  formatGroupedWhole(labels.saveAmount!.roundToDouble()),
+            }),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: LuxeType.label(p.positive, size: 11.5),
+          ),
+      ],
+    );
+  }
+}
+
+/// Up to four highlights in one hairline-divided row (label over value).
+class LuxeGlanceStrip extends StatelessWidget {
+  const LuxeGlanceStrip({required this.highlights, super.key});
+
+  final List<ProductHighlight> highlights;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    final items = highlights.take(4).toList();
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: p.surfaceRaised,
+        borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            for (var i = 0; i < items.length; i++) ...[
+              if (i > 0) VerticalDivider(width: 1, color: p.hairline),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Column(
+                    children: [
+                      Text(
+                        items[i].label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: LuxeType.label(p.inkMuted, size: 11),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        items[i].value,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: LuxeType.label(p.ink, size: 13.5),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// One-line certificate: lab and report number, "View" link at the end.
+class LuxeCertificateRow extends StatelessWidget {
+  const LuxeCertificateRow({required this.cert, super.key});
+
+  final ProductCertification cert;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    final ref = cert.referenceValue;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 6, 4, 6),
+      constraints: const BoxConstraints(minHeight: 44),
+      decoration: BoxDecoration(
+        color: p.surface,
+        borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
+        border: Border.all(color: p.hairline),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.verified_rounded, color: p.positive, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: context.tr(DiamondFlowL10n.certifiedBy, {
+                      'lab': cert.authority,
+                    }),
+                    style: LuxeType.label(p.ink, size: 13),
+                  ),
+                  if (ref != null)
+                    TextSpan(
+                      text: ' · ${luxeReferenceLabel(context, cert)} $ref',
+                      style: LuxeType.figure(p.inkMuted, size: 12),
+                    ),
+                ],
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (cert.hasCertificateLink)
+            TextButton.icon(
+              style: TextButton.styleFrom(
+                foregroundColor: p.accent,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                minimumSize: const Size(44, 36),
+                visualDensity: VisualDensity.compact,
+              ),
+              onPressed: () => openCertificateViewer(
+                context,
+                url: cert.certificateUrl!,
+                title:
+                    cert.certificateLabel ??
+                    context.tr(CatalogL10n.certification),
+              ),
+              icon: const Icon(Icons.open_in_new_rounded, size: 15),
+              label: Text(
+                context.tr(DiamondFlowL10n.viewCertificate),
+                style: LuxeType.label(p.accent, size: 12.5),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Four key grades as quiet tiles.
 class LuxeGlance extends StatelessWidget {
   const LuxeGlance({required this.highlights, super.key});

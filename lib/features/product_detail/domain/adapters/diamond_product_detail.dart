@@ -274,6 +274,7 @@ ProductDetail diamondProductDetail(Diamond d) {
             pricePerCarat: lot.pricePerCarat,
             pcsApprox: lot.pcsApprox,
             caratApprox: lot.caratApprox,
+            shape: shape == DiamondDisplay.missing ? null : shape,
           ),
   );
 }

@@ -184,7 +184,7 @@ class JewelleryShopCard extends StatelessWidget {
                       height: cover - _inset,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(
-                          LuxeSpace.radius - _inset,
+                          LuxeSpace.cardRadius - _inset,
                         ),
                         child: SellerCover(url: shop.bannerUrl),
                       ),

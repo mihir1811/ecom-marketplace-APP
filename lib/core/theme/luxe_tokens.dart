@@ -193,4 +193,7 @@ abstract final class LuxeSpace {
   static const section = 40.0;
   static const radius = 22.0;
   static const radiusSmall = 14.0;
+
+  /// Product listing cards (grid and list): tighter than [radius].
+  static const cardRadius = 12.0;
 }

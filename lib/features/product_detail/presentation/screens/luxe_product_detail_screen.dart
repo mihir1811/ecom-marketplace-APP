@@ -329,6 +329,9 @@ class _Summary extends ConsumerWidget {
     final p = LuxePalette.of(context);
     Widget enter(Widget child, int i) => luxeEnter(context, child, i);
     final (:title, :labels, :approx) = _meleeView(ref);
+    if (detail.jewelryDetail == null) {
+      return _compact(context, title: title, labels: labels, approx: approx);
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -383,25 +386,101 @@ class _Summary extends ConsumerWidget {
           const SizedBox(height: 18),
           enter(LuxeJewelryGlance(detail: detail), 5),
           const SizedBox(height: 12),
-        ] else ...[
-          enter(LuxePriceCard(labels: labels), 4),
-          if (approx) ...[
-            const SizedBox(height: 6),
-            Text(
-              '≈ Approximate — estimated from sieve size; the seller did '
-              'not provide this value.',
-              style: LuxeType.body(p.inkMuted, size: 12),
-            ),
-          ],
-          const SizedBox(height: 18),
-          if (detail.highlights.isNotEmpty) ...[
-            enter(LuxeGlance(highlights: detail.highlights), 5),
-            const SizedBox(height: 12),
-          ],
         ],
         if (detail.certification != null &&
             !luxeIsMissing(detail.certification!.authority))
           enter(LuxeCertificateCard(cert: detail.certification!), 6),
+      ],
+    );
+  }
+
+  /// Diamonds, gemstones, watches and bullion: title and grades beside the
+  /// price, badges on one line, then a one-row certificate and (bullion)
+  /// a one-row glance strip.
+  Widget _compact(
+    BuildContext context, {
+    required String title,
+    required ProductPriceLabels labels,
+    required bool approx,
+  }) {
+    final p = LuxePalette.of(context);
+    Widget enter(Widget child, int i) => luxeEnter(context, child, i);
+    // The eyebrow already names the segment.
+    final segment = detail.segment.label.toLowerCase();
+    final badges = [
+      for (final b in detail.badges)
+        if (b.label.trim().toLowerCase() != segment) b,
+    ];
+    final cert = detail.certification;
+    final showGlance = detail.highlights.isNotEmpty && !_glanceInSpecs(detail);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        enter(LuxeDetailEyebrow(detail: detail), 0),
+        const SizedBox(height: 2),
+        enter(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: LuxeType.display(28, p.ink).copyWith(height: 1.1),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      detail.subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: LuxeType.body(p.inkMuted, size: 13),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.sizeOf(context).width * 0.42,
+                ),
+                child: LuxeCompactPrice(labels: labels),
+              ),
+            ],
+          ),
+          1,
+        ),
+        if (badges.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          enter(
+            Wrap(
+              spacing: 5,
+              runSpacing: 5,
+              children: [for (final b in badges) LuxeDetailBadge(badge: b)],
+            ),
+            2,
+          ),
+        ],
+        if (approx) ...[
+          const SizedBox(height: 6),
+          Text(
+            '≈ Approximate — estimated from sieve size; the seller did '
+            'not provide this value.',
+            style: LuxeType.body(p.inkFaint, size: 11.5),
+          ),
+        ],
+        if (showGlance) ...[
+          const SizedBox(height: 10),
+          enter(LuxeGlanceStrip(highlights: detail.highlights), 3),
+        ],
+        if (cert != null && !luxeIsMissing(cert.authority)) ...[
+          const SizedBox(height: 10),
+          enter(LuxeCertificateRow(cert: cert), 4),
+        ],
       ],
     );
   }
@@ -427,9 +506,10 @@ class _Summary extends ConsumerWidget {
     final approx = pcsMode ? lot.pcsApprox : lot.caratApprox;
     final mark = approx ? '≈' : '';
 
-    // Adapter title is "<carat> ct <shape>"; swap the size part.
-    String withSize(String size) =>
-        detail.title.replaceFirst(RegExp(r'^[\d.,]+\s*ct'), '$mark$size');
+    String withSize(String size) {
+      final shape = lot.shape?.trim() ?? '';
+      return shape.isEmpty ? '$mark$size' : '$mark$size $shape';
+    }
 
     ProductPriceLabels withUnit(String? unit) => ProductPriceLabels(
       sale: labels.sale,
@@ -468,6 +548,22 @@ class _Summary extends ConsumerWidget {
     return (title: title, labels: withUnit(unit), approx: approx);
   }
 }
+
+/// True when every "At a glance" tile is already a row in the spec tabs,
+/// so the tiles would only repeat them. Checked per segment:
+/// diamonds (single: carat / color / clarity / cut; melee: sieve too),
+/// gemstones (carat / origin / color / treatment) and watches (case size /
+/// movement / year / condition). Bullion keeps it (purity is not a spec
+/// row); jewelry and auctions use their own layouts.
+bool _glanceInSpecs(ProductDetail detail) =>
+    detail.naturalSpecTabs != null &&
+    switch (detail.segment) {
+      ProductSegment.naturalDiamond ||
+      ProductSegment.labGrownDiamond ||
+      ProductSegment.gemstone ||
+      ProductSegment.watch => true,
+      ProductSegment.jewelry || ProductSegment.bullion => false,
+    };
 
 /// Bullion overview and specification rows as luxe spec tabs; seller info
 /// is shown by the shared seller panel below.

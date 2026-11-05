@@ -529,27 +529,28 @@ class LuxeListingSkeletons extends StatelessWidget {
     Widget frame(Widget child) => DecoratedBox(
       decoration: BoxDecoration(
         color: p.surface,
-        borderRadius: BorderRadius.circular(LuxeSpace.radius),
+        borderRadius: BorderRadius.circular(LuxeSpace.cardRadius),
         border: Border.all(color: p.hairline),
       ),
       child: child,
     );
     final gridCard = frame(
       Padding(
-        padding: const EdgeInsets.all(5),
+        padding: EdgeInsets.zero,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             AspectRatio(
               aspectRatio: 1,
-              child: block(
-                double.infinity,
-                double.infinity,
-                LuxeSpace.radius - 5,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(LuxeSpace.cardRadius - 1),
+                ),
+                child: block(double.infinity, double.infinity, 0),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+              padding: const EdgeInsets.fromLTRB(13, 13, 13, 13),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -565,13 +566,18 @@ class LuxeListingSkeletons extends StatelessWidget {
         ),
       ),
     );
-    const thumb = LuxeProductListCard.thumbSize;
+    const thumb = LuxeProductListCard.thumbExtent;
     final listCard = frame(
       Padding(
-        padding: const EdgeInsets.all(5),
+        padding: EdgeInsets.zero,
         child: Row(
           children: [
-            block(thumb, thumb, LuxeSpace.radius - 6),
+            ClipRRect(
+              borderRadius: const BorderRadius.horizontal(
+                left: Radius.circular(LuxeSpace.cardRadius - 1),
+              ),
+              child: block(thumb, thumb, 0),
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Column(

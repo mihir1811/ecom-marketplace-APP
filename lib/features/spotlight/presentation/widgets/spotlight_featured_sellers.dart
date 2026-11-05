@@ -166,7 +166,7 @@ class SpotlightSellerCard extends StatelessWidget {
                       height: coverHeight - 5,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(
-                          LuxeSpace.radius - 5,
+                          LuxeSpace.cardRadius - 5,
                         ),
                         child: SellerCover(url: seller.bannerUrl),
                       ),

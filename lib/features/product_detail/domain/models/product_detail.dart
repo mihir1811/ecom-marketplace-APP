@@ -325,6 +325,7 @@ class ProductMeleeQty {
     this.pricePerCarat,
     this.pcsApprox = false,
     this.caratApprox = false,
+    this.shape,
   });
 
   final int? totalPcs;
@@ -340,6 +341,9 @@ class ProductMeleeQty {
 
   /// Carat / per-carat figures estimated from the sieve chart.
   final bool caratApprox;
+
+  /// Display shape for the lot title ("120 pcs Round").
+  final String? shape;
 
   /// Prefer lot totals for purchase math — `caratPerPcs` from API is often stale.
   double get resolvedCaratPerPcs {

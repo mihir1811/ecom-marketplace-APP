@@ -56,17 +56,19 @@ String? _measure(Diamond d) => DiamondDisplay.optional(
 )?.replaceAll(RegExp(r'\s*[xX]\s*'), ' × ');
 
 /// "$8,191/ct · 7.21 × 5.10 × 3.18" — rounded, grouped, typographic ×.
-/// Estimated melee figures end with "approx.".
+/// Melee lots carry the unit price in the title instead. Estimated melee
+/// figures end with "approx.".
 String? _metaLine(Diamond d, MeleeLotFigures? m, {required bool inPcs}) {
   final parts = [
-    ?_unitPrice(d, m, inPcs: inPcs),
+    if (m == null) ?_unitPrice(d, m, inPcs: inPcs),
     ?_measure(d),
     if (_approx(m, inPcs: inPcs)) 'approx.',
   ];
   return parts.isEmpty ? null : parts.join(' · ');
 }
 
-/// "1.20 ct Round", or "120 pcs Round" for melee in pieces mode.
+/// "1.20 ct Round"; melee lots add the unit price right after the size:
+/// "120 pcs · $9/pc · Round" or "5.00 ct · $1,800/ct · Round".
 String _title(Diamond d, MeleeLotFigures? m, {required bool inPcs}) {
   final shape = DiamondDisplay.shape(d.shape);
   final mark = _approx(m, inPcs: inPcs) ? '≈' : '';
@@ -79,7 +81,11 @@ String _title(Diamond d, MeleeLotFigures? m, {required bool inPcs}) {
     final carat = m?.totalCarat ?? d.carat;
     size = '$mark${carat.toStringAsFixed(2)} ct';
   }
-  return shape == DiamondDisplay.missing ? size : '$size $shape';
+  final unit = m == null ? null : _unitPrice(d, m, inPcs: inPcs);
+  if (unit == null) {
+    return shape == DiamondDisplay.missing ? size : '$size $shape';
+  }
+  return [size, unit, if (shape != DiamondDisplay.missing) shape].join(' · ');
 }
 
 Widget _thumb(BuildContext context, Diamond d) {
@@ -122,8 +128,9 @@ CatalogSaveButton _save(Diamond d, {bool onLight = false}) => CatalogSaveButton(
 
 /// Two-column diamond result card on the shared [LuxeProductGridCard].
 ///
-/// Status sits top-left, the one select control top-right (for sellers it
-/// picks for compare and project at once) and save bottom-right.
+/// Status sits top-left, save top-right and the one select control
+/// bottom-right (for sellers it picks for compare and project at once),
+/// matching the gemstone card.
 class DiamondLuxeGridCard extends ConsumerWidget {
   const DiamondLuxeGridCard({
     required this.diamond,
@@ -159,8 +166,8 @@ class DiamondLuxeGridCard extends ConsumerWidget {
       price: _price(d),
       overlays: LuxeMediaOverlays(
         topLeft: AvailabilityStatusBadge(status: d.available),
-        topRight: DiamondSelectionToggle(diamond: d),
-        bottomRight: _save(d),
+        topRight: _save(d),
+        bottomRight: DiamondSelectionToggle(diamond: d),
       ),
     );
   }
@@ -192,8 +199,6 @@ class DiamondLuxeListCard extends ConsumerWidget {
     final detail = [
       // Sponsored cards lead with the stock number, right after the pill.
       if (sponsored && stock != null && stock.isNotEmpty) '#$stock',
-      // Melee rows price per piece or per carat to match the finder mode.
-      if (m != null) ?_unitPrice(d, m, inPcs: inPcs),
       ?lab,
       ?_measure(d),
       if (_approx(m, inPcs: inPcs)) 'approx.',
@@ -210,8 +215,8 @@ class DiamondLuxeListCard extends ConsumerWidget {
       subtitle: diamondGradesLine(d) ?? DiamondDisplay.missing,
       detail: detail,
       price: _price(d, showList: true),
-      titleAction: DiamondSelectionToggle(diamond: d, onLight: true),
-      priceAction: _save(d, onLight: true),
+      titleAction: _save(d, onLight: true),
+      priceAction: DiamondSelectionToggle(diamond: d, onLight: true),
       thumbTopLeft: AvailabilityStatusBadge(status: d.available),
     );
   }

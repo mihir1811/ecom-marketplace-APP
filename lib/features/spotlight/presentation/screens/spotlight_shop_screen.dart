@@ -434,7 +434,7 @@ class SpotlightShopProductCard extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(5),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(LuxeSpace.radius - 5),
+                borderRadius: BorderRadius.circular(LuxeSpace.cardRadius - 5),
                 child: url == null
                     ? fallback
                     : AppNetworkImage(

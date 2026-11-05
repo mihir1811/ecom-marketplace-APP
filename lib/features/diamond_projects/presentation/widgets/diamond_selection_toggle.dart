@@ -46,6 +46,7 @@ class DiamondSelectionToggle extends ConsumerWidget {
 
     final p = LuxePalette.of(context);
     final picked = ref.watch(isDiamondProjectPickedProvider(diamond.id));
+    // Same look as the gemstone card's compare button.
     return LuxeMiniCircle(
       tooltip: context.tr(
         picked
@@ -54,24 +55,13 @@ class DiamondSelectionToggle extends ConsumerWidget {
       ),
       glass: !onLight,
       active: picked,
-      activeColor: p.accent,
       onTap: () => _toggle(context, ref),
-      child: AnimatedSwitcher(
-        duration: LuxeMotion.medium,
-        switchInCurve: LuxeMotion.settle,
-        switchOutCurve: Curves.easeIn,
-        transitionBuilder: (child, a) => RotationTransition(
-          turns: Tween(begin: -0.25, end: 0.0).animate(a),
-          child: ScaleTransition(scale: a, child: child),
-        ),
-        child: Icon(
-          picked ? Icons.check_rounded : Icons.add_rounded,
-          key: ValueKey(picked),
-          size: 18,
-          color: picked
-              ? p.onAccent
-              : LuxeMiniCircle.restingIconColor(context, glass: !onLight),
-        ),
+      child: Icon(
+        picked ? Icons.check_rounded : Icons.compare_arrows_rounded,
+        size: 17,
+        color: picked
+            ? p.canvas
+            : LuxeMiniCircle.restingIconColor(context, glass: !onLight),
       ),
     );
   }

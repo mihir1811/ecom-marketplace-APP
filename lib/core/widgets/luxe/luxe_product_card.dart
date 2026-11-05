@@ -90,36 +90,36 @@ class LuxeProductGridCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Media runs edge to edge; only the card's top corners round it.
           AspectRatio(
             aspectRatio: 1,
-            child: Padding(
-              padding: const EdgeInsets.all(5),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(LuxeSpace.radius - 5),
-                child: LuxeRevealMask(
-                  radius: LuxeSpace.radius - 5,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      LuxeRevealZoom(child: media),
-                      if (overlays.topLeft != null)
-                        Positioned(top: 8, left: 8, child: overlays.topLeft!),
-                      if (overlays.topRight != null)
-                        Positioned(top: 6, right: 6, child: overlays.topRight!),
-                      if (overlays.bottomLeft != null)
-                        Positioned(
-                          left: 6,
-                          bottom: 6,
-                          child: overlays.bottomLeft!,
-                        ),
-                      if (overlays.bottomRight != null)
-                        Positioned(
-                          right: 6,
-                          bottom: 6,
-                          child: overlays.bottomRight!,
-                        ),
-                    ],
-                  ),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(LuxeSpace.cardRadius - 1),
+              ),
+              child: LuxeRevealMask(
+                radius: LuxeSpace.cardRadius - 1,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    LuxeRevealZoom(child: media),
+                    if (overlays.topLeft != null)
+                      Positioned(top: 10, left: 10, child: overlays.topLeft!),
+                    if (overlays.topRight != null)
+                      Positioned(top: 6, right: 6, child: overlays.topRight!),
+                    if (overlays.bottomLeft != null)
+                      Positioned(
+                        left: 6,
+                        bottom: 6,
+                        child: overlays.bottomLeft!,
+                      ),
+                    if (overlays.bottomRight != null)
+                      Positioned(
+                        right: 6,
+                        bottom: 6,
+                        child: overlays.bottomRight!,
+                      ),
+                  ],
                 ),
               ),
             ),
@@ -181,8 +181,12 @@ class LuxeProductListCard extends StatelessWidget {
     this.outlineColor,
   });
 
-  /// Height of the thumbnail; the row stride is this plus padding and gap.
+  /// Layout height of the row before border; the row stride is this plus
+  /// the 2px border, 10px spare and gap (kept for scroll restore).
   static const thumbSize = 112.0;
+
+  /// Edge-to-edge thumbnail side: fills the old 5px inset on every side.
+  static const thumbExtent = thumbSize + 10;
 
   final Widget media;
   final String title;
@@ -209,85 +213,85 @@ class LuxeProductListCard extends StatelessWidget {
       onTap: onTap,
       highlighted: highlighted,
       outlineColor: outlineColor,
-      child: Padding(
-        padding: const EdgeInsets.all(5),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: thumbSize,
-              height: thumbSize,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(LuxeSpace.radius - 6),
-                child: LuxeRevealMask(
-                  radius: LuxeSpace.radius - 6,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      LuxeRevealZoom(child: media),
-                      if (thumbTopLeft != null)
-                        Positioned(top: 7, left: 7, child: thumbTopLeft!),
-                      if (thumbBottomLeft != null)
-                        Positioned(bottom: 6, left: 6, child: thumbBottomLeft!),
-                    ],
-                  ),
-                ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Thumbnail runs flush to the card's left, top and bottom edges.
+          SizedBox(
+            width: thumbExtent,
+            height: thumbExtent,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.horizontal(
+                left: Radius.circular(LuxeSpace.cardRadius - 1),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 5, right: 4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              child: LuxeRevealMask(
+                radius: LuxeSpace.cardRadius - 1,
+                child: Stack(
+                  fit: StackFit.expand,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: LuxeRollTitle(
-                            title,
-                            style: LuxeType.display(20, p.ink),
-                          ),
-                        ),
-                        ?titleAction,
-                      ],
-                    ),
-                    LuxeScrambleText(
-                      subtitle,
-                      style: LuxeType.label(p.inkMuted, size: 12.5),
-                    ),
-                    if ((detail != null && detail!.isNotEmpty) ||
-                        detailLeading != null) ...[
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          if (detailLeading != null) ...[
-                            _BadgeTextScale(child: detailLeading!),
-                            const SizedBox(width: 5),
-                          ],
-                          Expanded(
-                            child: LuxeScrambleText(
-                              detail ?? '',
-                              style: LuxeType.label(p.inkFaint, size: 11.5),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(child: price),
-                        ?priceAction,
-                      ],
-                    ),
+                    LuxeRevealZoom(child: media),
+                    if (thumbTopLeft != null)
+                      Positioned(top: 9, left: 9, child: thumbTopLeft!),
+                    if (thumbBottomLeft != null)
+                      Positioned(bottom: 6, left: 6, child: thumbBottomLeft!),
                   ],
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 10, 9, 5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: LuxeRollTitle(
+                          title,
+                          style: LuxeType.display(20, p.ink),
+                        ),
+                      ),
+                      ?titleAction,
+                    ],
+                  ),
+                  LuxeScrambleText(
+                    subtitle,
+                    style: LuxeType.label(p.inkMuted, size: 12.5),
+                  ),
+                  if ((detail != null && detail!.isNotEmpty) ||
+                      detailLeading != null) ...[
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        if (detailLeading != null) ...[
+                          _BadgeTextScale(child: detailLeading!),
+                          const SizedBox(width: 5),
+                        ],
+                        Expanded(
+                          child: LuxeScrambleText(
+                            detail ?? '',
+                            style: LuxeType.label(p.inkFaint, size: 11.5),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(child: price),
+                      ?priceAction,
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -357,7 +361,7 @@ class _LuxeCardFrameState extends State<LuxeCardFrame> {
           duration: LuxeMotion.medium,
           decoration: BoxDecoration(
             color: p.surface,
-            borderRadius: BorderRadius.circular(LuxeSpace.radius),
+            borderRadius: BorderRadius.circular(LuxeSpace.cardRadius),
             border: Border.all(
               color:
                   widget.outlineColor ??
