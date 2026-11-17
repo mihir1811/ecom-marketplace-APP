@@ -103,6 +103,7 @@ flutter:
     - assets/shapes/
     - assets/shapes/simulator/
     - assets/clarity/
+    - assets/models/gems.bin
     - assets/policies/policies.json
     - assets/policies/policies_hi.json
     - assets/policies/policies_gu.json

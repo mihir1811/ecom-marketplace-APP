@@ -1,0 +1,1119 @@
+import 'dart:math' as math;
+import 'dart:ui' as ui;
+
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/widgets.dart';
+
+import '../../haptics/app_haptics.dart';
+import 'diamond_mesh.dart';
+import 'diamond_models.dart';
+import 'diamond_renderer.dart';
+import 'gem_renderer.dart';
+import '../../theme/luxe_tokens.dart';
+
+/// Depth bands painted as separate layers so far and near stones can be
+/// defocused (depth of field) without blurring the in-focus band.
+enum _Band { far, focus, near }
+
+class _FieldGem {
+  _FieldGem({
+    required this.slot,
+    required this.band,
+    required this.pick,
+    required this.rank,
+    required this.s,
+    required this.q,
+    required this.hz,
+    required this.limS,
+    required this.speed,
+    required this.surge,
+    required this.surgeRate,
+    required this.scale,
+    required this.phase,
+    required this.bob,
+    required this.spinX,
+    required this.spinY,
+    required this.spinZ,
+  }) : pose = GemPose(z: hz, scale: scale);
+
+  /// Seeding order; staggers which frame each stone is re-shaded on.
+  final int slot;
+  final _Band band;
+
+  /// Facet colours kept between re-shades.
+  final DiamondShade shade = DiamondShade();
+
+  /// 0..1 choice of cut, mapped onto however many models are loaded.
+  final double pick;
+
+  /// 0..1 draw order for adaptive quality: when the device cannot keep
+  /// up, stones with the highest rank sit out first. Random, so the herd
+  /// thins evenly.
+  final double rank;
+
+  /// Rest position in flow coordinates: [s] runs along the flow and wraps
+  /// inside ±[limS], [q] is the lane across it.
+  double s;
+  final double q, hz;
+  final double limS, speed;
+
+  /// Each stone's pace swells and eases by up to ±[surge] of [speed],
+  /// [surgeRate] radians per second, so it drifts, catches up and falls
+  /// back instead of gliding at a constant rate.
+  final double surge, surgeRate;
+  double hx = 0, hy = 0;
+  final double scale, phase, bob;
+  final double spinX, spinY, spinZ;
+  final GemPose pose;
+  double vx = 0, vy = 0, vz = 0;
+  double wx = 0, wy = 0, wz = 0;
+  double flash = 0;
+
+  /// 0..1 light from the finger; rises fast near it, lingers after.
+  double lit = 0;
+}
+
+/// Physics for a dense herd of colourless 3D diamonds of every bundled cut
+/// and many sizes, streaming together from the top-left to the
+/// bottom-right corner through deep darkness, modelled on the Lusion /
+/// Oryzo coffee-bean footer.
+///
+/// The finger (or mouse) is a solid body moving through the cloud: it
+/// carves a clean round void, stones bank up into a ring around its edge,
+/// a swipe drags and flings the stones it sweeps through and sets them
+/// tumbling, and they flow back to fill the wake once it passes. A warm
+/// light rides with the finger so the stones around it catch fire. A tap
+/// sends a shockwave through the cloud.
+class GemFieldController extends ChangeNotifier {
+  GemFieldController({required this.seed, required this.reduceMotion});
+
+  final int seed;
+  bool reduceMotion;
+
+  final List<_FieldGem> _gems = [];
+  Size _size = Size.zero;
+  double _time = 0;
+  double _flowX = 0, _flowY = 0;
+
+  Offset? _pointer;
+  Offset _cursor = Offset.zero;
+  double _presence = 0;
+  Offset _pointerVelocity = Offset.zero;
+  Duration? _lastMove;
+  Offset _downAt = Offset.zero;
+  Duration _downTime = Duration.zero;
+  Offset _glowAt = Offset.zero;
+  double _glow = 0;
+  double _eyeX = 0, _eyeY = 0;
+  double _energy = 0;
+
+  /// 1 while nobody touches the field: stones shine in the studio light
+  /// with sparkles and little fog. Drops fast on touch so the finger-lit
+  /// look takes over, and eases back after release.
+  double _calm = 1;
+
+  Offset _waveAt = Offset.zero;
+  double _waveAge = -1;
+
+  /// Baked cuts; nothing is drawn until they are set.
+  List<DiamondModel>? models;
+
+  /// Quality tiers, best first. The tier is picked before the field is on
+  /// screen ([GemFieldWarmup]) and never changes while it is visible, so
+  /// no stone ever vanishes in front of the viewer. Cheaper tiers first
+  /// drop the depth-of-field blur (the costliest GPU work) and refresh
+  /// facet shading every `shadeEvery` frames instead of every frame (the
+  /// costliest CPU work; outlines still move every frame), then a share of
+  /// the stones and fine facets. Stones drawn at least `detail` pixels in
+  /// radius use the full model; `clear` is the smallest radius drawn as
+  /// see-through crystal (twice the facets).
+  static const _tiers = [
+    (blur: true, density: 1.0, detail: 22.0, shadeEvery: 1, clear: 12.0),
+    (blur: false, density: 1.0, detail: 22.0, shadeEvery: 2, clear: 12.0),
+    (blur: false, density: 0.85, detail: 30.0, shadeEvery: 2, clear: 14.0),
+    (blur: false, density: 0.7, detail: 44.0, shadeEvery: 3, clear: 17.0),
+    (blur: false, density: 0.55, detail: 60.0, shadeEvery: 3, clear: 20.0),
+  ];
+  static int get tierCount => _tiers.length;
+  int _quality = 0;
+  int _frame = 0;
+
+  int get quality => _quality;
+  bool get blur => _tiers[_quality].blur;
+
+  /// Below the best tier the field steps at most 60 times a second, so
+  /// 90/120 Hz screens do not double the work.
+  bool get capFrameRate => _quality > 0;
+
+  /// Drops to the next cheaper tier; false when already at the cheapest.
+  bool lowerQuality() {
+    if (_quality == _tiers.length - 1) return false;
+    _quality++;
+    return true;
+  }
+
+  /// Never runs better than [tier]; false when nothing changed.
+  bool capQuality(int tier) {
+    final next = tier.clamp(0, _tiers.length - 1);
+    if (next <= _quality) return false;
+    _quality = next;
+    return true;
+  }
+
+  final List<List<_FieldGem>> _bands = [for (final _ in _Band.values) []];
+  final List<DiamondBatch> _batches = [
+    for (final _ in _Band.values) DiamondBatch(),
+  ];
+
+  /// World units across the field width.
+  static const worldWidth = 6.4;
+
+  /// Herd pace multiplier (2× the original drift).
+  static const _flowSpeed = 2.0;
+
+  /// Depth slab the stones live in: back edge and thickness. Shallow and
+  /// pulled toward the viewer so the herd reads close and packed.
+  static const _zNear = -1.4;
+  static const _zDepth = 2.5;
+
+  /// Depth-of-field band edges.
+  static const _zFar = -0.95, _zFront = 0.65;
+
+  /// Depth-of-field blur radius of the far and near bands.
+  static const _blurFar = 3.2, _blurNear = 1.8;
+
+  static double _blurOf(_Band band) => switch (band) {
+    _Band.far => _blurFar,
+    _Band.focus => 0,
+    _Band.near => _blurNear,
+  };
+
+  /// Radius of the void carved around the finger, in logical pixels.
+  double get voidRadius => (_size.shortestSide * 0.2).clamp(64.0, 130.0);
+
+  /// Radius of the light carried by the finger, in logical pixels.
+  double get lightRadius => voidRadius * 2.3;
+
+  double get unit => _size.width / worldWidth;
+
+  GemCamera get camera => GemCamera(
+    center: _size.center(Offset.zero),
+    unit: unit,
+    distance: 9,
+    eyeX: _eyeX,
+    eyeY: _eyeY,
+  );
+
+  bool get settled =>
+      _calm == 1 &&
+      _pointer == null &&
+      _presence == 0 &&
+      _energy < 0.002 &&
+      _glow == 0 &&
+      _waveAge < 0;
+
+  /// Seeds stones for [size]; keeps them when the size barely changes.
+  void layout(Size size) {
+    if (size.isEmpty) return;
+    if (_gems.isNotEmpty &&
+        (size.width - _size.width).abs() < 1 &&
+        (size.height - _size.height).abs() < 1) {
+      return;
+    }
+    final first = _gems.isEmpty;
+    _size = size;
+    _gems.clear();
+    for (final b in _bands) {
+      b.clear();
+    }
+    final rng = math.Random(seed);
+    const halfW = worldWidth / 2;
+    final halfH = size.height / unit / 2;
+    // Packed like a pour of beans, capped for frame budget.
+    final count = (size.width * size.height / 560).round().clamp(160, 420);
+
+    // Flow along the screen diagonal: top-left → bottom-right.
+    final len = math.sqrt(halfW * halfW + halfH * halfH);
+    _flowX = halfW / len;
+    _flowY = -halfH / len;
+    // Half the screen's extent across the flow.
+    final across = 2 * halfW * halfH / len;
+
+    for (var i = 0; i < count; i++) {
+      // A shallow depth slab, pulled toward the viewer, keeps the herd
+      // close and tightly packed.
+      final z = _zNear + rng.nextDouble() * _zDepth;
+      final band = z < _zFar
+          ? _Band.far
+          : z > _zFront
+          ? _Band.near
+          : _Band.focus;
+      // Wider bounds at depth so the frame stays filled under perspective;
+      // the margin lets stones enter and leave fully off screen.
+      final spread = 9 / (9 - z);
+      final limS = (len + 0.8) / spread;
+      // Stratified along the flow so the herd has no gaps; lanes bunch
+      // toward the middle of the stream so it reads as one body.
+      final s0 = -limS + (i + 0.2 + rng.nextDouble() * 0.6) * 2 * limS / count;
+      final q0 =
+          (rng.nextDouble() + rng.nextDouble() - 1) * (across + 0.5) / spread;
+      final x = s0 * _flowX - q0 * _flowY;
+      final y = s0 * _flowY + q0 * _flowX;
+      final g = _FieldGem(
+        slot: i,
+        band: band,
+        pick: rng.nextDouble(),
+        rank: rng.nextDouble(),
+        s: s0,
+        q: q0,
+        hz: z,
+        limS: limS,
+        // Every stone keeps its own pace: most drift, some dawdle, a few
+        // dart through the herd. Nearer stones are a touch faster for depth
+        // parallax; the herd's average pace stays the same.
+        speed:
+            _flowSpeed * (0.72 + 0.16 * ((z - _zNear) / _zDepth)) * _pace(rng),
+        surge: 0.15 + rng.nextDouble() * 0.3,
+        surgeRate: 0.25 + rng.nextDouble() * 0.9,
+        // Mostly small stones with the odd big one, like a real pour.
+        scale: 0.1 + 0.26 * math.pow(rng.nextDouble(), 1.8),
+        phase: rng.nextDouble(),
+        bob: 0.02 + rng.nextDouble() * 0.03,
+        spinX: (rng.nextDouble() - 0.5) * 0.5,
+        spinY: (0.15 + rng.nextDouble() * 0.35) * (rng.nextBool() ? 1 : -1),
+        spinZ: (rng.nextDouble() - 0.5) * 0.3,
+      );
+      g
+        ..hx = x
+        ..hy = y
+        ..pose.x = x
+        ..pose.y = y;
+      g.pose
+        ..rx = rng.nextDouble() * math.pi * 2
+        ..ry = rng.nextDouble() * math.pi * 2
+        ..rz = rng.nextDouble() * math.pi * 2;
+      if (first && !reduceMotion) {
+        // Entrance: stones pour in from the top-left and settle.
+        g.pose
+          ..x = x - 1.5
+          ..y = y + 1.5;
+      }
+      _gems.add(g);
+      _bands[band.index].add(g);
+    }
+    _energy = 1;
+  }
+
+  /// Pace multiplier, averaging about 1: 15% slow stones (0.35–0.6×),
+  /// 70% around the herd's pace (0.7–1.25×) and 15% fast ones (1.5–2.3×).
+  static double _pace(math.Random rng) {
+    final kind = rng.nextDouble();
+    final r = rng.nextDouble();
+    if (kind < 0.15) return 0.35 + r * 0.25;
+    if (kind < 0.85) return 0.7 + r * 0.55;
+    return 1.5 + r * 0.8;
+  }
+
+  void step(double dt) {
+    if (_gems.isEmpty) return;
+    _time += dt;
+    _frame++;
+    final cam = camera;
+    final pointer = _pointer;
+    final idle = reduceMotion ? 0.0 : 1.0;
+    final density = _tiers[_quality].density;
+    var energy = 0.0;
+
+    // The body follows the finger tightly; it fades in on contact and out
+    // on release so the void opens and closes instead of popping.
+    if (pointer != null) {
+      _cursor = _presence == 0
+          ? pointer
+          : Offset.lerp(_cursor, pointer, 1 - math.exp(-38 * dt))!;
+      _presence = math.min(1, _presence + dt * 7);
+    } else {
+      _presence = math.max(0, _presence - dt * 3.2);
+    }
+    final presence = _presence * _presence * (3 - 2 * _presence);
+
+    // Camera parallax follows the finger, gently.
+    final targetEyeX = pointer == null || reduceMotion
+        ? 0.0
+        : (pointer.dx / _size.width - 0.5) * 0.3;
+    final targetEyeY = pointer == null || reduceMotion
+        ? 0.0
+        : -(pointer.dy / _size.height - 0.5) * 0.2;
+    final ease = 1 - math.exp(-3 * dt);
+    _eyeX += (targetEyeX - _eyeX) * ease;
+    _eyeY += (targetEyeY - _eyeY) * ease;
+
+    // Warm light carried by the finger, trailing it slightly.
+    if (pointer != null) {
+      _glowAt = _glow == 0
+          ? pointer
+          : Offset.lerp(_glowAt, pointer, 1 - math.exp(-14 * dt))!;
+      _glow = math.min(1, _glow + dt * 4);
+    } else {
+      _glow = math.max(0, _glow - dt * 1.6);
+    }
+
+    if (pointer != null || _waveAge >= 0) {
+      _calm = math.max(0, _calm - dt * 5);
+    } else {
+      _calm = math.min(1, _calm + dt * 1.1);
+    }
+
+    // Shockwave from a tap: a ring that expands and fades.
+    double waveR = 0, waveStrength = 0;
+    if (_waveAge >= 0) {
+      _waveAge += dt;
+      const life = 0.7;
+      if (_waveAge > life) {
+        _waveAge = -1;
+      } else {
+        final t = _waveAge / life;
+        waveR = voidRadius * (0.4 + 3.2 * (1 - (1 - t) * (1 - t)));
+        waveStrength = (1 - t) * (1 - t);
+      }
+    }
+
+    final r0 = voidRadius;
+    final reach = r0 * 1.45;
+    final lightR = lightRadius;
+    final cursor = _cursor;
+    final vel = _pointerVelocity;
+
+    for (final g in _gems) {
+      // Stones sitting out at this quality tier cost nothing.
+      if (g.rank >= density) continue;
+      final p = g.pose;
+
+      // The herd streams along the diagonal and wraps along the flow,
+      // teleporting the pose with its rest point so wraps happen off
+      // screen, unseen.
+      if (idle > 0) {
+        final swell = math.sin(_time * g.surgeRate + g.phase * 6.283);
+        g.s += g.speed * (1 + g.surge * swell) * dt;
+        if (g.s > g.limS) {
+          g.s -= 2 * g.limS;
+          p.x -= 2 * g.limS * _flowX;
+          p.y -= 2 * g.limS * _flowY;
+        }
+      }
+      // Each stone keeps its lane: the stream runs straight along the
+      // diagonal.
+      final lane = g.q;
+      g.hx = g.s * _flowX - lane * _flowY;
+      g.hy = g.s * _flowY + lane * _flowX;
+
+      // Soft, slightly under-damped spring home: stones swing back into
+      // the wake with a little give, like beans settling.
+      final ty = g.hy + math.sin(_time * 0.7 + g.phase * 6.283) * g.bob * idle;
+      var ax = (g.hx - p.x) * 6.5 - g.vx * 3.4;
+      var ay = (ty - p.y) * 6.5 - g.vy * 3.4;
+      var az = (g.hz - p.z) * 6.5 - g.vz * 3.4;
+
+      var lightTarget = 0.0;
+      if (presence > 0 || waveStrength > 0) {
+        final sp = cam.project(p.x, p.y, p.z);
+        // Pixels → world at this stone's depth.
+        final toWorld = 1 / (unit * cam.depthScale(p.z));
+        var pushX = 0.0, pushY = 0.0;
+
+        if (presence > 0) {
+          final dx = sp.dx - cursor.dx, dy = sp.dy - cursor.dy;
+          final dist = math.sqrt(dx * dx + dy * dy);
+          if (dist < reach) {
+            final ux = dist < 0.001 ? 0.0 : dx / dist;
+            final uy = dist < 0.001 ? -1.0 : dy / dist;
+            // Stiff contact inside the void, a soft cushion just outside
+            // it: stones are shoved clear and bank up into a ring.
+            var push = dist < r0 ? (r0 - dist) * 62 + 30 : 0.0;
+            push += (reach - math.max(dist, r0)) * 14;
+            push *= presence * toWorld;
+            pushX = ux * push;
+            pushY = -uy * push;
+            // Squeezed in depth too, so the void reads as a solid body.
+            az += (p.z >= 0 ? 1 : -1) * push * 0.18;
+
+            // Entrainment: stones the finger sweeps through are dragged
+            // toward its velocity, then flung on as it passes.
+            final f = 1 - dist / reach;
+            final drag = f * f * 7 * presence;
+            ax += (vel.dx * toWorld - g.vx) * drag;
+            ay += (-vel.dy * toWorld - g.vy) * drag;
+          }
+          if (dist < lightR) {
+            final f = 1 - dist / lightR;
+            lightTarget = math.sqrt(f * f * (3 - 2 * f)) * presence;
+          }
+        }
+
+        if (waveStrength > 0) {
+          final dx = sp.dx - _waveAt.dx, dy = sp.dy - _waveAt.dy;
+          final dist = math.sqrt(dx * dx + dy * dy);
+          const width = 46.0;
+          final band = (dist - waveR).abs();
+          if (band < width) {
+            final f = 1 - band / width;
+            final ux = dist < 0.001 ? 0.0 : dx / dist;
+            final uy = dist < 0.001 ? -1.0 : dy / dist;
+            final push = f * f * waveStrength * 900 * toWorld;
+            pushX += ux * push;
+            pushY -= uy * push;
+            lightTarget = math.max(lightTarget, f * waveStrength);
+          }
+        }
+
+        // Shoved stones tumble: torque from the push across each axis.
+        if (pushX != 0 || pushY != 0) {
+          ax += pushX;
+          ay += pushY;
+          g.wx -= pushY * dt * 0.45;
+          g.wy += pushX * dt * 0.45;
+          g.wz += (pushX - pushY) * dt * 0.12 * (g.spinY >= 0 ? 1 : -1);
+        }
+      }
+
+      if (lightTarget > g.lit) {
+        g.lit += (lightTarget - g.lit) * math.min(1.0, dt * 12);
+      } else {
+        // Light lingers on stones the finger has passed.
+        g.lit = math.max(lightTarget, g.lit - dt * 0.9);
+      }
+
+      g.vx += ax * dt;
+      g.vy += ay * dt;
+      g.vz += az * dt;
+      p.x += g.vx * dt;
+      p.y += g.vy * dt;
+      p.z += g.vz * dt;
+
+      // Tumble is capped, then bleeds back to the idle spin.
+      const maxSpin = 13.0;
+      g.wx = g.wx.clamp(-maxSpin, maxSpin);
+      g.wy = g.wy.clamp(-maxSpin, maxSpin);
+      g.wz = g.wz.clamp(-maxSpin, maxSpin);
+      final spinEase = 1 - math.exp(-0.95 * dt);
+      g.wx += (g.spinX * idle - g.wx) * spinEase;
+      g.wy += (g.spinY * idle - g.wy) * spinEase;
+      g.wz += (g.spinZ * idle - g.wz) * spinEase;
+      p.rx += g.wx * dt;
+      p.ry += g.wy * dt;
+      p.rz += g.wz * dt;
+      g.flash = math.max(0, g.flash - dt * 1.4);
+
+      energy +=
+          g.vx * g.vx +
+          g.vy * g.vy +
+          g.vz * g.vz +
+          (g.wx - g.spinX * idle).abs() +
+          (g.wy - g.spinY * idle).abs() +
+          g.flash +
+          g.lit;
+    }
+    _energy = energy / _gems.length;
+
+    _pointerVelocity *= math.exp(-6 * dt);
+    notifyListeners();
+  }
+
+  void pointerDown(Offset at, Duration stamp) {
+    _pointer = at;
+    _downAt = at;
+    _downTime = stamp;
+    _lastMove = stamp;
+    _pointerVelocity = Offset.zero;
+  }
+
+  void pointerMove(Offset at, Offset delta, Duration stamp) {
+    _pointer = at;
+    // Smoothed px/s from event timing, capped so a flick stays graceful.
+    final last = _lastMove;
+    _lastMove = stamp;
+    final secs = last == null
+        ? 1 / 60
+        : ((stamp - last).inMicroseconds / 1e6).clamp(1 / 240, 1 / 20);
+    var v = delta / secs;
+    if (v.distance > 4200) v = v / v.distance * 4200;
+    _pointerVelocity = Offset.lerp(_pointerVelocity, v, 0.45)!;
+  }
+
+  void pointerUp(Duration stamp) {
+    final tap =
+        _pointer != null &&
+        (_pointer! - _downAt).distance < 12 &&
+        stamp - _downTime < const Duration(milliseconds: 300);
+    if (tap) _tapPulse(_downAt);
+    _pointer = null;
+    _lastMove = null;
+  }
+
+  void pointerCancel() {
+    _pointer = null;
+    _lastMove = null;
+  }
+
+  /// A tap sends a shockwave through the cloud and flares the nearest
+  /// stone.
+  void _tapPulse(Offset at) {
+    final cam = camera;
+    _FieldGem? nearest;
+    var nearestD = double.infinity;
+    final density = _tiers[_quality].density;
+    for (final g in _gems) {
+      if (g.rank >= density) continue;
+      final p = g.pose;
+      final d = (cam.project(p.x, p.y, p.z) - at).distance;
+      if (d < nearestD) {
+        nearestD = d;
+        nearest = g;
+      }
+    }
+    if (nearest != null && nearestD < voidRadius) {
+      nearest
+        ..flash = 1
+        ..lit = 1
+        ..wy += 10;
+    }
+    _waveAt = at;
+    _waveAge = 0;
+    AppHaptics.light();
+  }
+
+  void _paintBand(Canvas canvas, _Band band, Color fog) {
+    final models = this.models;
+    if (models == null) return;
+    final cam = camera;
+    final tier = _tiers[_quality];
+    final detailScale = tier.detail / unit;
+    final every = tier.shadeEvery;
+    final sparkle = DiamondSparkle.image;
+    final sparkleWidth = sparkle.width.toDouble();
+    // Back to front. The list is reused and stays nearly sorted from frame
+    // to frame, so this is cheap.
+    final items = _bands[band.index]
+      ..sort((a, b) => a.pose.z.compareTo(b.pose.z));
+    final batch = _batches[band.index]..reset();
+    for (final g in items) {
+      if (g.rank >= tier.density) continue;
+      final model = models[(g.pick * models.length).floor() % models.length];
+      // Idle, stones shine as cut diamonds, dimming with distance. Under
+      // the finger they rest deep in the dark and surface only where its
+      // light reaches them.
+      final depth = ((0.9 - g.pose.z) / 3.3).clamp(0.0, 1.0);
+      final dark = (0.6 + 0.28 * depth) * (1 - g.lit * 0.95);
+      final idle = 0.06 + 0.4 * depth;
+      final fog01 = (dark + (idle - dark) * _calm).clamp(0.0, 0.9);
+      batch.add(
+        // Small and defocused stones skip sub-pixel facets.
+        mesh:
+            band != _Band.far &&
+                g.pose.scale * cam.depthScale(g.pose.z) >= detailScale
+            ? model.detail
+            : model.coarse,
+        pose: g.pose,
+        camera: cam,
+        viewport: _size,
+        time: _time,
+        fog: fog01,
+        fogColor: fog,
+        flash: g.flash,
+        light: g.lit,
+        lightFrom: g.lit > 0
+            ? _glowAt - cam.project(g.pose.x, g.pose.y, g.pose.z)
+            : Offset.zero,
+        phase: g.phase,
+        sparkle:
+            g.lit > 0.15 || g.flash > 0 || (_calm > 0.3 && band != _Band.far),
+        sparkleWidth: sparkleWidth,
+        // Clear-crystal shading for every cut but pear, whose many small
+        // facets already read as a diamond. Blurred far stones skip it.
+        seeThrough: band != _Band.far && model.name != 'pear',
+        seeThroughMin: tier.clear,
+        shade: g.shade,
+        // Each frame re-shades its share of the stones; a stone the finger
+        // just lit or flashed is always fresh.
+        reshade:
+            every == 1 ||
+            (g.slot + _frame) % every == 0 ||
+            g.flash > 0 ||
+            (g.lit > 0.02 && g.lit < 0.98 && _presence > 0),
+      );
+    }
+    batch.paint(canvas, sparkle: sparkle);
+  }
+
+  /// One whole frame onto [canvas] as the widget would show it, blur
+  /// included; used to time a tier off screen.
+  void _paintFrame(Canvas canvas, Color background) {
+    final bounds = Offset.zero & _size;
+    canvas.drawRect(bounds, Paint()..color = background);
+    for (final band in _Band.values) {
+      final sigma = blur ? _blurOf(band) : 0.0;
+      if (sigma > 0) {
+        canvas.saveLayer(
+          bounds,
+          Paint()
+            ..imageFilter = ui.ImageFilter.blur(
+              sigmaX: sigma,
+              sigmaY: sigma,
+              tileMode: TileMode.decal,
+            ),
+        );
+      }
+      _paintBand(canvas, band, background);
+      if (sigma > 0) canvas.restore();
+    }
+    _paintLight(canvas);
+  }
+
+  /// A faint white pool under the finger; the stones carry the light.
+  void _paintLight(Canvas canvas) {
+    if (_glow <= 0) return;
+    final r = lightRadius;
+    canvas.drawCircle(
+      _glowAt,
+      r,
+      Paint()
+        ..blendMode = BlendMode.plus
+        ..shader = ui.Gradient.radial(
+          _glowAt,
+          r,
+          [
+            Color.fromRGBO(255, 255, 255, 0.05 * _glow),
+            Color.fromRGBO(255, 255, 255, 0.018 * _glow),
+            const Color(0x00000000),
+          ],
+          const [0, 0.4, 1],
+        ),
+    );
+  }
+}
+
+/// Decides the gem field's quality tier before the field is on screen,
+/// once per app run: loads the models, starts from the device's memory
+/// class, then draws whole frames off screen and steps down until a frame
+/// fits the budget. The field shows nothing until this is done, so it never
+/// starts rich and thins out in front of the viewer.
+///
+/// Screens that end in a gem field call [prepare] early (home does it
+/// shortly after it opens); the field itself calls it as a fallback.
+abstract final class GemFieldWarmup {
+  static Future<({List<DiamondModel> models, int tier})>? _ready;
+
+  /// Cheapest tier the field has had to fall back to while running; a
+  /// field mounted later starts there.
+  static int _floor = 0;
+
+  /// Frame budget, in ms, for the UI-thread work (physics plus shading) and
+  /// for the GPU work of one field frame.
+  static const _uiBudget = 11.0, _rasterBudget = 12.0;
+
+  /// Models plus the tier to draw them at; starts the work on first call.
+  static Future<({List<DiamondModel> models, int tier})> prepare({
+    required Size size,
+    required double pixelRatio,
+    required Color background,
+  }) => _ready ??= _run(size, pixelRatio, background);
+
+  /// Tier a newly mounted field should use given what the warmup picked.
+  static int startTier(int picked) => math.max(picked, _floor);
+
+  /// Records that a running field had to go down to [tier].
+  static void lowerTo(int tier) => _floor = math.max(_floor, tier);
+
+  static Future<({List<DiamondModel> models, int tier})> _run(
+    Size size,
+    double pixelRatio,
+    Color background,
+  ) async {
+    final models = await DiamondModels.load().catchError(
+      (Object _) => DiamondModels.fallback(),
+    );
+    var tier = await _deviceTier();
+    // Debug and test builds run far slower than release ones; timing them
+    // would only ever pick the cheapest tier.
+    if (!kReleaseMode || size.isEmpty) return (models: models, tier: tier);
+    final field = GemFieldController(seed: 7, reduceMotion: false)
+      ..models = models
+      ..layout(size)
+      ..capQuality(tier);
+    try {
+      while (field.quality < GemFieldController.tierCount - 1) {
+        if (await _fits(field, size, pixelRatio, background)) break;
+        field.lowerQuality();
+      }
+      tier = field.quality;
+    } catch (_) {
+      // Timing failed; the memory-class tier stands.
+    } finally {
+      field.dispose();
+    }
+    return (models: models, tier: tier);
+  }
+
+  /// Times a few whole frames of [field] at its current tier, one per
+  /// scheduler slot so the screen above keeps scrolling smoothly. The
+  /// fastest of three (after one warm-up frame) is compared with the
+  /// budget, since noise only ever adds time.
+  static Future<bool> _fits(
+    GemFieldController field,
+    Size size,
+    double pixelRatio,
+    Color background,
+  ) async {
+    var cpuMs = double.infinity, gpuMs = double.infinity;
+    final width = (size.width * pixelRatio).ceil();
+    final height = (size.height * pixelRatio).ceil();
+    for (var i = 0; i < 4; i++) {
+      final picture = await SchedulerBinding.instance.scheduleTask(() {
+        final watch = Stopwatch()..start();
+        final recorder = ui.PictureRecorder();
+        final canvas = Canvas(recorder)..scale(pixelRatio);
+        field
+          ..step(1 / 60)
+          .._paintFrame(canvas, background);
+        final picture = recorder.endRecording();
+        if (i > 0) cpuMs = math.min(cpuMs, watch.elapsedMicroseconds / 1000);
+        return picture;
+      }, Priority.animation);
+      final watch = Stopwatch()..start();
+      final image = await picture.toImage(width, height);
+      if (i > 0) gpuMs = math.min(gpuMs, watch.elapsedMicroseconds / 1000);
+      image.dispose();
+      picture.dispose();
+      await SchedulerBinding.instance.endOfFrame;
+    }
+    return cpuMs <= _uiBudget && gpuMs <= _rasterBudget;
+  }
+
+  /// Starting tier from the device's memory, a fair proxy for its CPU and
+  /// GPU class. Unknown devices start on the best tier.
+  static Future<int> _deviceTier() async {
+    if (kIsWeb) return 0;
+    try {
+      int tierFor(int ramMb, {bool lowRam = false}) {
+        if (ramMb <= 0) return lowRam ? 3 : 0;
+        if (lowRam || ramMb < 3 * 1024) return 3;
+        if (ramMb < 4 * 1024 + 512) return 2;
+        if (ramMb < 6 * 1024 + 512) return 1;
+        return 0;
+      }
+
+      switch (defaultTargetPlatform) {
+        case TargetPlatform.android:
+          final info = await DeviceInfoPlugin().androidInfo;
+          return tierFor(info.physicalRamSize, lowRam: info.isLowRamDevice);
+        case TargetPlatform.iOS:
+          // iPhones run this well with less memory than Android phones.
+          final info = await DeviceInfoPlugin().iosInfo;
+          final ram = info.physicalRamSize;
+          if (ram <= 0) return 0;
+          if (ram < 2560) return 2;
+          if (ram < 3584) return 1;
+          return 0;
+        default:
+          return 0;
+      }
+    } catch (_) {
+      return 0;
+    }
+  }
+}
+
+/// Full-bleed field of colourless 3D diamonds in every bundled cut
+/// ([DiamondModels]) streaming diagonally that part around the finger,
+/// tumble when swept and catch its light. Pauses while scrolled off
+/// screen and honours reduced motion. Its quality tier is settled before
+/// it shows ([GemFieldWarmup]) and only ever lowered while it is off
+/// screen, so stones never vanish in view.
+///
+/// Touches below [touchTopInset] are claimed eagerly so the page does not
+/// scroll while a finger plays with the stones; above it, scrolling works
+/// as usual (so the page can always be scrolled back up).
+class GemField extends StatefulWidget {
+  const GemField({
+    super.key,
+    this.background,
+    this.seed = 7,
+    this.touchTopInset = 0,
+  });
+
+  /// Stage colour; defaults to [LuxeStage.obsidian].
+  final Color? background;
+  final int seed;
+  final double touchTopInset;
+
+  @override
+  State<GemField> createState() => _GemFieldState();
+}
+
+class _GemFieldState extends State<GemField>
+    with SingleTickerProviderStateMixin {
+  late final Ticker _ticker = createTicker(_tick);
+  late final GemFieldController _field = GemFieldController(
+    seed: widget.seed,
+    reduceMotion: false,
+  );
+  ScrollPosition? _scroll;
+  Duration _last = Duration.zero;
+  bool _visible = false;
+  double _frameCost = 0;
+  int _frameSamples = 0;
+
+  /// Tiers to drop the next time the field is off screen.
+  int _pendingDrop = 0;
+
+  Color get _background => widget.background ?? LuxeStage.obsidian;
+
+  @override
+  void initState() {
+    super.initState();
+    // Nothing is drawn until the warmup has settled models and tier
+    // (usually long before, started by the screen); the herd's entrance
+    // plays once they are in.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final size = context.size ?? MediaQuery.sizeOf(context);
+      GemFieldWarmup.prepare(
+        size: size,
+        pixelRatio: MediaQuery.devicePixelRatioOf(context),
+        background: _background,
+      ).then((ready) {
+        if (!mounted) return;
+        _field
+          ..capQuality(GemFieldWarmup.startTier(ready.tier))
+          ..models = ready.models;
+        setState(() {});
+        _syncTicker();
+      });
+    });
+    SchedulerBinding.instance.addTimingsCallback(_onTimings);
+  }
+
+  /// Watches real frame cost (UI and raster threads) while the field
+  /// animates. If frames run long for about half a second, a cheaper tier
+  /// (two when far over budget) is queued and applied only once the field
+  /// is off screen; nothing changes in front of the viewer.
+  void _onTimings(List<FrameTiming> timings) {
+    if (!mounted || !_ticker.isActive || _pendingDrop > 0) return;
+    for (final t in timings) {
+      final build = t.buildDuration.inMicroseconds;
+      final raster = t.rasterDuration.inMicroseconds;
+      // Frames skipped by the 60 fps cap do no work; they would hide the
+      // cost of the frames that do.
+      if (build < 1200 && raster < 2500) continue;
+      final ms = math.max(build, raster) / 1000;
+      _frameCost = _frameSamples == 0 ? ms : _frameCost * 0.85 + ms * 0.15;
+      _frameSamples++;
+    }
+    if (_frameSamples < 30 || _frameCost <= 19) return;
+    _pendingDrop = _frameCost > 32 ? 2 : 1;
+    _frameSamples = 0;
+    GemFieldWarmup.lowerTo(_field.quality + _pendingDrop);
+  }
+
+  /// Applies a queued tier drop; only called while the field is hidden.
+  void _applyPendingDrop() {
+    if (_pendingDrop == 0) return;
+    var changed = false;
+    for (var i = 0; i < _pendingDrop; i++) {
+      if (_field.lowerQuality()) changed = true;
+    }
+    _pendingDrop = 0;
+    _frameCost = 0;
+    _frameSamples = 0;
+    if (changed) setState(() {});
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _field.reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final next = Scrollable.maybeOf(context)?.position;
+    if (next != _scroll) {
+      _scroll?.removeListener(_checkVisible);
+      _scroll = next?..addListener(_checkVisible);
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkVisible());
+  }
+
+  @override
+  void dispose() {
+    SchedulerBinding.instance.removeTimingsCallback(_onTimings);
+    _scroll?.removeListener(_checkVisible);
+    _ticker.dispose();
+    _field.dispose();
+    super.dispose();
+  }
+
+  void _checkVisible() {
+    if (!mounted) return;
+    final box = context.findRenderObject();
+    if (box is! RenderBox || !box.attached || !box.hasSize) return;
+    final top = box.localToGlobal(Offset.zero).dy;
+    final screen = MediaQuery.sizeOf(context).height;
+    _visible = top < screen && top + box.size.height > 0;
+    if (!_visible) _applyPendingDrop();
+    _syncTicker();
+  }
+
+  void _syncTicker() {
+    final run =
+        _visible &&
+        _field.models != null &&
+        !(_field.reduceMotion && _field.settled);
+    if (run && !_ticker.isActive) {
+      _last = Duration.zero;
+      _ticker.start();
+    } else if (!run && _ticker.isActive) {
+      _ticker.stop();
+    }
+  }
+
+  void _tick(Duration elapsed) {
+    // On 90/120 Hz screens a degraded field steps every other vsync.
+    if (_field.capFrameRate &&
+        _last != Duration.zero &&
+        elapsed - _last < const Duration(microseconds: 15000)) {
+      return;
+    }
+    final dt = _last == Duration.zero
+        ? 1 / 60
+        : ((elapsed - _last).inMicroseconds / 1e6).clamp(0.0, 1 / 24);
+    _last = elapsed;
+    _field.step(dt);
+    if (_field.reduceMotion && _field.settled) _syncTicker();
+  }
+
+  void _wake() {
+    if (!_ticker.isActive && _visible && _field.models != null) {
+      _last = Duration.zero;
+      _ticker.start();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = _background;
+    final inset = Offset(0, widget.touchTopInset);
+    Widget band(_Band b) {
+      final blur = _field.blur ? GemFieldController._blurOf(b) : 0.0;
+      Widget layer = CustomPaint(
+        painter: _BandPainter(_field, b, bg),
+        size: Size.infinite,
+      );
+      if (blur > 0) {
+        layer = ImageFiltered(
+          imageFilter: ui.ImageFilter.blur(
+            sigmaX: blur,
+            sigmaY: blur,
+            tileMode: TileMode.decal,
+          ),
+          child: layer,
+        );
+      }
+      return Positioned.fill(child: layer);
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        _field.layout(constraints.biggest);
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            RepaintBoundary(
+              child: ClipRect(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    ColoredBox(color: bg),
+                    for (final b in _Band.values) band(b),
+                    Positioned.fill(
+                      child: CustomPaint(painter: _LightPainter(_field)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned.fill(
+              top: widget.touchTopInset,
+              // The eager recognizer wins the gesture arena on touch-down,
+              // so the page does not scroll while a finger plays with the
+              // stones (same as the home hero).
+              child: RawGestureDetector(
+                behavior: HitTestBehavior.opaque,
+                gestures: {
+                  EagerGestureRecognizer:
+                      GestureRecognizerFactoryWithHandlers<
+                        EagerGestureRecognizer
+                      >(EagerGestureRecognizer.new, (_) {}),
+                },
+                child: Listener(
+                  behavior: HitTestBehavior.opaque,
+                  onPointerDown: (e) {
+                    _field.pointerDown(e.localPosition + inset, e.timeStamp);
+                    _wake();
+                  },
+                  onPointerMove: (e) {
+                    _field.pointerMove(
+                      e.localPosition + inset,
+                      e.delta,
+                      e.timeStamp,
+                    );
+                    _wake();
+                  },
+                  onPointerUp: (e) => _field.pointerUp(e.timeStamp),
+                  onPointerCancel: (_) => _field.pointerCancel(),
+                  child: MouseRegion(
+                    onHover: (e) {
+                      // Desktop / web: hover behaves like a resting finger.
+                      _field.pointerMove(
+                        e.localPosition + inset,
+                        e.delta,
+                        e.timeStamp,
+                      );
+                      _wake();
+                    },
+                    onExit: (_) => _field.pointerCancel(),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _BandPainter extends CustomPainter {
+  _BandPainter(this.field, this.band, this.fog) : super(repaint: field);
+
+  final GemFieldController field;
+  final _Band band;
+  final Color fog;
+
+  @override
+  void paint(Canvas canvas, Size size) => field._paintBand(canvas, band, fog);
+
+  @override
+  bool shouldRepaint(covariant _BandPainter old) =>
+      old.field != field || old.band != band || old.fog != fog;
+}
+
+class _LightPainter extends CustomPainter {
+  _LightPainter(this.field) : super(repaint: field);
+
+  final GemFieldController field;
+
+  @override
+  void paint(Canvas canvas, Size size) => field._paintLight(canvas);
+
+  @override
+  bool shouldRepaint(covariant _LightPainter old) => old.field != field;
+}
