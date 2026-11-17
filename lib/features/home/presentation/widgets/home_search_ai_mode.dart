@@ -139,8 +139,7 @@ class _ModeSegment extends StatelessWidget {
   }
 }
 
-/// AI Mode's resting state: what Gem AI can find, plus one ready-made ask
-/// per catalogue world.
+/// AI Mode's resting state: one ready-made ask per catalogue world.
 class HomeAiModeSuggestions extends StatelessWidget {
   const HomeAiModeSuggestions({
     required this.animate,
@@ -182,30 +181,6 @@ class HomeAiModeSuggestions extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 20),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const _GemAiMark(),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    context.tr(HomeL10n.aiModeEyebrow).toUpperCase(),
-                    style: HomeType.eyebrow(palette.accent),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    context.tr(HomeL10n.aiModeBody),
-                    style: HomeType.body(palette.inkMuted, size: 14),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 18),
         Text(
           context.tr(ExperienceL10n.aiTryAsking).toUpperCase(),
           style: HomeType.eyebrow(palette.inkMuted),
@@ -213,7 +188,7 @@ class HomeAiModeSuggestions extends StatelessWidget {
         const SizedBox(height: 6),
         for (var i = 0; i < _prompts.length; i++)
           _maybeAnimate(
-            _AiPromptRow(
+            HomeSearchPromptRow(
               topic: context.tr(_prompts[i].$1),
               icon: _prompts[i].$2,
               prompt: context.tr(_prompts[i].$3),
@@ -234,49 +209,22 @@ class HomeAiModeSuggestions extends StatelessWidget {
   }
 }
 
-/// Gem AI's identity: obsidian glass holding a live, turning diamond.
-class _GemAiMark extends StatelessWidget {
-  const _GemAiMark();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 52,
-      height: 52,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          center: const Alignment(-0.35, -0.45),
-          radius: 1.05,
-          colors: [HomeStage.raised, HomeStage.obsidian],
-        ),
-        border: Border.all(color: HomeStage.gold.withValues(alpha: 0.5)),
-      ),
-      alignment: Alignment.center,
-      child: Semantics(
-        label: context.tr(RemainingL10n.gemAi),
-        child: Icon(
-          Icons.auto_awesome_rounded,
-          size: 22,
-          color: HomeStage.gold,
-        ),
-      ),
-    );
-  }
-}
-
-class _AiPromptRow extends StatelessWidget {
-  const _AiPromptRow({
+/// One suggested search: topic eyebrow, the query, and a north-east arrow.
+class HomeSearchPromptRow extends StatelessWidget {
+  const HomeSearchPromptRow({
     required this.topic,
     required this.icon,
     required this.prompt,
     required this.onTap,
+    this.showDivider = true,
+    super.key,
   });
 
   final String topic;
   final IconData icon;
   final String prompt;
   final VoidCallback onTap;
+  final bool showDivider;
 
   @override
   Widget build(BuildContext context) {
@@ -285,11 +233,13 @@ class _AiPromptRow extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: palette.hairline, width: 0.8),
-          ),
-        ),
+        decoration: showDivider
+            ? BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: palette.hairline, width: 0.8),
+                ),
+              )
+            : null,
         child: Row(
           children: [
             Icon(icon, size: 20, color: palette.accent),

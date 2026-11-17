@@ -11,8 +11,8 @@ import '../../../recently_viewed/application/recently_viewed_list_provider.dart'
 import '../../../recently_viewed/domain/models/recently_viewed.dart';
 import '../../../recently_viewed/presentation/widgets/recent/recent_piece.dart';
 import '../../application/recent_searches_provider.dart';
-import '../home_content.dart';
 import '../theme/home_tokens.dart';
+import 'home_search_ai_mode.dart';
 
 /// Drops [child] into place as the search route opens: it slides down from
 /// above and fades in [order] beats after the route starts. Driven by the
@@ -60,7 +60,7 @@ class HomeSearchArrive extends StatelessWidget {
   }
 }
 
-/// Catalogue search's resting state: recent searches, diamond shapes,
+/// Catalogue search's resting state: recent searches, suggested searches,
 /// recently viewed pieces and a stock / certificate number tip.
 class HomeSearchBrowse extends ConsumerWidget {
   const HomeSearchBrowse({
@@ -96,7 +96,7 @@ class HomeSearchBrowse extends ConsumerWidget {
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       children: [
         arrive(3, _RecentSearchesCard(onSearch: onSearch)),
-        arrive(5, _ShapesCard(onSearch: onSearch)),
+        arrive(5, _SuggestionsCard(onSearch: onSearch)),
         if (signedIn) arrive(6, _RecentCard(onOpenRoute: onOpenRoute)),
         const SizedBox(height: 8),
         arrive(7, const _NumberTip()),
@@ -260,60 +260,56 @@ class _RecentSearchRow extends StatelessWidget {
   }
 }
 
-/// Diamond shapes; picking one searches the catalogue for it.
-class _ShapesCard extends StatelessWidget {
-  const _ShapesCard({required this.onSearch});
+/// Ready-made catalogue searches, one per world; tapping runs the search.
+class _SuggestionsCard extends StatelessWidget {
+  const _SuggestionsCard({required this.onSearch});
 
   final ValueChanged<String> onSearch;
 
+  static const _suggestions = <(String, IconData, String)>[
+    (
+      RemainingL10n.naturalDiamonds,
+      Icons.diamond_outlined,
+      HomeL10n.searchSuggestDiamonds,
+    ),
+    (
+      RemainingL10n.gemstones,
+      Icons.spa_outlined,
+      HomeL10n.searchSuggestGemstones,
+    ),
+    (
+      RemainingL10n.jewelry,
+      Icons.workspace_premium_outlined,
+      HomeL10n.searchSuggestJewellery,
+    ),
+    (
+      RemainingL10n.watches,
+      Icons.watch_outlined,
+      HomeL10n.searchSuggestWatches,
+    ),
+    (
+      RemainingL10n.bullion,
+      Icons.view_module_outlined,
+      HomeL10n.searchSuggestBullion,
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    final palette = HomePalette.of(context);
-    const shapes = HomeContent.shapes;
     return _BrowseCard(
-      eyebrow: context.tr(HomeL10n.searchShapesEyebrow),
-      padding: const EdgeInsets.fromLTRB(12, 12, 0, 10),
-      child: SizedBox(
-        height: 86,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsetsDirectional.only(end: 12),
-          itemCount: shapes.length,
-          separatorBuilder: (_, _) => const SizedBox(width: 5),
-          itemBuilder: (context, i) => InkWell(
-            onTap: () => onSearch(shapes[i].name),
-            borderRadius: BorderRadius.circular(HomeSpace.radiusSmall),
-            child: SizedBox(
-              width: 64,
-              child: Column(
-                children: [
-                  Container(
-                    width: 58,
-                    height: 58,
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: palette.canvas,
-                      border: Border.all(color: palette.hairline),
-                    ),
-                    child: Image.asset(
-                      shapes[i].image,
-                      fit: BoxFit.contain,
-                      cacheWidth: 120,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    shapes[i].name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: HomeType.label(palette.inkMuted, size: 12),
-                  ),
-                ],
-              ),
+      eyebrow: context.tr(HomeL10n.searchSuggestEyebrow),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 2),
+      child: Column(
+        children: [
+          for (var i = 0; i < _suggestions.length; i++)
+            HomeSearchPromptRow(
+              topic: context.tr(_suggestions[i].$1),
+              icon: _suggestions[i].$2,
+              prompt: context.tr(_suggestions[i].$3),
+              showDivider: i < _suggestions.length - 1,
+              onTap: () => onSearch(context.tr(_suggestions[i].$3)),
             ),
-          ),
-        ),
+        ],
       ),
     );
   }

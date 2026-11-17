@@ -1228,6 +1228,7 @@ class _Composer extends StatelessWidget {
                   textInputAction: TextInputAction.send,
                   scrollPadding: const EdgeInsets.fromLTRB(14, 14, 14, 80),
                   cursorColor: p.accent,
+                  textAlignVertical: TextAlignVertical.center,
                   style: LuxeType.body(p.ink, size: 14.5),
                   onSubmitted: (_) {
                     if (enabled) onSend();
@@ -1238,9 +1239,10 @@ class _Composer extends StatelessWidget {
                     filled: true,
                     fillColor: p.surfaceRaised,
                     isDense: true,
+                    constraints: const BoxConstraints(minHeight: 46),
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
+                      horizontal: 16,
+                      vertical: 12,
                     ),
                     border: border(Colors.transparent),
                     enabledBorder: border(Colors.transparent),

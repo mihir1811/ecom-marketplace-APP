@@ -13,8 +13,6 @@ abstract final class HomeL10n {
   static const searchModeCatalog = 'home.searchModeCatalog';
   static const aiMode = 'home.aiMode';
   static const aiModeHint = 'home.aiModeHint';
-  static const aiModeEyebrow = 'home.aiModeEyebrow';
-  static const aiModeBody = 'home.aiModeBody';
   static const aiModeAsk = 'home.aiModeAsk';
   static const aiModePromptDiamonds = 'home.aiModePromptDiamonds';
   static const aiModePromptGemstones = 'home.aiModePromptGemstones';
@@ -29,7 +27,12 @@ abstract final class HomeL10n {
   static const searchNoteJewellery = 'home.searchNoteJewellery';
   static const searchNoteWatches = 'home.searchNoteWatches';
   static const searchNoteBullion = 'home.searchNoteBullion';
-  static const searchShapesEyebrow = 'home.searchShapesEyebrow';
+  static const searchSuggestEyebrow = 'home.searchSuggestEyebrow';
+  static const searchSuggestDiamonds = 'home.searchSuggestDiamonds';
+  static const searchSuggestGemstones = 'home.searchSuggestGemstones';
+  static const searchSuggestJewellery = 'home.searchSuggestJewellery';
+  static const searchSuggestWatches = 'home.searchSuggestWatches';
+  static const searchSuggestBullion = 'home.searchSuggestBullion';
   static const searchTipTitle = 'home.searchTipTitle';
   static const searchTipBody = 'home.searchTipBody';
   static const collectionsTitle = 'home.collectionsTitle';
@@ -150,19 +153,6 @@ const homeMessages = <String, LocalizedMessage>{
     hindi: 'बताइए आप क्या खोज रहे हैं...',
     gujarati: 'તમે શું શોધી રહ્યા છો તે જણાવો...',
   ),
-  HomeL10n.aiModeEyebrow: LocalizedMessage(
-    english: 'Search with Gem AI',
-    hindi: 'Gem AI से खोजें',
-    gujarati: 'Gem AI થી શોધો',
-  ),
-  HomeL10n.aiModeBody: LocalizedMessage(
-    english:
-        'Ask in your own words. Gem AI finds matching diamonds, gemstones, jewellery, watches and bullion.',
-    hindi:
-        'अपने शब्दों में पूछें। Gem AI मेल खाते हीरे, रत्न, आभूषण, घड़ियाँ और बुलियन ढूँढता है।',
-    gujarati:
-        'તમારા શબ્દોમાં પૂછો. Gem AI મેળ ખાતા હીરા, રત્નો, ઝવેરાત, ઘડિયાળો અને બુલિયન શોધે છે.',
-  ),
   HomeL10n.aiModeAsk: LocalizedMessage(
     english: 'Ask Gem AI',
     hindi: 'Gem AI से पूछें',
@@ -238,10 +228,35 @@ const homeMessages = <String, LocalizedMessage>{
     hindi: 'सोने और चाँदी के सिक्के और बार',
     gujarati: 'સોના અને ચાંદીના સિક્કા અને બાર',
   ),
-  HomeL10n.searchShapesEyebrow: LocalizedMessage(
-    english: 'Shop by shape',
-    hindi: 'आकार से खरीदें',
-    gujarati: 'આકાર મુજબ ખરીદો',
+  HomeL10n.searchSuggestEyebrow: LocalizedMessage(
+    english: 'Try searching',
+    hindi: 'यह खोजकर देखें',
+    gujarati: 'આ શોધી જુઓ',
+  ),
+  HomeL10n.searchSuggestDiamonds: LocalizedMessage(
+    english: 'Round diamond 1 carat',
+    hindi: 'राउंड हीरा 1 कैरेट',
+    gujarati: 'રાઉન્ડ હીરો 1 કેરેટ',
+  ),
+  HomeL10n.searchSuggestGemstones: LocalizedMessage(
+    english: 'Blue sapphire',
+    hindi: 'नीलम',
+    gujarati: 'નીલમ',
+  ),
+  HomeL10n.searchSuggestJewellery: LocalizedMessage(
+    english: 'Diamond engagement ring',
+    hindi: 'हीरे की सगाई की अंगूठी',
+    gujarati: 'હીરાની સગાઈની વીંટી',
+  ),
+  HomeL10n.searchSuggestWatches: LocalizedMessage(
+    english: 'Automatic steel watch',
+    hindi: 'ऑटोमैटिक स्टील घड़ी',
+    gujarati: 'ઓટોમેટિક સ્ટીલ ઘડિયાળ',
+  ),
+  HomeL10n.searchSuggestBullion: LocalizedMessage(
+    english: '24k gold coin',
+    hindi: '24 कैरेट सोने का सिक्का',
+    gujarati: '24 કેરેટ સોનાનો સિક્કો',
   ),
   HomeL10n.searchTipTitle: LocalizedMessage(
     english: 'Have a stock or certificate number?',
