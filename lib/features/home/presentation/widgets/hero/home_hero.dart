@@ -9,6 +9,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../../../core/haptics/app_haptics.dart';
 import '../../../../../core/l10n/app_localizations.dart';
+import '../../../../../core/widgets/gem3d/gem_field.dart';
 import '../../theme/home_tokens.dart';
 import 'stardust_field.dart';
 import 'stardust_painter.dart';
@@ -18,8 +19,15 @@ import 'home_info_banners.dart';
 import 'stage_backdrop.dart';
 
 /// Opening stage: a deep-space shader and interactive stardust that gathers
-/// into the GemWorld G, a brilliant and a galaxy, with the promo spotlight
-/// overlapping its lower edge.
+/// into the GemWorld G, a brilliant and a galaxy, with a stream of live 3D
+/// diamonds drifting through it and the promo spotlight overlapping its
+/// lower edge.
+///
+/// The stardust and the stones are one scene: the galaxy's core is the
+/// light the stones catch (it idles in a slow loop around the core and
+/// swells as the stars gather), the stars shine through the crystal, and
+/// one finger both scatters the stars and parts the stones, carrying the
+/// light with it.
 ///
 /// The stage is a header, not a screen: it is sized so the next section peeks
 /// above the fold, its foot dissolves into the page canvas behind the
@@ -51,6 +59,7 @@ class HomeHero extends StatefulWidget {
 class _HomeHeroState extends State<HomeHero>
     with SingleTickerProviderStateMixin {
   final _field = StardustField();
+  final _gems = GemFieldDriver();
   final _clock = ValueNotifier<double>(2);
   final _progress = ValueNotifier<double>(0);
   final _hintVisible = ValueNotifier<bool>(true);
@@ -122,6 +131,8 @@ class _HomeHeroState extends State<HomeHero>
     _last = elapsed;
     _field.step(dt, _center, _scale);
     _clock.value = _field.time + 2;
+    // A denser, brighter core throws more light on the stones.
+    _gems.lightBoost = 0.85 + 0.45 * _field.coreGlow;
   }
 
   void _settleStatic() {
@@ -146,17 +157,29 @@ class _HomeHeroState extends State<HomeHero>
     _field
       ..burst(e.localPosition)
       ..setPointer(e.localPosition);
+    _gems.down(e.localPosition);
   }
 
   void _onPointerMove(PointerMoveEvent e) {
     if (e.pointer != _activePointer) return;
     _field.setPointer(e.localPosition);
+    _gems.move(e.localPosition);
   }
 
   void _onPointerEnd(PointerEvent e) {
     if (e.pointer != _activePointer) return;
     _activePointer = null;
     _field.setPointer(null);
+    _gems.up();
+  }
+
+  // Desktop / web: a hovering mouse carries the light through the stones.
+  void _onHover(PointerHoverEvent e) {
+    if (_activePointer == null) _gems.move(e.localPosition);
+  }
+
+  void _onHoverExit(PointerExitEvent e) {
+    if (_activePointer == null) _gems.up();
   }
 
   void _onOrbitStart(DragStartDetails d) {
@@ -324,10 +347,47 @@ class _HomeHeroState extends State<HomeHero>
                     onPointerMove: _onPointerMove,
                     onPointerUp: _onPointerEnd,
                     onPointerCancel: _onPointerEnd,
-                    child: RepaintBoundary(
-                      child: CustomPaint(
-                        painter: _painter,
-                        child: const SizedBox.expand(),
+                    child: MouseRegion(
+                      onHover: _onHover,
+                      onExit: _onHoverExit,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          // Stones under the stars: the stardust is
+                          // additive, so it shines through the crystal and
+                          // the galaxy stays legible over the stream.
+                          IgnorePointer(
+                            child: AnimatedBuilder(
+                              animation: _progress,
+                              builder: (context, child) => Opacity(
+                                opacity: (1 - _progress.value * 1.25).clamp(
+                                  0.0,
+                                  1.0,
+                                ),
+                                child: child,
+                              ),
+                              child: GemField(
+                                background: HomeStage.obsidian,
+                                opaque: false,
+                                driver: _gems,
+                                restAnchor: Offset(
+                                  0.5,
+                                  size.height > 0
+                                      ? center.dy / size.height
+                                      : 0.5,
+                                ),
+                                wander: true,
+                                density: 0.6,
+                              ),
+                            ),
+                          ),
+                          RepaintBoundary(
+                            child: CustomPaint(
+                              painter: _painter,
+                              child: const SizedBox.expand(),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

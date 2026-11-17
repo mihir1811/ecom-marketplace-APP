@@ -144,6 +144,22 @@ class GemFieldController extends ChangeNotifier {
   final int seed;
   bool reduceMotion;
 
+  /// Where the light rests while untouched, as a fraction of the size.
+  Offset restAnchor = const Offset(0.5, 0.6);
+
+  /// Whether the resting light slowly loops around [restAnchor] once the
+  /// field has been left alone a moment, so stones keep catching it.
+  bool wander = false;
+
+  /// Share of the authored stone count to seed (read on [layout]).
+  double density = 1;
+
+  /// Multiplier on the light's strength (1 as authored).
+  double lightBoost = 1;
+
+  /// Seconds since a pointer last touched or hovered the field.
+  double _idle = 0;
+
   final List<_FieldGem> _gems = [];
   final List<_FieldGem> _active = [];
   Size _size = Size.zero;
@@ -329,7 +345,9 @@ class GemFieldController extends ChangeNotifier {
 
     // Packed like a pour of beans, capped for frame budget.
     // A wider stream holds more stones at the same packing.
-    final count = (size.width * size.height / 430).round().clamp(180, 520);
+    final count =
+        ((size.width * size.height / 430).round().clamp(180, 520) * density)
+            .round();
     for (var i = 0; i < count; i++) {
       final z = _zNear + rng.nextDouble() * _zDepth;
       final band = z < _zFar
@@ -381,7 +399,7 @@ class GemFieldController extends ChangeNotifier {
       _gems.add(g);
       _bands[band.index].add(g);
     }
-    _rest = Offset(size.width * 0.5, size.height * 0.6);
+    _rest = Offset(size.width * restAnchor.dx, size.height * restAnchor.dy);
     if (!_cursor.ready) _cursor.reset(_rest!);
     _cursorPrev = _cursor.value;
     _energy = 1;
@@ -428,6 +446,21 @@ class GemFieldController extends ChangeNotifier {
     _tz = (g.hz + depth * _depthShare).clamp(g.zLo, g.zHi);
   }
 
+  /// Where the light heads while untouched: where it was left, easing
+  /// into a slow figure-of-eight around [restAnchor] when [wander] is on.
+  Offset _restTarget() {
+    final rest = _rest ?? _size.center(Offset.zero);
+    if (!wander || reduceMotion) return rest;
+    final w = ((_idle - 2.5) / 4).clamp(0.0, 1.0);
+    if (w == 0) return rest;
+    final a = _time * 0.42;
+    final loop = Offset(
+      _size.width * (restAnchor.dx + 0.3 * math.cos(a)),
+      _size.height * (restAnchor.dy + 0.16 * math.sin(a * 1.6)),
+    );
+    return Offset.lerp(rest, loop, w * w * (3 - 2 * w))!;
+  }
+
   double _along(GemPose p) =>
       (_segX * (p.x - _startX) + _segY * (p.y - _startY)) / _segLenSq;
 
@@ -442,7 +475,8 @@ class GemFieldController extends ChangeNotifier {
 
     // The cursor glides after the finger, or rests where it last was.
     _cursorPrev = _cursor.value;
-    _cursor.update(dt, pointer ?? _rest ?? _size.center(Offset.zero));
+    _idle = pointer == null ? _idle + dt : 0;
+    _cursor.update(dt, pointer ?? _restTarget());
     final cur = _cursor.value;
     final radius = _bodyRadius;
     if (pointer != null) {
@@ -527,7 +561,7 @@ class GemFieldController extends ChangeNotifier {
       final att = 1 / (30 * (lx * lx + ly * ly + lz * lz) + 0.01);
       g.lit = math.max(
         _ambient,
-        math.pow(math.min(1.0, att * 0.12), 0.45).toDouble(),
+        math.pow(math.min(1.0, att * 0.12 * lightBoost), 0.45).toDouble(),
       );
 
       // Face the direction of travel, turning toward it quickly.
@@ -1033,6 +1067,29 @@ abstract final class GemFieldWarmup {
   }
 }
 
+/// Lets a parent that owns the gestures drive a [GemField] (pointer and
+/// light), for stages that layer the field under other interactive
+/// content. Calls before the field mounts are ignored.
+class GemFieldDriver {
+  GemFieldController? _controller;
+  VoidCallback? _onWake;
+
+  void down(Offset at) {
+    _controller?.pointerDown(at);
+    _onWake?.call();
+  }
+
+  void move(Offset at) {
+    _controller?.pointerMove(at);
+    _onWake?.call();
+  }
+
+  void up() => _controller?.pointerUp();
+
+  /// Multiplier on the light's strength (1 as authored).
+  set lightBoost(double value) => _controller?.lightBoost = value;
+}
+
 /// Full-bleed field of colourless 3D diamonds in every bundled cut
 /// ([DiamondModels]) streaming diagonally that part around the finger,
 /// tumble when swept and catch its light. Pauses while scrolled off
@@ -1049,12 +1106,35 @@ class GemField extends StatefulWidget {
     this.background,
     this.seed = 7,
     this.touchTopInset = 0,
+    this.opaque = true,
+    this.driver,
+    this.restAnchor = const Offset(0.5, 0.6),
+    this.wander = false,
+    this.density = 1,
   });
 
-  /// Stage colour; defaults to [LuxeStage.obsidian].
+  /// Stage colour; defaults to [LuxeStage.obsidian]. Unlit stones always
+  /// sink toward it, even when the field is not [opaque].
   final Color? background;
   final int seed;
   final double touchTopInset;
+
+  /// Whether the field paints its own [background]; off to layer the
+  /// stones over another backdrop.
+  final bool opaque;
+
+  /// When set, the parent feeds the pointer and the field claims no
+  /// gestures of its own.
+  final GemFieldDriver? driver;
+
+  /// Where the light rests while untouched, as a fraction of the size.
+  final Offset restAnchor;
+
+  /// Whether the resting light slowly loops around [restAnchor].
+  final bool wander;
+
+  /// Share of the authored stone count to show (0..1).
+  final double density;
 
   @override
   State<GemField> createState() => _GemFieldState();
@@ -1066,7 +1146,7 @@ class _GemFieldState extends State<GemField>
   late final GemFieldController _field = GemFieldController(
     seed: widget.seed,
     reduceMotion: false,
-  );
+  )..density = widget.density;
   ScrollPosition? _scroll;
   Duration _last = Duration.zero;
   bool _visible = false;
@@ -1078,9 +1158,32 @@ class _GemFieldState extends State<GemField>
 
   Color get _background => widget.background ?? LuxeStage.obsidian;
 
+  void _attachDriver(GemFieldDriver? driver) {
+    driver
+      ?.._controller = _field
+      .._onWake = _wake;
+  }
+
+  void _detachDriver(GemFieldDriver? driver) {
+    if (driver?._controller != _field) return;
+    driver!
+      .._controller = null
+      .._onWake = null;
+  }
+
+  @override
+  void didUpdateWidget(GemField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.driver != widget.driver) {
+      _detachDriver(oldWidget.driver);
+      _attachDriver(widget.driver);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _attachDriver(widget.driver);
     // Nothing is drawn until the warmup has settled models and tier
     // (usually long before, started by the screen); the herd's entrance
     // plays once they are in.
@@ -1153,6 +1256,7 @@ class _GemFieldState extends State<GemField>
   @override
   void dispose() {
     SchedulerBinding.instance.removeTimingsCallback(_onTimings);
+    _detachDriver(widget.driver);
     _scroll?.removeListener(_checkVisible);
     _ticker.dispose();
     _field.dispose();
@@ -1228,6 +1332,9 @@ class _GemFieldState extends State<GemField>
       return Positioned.fill(child: layer);
     }
 
+    _field
+      ..restAnchor = widget.restAnchor
+      ..wander = widget.wander;
     return LayoutBuilder(
       builder: (context, constraints) {
         _field.layout(constraints.biggest);
@@ -1239,7 +1346,7 @@ class _GemFieldState extends State<GemField>
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    ColoredBox(color: bg),
+                    if (widget.opaque) ColoredBox(color: bg),
                     for (final b in _Band.values) band(b),
                     Positioned.fill(
                       child: CustomPaint(painter: _LightPainter(_field)),
@@ -1248,43 +1355,44 @@ class _GemFieldState extends State<GemField>
                 ),
               ),
             ),
-            Positioned.fill(
-              top: widget.touchTopInset,
-              // The eager recognizer wins the gesture arena on touch-down,
-              // so the page does not scroll while a finger plays with the
-              // stones (same as the home hero).
-              child: RawGestureDetector(
-                behavior: HitTestBehavior.opaque,
-                gestures: {
-                  EagerGestureRecognizer:
-                      GestureRecognizerFactoryWithHandlers<
-                        EagerGestureRecognizer
-                      >(EagerGestureRecognizer.new, (_) {}),
-                },
-                child: Listener(
+            if (widget.driver == null)
+              Positioned.fill(
+                top: widget.touchTopInset,
+                // The eager recognizer wins the gesture arena on touch-down,
+                // so the page does not scroll while a finger plays with the
+                // stones (same as the home hero).
+                child: RawGestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onPointerDown: (e) {
-                    _field.pointerDown(e.localPosition + inset);
-                    _wake();
+                  gestures: {
+                    EagerGestureRecognizer:
+                        GestureRecognizerFactoryWithHandlers<
+                          EagerGestureRecognizer
+                        >(EagerGestureRecognizer.new, (_) {}),
                   },
-                  onPointerMove: (e) {
-                    _field.pointerMove(e.localPosition + inset);
-                    _wake();
-                  },
-                  onPointerUp: (_) => _field.pointerUp(),
-                  onPointerCancel: (_) => _field.pointerUp(),
-                  child: MouseRegion(
-                    onHover: (e) {
-                      // Desktop / web: hovering is the cursor, as on the
-                      // original site.
+                  child: Listener(
+                    behavior: HitTestBehavior.opaque,
+                    onPointerDown: (e) {
+                      _field.pointerDown(e.localPosition + inset);
+                      _wake();
+                    },
+                    onPointerMove: (e) {
                       _field.pointerMove(e.localPosition + inset);
                       _wake();
                     },
-                    onExit: (_) => _field.pointerUp(),
+                    onPointerUp: (_) => _field.pointerUp(),
+                    onPointerCancel: (_) => _field.pointerUp(),
+                    child: MouseRegion(
+                      onHover: (e) {
+                        // Desktop / web: hovering is the cursor, as on the
+                        // original site.
+                        _field.pointerMove(e.localPosition + inset);
+                        _wake();
+                      },
+                      onExit: (_) => _field.pointerUp(),
+                    ),
                   ),
                 ),
               ),
-            ),
           ],
         );
       },
