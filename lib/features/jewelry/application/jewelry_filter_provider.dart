@@ -41,6 +41,25 @@ class JewelryFilterNotifier extends Notifier<JewelryFilterState>
     );
   }
 
+  /// Entry from the jewelry home: starts from clean filters (no search,
+  /// shop or earlier choices) with only the tapped shortcut applied.
+  void openHomeEntry({
+    String? category,
+    String? metal,
+    String? gemstone,
+    double? priceMin,
+    double? priceMax,
+  }) {
+    final c = category?.trim();
+    state = JewelryFilterState(
+      category: c == null || c.isEmpty ? null : c,
+      metals: metal == null ? const {} : {metal},
+      gemstones: gemstone == null ? const {} : {gemstone},
+      priceMin: priceMin,
+      priceMax: priceMax,
+    );
+  }
+
   /// Collection chip on the results header: keeps the other filters.
   void selectCategory(String slug) {
     state = state.copyWith(category: slug, clearSubCategory: true);

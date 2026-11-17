@@ -39,6 +39,41 @@ abstract final class JewelryFlowL10n {
   static const necklaces = 'jewelryFlow.necklaces';
   static const bracelets = 'jewelryFlow.bracelets';
 
+  // Jewelry home
+  static const homeCategories = 'jewelryFlow.homeCategories';
+  static const homeAll = 'jewelryFlow.homeAll';
+  static const homeHeroEyebrow = 'jewelryFlow.homeHeroEyebrow';
+  static const homeHeroCta = 'jewelryFlow.homeHeroCta';
+  static const homeHeroRings = 'jewelryFlow.homeHeroRings';
+  static const homeHeroNecklaces = 'jewelryFlow.homeHeroNecklaces';
+  static const homeHeroEarrings = 'jewelryFlow.homeHeroEarrings';
+  static const homeHeroBracelets = 'jewelryFlow.homeHeroBracelets';
+  static const homeBudgetTitle = 'jewelryFlow.homeBudgetTitle';
+  static const homeBudgetSubtitle = 'jewelryFlow.homeBudgetSubtitle';
+  static const homeBudgetUnder = 'jewelryFlow.homeBudgetUnder';
+  static const homeBudgetAbove = 'jewelryFlow.homeBudgetAbove';
+  static const homeBudgetGifts = 'jewelryFlow.homeBudgetGifts';
+  static const homeBudgetEveryday = 'jewelryFlow.homeBudgetEveryday';
+  static const homeBudgetStatement = 'jewelryFlow.homeBudgetStatement';
+  static const homeBudgetHeirloom = 'jewelryFlow.homeBudgetHeirloom';
+  static const homeTrendingTitle = 'jewelryFlow.homeTrendingTitle';
+  static const homeTrendingSubtitle = 'jewelryFlow.homeTrendingSubtitle';
+  static const homeTabNew = 'jewelryFlow.homeTabNew';
+  static const homeTabBestsellers = 'jewelryFlow.homeTabBestsellers';
+  static const homeGemsTitle = 'jewelryFlow.homeGemsTitle';
+  static const homeGemsSubtitle = 'jewelryFlow.homeGemsSubtitle';
+  static const homeHousesTitle = 'jewelryFlow.homeHousesTitle';
+  static const homeHousesSubtitle = 'jewelryFlow.homeHousesSubtitle';
+  static const homeTrustTitle = 'jewelryFlow.homeTrustTitle';
+  static const homeTrustVerified = 'jewelryFlow.homeTrustVerified';
+  static const homeTrustVerifiedBody = 'jewelryFlow.homeTrustVerifiedBody';
+  static const homeTrustSecure = 'jewelryFlow.homeTrustSecure';
+  static const homeTrustSecureBody = 'jewelryFlow.homeTrustSecureBody';
+  static const homeTrustTracking = 'jewelryFlow.homeTrustTracking';
+  static const homeTrustTrackingBody = 'jewelryFlow.homeTrustTrackingBody';
+  static const homeTrustRefunds = 'jewelryFlow.homeTrustRefunds';
+  static const homeTrustRefundsBody = 'jewelryFlow.homeTrustRefundsBody';
+
   // Results
   static const results = 'jewelryFlow.results';
   static const sortTitle = 'jewelryFlow.sortTitle';
@@ -506,5 +541,170 @@ const jewelryFlowMessages = <String, LocalizedMessage>{
     gujarati:
         'ઊંડી સફાઈ અને જાળવણી માટે અમારા સ્ટોરની મુલાકાત લો અથવા '
         'વ્યાવસાયિક જ્વેલરી સફાઈ અને તપાસ માટે ગ્રાહક સેવાનો સંપર્ક કરો.',
+  ),
+  JewelryFlowL10n.homeCategories: LocalizedMessage(
+    english: 'Shop by category',
+    hindi: 'श्रेणी से खरीदें',
+    gujarati: 'શ્રેણી પ્રમાણે ખરીદો',
+  ),
+  JewelryFlowL10n.homeAll: LocalizedMessage(
+    english: 'All',
+    hindi: 'सभी',
+    gujarati: 'બધું',
+  ),
+  JewelryFlowL10n.homeHeroEyebrow: LocalizedMessage(
+    english: 'Curated collection',
+    hindi: 'चुनिंदा संग्रह',
+    gujarati: 'પસંદગીનો સંગ્રહ',
+  ),
+  JewelryFlowL10n.homeHeroCta: LocalizedMessage(
+    english: 'Shop now',
+    hindi: 'अभी खरीदें',
+    gujarati: 'હમણાં ખરીદો',
+  ),
+  JewelryFlowL10n.homeHeroRings: LocalizedMessage(
+    english: 'Promises set in gold and stone',
+    hindi: 'सोने और रत्न में जड़े वादे',
+    gujarati: 'સોના અને રત્નમાં જડેલાં વચનો',
+  ),
+  JewelryFlowL10n.homeHeroNecklaces: LocalizedMessage(
+    english: 'Layers of quiet radiance',
+    hindi: 'सौम्य चमक की परतें',
+    gujarati: 'શાંત ચમકનાં સ્તરો',
+  ),
+  JewelryFlowL10n.homeHeroEarrings: LocalizedMessage(
+    english: 'Light that frames your face',
+    hindi: 'चेहरे को निखारती चमक',
+    gujarati: 'ચહેરાને નિખારતી ચમક',
+  ),
+  JewelryFlowL10n.homeHeroBracelets: LocalizedMessage(
+    english: 'Everyday heirlooms',
+    hindi: 'रोज़ पहनने योग्य विरासत',
+    gujarati: 'રોજ પહેરી શકાય એવો વારસો',
+  ),
+  JewelryFlowL10n.homeBudgetTitle: LocalizedMessage(
+    english: 'Shop by budget',
+    hindi: 'बजट के अनुसार खरीदें',
+    gujarati: 'બજેટ પ્રમાણે ખરીદો',
+  ),
+  JewelryFlowL10n.homeBudgetSubtitle: LocalizedMessage(
+    english: 'Fine pieces for every budget',
+    hindi: 'हर बजट के लिए बेहतरीन गहने',
+    gujarati: 'દરેક બજેટ માટે સુંદર ઘરેણાં',
+  ),
+  JewelryFlowL10n.homeBudgetUnder: LocalizedMessage(
+    english: 'Under {amount}',
+    hindi: '{amount} से कम',
+    gujarati: '{amount} થી ઓછું',
+  ),
+  JewelryFlowL10n.homeBudgetAbove: LocalizedMessage(
+    english: '{amount} & above',
+    hindi: '{amount} और अधिक',
+    gujarati: '{amount} અને વધુ',
+  ),
+  JewelryFlowL10n.homeBudgetGifts: LocalizedMessage(
+    english: 'Thoughtful gifts',
+    hindi: 'सोच-समझकर चुने उपहार',
+    gujarati: 'વિચારપૂર્વકની ભેટ',
+  ),
+  JewelryFlowL10n.homeBudgetEveryday: LocalizedMessage(
+    english: 'Everyday luxury',
+    hindi: 'रोज़ की शान',
+    gujarati: 'રોજની શાન',
+  ),
+  JewelryFlowL10n.homeBudgetStatement: LocalizedMessage(
+    english: 'Statement pieces',
+    hindi: 'खास अंदाज़ के गहने',
+    gujarati: 'ખાસ અંદાજનાં ઘરેણાં',
+  ),
+  JewelryFlowL10n.homeBudgetHeirloom: LocalizedMessage(
+    english: 'Heirloom pieces',
+    hindi: 'विरासत के गहने',
+    gujarati: 'વારસાનાં ઘરેણાં',
+  ),
+  JewelryFlowL10n.homeTrendingTitle: LocalizedMessage(
+    english: 'Trending now',
+    hindi: 'अभी ट्रेंड में',
+    gujarati: 'હાલ ટ્રેન્ડમાં',
+  ),
+  JewelryFlowL10n.homeTrendingSubtitle: LocalizedMessage(
+    english: 'Fresh arrivals and shopper favourites',
+    hindi: 'नए आगमन और पसंदीदा गहने',
+    gujarati: 'નવાં આગમન અને મનપસંદ ઘરેણાં',
+  ),
+  JewelryFlowL10n.homeTabNew: LocalizedMessage(
+    english: 'New arrivals',
+    hindi: 'नए आगमन',
+    gujarati: 'નવાં આગમન',
+  ),
+  JewelryFlowL10n.homeTabBestsellers: LocalizedMessage(
+    english: 'Bestsellers',
+    hindi: 'बेस्टसेलर',
+    gujarati: 'બેસ્ટસેલર',
+  ),
+  JewelryFlowL10n.homeGemsTitle: LocalizedMessage(
+    english: 'Shop by gemstone',
+    hindi: 'रत्न से खरीदें',
+    gujarati: 'રત્ન પ્રમાણે ખરીદો',
+  ),
+  JewelryFlowL10n.homeGemsSubtitle: LocalizedMessage(
+    english: 'Your birthstone or favourite colour',
+    hindi: 'आपका जन्म रत्न या पसंदीदा रंग',
+    gujarati: 'તમારું જન્મરત્ન કે મનપસંદ રંગ',
+  ),
+  JewelryFlowL10n.homeHousesTitle: LocalizedMessage(
+    english: 'Jewelry houses',
+    hindi: 'ज्वेलरी हाउस',
+    gujarati: 'જ્વેલરી હાઉસ',
+  ),
+  JewelryFlowL10n.homeHousesSubtitle: LocalizedMessage(
+    english: 'Shop directly from the makers',
+    hindi: 'सीधे कारीगरों से खरीदें',
+    gujarati: 'સીધા કારીગરો પાસેથી ખરીદો',
+  ),
+  JewelryFlowL10n.homeTrustTitle: LocalizedMessage(
+    english: 'Shop with confidence',
+    hindi: 'भरोसे के साथ खरीदें',
+    gujarati: 'વિશ્વાસ સાથે ખરીદો',
+  ),
+  JewelryFlowL10n.homeTrustVerified: LocalizedMessage(
+    english: 'Verified sellers',
+    hindi: 'सत्यापित विक्रेता',
+    gujarati: 'ચકાસાયેલા વિક્રેતા',
+  ),
+  JewelryFlowL10n.homeTrustVerifiedBody: LocalizedMessage(
+    english: 'Look for the verified badge',
+    hindi: 'सत्यापित बैज देखें',
+    gujarati: 'ચકાસણી બેજ જુઓ',
+  ),
+  JewelryFlowL10n.homeTrustSecure: LocalizedMessage(
+    english: 'Secure payments',
+    hindi: 'सुरक्षित भुगतान',
+    gujarati: 'સુરક્ષિત ચુકવણી',
+  ),
+  JewelryFlowL10n.homeTrustSecureBody: LocalizedMessage(
+    english: 'Protected checkout',
+    hindi: 'सुरक्षित चेकआउट',
+    gujarati: 'સુરક્ષિત ચેકઆઉટ',
+  ),
+  JewelryFlowL10n.homeTrustTracking: LocalizedMessage(
+    english: 'Live tracking',
+    hindi: 'लाइव ट्रैकिंग',
+    gujarati: 'લાઇવ ટ્રેકિંગ',
+  ),
+  JewelryFlowL10n.homeTrustTrackingBody: LocalizedMessage(
+    english: 'Follow every order',
+    hindi: 'हर ऑर्डर पर नज़र रखें',
+    gujarati: 'દરેક ઓર્ડર પર નજર રાખો',
+  ),
+  JewelryFlowL10n.homeTrustRefunds: LocalizedMessage(
+    english: 'Refund support',
+    hindi: 'रिफ़ंड सहायता',
+    gujarati: 'રિફંડ સહાય',
+  ),
+  JewelryFlowL10n.homeTrustRefundsBody: LocalizedMessage(
+    english: 'Raise requests in-app',
+    hindi: 'ऐप में अनुरोध करें',
+    gujarati: 'એપમાં વિનંતી કરો',
   ),
 };
