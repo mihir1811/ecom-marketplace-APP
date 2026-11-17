@@ -21,64 +21,66 @@ class HomeInfoBanners extends StatefulWidget {
 
 class _InfoSlide {
   const _InfoSlide({
-    required this.icon,
+    required this.image,
     required this.title,
     required this.body,
     required this.action,
     required this.route,
-    required this.tint,
+    required this.background,
   });
 
-  final IconData icon;
+  /// Transparent product cut-out, set on the right of the card.
+  final String image;
   final String title;
   final String body;
   final String action;
   final String route;
 
-  /// Glow behind the icon, so each slide reads apart from the next.
-  final Color tint;
+  /// Flat studio colour behind the product. Each slide has its own, the way
+  /// a shoot uses a different paper backdrop per piece.
+  final Color background;
 }
 
 const _slides = [
   _InfoSlide(
-    icon: Icons.diamond_outlined,
+    image: 'public/images/jewelryShowcase/necklace.webp',
     title: HomeL10n.infoAboutTitle,
     body: HomeL10n.infoAboutBody,
     action: HomeL10n.infoAboutAction,
     route: AppRouteNames.aboutUs,
-    tint: Color(0xFFC9A45C),
+    background: Color(0xFFEEE5D5),
   ),
   _InfoSlide(
-    icon: Icons.verified_outlined,
+    image: 'public/images/jewelryShowcase/earrings.webp',
     title: HomeL10n.infoCertifiedTitle,
     body: HomeL10n.infoCertifiedBody,
     action: HomeL10n.infoCertifiedAction,
     route: AppRouteNames.diamonds,
-    tint: Color(0xFF7FA7C9),
+    background: Color(0xFFDFE5EA),
   ),
   _InfoSlide(
-    icon: Icons.sensors_rounded,
+    image: 'public/images/jewelryShowcase/ring.webp',
     title: HomeL10n.infoLiveTitle,
     body: HomeL10n.infoLiveBody,
     action: HomeL10n.infoLiveAction,
     route: AppRouteNames.liveShows,
-    tint: Color(0xFFC97F7F),
+    background: Color(0xFFEAE2EC),
   ),
   _InfoSlide(
-    icon: Icons.auto_stories_outlined,
+    image: 'public/images/jewelryShowcase/bracelet.webp',
     title: HomeL10n.infoLearnTitle,
     body: HomeL10n.infoLearnBody,
     action: HomeL10n.infoLearnAction,
     route: AppRouteNames.diamondEducation,
-    tint: Color(0xFF8FBFA4),
+    background: Color(0xFFE1E7DE),
   ),
   _InfoSlide(
-    icon: Icons.lock_outline_rounded,
+    image: 'public/images/gemstones/Ruby.webp',
     title: HomeL10n.infoSecureTitle,
     body: HomeL10n.infoSecureBody,
     action: HomeL10n.infoSecureAction,
     route: AppRouteNames.policies,
-    tint: Color(0xFFB49BD1),
+    background: Color(0xFFF1E3DF),
   ),
 ];
 
@@ -184,112 +186,94 @@ class _HomeInfoBannersState extends State<HomeInfoBanners> {
   }
 }
 
-/// Dark stage card: tinted glow and large icon on the right, copy and the
-/// action on the left, a small GemWorld tag in the corner.
+/// Flat studio card: product photo on the right, headline, one supporting
+/// line and a text-link action on the left. No glow, frame or badge, so it
+/// reads like a printed campaign rather than a generated tile.
 class _InfoFace extends StatelessWidget {
   const _InfoFace({required this.slide, required this.tablet});
 
   final _InfoSlide slide;
   final bool tablet;
 
+  static const ink = Color(0xFF1C1A17);
+  static const inkMuted = Color(0xFF4A453E);
+
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
     final title = context.tr(slide.title);
-
-    void open() {
-      AppHaptics.selection();
-      context.push(slide.route);
-    }
+    final body = context.tr(slide.body);
+    final dpr = MediaQuery.devicePixelRatioOf(context);
 
     return Semantics(
       button: true,
-      label: '$title. ${context.tr(slide.body)}',
+      label: '$title. $body',
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: open,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [HomeStage.raised, HomeStage.obsidian],
-            ),
-            border: Border.all(color: HomeStage.gold.withValues(alpha: 0.22)),
-            borderRadius: BorderRadius.circular(HomeSpace.radiusSmall),
-          ),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      center: const Alignment(0.75, 0),
-                      radius: 0.9,
-                      colors: [
-                        slide.tint.withValues(alpha: 0.28),
-                        slide.tint.withValues(alpha: 0),
+        onTap: () {
+          AppHaptics.selection();
+          context.push(slide.route);
+        },
+        child: ColoredBox(
+          color: slide.background,
+          child: LayoutBuilder(
+            builder: (context, box) {
+              final imageHeight = box.maxHeight * (tablet ? 0.86 : 0.82);
+              final pad = tablet ? 28.0 : 18.0;
+
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  Positioned(
+                    right: tablet ? 40 : 12,
+                    top: 0,
+                    bottom: 0,
+                    width: box.maxWidth * (tablet ? 0.32 : 0.4),
+                    child: ExcludeSemantics(
+                      child: Image.asset(
+                        slide.image,
+                        height: imageHeight,
+                        cacheHeight: (imageHeight * dpr).round(),
+                        fit: BoxFit.contain,
+                        filterQuality: FilterQuality.medium,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: pad,
+                    top: pad - 4,
+                    bottom: pad - 4,
+                    width: box.maxWidth * (tablet ? 0.5 : 0.56) - pad,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: HomeType.display(
+                            tablet ? 28 : 22,
+                            ink,
+                          ).copyWith(height: 1.05),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          body,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: HomeType.body(
+                            inkMuted,
+                            size: tablet ? 14 : 12.5,
+                          ).copyWith(height: 1.35),
+                        ),
+                        SizedBox(height: tablet ? 14 : 10),
+                        _TextLink(label: context.tr(slide.action)),
                       ],
                     ),
                   ),
-                ),
-              ),
-              Positioned(
-                right: tablet ? 48 : 18,
-                top: 0,
-                bottom: 0,
-                child: Center(
-                  child: Icon(
-                    slide.icon,
-                    size: tablet ? 88 : 64,
-                    color: slide.tint.withValues(alpha: 0.85),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 10,
-                right: 10,
-                child: _InfoTag(label: context.tr(HomeL10n.infoTag)),
-              ),
-              Positioned(
-                left: 16,
-                top: 12,
-                bottom: 12,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: width * (tablet ? 0.5 : 0.6),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: HomeType.display(
-                          tablet ? 26 : 20,
-                          Colors.white,
-                        ).copyWith(height: 1.1),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        context.tr(slide.body),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: HomeType.label(
-                          const Color(0xD9FFFFFF),
-                          size: 12.5,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      _ActionChip(label: context.tr(slide.action), onTap: open),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -297,8 +281,10 @@ class _InfoFace extends StatelessWidget {
   }
 }
 
-class _InfoTag extends StatelessWidget {
-  const _InfoTag({required this.label});
+/// Underlined action, the way print and luxury retail sites mark a link.
+/// The whole card is the tap target, so this is visual only.
+class _TextLink extends StatelessWidget {
+  const _TextLink({required this.label});
 
   final String label;
 
@@ -306,47 +292,21 @@ class _InfoTag extends StatelessWidget {
   Widget build(BuildContext context) {
     return ExcludeSemantics(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-        decoration: BoxDecoration(
-          color: const Color(0x66000000),
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: HomeStage.gold.withValues(alpha: 0.4)),
-        ),
-        child: Text(label, style: HomeType.label(HomeStage.gold, size: 10.5)),
-      ),
-    );
-  }
-}
-
-class _ActionChip extends StatelessWidget {
-  const _ActionChip({required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: const ShapeDecoration(
-          color: Colors.white,
-          shape: StadiumBorder(),
+        padding: const EdgeInsets.only(bottom: 2),
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: _InfoFace.ink)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               label,
-              style: HomeType.label(const Color(0xFF16140F), size: 12.5),
+              style: HomeType.label(
+                _InfoFace.ink,
+              ).copyWith(fontWeight: FontWeight.w600),
             ),
-            const SizedBox(width: 4),
-            const Icon(
-              Icons.arrow_forward_rounded,
-              size: 14,
-              color: Color(0xFF16140F),
-            ),
+            const SizedBox(width: 6),
+            const Icon(Icons.arrow_forward, size: 14, color: _InfoFace.ink),
           ],
         ),
       ),

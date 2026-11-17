@@ -82,7 +82,6 @@ abstract final class HomeL10n {
   static const saleGoldTitle = 'home.saleGoldTitle';
   static const saleGoldBody = 'home.saleGoldBody';
   // GemWorld info banners, shown on the hero while no paid banner is live.
-  static const infoTag = 'home.infoTag';
   static const infoAboutTitle = 'home.infoAboutTitle';
   static const infoAboutBody = 'home.infoAboutBody';
   static const infoAboutAction = 'home.infoAboutAction';
@@ -500,22 +499,15 @@ const homeMessages = <String, LocalizedMessage>{
     hindi: 'सोने और हीरे के हार',
     gujarati: 'સોના અને હીરાના હાર',
   ),
-  HomeL10n.infoTag: LocalizedMessage(
-    english: 'GemWorld',
-    hindi: 'GemWorld',
-    gujarati: 'GemWorld',
-  ),
   HomeL10n.infoAboutTitle: LocalizedMessage(
     english: 'One world for every gem',
     hindi: 'हर रत्न के लिए एक दुनिया',
     gujarati: 'દરેક રત્ન માટે એક દુનિયા',
   ),
   HomeL10n.infoAboutBody: LocalizedMessage(
-    english:
-        'Diamonds, gemstones, jewellery, watches and bullion from verified sellers.',
-    hindi: 'सत्यापित विक्रेताओं से हीरे, रत्न, आभूषण, घड़ियाँ और बुलियन।',
-    gujarati:
-        'ચકાસાયેલા વિક્રેતાઓ પાસેથી હીરા, રત્નો, ઘરેણાં, ઘડિયાળો અને બુલિયન.',
+    english: 'Diamonds, jewellery, watches and bullion from verified sellers.',
+    hindi: 'सत्यापित विक्रेताओं से हीरे, आभूषण, घड़ियाँ और बुलियन।',
+    gujarati: 'ચકાસાયેલા વિક્રેતાઓ પાસેથી હીરા, ઘરેણાં, ઘડિયાળો અને બુલિયન.',
   ),
   HomeL10n.infoAboutAction: LocalizedMessage(
     english: 'About us',
@@ -528,8 +520,7 @@ const homeMessages = <String, LocalizedMessage>{
     gujarati: 'પ્રમાણિત હીરા',
   ),
   HomeL10n.infoCertifiedBody: LocalizedMessage(
-    english:
-        'Natural and lab-grown stones with certificates you can check before you buy.',
+    english: 'Natural and lab-grown, with certificates you can check.',
     hindi: 'प्राकृतिक और लैब-ग्रोन हीरे, खरीदने से पहले प्रमाणपत्र जाँचें।',
     gujarati: 'કુદરતી અને લેબ-ગ્રોન હીરા, ખરીદતા પહેલાં પ્રમાણપત્ર તપાસો.',
   ),
