@@ -7,6 +7,7 @@ import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
+import '../../../../core/widgets/luxe/luxe_card_reveal.dart';
 import '../../../seller/presentation/atelier/atelier_components.dart';
 import '../../../seller/presentation/atelier/atelier_feedback.dart';
 import '../../../seller/presentation/atelier/atelier_motion.dart';
@@ -151,69 +152,72 @@ class _BuyerWishlistScreenState extends ConsumerState<BuyerWishlistScreen> {
         color: p.gold,
         backgroundColor: p.surface,
         onRefresh: _refresh,
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(
-            parent: BouncingScrollPhysics(),
-          ),
-          slivers: [
-            const SliverToBoxAdapter(child: SizedBox(height: 6)),
-            if (items.isNotEmpty)
-              MaisonPinnedBar(
-                height: 124,
-                gutter: gutter,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    AtelierSegmented<WishlistCategory?>(
-                      dense: true,
-                      segments: [
-                        AtelierSegment(
-                          value: null,
-                          label: context.tr(RemainingL10n.all),
-                          count: count,
-                        ),
-                        for (final c in present)
+        child: LuxeScrollAssemble(
+          topInset: items.isEmpty ? 0 : 130,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            slivers: [
+              const SliverToBoxAdapter(child: SizedBox(height: 6)),
+              if (items.isNotEmpty)
+                MaisonPinnedBar(
+                  height: 124,
+                  gutter: gutter,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      AtelierSegmented<WishlistCategory?>(
+                        dense: true,
+                        segments: [
                           AtelierSegment(
-                            value: c,
-                            label: wishlistCategoryLabel(c),
-                            icon: wishlistCategoryIcon(c),
-                            count: items.where((i) => i.category == c).length,
+                            value: null,
+                            label: context.tr(RemainingL10n.all),
+                            count: count,
                           ),
-                      ],
-                      selected: category,
-                      onChanged: (c) => setState(() => _category = c),
-                    ),
-                    const SizedBox(height: 8),
-                    MaisonSearchRow(
-                      controller: _search,
-                      hint: 'Search your saved pieces',
-                      onChanged: (_) => setState(() {}),
-                      sortLabel: _sort.label,
-                      sortActive: _sort != _WishSort.saved,
-                      onSort: _pickSort,
-                      trailing: AtelierIconButton(
-                        icon: _grid
-                            ? Icons.view_agenda_outlined
-                            : Icons.grid_view_rounded,
-                        tooltip: _grid ? 'List view' : 'Gallery view',
-                        filled: true,
-                        size: 46,
-                        onPressed: () => setState(() => _grid = !_grid),
+                          for (final c in present)
+                            AtelierSegment(
+                              value: c,
+                              label: wishlistCategoryLabel(c),
+                              icon: wishlistCategoryIcon(c),
+                              count: items.where((i) => i.category == c).length,
+                            ),
+                        ],
+                        selected: category,
+                        onChanged: (c) => setState(() => _category = c),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      MaisonSearchRow(
+                        controller: _search,
+                        hint: 'Search your saved pieces',
+                        onChanged: (_) => setState(() {}),
+                        sortLabel: _sort.label,
+                        sortActive: _sort != _WishSort.saved,
+                        onSort: _pickSort,
+                        trailing: AtelierIconButton(
+                          icon: _grid
+                              ? Icons.view_agenda_outlined
+                              : Icons.grid_view_rounded,
+                          tooltip: _grid ? 'List view' : 'Gallery view',
+                          filled: true,
+                          size: 46,
+                          onPressed: () => setState(() => _grid = !_grid),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+              MaisonRefreshHairline(
+                visible: wishlist.isLoading && items.isNotEmpty,
               ),
-            MaisonRefreshHairline(
-              visible: wishlist.isLoading && items.isNotEmpty,
-            ),
-            ..._body(context, wishlist, visible, width, gutter),
-            // The list scrolls behind the floating dock; end clear of it.
-            SliverToBoxAdapter(
-              child: SizedBox(height: MediaQuery.paddingOf(context).bottom),
-            ),
-          ],
+              ..._body(context, wishlist, visible, width, gutter),
+              // The list scrolls behind the floating dock; end clear of it.
+              SliverToBoxAdapter(
+                child: SizedBox(height: MediaQuery.paddingOf(context).bottom),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -288,9 +292,9 @@ class _BuyerWishlistScreenState extends ConsumerState<BuyerWishlistScreen> {
             separatorBuilder: (_, _) => const SizedBox(height: 8),
             itemBuilder: (context, i) {
               final item = visible[i];
-              return Reveal(
+              return LuxeCardReveal(
                 key: ValueKey('row-${item.id}'),
-                index: i < 8 ? i : 0,
+                index: i,
                 child: WishlistPieceCard(
                   item: item,
                   compact: true,
@@ -317,9 +321,9 @@ class _BuyerWishlistScreenState extends ConsumerState<BuyerWishlistScreen> {
           itemCount: visible.length,
           itemBuilder: (context, i) {
             final item = visible[i];
-            return Reveal(
+            return LuxeCardReveal(
               key: ValueKey('tile-${item.id}'),
-              index: i < 8 ? i : 0,
+              index: i,
               child: WishlistPieceCard(
                 item: item,
                 onRemove: () => _remove(item),

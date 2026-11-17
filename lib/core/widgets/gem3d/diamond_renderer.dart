@@ -283,19 +283,33 @@ class DiamondBatch {
     final reuse = shade != null && shade._bind(mesh, clear) && !reshade;
     final colors = shade?._color, lums = shade?._lum, sides = shade?._side;
 
-    // Rotation R = Ry · Rx · Rz.
-    final cx = math.cos(pose.rx), sx = math.sin(pose.rx);
-    final cy = math.cos(pose.ry), sy = math.sin(pose.ry);
-    final cz = math.cos(pose.rz), sz = math.sin(pose.rz);
-    final m00 = cy * cz + sy * sx * sz;
-    final m01 = -cy * sz + sy * sx * cz;
-    final m02 = sy * cx;
-    final m10 = cx * sz;
-    final m11 = cx * cz;
-    final m12 = -sx;
-    final m20 = -sy * cz + cy * sx * sz;
-    final m21 = sy * sz + cy * sx * cz;
-    final m22 = cy * cx;
+    // Rotation: the pose's own basis when set, else R = Ry · Rx · Rz.
+    final double m00, m01, m02, m10, m11, m12, m20, m21, m22;
+    final basis = pose.basis;
+    if (basis != null) {
+      m00 = basis[0];
+      m01 = basis[1];
+      m02 = basis[2];
+      m10 = basis[3];
+      m11 = basis[4];
+      m12 = basis[5];
+      m20 = basis[6];
+      m21 = basis[7];
+      m22 = basis[8];
+    } else {
+      final cx = math.cos(pose.rx), sx = math.sin(pose.rx);
+      final cy = math.cos(pose.ry), sy = math.sin(pose.ry);
+      final cz = math.cos(pose.rz), sz = math.sin(pose.rz);
+      m00 = cy * cz + sy * sx * sz;
+      m01 = -cy * sz + sy * sx * cz;
+      m02 = sy * cx;
+      m10 = cx * sz;
+      m11 = cx * cz;
+      m12 = -sx;
+      m20 = -sy * cz + cy * sx * sz;
+      m21 = sy * sz + cy * sx * cz;
+      m22 = cy * cx;
+    }
     // The stone's table axis; the pavilion mirrors light across it.
     final upX = m01, upY = m11, upZ = m21;
 

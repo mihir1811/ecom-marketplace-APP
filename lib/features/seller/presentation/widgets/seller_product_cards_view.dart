@@ -4,6 +4,7 @@ import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/utils/app_currency.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/widgets/luxe/luxe_card_reveal.dart';
 import '../../domain/models/seller_product.dart';
 import '../../domain/models/seller_product_column.dart';
 import '../atelier/atelier_components.dart';
@@ -44,38 +45,40 @@ class SellerProductCardsView extends StatelessWidget {
             : width >= 680
             ? 3
             : 2;
-        return GridView.builder(
-          padding: padding,
-          physics: const AlwaysScrollableScrollPhysics(),
-          addAutomaticKeepAlives: false,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: columns,
-            mainAxisSpacing: AtelierSpace.s16,
-            crossAxisSpacing: AtelierSpace.s16,
-            mainAxisExtent: width < 400 ? 284 : 300,
-          ),
-          itemCount: products.length,
-          itemBuilder: (context, index) {
-            final p = products[index];
-            return RepaintBoundary(
-              child: Reveal(
-                key: ValueKey(p.id),
-                // Only the first screenful staggers; later cells appear at once.
-                index: index < 12 ? index : 0,
-                child: _ProductCard(
-                  product: p,
-                  selected: selectedIds.contains(p.id),
-                  onSelected: (v) => onToggleSelection(p.id, v),
-                  onOpen: () => (onQuickView ?? onEdit)?.call(p),
-                  onEdit: onEdit == null ? null : () => onEdit!(p),
-                  onDelete: onDelete == null ? null : () => onDelete!(p),
-                  onQuickView: onQuickView == null
-                      ? null
-                      : () => onQuickView!(p),
+        return LuxeScrollAssemble(
+          topInset: 0,
+          child: GridView.builder(
+            padding: padding,
+            physics: const AlwaysScrollableScrollPhysics(),
+            addAutomaticKeepAlives: false,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              mainAxisSpacing: AtelierSpace.s16,
+              crossAxisSpacing: AtelierSpace.s16,
+              mainAxisExtent: width < 400 ? 284 : 300,
+            ),
+            itemCount: products.length,
+            itemBuilder: (context, index) {
+              final p = products[index];
+              return RepaintBoundary(
+                child: LuxeCardReveal(
+                  key: ValueKey(p.id),
+                  index: index,
+                  child: _ProductCard(
+                    product: p,
+                    selected: selectedIds.contains(p.id),
+                    onSelected: (v) => onToggleSelection(p.id, v),
+                    onOpen: () => (onQuickView ?? onEdit)?.call(p),
+                    onEdit: onEdit == null ? null : () => onEdit!(p),
+                    onDelete: onDelete == null ? null : () => onDelete!(p),
+                    onQuickView: onQuickView == null
+                        ? null
+                        : () => onQuickView!(p),
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         );
       },
     );

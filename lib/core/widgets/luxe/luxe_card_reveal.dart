@@ -344,14 +344,22 @@ class LuxeCardActive extends InheritedWidget {
 /// Scrolling up replays both in reverse: cards near the bottom disassemble
 /// and retreat to their corners, cards coming back in at the top assemble.
 /// Full-width list cards keep the depth and tilt with no sideways throw.
+///
+/// Without a [controller] it follows the scroll notifications of the first
+/// vertical scroll view below it.
 class LuxeScrollAssemble extends StatefulWidget {
   const LuxeScrollAssemble({
-    required this.controller,
     required this.child,
     super.key,
+    this.controller,
+    this.topInset = 56,
   });
 
-  final ScrollController controller;
+  final ScrollController? controller;
+
+  /// Height of the pinned bar at the top of the scroll view that cards
+  /// slide under before they lift out.
+  final double topInset;
   final Widget child;
 
   @override
@@ -364,27 +372,36 @@ class _AssembleSignal extends ChangeNotifier {
 
   final Rect Function() _viewportOf;
 
+  /// Pinned bar height the cards slide under.
+  double topInset = 56;
+
   Rect get viewport => _viewportOf();
 
   void ping() => notifyListeners();
 }
 
 class _LuxeScrollAssembleState extends State<LuxeScrollAssemble> {
-  late final _signal = _AssembleSignal(_viewport);
+  late final _signal = _AssembleSignal(_viewport)..topInset = widget.topInset;
 
   @override
   void initState() {
     super.initState();
-    widget.controller.addListener(_signal.ping);
+    widget.controller?.addListener(_signal.ping);
   }
 
   @override
   void didUpdateWidget(LuxeScrollAssemble oldWidget) {
     super.didUpdateWidget(oldWidget);
+    _signal.topInset = widget.topInset;
     if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.removeListener(_signal.ping);
-      widget.controller.addListener(_signal.ping);
+      oldWidget.controller?.removeListener(_signal.ping);
+      widget.controller?.addListener(_signal.ping);
     }
+  }
+
+  bool _onScroll(ScrollNotification n) {
+    if (n.depth == 0 && n.metrics.axis == Axis.vertical) _signal.ping();
+    return false;
   }
 
   Rect _viewport() {
@@ -395,14 +412,20 @@ class _LuxeScrollAssembleState extends State<LuxeScrollAssemble> {
 
   @override
   void dispose() {
-    widget.controller.removeListener(_signal.ping);
+    widget.controller?.removeListener(_signal.ping);
     _signal.dispose();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) =>
-      _AssembleScope(signal: _signal, child: widget.child);
+  Widget build(BuildContext context) {
+    final scope = _AssembleScope(signal: _signal, child: widget.child);
+    if (widget.controller != null) return scope;
+    return NotificationListener<ScrollNotification>(
+      onNotification: _onScroll,
+      child: scope,
+    );
+  }
 }
 
 class _AssembleScope extends InheritedWidget {
@@ -434,9 +457,6 @@ class _AssembleTarget extends SingleChildRenderObjectWidget {
 /// Poses its child for [LuxeScrollAssemble] from its place in the viewport.
 class _RenderAssemble extends RenderProxyBox {
   _RenderAssemble(this._signal);
-
-  /// Pinned listing toolbar the cards slide under.
-  static const _topInset = 56.0;
 
   /// Viewport share a card travels past the bottom edge before it lands.
   static const _enterTail = 0.14;
@@ -509,7 +529,7 @@ class _RenderAssemble extends RenderProxyBox {
     // 0 = in its corner, 1 = in place; whichever edge is nearer wins.
     final enter = _saturate((v.bottom - g.dy) / (h + v.height * _enterTail));
     final leave = _saturate(
-      (g.dy + h - (v.top + _topInset)) / (h * _leaveSpan),
+      (g.dy + h - (v.top + s.topInset)) / (h * _leaveSpan),
     );
     final double amount;
     final double dir; // +1 toward the bottom corners, -1 toward the top.

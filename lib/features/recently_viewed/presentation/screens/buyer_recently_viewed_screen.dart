@@ -8,6 +8,7 @@ import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
+import '../../../../core/widgets/luxe/luxe_card_reveal.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../../buyer/presentation/maison/maison_kit.dart';
 import '../../../buyer/presentation/maison/maison_layout.dart';
@@ -227,78 +228,83 @@ class _BuyerRecentlyViewedScreenState
         onRefresh: _refresh,
         child: NotificationListener<ScrollNotification>(
           onNotification: _onScroll,
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(
-              parent: BouncingScrollPhysics(),
-            ),
-            slivers: [
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 8),
-                sliver: SliverToBoxAdapter(
-                  child: MaisonCentered(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (items.isNotEmpty)
-                          Reveal(child: _TrailBar(onClear: _clearHistory)),
-                      ],
+          child: LuxeScrollAssemble(
+            topInset: items.isEmpty ? 0 : 130,
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
+              slivers: [
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(gutter, 6, gutter, 8),
+                  sliver: SliverToBoxAdapter(
+                    child: MaisonCentered(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (items.isNotEmpty)
+                            Reveal(child: _TrailBar(onClear: _clearHistory)),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              if (items.isNotEmpty)
-                MaisonPinnedBar(
-                  height: 124,
-                  gutter: gutter,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      AtelierSegmented<WishlistCategory?>(
-                        dense: true,
-                        segments: [
-                          AtelierSegment(
-                            value: null,
-                            label: context.tr(RemainingL10n.all),
-                            count: items.length,
-                          ),
-                          for (final c in present)
+                if (items.isNotEmpty)
+                  MaisonPinnedBar(
+                    height: 124,
+                    gutter: gutter,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        AtelierSegmented<WishlistCategory?>(
+                          dense: true,
+                          segments: [
                             AtelierSegment(
-                              value: c,
-                              label: wishlistCategoryLabel(c),
-                              icon: wishlistCategoryIcon(c),
-                              count: items.where((e) => e.category == c).length,
+                              value: null,
+                              label: context.tr(RemainingL10n.all),
+                              count: items.length,
                             ),
-                        ],
-                        selected: category,
-                        onChanged: (c) => setState(() => _category = c),
-                      ),
-                      const SizedBox(height: 8),
-                      MaisonSearchRow(
-                        controller: _search,
-                        hint: 'Search pieces, grades or stock no.',
-                        onChanged: (_) => setState(() {}),
-                        sortLabel: _sort.label,
-                        sortActive: _sort != _RecentSort.recent,
-                        onSort: _pickSort,
-                        trailing: AtelierIconButton(
-                          icon: _grid
-                              ? Icons.view_agenda_outlined
-                              : Icons.grid_view_rounded,
-                          tooltip: _grid ? 'List view' : 'Gallery view',
-                          filled: true,
-                          size: 46,
-                          onPressed: () => setState(() => _grid = !_grid),
+                            for (final c in present)
+                              AtelierSegment(
+                                value: c,
+                                label: wishlistCategoryLabel(c),
+                                icon: wishlistCategoryIcon(c),
+                                count: items
+                                    .where((e) => e.category == c)
+                                    .length,
+                              ),
+                          ],
+                          selected: category,
+                          onChanged: (c) => setState(() => _category = c),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        MaisonSearchRow(
+                          controller: _search,
+                          hint: 'Search pieces, grades or stock no.',
+                          onChanged: (_) => setState(() {}),
+                          sortLabel: _sort.label,
+                          sortActive: _sort != _RecentSort.recent,
+                          onSort: _pickSort,
+                          trailing: AtelierIconButton(
+                            icon: _grid
+                                ? Icons.view_agenda_outlined
+                                : Icons.grid_view_rounded,
+                            tooltip: _grid ? 'List view' : 'Gallery view',
+                            filled: true,
+                            size: 46,
+                            onPressed: () => setState(() => _grid = !_grid),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                MaisonRefreshHairline(
+                  visible: async.isLoading && items.isNotEmpty,
                 ),
-              MaisonRefreshHairline(
-                visible: async.isLoading && items.isNotEmpty,
-              ),
-              ..._body(context, async, items, visible, width, gutter),
-            ],
+                ..._body(context, async, items, visible, width, gutter),
+              ],
+            ),
           ),
         ),
       ),
@@ -437,9 +443,9 @@ class _BuyerRecentlyViewedScreenState
                     itemBuilder: (context, i) {
                       final entry = group.items[i];
                       final n = start + i;
-                      return Reveal(
+                      return LuxeCardReveal(
                         key: ValueKey('row-${entry.id}-${entry.productId}'),
-                        index: n < 8 ? n : 0,
+                        index: n,
                         child: RecentPieceCard(entry: entry, compact: true),
                       );
                     },
@@ -488,9 +494,9 @@ class _BuyerRecentlyViewedScreenState
       itemBuilder: (context, i) {
         final entry = entries[i];
         final n = start + i;
-        return Reveal(
+        return LuxeCardReveal(
           key: ValueKey('tile-${entry.id}-${entry.productId}'),
-          index: n < 8 ? n : 0,
+          index: n,
           child: RecentPieceCard(entry: entry),
         );
       },

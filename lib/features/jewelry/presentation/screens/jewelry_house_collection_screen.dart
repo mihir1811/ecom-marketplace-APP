@@ -12,6 +12,7 @@ import '../../../../core/theme/luxe_scope.dart';
 import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/app_scaffold.dart';
+import '../../../../core/widgets/luxe/luxe_card_reveal.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
 import '../../../../core/widgets/luxe/luxe_toggle_sort_sheet.dart';
@@ -236,36 +237,39 @@ class _JewelryHouseCollectionScreenState
             backgroundColor: p.surface,
             edgeOffset: topInset,
             onRefresh: _refresh,
-            child: CustomScrollView(
+            child: LuxeScrollAssemble(
               controller: _scroll,
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
+              child: CustomScrollView(
+                controller: _scroll,
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: _CollectionHero(
+                      height: heroHeight,
+                      house: house,
+                      category: widget.category,
+                      name: name,
+                      cover: cover,
+                      total: total,
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: KeyedSubtree(
+                      key: _barKey,
+                      child: bar(floating: false),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 5)),
+                  ..._pieces(context, pieces),
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: MediaQuery.paddingOf(context).bottom + 40,
+                    ),
+                  ),
+                ],
               ),
-              slivers: [
-                SliverToBoxAdapter(
-                  child: _CollectionHero(
-                    height: heroHeight,
-                    house: house,
-                    category: widget.category,
-                    name: name,
-                    cover: cover,
-                    total: total,
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: KeyedSubtree(
-                    key: _barKey,
-                    child: bar(floating: false),
-                  ),
-                ),
-                const SliverToBoxAdapter(child: SizedBox(height: 5)),
-                ..._pieces(context, pieces),
-                SliverToBoxAdapter(
-                  child: SizedBox(
-                    height: MediaQuery.paddingOf(context).bottom + 40,
-                  ),
-                ),
-              ],
             ),
           ),
           Positioned(

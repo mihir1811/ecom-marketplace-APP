@@ -55,6 +55,10 @@ class GemPose {
   });
 
   double x, y, z, scale, rx, ry, rz;
+
+  /// Optional row-major 3×3 rotation that replaces [rx]/[ry]/[rz] where
+  /// supported (the diamond batch), for poses driven by quaternions.
+  List<double>? basis;
 }
 
 /// Perspective camera. [unit] is pixels per world unit at z = 0; the eye

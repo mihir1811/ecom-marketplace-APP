@@ -13,10 +13,11 @@ const _showJewelryEducation = false;
 /// Last section of home, one full screen tall: a dark field of live 3D
 /// diamonds in every bundled cut and size (baked from the .glb models in
 /// `assets_src/gem_models`) streaming from the top-left to the
-/// bottom-right.
-/// The finger parts the stones like a body moving through them and lights
-/// them warm; the page does not scroll while touching the stones below the
-/// copy. Legal links sit along the bottom edge.
+/// bottom-right, with the motion of the oryzo.ai coffee-bean footer.
+/// The finger (or hovering mouse) parts the stones like a body moving
+/// through them and carries the light that brings them out of the dark;
+/// the page does not scroll while touching the stones below the copy.
+/// Legal links sit along the bottom edge.
 class HomeGemStage extends StatelessWidget {
   const HomeGemStage({this.height, super.key});
 

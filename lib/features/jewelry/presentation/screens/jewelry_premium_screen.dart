@@ -6,6 +6,7 @@ import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/luxe_scope.dart';
 import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/widgets/app_scaffold.dart';
+import '../../../../core/widgets/luxe/luxe_card_reveal.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
@@ -120,128 +121,134 @@ class _JewelryPremiumScreenState extends ConsumerState<JewelryPremiumScreen> {
         backgroundColor: p.surface,
         onRefresh: () =>
             ref.read(jewelryPremiumProvider(_query).notifier).refresh(),
-        child: CustomScrollView(
+        child: LuxeScrollAssemble(
           controller: _scroll,
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 6, 12, 4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      context.tr(JewelryMarketL10n.premium).toUpperCase(),
-                      style: LuxeType.eyebrow(p.accent),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      context.tr(JewelryMarketL10n.premiumSegment),
-                      style: LuxeType.display(30, p.ink),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      pieces.isInitialLoading
-                          ? ''
-                          : context.tr(JewelryMarketL10n.premiumCount, {
-                              'count': pieces.totalCount,
-                            }),
-                      style: LuxeType.body(p.inkMuted, size: 13),
-                    ),
-                  ],
-                ),
-              ),
+          child: CustomScrollView(
+            controller: _scroll,
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
             ),
-            if (categories.length >= 2)
+            slivers: [
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: LuxeQuickChips<String?>(
-                    chips: [
-                      LuxeQuickChip(
-                        value: null,
-                        label: context.tr(JewelryMarketL10n.allPieces),
+                  padding: const EdgeInsets.fromLTRB(12, 6, 12, 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        context.tr(JewelryMarketL10n.premium).toUpperCase(),
+                        style: LuxeType.eyebrow(p.accent),
                       ),
-                      for (final c in categories)
-                        LuxeQuickChip(
-                          value: c.slug,
-                          label: '${c.name} (${c.count})',
-                        ),
+                      const SizedBox(height: 5),
+                      Text(
+                        context.tr(JewelryMarketL10n.premiumSegment),
+                        style: LuxeType.display(30, p.ink),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        pieces.isInitialLoading
+                            ? ''
+                            : context.tr(JewelryMarketL10n.premiumCount, {
+                                'count': pieces.totalCount,
+                              }),
+                        style: LuxeType.body(p.inkMuted, size: 13),
+                      ),
                     ],
-                    isSelected: (slug) => slug == _category,
-                    onTap: _selectCategory,
                   ),
                 ),
               ),
-            // Same Sort / grid-list toolbar as the listing screens; premium
-            // has no filter sheet, so the Filters pill is left out.
-            LuxePinnedBar(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+              if (categories.length >= 2)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: LuxeQuickChips<String?>(
+                      chips: [
+                        LuxeQuickChip(
+                          value: null,
+                          label: context.tr(JewelryMarketL10n.allPieces),
+                        ),
+                        for (final c in categories)
+                          LuxeQuickChip(
+                            value: c.slug,
+                            label: '${c.name} (${c.count})',
+                          ),
+                      ],
+                      isSelected: (slug) => slug == _category,
+                      onTap: _selectCategory,
+                    ),
+                  ),
                 ),
-                child: Row(
-                  children: [
-                    LuxeToolbarPill(
-                      icon: Icons.swap_vert_rounded,
-                      label: context.tr(DiamondFlowL10n.sort),
-                      onTap: _openSort,
-                    ),
-                    const Spacer(),
-                    LuxeViewToggle(
-                      viewMode: _viewMode,
-                      onChanged: (m) => setState(() => _viewMode = m),
-                      gridLabel: context.tr(DiamondFlowL10n.grid),
-                      listLabel: context.tr(DiamondFlowL10n.list),
-                    ),
-                  ],
+              // Same Sort / grid-list toolbar as the listing screens; premium
+              // has no filter sheet, so the Filters pill is left out.
+              LuxePinnedBar(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  child: Row(
+                    children: [
+                      LuxeToolbarPill(
+                        icon: Icons.swap_vert_rounded,
+                        label: context.tr(DiamondFlowL10n.sort),
+                        onTap: _openSort,
+                      ),
+                      const Spacer(),
+                      LuxeViewToggle(
+                        viewMode: _viewMode,
+                        onChanged: (m) => setState(() => _viewMode = m),
+                        gridLabel: context.tr(DiamondFlowL10n.grid),
+                        listLabel: context.tr(DiamondFlowL10n.list),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            ...luxeResultSlivers(
-              context: context,
-              initialLoading: pieces.isInitialLoading,
-              error: pieces.errorMessage,
-              items: items,
-              isLoadingMore: pieces.isLoadingMore,
-              viewMode: _viewMode,
-              idOf: (j) => j.id,
-              cardOf: (j, mode) => mode == LuxeViewMode.grid
-                  ? JewelryLuxeGridCard(
-                      jewelry: j,
-                      onTap: () => openJewelryDetail(context, j, among: items),
-                    )
-                  : JewelryLuxeListCard(
-                      jewelry: j,
-                      onTap: () => openJewelryDetail(context, j, among: items),
-                    ),
-              loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),
-              emptyView: LuxeStateView(
-                icon: Icons.workspace_premium_outlined,
-                title: context.tr(CatalogL10n.noProducts),
-                message: context.tr(JewelryMarketL10n.premiumEmpty, {
-                  'amount': threshold == null ? '' : rupees(threshold),
-                }),
+              ...luxeResultSlivers(
+                context: context,
+                initialLoading: pieces.isInitialLoading,
+                error: pieces.errorMessage,
+                items: items,
+                isLoadingMore: pieces.isLoadingMore,
+                viewMode: _viewMode,
+                idOf: (j) => j.id,
+                cardOf: (j, mode) => mode == LuxeViewMode.grid
+                    ? JewelryLuxeGridCard(
+                        jewelry: j,
+                        onTap: () =>
+                            openJewelryDetail(context, j, among: items),
+                      )
+                    : JewelryLuxeListCard(
+                        jewelry: j,
+                        onTap: () =>
+                            openJewelryDetail(context, j, among: items),
+                      ),
+                loadingMoreLabel: context.tr(DiamondFlowL10n.loadingMore),
+                emptyView: LuxeStateView(
+                  icon: Icons.workspace_premium_outlined,
+                  title: context.tr(CatalogL10n.noProducts),
+                  message: context.tr(JewelryMarketL10n.premiumEmpty, {
+                    'amount': threshold == null ? '' : rupees(threshold),
+                  }),
+                ),
+                errorView: (message) => LuxeStateView(
+                  icon: Icons.cloud_off_rounded,
+                  tone: LuxeTone.error,
+                  title: context.tr(CatalogFlowL10n.errorTitle),
+                  message: message,
+                  actionLabel: context.tr(CatalogL10n.retry),
+                  onAction: () => ref
+                      .read(jewelryPremiumProvider(_query).notifier)
+                      .refresh(),
+                ),
               ),
-              errorView: (message) => LuxeStateView(
-                icon: Icons.cloud_off_rounded,
-                tone: LuxeTone.error,
-                title: context.tr(CatalogFlowL10n.errorTitle),
-                message: message,
-                actionLabel: context.tr(CatalogL10n.retry),
-                onAction: () =>
-                    ref.read(jewelryPremiumProvider(_query).notifier).refresh(),
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: MediaQuery.paddingOf(context).bottom + 40,
+                ),
               ),
-            ),
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: MediaQuery.paddingOf(context).bottom + 40,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

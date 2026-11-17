@@ -6,6 +6,7 @@ import '../../../../core/theme/luxe_scope.dart';
 import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/utils/format_catalog_price.dart';
 import '../../../../core/widgets/app_scaffold.dart';
+import '../../../../core/widgets/luxe/luxe_card_reveal.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../../../core/widgets/luxe/luxe_listing.dart';
@@ -128,9 +129,13 @@ class _SpotlightShopSectionScreenState
             itemCount: items.length,
             itemBuilder: (context, i) {
               final d = items[i];
-              return SpotlightShopProductCard(
-                detail: d,
-                onTap: () => openProductDetail(context, d),
+              return LuxeCardReveal(
+                key: ValueKey(d.id),
+                index: i,
+                child: SpotlightShopProductCard(
+                  detail: d,
+                  onTap: () => openProductDetail(context, d),
+                ),
               );
             },
           ),
@@ -175,12 +180,15 @@ class _SpotlightShopSectionScreenState
         onRefresh: () => ref
             .read(suggestedSellerProductsProvider(_query).notifier)
             .loadFirstPage(),
-        child: CustomScrollView(
+        child: LuxeScrollAssemble(
           controller: _scroll,
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
+          child: CustomScrollView(
+            controller: _scroll,
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            slivers: body,
           ),
-          slivers: body,
         ),
       ),
     );
