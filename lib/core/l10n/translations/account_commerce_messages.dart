@@ -552,9 +552,9 @@ const accountCommerceMessages = <String, LocalizedMessage>{
     gujarati: 'રિકવરી ટોકન જરૂરી છે',
   ),
   AccountCommerceL10n.newAccount: LocalizedMessage(
-    english: 'NEW ACCOUNT',
-    hindi: 'नया खाता',
-    gujarati: 'નવું ખાતું',
+    english: 'BUYER ACCOUNT',
+    hindi: 'खरीदार खाता',
+    gujarati: 'ખરીદનાર એકાઉન્ટ',
   ),
   AccountCommerceL10n.sellerAccount: LocalizedMessage(
     english: 'SELLER ACCOUNT',

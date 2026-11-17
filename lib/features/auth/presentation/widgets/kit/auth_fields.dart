@@ -221,22 +221,27 @@ class AuthPasswordMeter extends StatelessWidget {
                     ),
                   ),
                 ],
-                const SizedBox(width: AuthSpace.s12),
-                SizedBox(
-                  width: 64,
-                  child: AnimatedSwitcher(
-                    duration: AuthMotion.quick,
-                    child: Text(
-                      levelLabel == null ? '' : context.tr(levelLabel),
-                      key: ValueKey(level),
-                      textAlign: TextAlign.end,
-                      style: AuthType.caption(
-                        p,
-                      ).copyWith(color: color, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ),
               ],
+            ),
+            AnimatedSize(
+              duration: AuthMotion.base,
+              curve: AuthMotion.ease,
+              alignment: Alignment.topCenter,
+              child: levelLabel == null
+                  ? const SizedBox(width: double.infinity)
+                  : Padding(
+                      padding: const EdgeInsets.only(top: AuthSpace.s6),
+                      child: AnimatedSwitcher(
+                        duration: AuthMotion.quick,
+                        child: Text(
+                          context.tr(levelLabel),
+                          key: ValueKey(level),
+                          style: AuthType.caption(
+                            p,
+                          ).copyWith(color: color, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
             ),
             if (showRules) ...[
               const SizedBox(height: AuthSpace.s12),

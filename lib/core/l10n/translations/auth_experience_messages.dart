@@ -143,26 +143,30 @@ const authExperienceMessages = <String, LocalizedMessage>{
     gujarati: 'પાંચ સરળ પગલાંમાં ચકાસાયેલ બિઝનેસ એકાઉન્ટ બનાવો.',
   ),
   AuthL10n.individual: LocalizedMessage(
-    english: 'Individual',
-    hindi: 'व्यक्तिगत',
-    gujarati: 'વ્યક્તિગત',
+    english: 'Buyer',
+    hindi: 'खरीदार',
+    gujarati: 'ખરીદનાર',
   ),
   AuthL10n.business: LocalizedMessage(
-    english: 'Business',
-    hindi: 'बिज़नेस',
-    gujarati: 'બિઝનેસ',
+    english: 'Seller',
+    hindi: 'विक्रेता',
+    gujarati: 'વિક્રેતા',
   ),
   AuthL10n.individualHint: LocalizedMessage(
     english:
-        'Buy and browse. To sell, create a separate business account later.',
+        'Individual buyer account to browse and shop. Individuals cannot sell — sellers must register a business account.',
     hindi:
-        'खरीदें और ब्राउज़ करें। बेचने के लिए बाद में अलग बिज़नेस खाता बनाएँ।',
-    gujarati: 'ખરીદો અને બ્રાઉઝ કરો. વેચવા માટે પછી અલગ બિઝનેસ એકાઉન્ટ બનાવો.',
+        'ब्राउज़ और खरीदारी के लिए व्यक्तिगत खरीदार खाता। व्यक्तिगत खाते से बेचा नहीं जा सकता — विक्रेताओं को बिज़नेस खाता बनाना होगा।',
+    gujarati:
+        'બ્રાઉઝ અને ખરીદી માટે વ્યક્તિગત ખરીદનાર એકાઉન્ટ. વ્યક્તિગત એકાઉન્ટથી વેચાણ થઈ શકતું નથી — વિક્રેતાઓએ બિઝનેસ એકાઉન્ટ બનાવવું પડશે.',
   ),
   AuthL10n.businessHint: LocalizedMessage(
-    english: 'A dedicated seller account with its own login.',
-    hindi: 'अपने अलग लॉगिन के साथ एक समर्पित विक्रेता खाता।',
-    gujarati: 'પોતાના અલગ લૉગિન સાથેનું સમર્પિત વિક્રેતા એકાઉન્ટ.',
+    english:
+        'Sellers register as a business only. Company, KYC and bank details are required.',
+    hindi:
+        'विक्रेता केवल बिज़नेस के रूप में रजिस्टर करते हैं। कंपनी, KYC और बैंक विवरण ज़रूरी हैं।',
+    gujarati:
+        'વિક્રેતાઓ ફક્ત બિઝનેસ તરીકે નોંધણી કરે છે. કંપની, KYC અને બેંક વિગતો જરૂરી છે.',
   ),
   AuthL10n.sectionDetails: LocalizedMessage(
     english: 'Your details',

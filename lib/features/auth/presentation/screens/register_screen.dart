@@ -13,8 +13,9 @@ import '../../../../core/router/route_names.dart';
 import '../widgets/business_registration_fields.dart';
 import '../widgets/kit/auth_kit.dart';
 
-/// Registration for individual buyers (single page) and businesses
-/// (five guided steps).
+/// Registration for individual buyers (single page) and business sellers
+/// (five guided steps). Individual accounts are buyer-only; selling always
+/// requires a business account.
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({
     this.initialAccountType = RegistrationAccountType.individual,
@@ -343,32 +344,34 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ],
                 ),
               ),
-              if (!_isSeller) ...[
-                const SizedBox(height: AuthSpace.s12),
-                AuthReveal(
-                  index: 5,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Icon(
-                          Icons.info_outline_rounded,
-                          size: 15,
-                          color: p.inkMuted,
-                        ),
+              const SizedBox(height: AuthSpace.s12),
+              AuthReveal(
+                index: 5,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Icon(
+                        Icons.info_outline_rounded,
+                        size: 15,
+                        color: p.inkMuted,
                       ),
-                      const SizedBox(width: AuthSpace.s8),
-                      Expanded(
-                        child: Text(
-                          context.tr(AuthL10n.individualHint),
-                          style: AuthType.caption(p),
+                    ),
+                    const SizedBox(width: AuthSpace.s8),
+                    Expanded(
+                      child: Text(
+                        context.tr(
+                          _isSeller
+                              ? AuthL10n.businessHint
+                              : AuthL10n.individualHint,
                         ),
+                        style: AuthType.caption(p),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
               SizedBox(height: _isSeller ? AuthSpace.s24 : AuthSpace.s32),
               AnimatedSize(
                 duration: AuthMotion.base,
