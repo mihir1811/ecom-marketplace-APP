@@ -34,8 +34,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _referralEmailController = TextEditingController();
-  final _referralCodeController = TextEditingController();
+  final _referralController = TextEditingController();
   final _businessFields = BusinessRegistrationFieldsController();
   late final TapGestureRecognizer _termsTapRecognizer;
 
@@ -76,8 +75,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _referralEmailController.dispose();
-    _referralCodeController.dispose();
+    _referralController.dispose();
     _businessFields.dispose();
     super.dispose();
   }
@@ -118,8 +116,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   void _revealReferralIfInvalid() {
-    final email = _referralEmailController.text.trim();
-    if (!_referralOpen && email.isNotEmpty && !isValidEmail(email)) {
+    final value = _referralController.text.trim();
+    if (!_referralOpen && _isReferralEmail(value) && !isValidEmail(value)) {
       setState(() => _referralOpen = true);
     }
   }
@@ -208,8 +206,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       registrationType: _accountType,
       business: business,
       profilePicture: _profilePicture,
-      referralEmail: _referralEmailController.text,
-      referralCode: _referralCodeController.text,
+      referralEmail: _isReferralEmail(_referralController.text.trim())
+          ? _referralController.text
+          : null,
+      referralCode: _isReferralEmail(_referralController.text.trim())
+          ? null
+          : _referralController.text,
       dateOfBirth: _isSeller ? null : _dateOfBirth,
     );
     if (!mounted) return;
@@ -240,11 +242,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         usernameController: _usernameController,
         emailController: _emailController,
         passwordController: _passwordController,
-        referralEmailController: _referralEmailController,
-        referralCodeController: _referralCodeController,
+        referralController: _referralController,
         profilePicture: _profilePicture,
         isLoading: loading,
         showDateOfBirth: !_isSeller,
+        showPasswordRules: !_isSeller,
         dateOfBirth: _dateOfBirth,
         referralOpen: _referralOpen,
         onToggleReferral: () => setState(() => _referralOpen = !_referralOpen),
@@ -299,6 +301,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final dir = _stepForward ? 1.0 : -1.0;
 
     return AuthShell(
+      showWordmark: !_isSeller,
       child: AutofillGroup(
         child: Form(
           key: _formKey,
@@ -311,21 +314,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ? AccountCommerceL10n.sellerAccount
                       : AccountCommerceL10n.newAccount,
                 ),
-                title: context.tr(
-                  _isSeller ? AuthL10n.sellerTitle : AuthL10n.registerTitle,
-                ),
-                subtitle: AnimatedSwitcher(
-                  duration: AuthMotion.base,
-                  child: Text(
-                    context.tr(
-                      _isSeller
-                          ? AuthL10n.sellerSubtitle
-                          : AuthL10n.registerSubtitle,
-                    ),
-                    key: ValueKey(_isSeller),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
+                title: _isSeller ? null : context.tr(AuthL10n.registerTitle),
+                subtitle: _isSeller
+                    ? null
+                    : Text(
+                        context.tr(AuthL10n.registerSubtitle),
+                        textAlign: TextAlign.center,
+                      ),
               ),
               const SizedBox(height: AuthSpace.s24),
               AuthReveal(
@@ -348,13 +343,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: AuthSpace.s12),
-              AuthReveal(
-                index: 5,
-                child: AnimatedSwitcher(
-                  duration: AuthMotion.base,
+              if (!_isSeller) ...[
+                const SizedBox(height: AuthSpace.s12),
+                AuthReveal(
+                  index: 5,
                   child: Row(
-                    key: ValueKey(_isSeller),
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
@@ -368,19 +361,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       const SizedBox(width: AuthSpace.s8),
                       Expanded(
                         child: Text(
-                          context.tr(
-                            _isSeller
-                                ? AuthL10n.businessHint
-                                : AuthL10n.individualHint,
-                          ),
+                          context.tr(AuthL10n.individualHint),
                           style: AuthType.caption(p),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(height: AuthSpace.s32),
+              ],
+              SizedBox(height: _isSeller ? AuthSpace.s24 : AuthSpace.s32),
               AnimatedSize(
                 duration: AuthMotion.base,
                 curve: AuthMotion.ease,
@@ -567,11 +556,11 @@ class _BasicDetailsFields extends StatelessWidget {
     required this.usernameController,
     required this.emailController,
     required this.passwordController,
-    required this.referralEmailController,
-    required this.referralCodeController,
+    required this.referralController,
     required this.profilePicture,
     required this.isLoading,
     required this.showDateOfBirth,
+    required this.showPasswordRules,
     required this.dateOfBirth,
     required this.referralOpen,
     required this.onToggleReferral,
@@ -583,11 +572,11 @@ class _BasicDetailsFields extends StatelessWidget {
   final TextEditingController usernameController;
   final TextEditingController emailController;
   final TextEditingController passwordController;
-  final TextEditingController referralEmailController;
-  final TextEditingController referralCodeController;
+  final TextEditingController referralController;
   final XFile? profilePicture;
   final bool isLoading;
   final bool showDateOfBirth;
+  final bool showPasswordRules;
   final DateTime? dateOfBirth;
   final bool referralOpen;
   final VoidCallback onToggleReferral;
@@ -716,8 +705,10 @@ class _BasicDetailsFields extends StatelessWidget {
         ),
         ListenableBuilder(
           listenable: passwordController,
-          builder: (context, _) =>
-              AuthPasswordMeter(password: passwordController.text),
+          builder: (context, _) => AuthPasswordMeter(
+            password: passwordController.text,
+            showRules: showPasswordRules,
+          ),
         ),
         const SizedBox(height: AuthSpace.s16),
         AuthCollapsible(
@@ -726,36 +717,27 @@ class _BasicDetailsFields extends StatelessWidget {
           icon: Icons.card_giftcard_outlined,
           open: referralOpen,
           onToggle: onToggleReferral,
-          child: Column(
-            children: [
-              AuthTextField(
-                controller: referralEmailController,
-                label: context.tr(AccountCommerceL10n.referralEmail),
-                icon: Icons.mail_outline_rounded,
-                keyboardType: TextInputType.emailAddress,
-                enabled: !isLoading,
-                validator: (value) {
-                  final v = value?.trim() ?? '';
-                  if (v.isEmpty) return null;
-                  if (!isValidEmail(v)) {
-                    return context.tr(AccountCommerceL10n.validReferralEmail);
-                  }
-                  return null;
-                },
-              ),
-              gap,
-              AuthTextField(
-                controller: referralCodeController,
-                label: context.tr(AccountCommerceL10n.referralCode),
-                icon: Icons.confirmation_number_outlined,
-                textInputAction: TextInputAction.done,
-                textCapitalization: TextCapitalization.characters,
-                enabled: !isLoading,
-              ),
-            ],
+          child: AuthTextField(
+            controller: referralController,
+            label: context.tr(AccountCommerceL10n.referralEmailOrCode),
+            icon: Icons.card_giftcard_outlined,
+            keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.done,
+            enabled: !isLoading,
+            validator: (value) {
+              final v = value?.trim() ?? '';
+              if (_isReferralEmail(v) && !isValidEmail(v)) {
+                return context.tr(AccountCommerceL10n.validReferralEmail);
+              }
+              return null;
+            },
           ),
         ),
       ],
     );
   }
 }
+
+/// A referral entry containing `@` is treated as an email; anything else is a
+/// referral code.
+bool _isReferralEmail(String value) => value.contains('@');

@@ -31,34 +31,13 @@ abstract final class JewelryHouses {
   }
 }
 
-/// Obsidian with a warm gold key light near the top.
+/// Plain obsidian stage behind the jewelry house pages.
 class JewelryStageBackdrop extends StatelessWidget {
   const JewelryStageBackdrop({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: LuxeStage.obsidian,
-        gradient: RadialGradient(
-          center: const Alignment(0, -0.85),
-          radius: 1.1,
-          // Opaque blends: the stage never shows the page behind.
-          colors: [
-            Color.alphaBlend(
-              LuxeStage.gold.withValues(alpha: 0.16),
-              LuxeStage.obsidian,
-            ),
-            Color.alphaBlend(
-              LuxeStage.gold.withValues(alpha: 0.05),
-              LuxeStage.obsidian,
-            ),
-            LuxeStage.obsidian,
-          ],
-          stops: const [0, 0.4, 1],
-        ),
-      ),
-    );
+    return ColoredBox(color: LuxeStage.obsidian);
   }
 }
 

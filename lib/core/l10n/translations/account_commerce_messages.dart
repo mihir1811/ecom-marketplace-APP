@@ -56,6 +56,7 @@ abstract final class AccountCommerceL10n {
   static const referralEmail = 'account.field.referralEmail';
   static const validReferralEmail = 'account.validation.validReferralEmail';
   static const referralCode = 'account.field.referralCode';
+  static const referralEmailOrCode = 'account.field.referralEmailOrCode';
   static const continueAction = 'account.action.continue';
   static const createSellerAccount = 'account.auth.createSellerAccount';
   static const individual = 'account.type.individual';
@@ -680,6 +681,11 @@ const accountCommerceMessages = <String, LocalizedMessage>{
     english: 'Referral code (optional)',
     hindi: 'रेफरल कोड (वैकल्पिक)',
     gujarati: 'રેફરલ કોડ (વૈકલ્પિક)',
+  ),
+  AccountCommerceL10n.referralEmailOrCode: LocalizedMessage(
+    english: 'Referral email or code',
+    hindi: 'रेफ़रल ईमेल या कोड',
+    gujarati: 'રેફરલ ઇમેઇલ અથવા કોડ',
   ),
   AccountCommerceL10n.continueAction: LocalizedMessage(
     english: 'Continue ?',

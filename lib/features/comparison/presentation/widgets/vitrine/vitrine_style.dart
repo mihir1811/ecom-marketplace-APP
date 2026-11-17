@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gemworld/core/theme/app_fonts.dart';
 
-/// Colour tokens for the comparison "vitrine": bone paper and champagne
+/// Colour tokens for the comparison "vitrine": plain white and champagne
 /// gold by day, onyx and warm gold by night.
 @immutable
 class Vitrine {
@@ -36,13 +36,13 @@ class Vitrine {
   final bool isDark;
 
   static const _light = Vitrine._(
-    paper: Color(0xFFF5F2ED),
+    paper: Color(0xFFFFFFFF),
     card: Color(0xFFFFFFFF),
-    raised: Color(0xFFEDE8E0),
+    raised: Color(0xFFF4F4F5),
     ink: Color(0xFF121110),
     muted: Color(0xFF77716A),
     faint: Color(0xFFB4ADA3),
-    line: Color(0xFFE5DFD5),
+    line: Color(0xFFE4E4E7),
     gold: Color(0xFFA5803F),
     goldSoft: Color(0xFFF0E6D2),
     wash: Color(0xFFF7EEDC),

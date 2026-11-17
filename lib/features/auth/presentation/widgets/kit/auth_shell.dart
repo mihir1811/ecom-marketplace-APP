@@ -6,7 +6,6 @@ import '../../../../../core/router/app_navigation.dart';
 import '../../../../../core/router/route_names.dart';
 import '../../../../../core/widgets/app_scaffold.dart';
 import '../../../../../core/widgets/language_menu_button.dart';
-import 'auth_backdrop.dart';
 import 'auth_hero.dart';
 import 'auth_theme_data.dart';
 import 'auth_tokens.dart';
@@ -17,42 +16,24 @@ const double kAuthWideBreakpoint = 960;
 bool authIsWide(BuildContext context) =>
     MediaQuery.sizeOf(context).width >= kAuthWideBreakpoint;
 
-/// Frame shared by every auth screen: silk backdrop, a quiet top bar
+/// Frame shared by every auth screen: a plain background, a quiet top bar
 /// (back · wordmark · language · theme) and a centred, scrollable column.
 /// On wide screens a showcase panel with a large live gem sits on the left.
-class AuthShell extends StatefulWidget {
+class AuthShell extends StatelessWidget {
   const AuthShell({
     super.key,
     required this.child,
     this.showBack = true,
     this.fallbackLocation = AppRouteNames.login,
+    this.showWordmark = true,
   });
 
   final Widget child;
   final bool showBack;
   final String fallbackLocation;
 
-  @override
-  State<AuthShell> createState() => _AuthShellState();
-}
-
-class _AuthShellState extends State<AuthShell> {
-  final _pointer = ValueNotifier<Offset>(const Offset(0.5, 0.5));
-
-  @override
-  void dispose() {
-    _pointer.dispose();
-    super.dispose();
-  }
-
-  void _track(PointerEvent event) {
-    final size = MediaQuery.sizeOf(context);
-    if (size.isEmpty) return;
-    _pointer.value = Offset(
-      (event.position.dx / size.width).clamp(0.0, 1.0),
-      (event.position.dy / size.height).clamp(0.0, 1.0),
-    );
-  }
+  /// Whether the compact top bar shows the GemWorld wordmark.
+  final bool showWordmark;
 
   @override
   Widget build(BuildContext context) {
@@ -60,9 +41,10 @@ class _AuthShellState extends State<AuthShell> {
     final wide = authIsWide(context);
 
     final column = _AuthColumn(
-      showBack: widget.showBack,
-      fallbackLocation: widget.fallbackLocation,
-      child: widget.child,
+      showBack: showBack,
+      fallbackLocation: fallbackLocation,
+      showWordmark: showWordmark,
+      child: child,
     );
 
     return Theme(
@@ -72,32 +54,16 @@ class _AuthShellState extends State<AuthShell> {
         enableAppDrawer: false,
         safeTop: false,
         safeBottom: false,
-        body: Listener(
-          onPointerHover: _track,
-          onPointerMove: _track,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: AuthBackdrop(
-                  pointer: _pointer,
-                  focus: wide
-                      ? const Offset(0.28, 0.42)
-                      : const Offset(0.5, 0.16),
-                ),
-              ),
-              SafeArea(
-                child: wide
-                    ? Row(
-                        children: [
-                          const Expanded(child: _ShowcasePanel()),
-                          Container(width: 1, color: palette.hairline),
-                          SizedBox(width: 560, child: column),
-                        ],
-                      )
-                    : column,
-              ),
-            ],
-          ),
+        body: SafeArea(
+          child: wide
+              ? Row(
+                  children: [
+                    const Expanded(child: _ShowcasePanel()),
+                    Container(width: 1, color: palette.hairline),
+                    SizedBox(width: 560, child: column),
+                  ],
+                )
+              : column,
         ),
       ),
     );
@@ -109,11 +75,13 @@ class _AuthColumn extends StatelessWidget {
     required this.child,
     required this.showBack,
     required this.fallbackLocation,
+    required this.showWordmark,
   });
 
   final Widget child;
   final bool showBack;
   final String fallbackLocation;
+  final bool showWordmark;
 
   @override
   Widget build(BuildContext context) {
@@ -122,7 +90,11 @@ class _AuthColumn extends StatelessWidget {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Column(
         children: [
-          _AuthTopBar(showBack: showBack, fallbackLocation: fallbackLocation),
+          _AuthTopBar(
+            showBack: showBack,
+            fallbackLocation: fallbackLocation,
+            showWordmark: showWordmark,
+          ),
           Expanded(
             child: LayoutBuilder(
               builder: (context, viewport) {
@@ -165,10 +137,15 @@ class _AuthColumn extends StatelessWidget {
 }
 
 class _AuthTopBar extends StatelessWidget {
-  const _AuthTopBar({required this.showBack, required this.fallbackLocation});
+  const _AuthTopBar({
+    required this.showBack,
+    required this.fallbackLocation,
+    required this.showWordmark,
+  });
 
   final bool showBack;
   final String fallbackLocation;
+  final bool showWordmark;
 
   @override
   Widget build(BuildContext context) {
@@ -181,7 +158,7 @@ class _AuthTopBar extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            if (!wide) const AuthWordmark(),
+            if (!wide && showWordmark) const AuthWordmark(),
             Row(
               children: [
                 if (showBack)

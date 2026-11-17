@@ -22,7 +22,12 @@ class AuthUploadTile extends StatelessWidget {
     this.enabled = true,
     this.error = false,
     this.icon = Icons.add_photo_alternate_outlined,
+    this.compact = false,
   });
+
+  /// Dense variant: small thumbnail + title only (required marked with `*`),
+  /// sized to sit two-up in a row.
+  final bool compact;
 
   final String title;
   final String hint;
@@ -42,6 +47,8 @@ class AuthUploadTile extends StatelessWidget {
         : picked != null
         ? p.accent.withValues(alpha: 0.5)
         : p.hairline;
+
+    if (compact) return _buildCompact(context, p, picked, borderColor);
 
     return Semantics(
       button: true,
@@ -128,6 +135,85 @@ class AuthUploadTile extends StatelessWidget {
                   style: AuthType.caption(
                     p,
                   ).copyWith(color: p.accent, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+extension on AuthUploadTile {
+  Widget _buildCompact(
+    BuildContext context,
+    AuthPalette p,
+    XFile? picked,
+    Color borderColor,
+  ) {
+    return Semantics(
+      button: true,
+      label: title,
+      value: picked?.name,
+      child: Material(
+        color: picked != null ? p.surfaceFocus : p.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AuthSpace.rField),
+          side: BorderSide(color: borderColor),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: enabled ? onPick : null,
+          splashColor: p.accentSoft,
+          child: Padding(
+            padding: const EdgeInsets.all(AuthSpace.s8),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: SizedBox.square(
+                    dimension: 40,
+                    child: AnimatedSwitcher(
+                      duration: AuthMotion.base,
+                      child: picked == null
+                          ? CustomPaint(
+                              key: const ValueKey('empty'),
+                              painter: _DashedRectPainter(
+                                color: error ? p.danger : p.hairlineStrong,
+                              ),
+                              child: Center(
+                                child: Icon(icon, size: 18, color: p.accent),
+                              ),
+                            )
+                          : AuthXFileImage(
+                              key: ValueKey(picked.path),
+                              file: picked,
+                            ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AuthSpace.s8),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(
+                      text: title,
+                      children: [
+                        if (this.required)
+                          TextSpan(
+                            text: ' *',
+                            style: TextStyle(
+                              color: error ? p.danger : p.accent,
+                            ),
+                          ),
+                      ],
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AuthType.caption(
+                      p,
+                    ).copyWith(color: p.ink, fontWeight: FontWeight.w600),
+                  ),
                 ),
               ],
             ),

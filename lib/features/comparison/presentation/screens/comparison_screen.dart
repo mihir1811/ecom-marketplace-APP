@@ -115,59 +115,33 @@ class _ComparisonScreenState extends ConsumerState<ComparisonScreen> {
 
     return AppScaffold(
       backgroundColor: v.paper,
-      body: Stack(
+      body: Column(
         children: [
-          // Warm light pooling at the top of the page.
-          Positioned(
-            top: -160,
-            left: -120,
-            right: -120,
-            height: 420,
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    colors: [
-                      v.goldSoft.withValues(alpha: v.isDark ? 0.55 : 0.9),
-                      v.paper.withValues(alpha: 0),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+          _TopBar(
+            title: category == null
+                ? context.tr(AccountCommerceL10n.compare)
+                : _capitalize(context.tr(category.labelPluralKey)),
+            onBack: _browse,
+            onClear: items.isEmpty ? null : _clear,
           ),
-          Column(
-            children: [
-              _TopBar(
-                title: category == null
-                    ? context.tr(AccountCommerceL10n.compare)
-                    : _capitalize(context.tr(category.labelPluralKey)),
-                onBack: _browse,
-                onClear: items.isEmpty ? null : _clear,
-              ),
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: VitrineMotion.settle,
-                  switchInCurve: VitrineMotion.ease,
-                  child: items.isEmpty || category == null
-                      ? _Empty(key: const ValueKey('empty'), onBrowse: _browse)
-                      : _Board(
-                          key: const ValueKey('board'),
-                          items: items,
-                          specs: specsForCategory(category),
-                          groups: groupSpecs(
-                            category,
-                            specsForCategory(category),
-                          ),
-                          onTapPiece: (i, insights) =>
-                              _openPiece(items, insights, i),
-                          onRemove: (i) => _remove(items, i),
-                          onReorder: _move,
-                          onAdd: _browse,
-                        ),
-                ),
-              ),
-            ],
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: VitrineMotion.settle,
+              switchInCurve: VitrineMotion.ease,
+              child: items.isEmpty || category == null
+                  ? _Empty(key: const ValueKey('empty'), onBrowse: _browse)
+                  : _Board(
+                      key: const ValueKey('board'),
+                      items: items,
+                      specs: specsForCategory(category),
+                      groups: groupSpecs(category, specsForCategory(category)),
+                      onTapPiece: (i, insights) =>
+                          _openPiece(items, insights, i),
+                      onRemove: (i) => _remove(items, i),
+                      onReorder: _move,
+                      onAdd: _browse,
+                    ),
+            ),
           ),
         ],
       ),

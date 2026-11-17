@@ -63,16 +63,17 @@ class AtelierPalette {
   final List<Color> goldGradientColors;
   final bool isDark;
 
+  /// Pure white page and cards; neutral grey wells and hairlines.
   static const light = AtelierPalette(
-    canvas: Color(0xFFF6F3ED),
+    canvas: Color(0xFFFFFFFF),
     surface: Color(0xFFFFFFFF),
-    raised: Color(0xFFFFFDF9),
-    sunken: Color(0xFFEFEAE1),
+    raised: Color(0xFFFFFFFF),
+    sunken: Color(0xFFF4F4F5),
     lifted: Color(0xFFFFFFFF),
     ink: Color(0xFF17140F),
     inkSoft: Color(0xFF574F44),
     muted: Color(0xFF948A7C),
-    hairline: Color(0xFFE5DED2),
+    hairline: Color(0xFFE4E4E7),
     gold: Color(0xFFA9844F),
     goldSoft: Color(0xFFF1E7D6),
     onGold: Color(0xFFFFFFFF),
@@ -82,8 +83,8 @@ class AtelierPalette {
     ruby: Color(0xFFB2433A),
     sapphire: Color(0xFF3E6690),
     amber: Color(0xFFB7801F),
-    shadow: Color(0x1A2B2116),
-    floatShadowColor: Color(0x262B2116),
+    shadow: Color(0x1F000000),
+    floatShadowColor: Color(0x29000000),
     goldGradientColors: [Color(0xFFC6A16A), Color(0xFF9A7442)],
     isDark: false,
   );
@@ -128,15 +129,16 @@ class AtelierPalette {
     AtelierTone.amber => amber,
   };
 
-  /// Soft, low-contrast card shadow (none in dark mode, hairlines do the work).
+  /// Soft card shadow that lifts white cards off the white page (none in
+  /// dark mode, hairlines do the work).
   List<BoxShadow> get softShadow => isDark
       ? const []
       : [
           BoxShadow(
             color: shadow,
-            blurRadius: 18,
-            spreadRadius: -8,
-            offset: const Offset(0, 8),
+            blurRadius: 14,
+            spreadRadius: -4,
+            offset: const Offset(0, 4),
           ),
         ];
 

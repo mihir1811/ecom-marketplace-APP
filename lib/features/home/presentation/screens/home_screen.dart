@@ -111,8 +111,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               parent: AlwaysScrollableScrollPhysics(),
             ),
             slivers: [
-              // One sliver so the collections paint above the hero's fade:
-              // the viewport paints earlier slivers on top of later ones.
               SliverToBoxAdapter(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -121,12 +119,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       height: heroHeight,
                       topInset: 8,
                       bottomInset: dockClearance,
-                      overlap: 72,
                       scrollOffset: _offset,
                     ),
-                    // Rides up into the hero's fade so both read as one
-                    // surface.
-                    const HomeCollections(topSpacing: 8),
+                    const HomeCollections(topSpacing: 28),
                   ],
                 ),
               ),

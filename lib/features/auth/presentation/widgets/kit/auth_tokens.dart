@@ -4,7 +4,7 @@ import 'package:gemworld/core/theme/app_fonts.dart';
 /// Colour tokens for the authentication experience.
 ///
 /// Two moods share one structure: [noir] (obsidian + champagne) for dark
-/// mode and [ivory] (warm paper + ink) for light mode.
+/// mode and [ivory] (plain white + ink) for light mode.
 @immutable
 class AuthPalette {
   const AuthPalette({
@@ -71,13 +71,15 @@ class AuthPalette {
     scrim: Color(0xB3000000),
   );
 
+  /// Plain white page; fields sit in a neutral grey fill so they stay
+  /// visible without a tinted background.
   static const ivory = AuthPalette(
     isDark: false,
-    bg: Color(0xFFF6F2EA),
-    surface: Color(0x99FFFFFF),
+    bg: Color(0xFFFFFFFF),
+    surface: Color(0xFFF5F5F6),
     surfaceFocus: Color(0xFFFFFFFF),
-    hairline: Color(0x241A1610),
-    hairlineStrong: Color(0x421A1610),
+    hairline: Color(0xFFE4E4E7),
+    hairlineStrong: Color(0xFFD4D4D8),
     ink: Color(0xFF15120D),
     inkSoft: Color(0xC715120D),
     inkMuted: Color(0x9415120D),

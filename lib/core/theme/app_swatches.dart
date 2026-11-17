@@ -25,9 +25,6 @@ class AppSwatches {
   static const inquiryBullion = Color(0xFFEA580C);
   static const inquiryJewelry = Color(0xFFDC2626);
 
-  // Seller card surface
-  static const sellerCardSurface = Color(0xFFF3EDE4);
-
   static Color jewelryMetal(String label) {
     return switch (label) {
       'Yellow Gold' => yellowGold,

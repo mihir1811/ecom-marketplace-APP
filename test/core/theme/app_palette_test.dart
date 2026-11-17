@@ -43,15 +43,29 @@ void main() {
     test('new palettes use the brand roles', () {
       const emerald = AppPalette.emeraldPearl;
       expect(emerald.atelier.ink, const Color(0xFF063C35));
-      expect(emerald.atelier.canvas, const Color(0xFFEDF3EF));
-      expect(emerald.atelier.hairline, const Color(0xFFC9D8D1));
+      expect(emerald.atelier.canvas, const Color(0xFFFFFFFF));
+      expect(emerald.atelier.hairline, const Color(0xFFDDE5E1));
       expect(emerald.stage.gold, const Color(0xFFC8A86B));
 
       const midnight = AppPalette.midnightIce;
       expect(midnight.atelier.ink, const Color(0xFF07111F));
-      expect(midnight.atelier.canvas, const Color(0xFFEEF6FA));
-      expect(midnight.atelier.hairline, const Color(0xFFCBD9E3));
+      expect(midnight.atelier.canvas, const Color(0xFFFFFFFF));
+      expect(midnight.atelier.hairline, const Color(0xFFDDE4EA));
       expect(midnight.stage.gold, const Color(0xFF8FD8FF));
+    });
+
+    test('every light palette paints a plain white page', () {
+      for (final palette in AppPalette.selectable.where((p) => !p.isDark)) {
+        expect(palette.atelier.canvas, const Color(0xFFFFFFFF));
+        expect(palette.luxe.canvas, const Color(0xFFFFFFFF));
+        expect(palette.chrome.creamBg, const Color(0xFFFFFFFF));
+        expect(
+          AppTheme.build(palette).scaffoldBackgroundColor,
+          const Color(0xFFFFFFFF),
+        );
+      }
+      expect(AtelierPalette.light.canvas, const Color(0xFFFFFFFF));
+      expect(LuxePalette.light.canvas, const Color(0xFFFFFFFF));
     });
 
     testWidgets('every selectable palette builds a theme carrying itself', (
@@ -93,7 +107,7 @@ void main() {
       );
       expect(atelier, AppPalette.emeraldPearl.atelier);
       expect(luxe, AppPalette.emeraldPearl.luxe);
-      expect(bg, const Color(0xFFEDF3EF));
+      expect(bg, const Color(0xFFFFFFFF));
     });
 
     testWidgets('dark subtree under a light palette uses its night set', (

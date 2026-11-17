@@ -4,7 +4,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../domain/models/sieve_size.dart';
-import '../../../../core/widgets/melee_background_shell.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -769,62 +768,53 @@ class FilterSegmentedControl extends StatelessWidget {
     }
     final borderColor = AppColors.border(context);
 
-    return MeleeTintExtentAnchor(
-      child: Container(
-        height: 42,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppSpacing.r8),
-          border: Border.all(color: borderColor),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Row(
-          children: options.map((opt) {
-            final isCurrent = opt == selected;
-            final splash = opt.usesMeleeFilters
-                ? AppColors.naturalMeleeAccent
-                : AppColors.bronzeLight;
-            return Expanded(
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTapDown: (details) {
-                    MeleeRippleOriginNotification(
-                      details.globalPosition,
-                    ).dispatch(context);
-                  },
-                  onTap: () {
-                    if (!isCurrent) AppHaptics.selection();
-                    onSelected(opt);
-                  },
-                  splashColor: splash.withValues(alpha: 0.55),
-                  highlightColor: splash.withValues(alpha: 0.22),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOutCubic,
-                    decoration: BoxDecoration(
+    return Container(
+      height: 42,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppSpacing.r8),
+        border: Border.all(color: borderColor),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Row(
+        children: options.map((opt) {
+          final isCurrent = opt == selected;
+          final splash = opt.usesMeleeFilters
+              ? AppColors.naturalMeleeAccent
+              : AppColors.bronzeLight;
+          return Expanded(
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  if (!isCurrent) AppHaptics.selection();
+                  onSelected(opt);
+                },
+                splashColor: splash.withValues(alpha: 0.55),
+                highlightColor: splash.withValues(alpha: 0.22),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutCubic,
+                  decoration: BoxDecoration(
+                    color: isCurrent
+                        ? AppColors.selectedFill(context)
+                        : AppColors.card(context),
+                    borderRadius: BorderRadius.circular(AppSpacing.r8 - 1),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    opt.label,
+                    style: AppTypography.caption.copyWith(
+                      fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
                       color: isCurrent
-                          ? AppColors.selectedFill(context)
-                          : AppColors.card(context),
-                      borderRadius: BorderRadius.circular(AppSpacing.r8 - 1),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      opt.label,
-                      style: AppTypography.caption.copyWith(
-                        fontWeight: isCurrent
-                            ? FontWeight.bold
-                            : FontWeight.w500,
-                        color: isCurrent
-                            ? AppColors.onSelected(context)
-                            : (AppColors.textPrimary(context)),
-                      ),
+                          ? AppColors.onSelected(context)
+                          : (AppColors.textPrimary(context)),
                     ),
                   ),
                 ),
               ),
-            );
-          }).toList(),
-        ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }

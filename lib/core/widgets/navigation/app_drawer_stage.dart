@@ -358,19 +358,8 @@ class AppDrawerStageState extends State<AppDrawerStage>
         onHorizontalDragStart: _dragStart,
         onHorizontalDragUpdate: _dragUpdate,
         onHorizontalDragEnd: _dragEnd,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                LuxeStage.vaultTop,
-                LuxeStage.vault,
-                LuxeStage.vaultBottom,
-              ],
-              stops: const [0, 0.55, 1],
-            ),
-          ),
+        child: ColoredBox(
+          color: LuxeStage.vault,
           child: Stack(
             fit: StackFit.expand,
             children: [

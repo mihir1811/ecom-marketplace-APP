@@ -151,9 +151,16 @@ class _AuthPasswordFieldState extends State<AuthPasswordField> {
 
 /// Live strength meter: four segments plus the five rules as chips.
 class AuthPasswordMeter extends StatelessWidget {
-  const AuthPasswordMeter({super.key, required this.password});
+  const AuthPasswordMeter({
+    super.key,
+    required this.password,
+    this.showRules = true,
+  });
 
   final String password;
+
+  /// Whether the per-rule checklist chips render under the bar.
+  final bool showRules;
 
   @override
   Widget build(BuildContext context) {
@@ -231,15 +238,17 @@ class AuthPasswordMeter extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: AuthSpace.s12),
-            Wrap(
-              spacing: AuthSpace.s6,
-              runSpacing: AuthSpace.s6,
-              children: [
-                for (final rule in rules)
-                  _RuleChip(label: context.tr(rule.$1), met: rule.$2),
-              ],
-            ),
+            if (showRules) ...[
+              const SizedBox(height: AuthSpace.s12),
+              Wrap(
+                spacing: AuthSpace.s6,
+                runSpacing: AuthSpace.s6,
+                children: [
+                  for (final rule in rules)
+                    _RuleChip(label: context.tr(rule.$1), met: rule.$2),
+                ],
+              ),
+            ],
           ],
         ),
       ),

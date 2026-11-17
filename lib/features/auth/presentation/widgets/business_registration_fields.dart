@@ -245,37 +245,60 @@ class BusinessCompanyStep extends StatelessWidget {
           ),
         ),
         _sectionGap,
-        _FieldCaption(context.tr(AccountCommerceL10n.sellerType)),
-        AuthChoiceChips<SellerType>(
-          value: controller.sellerType,
-          enabled: enabled,
-          options: [
+        _gap,
+        DropdownButtonFormField<SellerType>(
+          initialValue: controller.sellerType,
+          isExpanded: true,
+          style: AuthType.field(AuthPalette.of(context)),
+          borderRadius: BorderRadius.circular(AuthSpace.rField),
+          icon: const Icon(Icons.keyboard_arrow_down_rounded),
+          decoration: InputDecoration(
+            labelText: context.tr(AccountCommerceL10n.sellerType),
+            prefixIcon: const Icon(Icons.category_outlined, size: 20),
+          ),
+          items: [
             for (final type in SellerType.values)
-              AuthSegment(value: type, label: context.tr(type.labelKey)),
+              DropdownMenuItem(
+                value: type,
+                child: Text(context.tr(type.labelKey)),
+              ),
           ],
-          onChanged: (value) {
-            controller.sellerType = value;
-            onChanged();
-          },
-        ),
-        _sectionGap,
-        AuthUploadTile(
-          title: context.tr(AuthL10n.companyLogo),
-          hint: context.tr(AuthL10n.companyLogoHint),
-          file: controller.companyLogo,
-          required: true,
-          error: logoError && controller.companyLogo == null,
-          enabled: enabled,
-          onPick: _pickLogo,
+          onChanged: enabled
+              ? (value) {
+                  if (value == null) return;
+                  controller.sellerType = value;
+                  onChanged();
+                }
+              : null,
         ),
         _gap,
-        AuthUploadTile(
-          title: context.tr(AuthL10n.bannerImage),
-          hint: context.tr(AuthL10n.bannerImageHint),
-          file: controller.bannerImage,
-          icon: Icons.panorama_outlined,
-          enabled: enabled,
-          onPick: _pickBanner,
+        Row(
+          children: [
+            Expanded(
+              child: AuthUploadTile(
+                compact: true,
+                title: context.tr(AuthL10n.companyLogo),
+                hint: context.tr(AuthL10n.companyLogoHint),
+                file: controller.companyLogo,
+                required: true,
+                error: logoError && controller.companyLogo == null,
+                enabled: enabled,
+                onPick: _pickLogo,
+              ),
+            ),
+            const SizedBox(width: AuthSpace.s12),
+            Expanded(
+              child: AuthUploadTile(
+                compact: true,
+                title: context.tr(AuthL10n.bannerImage),
+                hint: context.tr(AuthL10n.bannerImageHint),
+                file: controller.bannerImage,
+                icon: Icons.panorama_outlined,
+                enabled: enabled,
+                onPick: _pickBanner,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -450,6 +473,7 @@ class BusinessContactsKycStep extends StatelessWidget {
         ),
         _gap,
         AuthUploadTile(
+          compact: true,
           title: context.tr(AuthL10n.panCardImage),
           hint: context.tr(AuthL10n.panCardImageHint),
           file: controller.panCard,

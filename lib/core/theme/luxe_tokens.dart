@@ -33,14 +33,16 @@ class LuxePalette {
   final Color onAccent;
   final bool isDark;
 
+  /// Pure white page and cards; neutral grey fills and hairlines keep
+  /// components readable without tinting the page.
   static const light = LuxePalette(
-    canvas: Color(0xFFF6F3EE),
+    canvas: Color(0xFFFFFFFF),
     surface: Color(0xFFFFFFFF),
-    surfaceRaised: Color(0xFFEFEAE2),
+    surfaceRaised: Color(0xFFF4F4F5),
     ink: Color(0xFF16140F),
     inkMuted: Color(0xFF6A645A),
     inkFaint: Color(0xFFA39C90),
-    hairline: Color(0xFFE2DBCF),
+    hairline: Color(0xFFE4E4E7),
     accent: Color(0xFF9C7A45),
     accentSoft: Color(0xFFEDE3D1),
     onAccent: Color(0xFFFFFFFF),
@@ -69,6 +71,19 @@ class LuxePalette {
       isDark ? const Color(0xFF7BC8A0) : const Color(0xFF2F7A55);
   Color get caution =>
       isDark ? const Color(0xFFE59A7E) : const Color(0xFFB4532F);
+
+  /// Soft lift for white cards on the white page. Dark mode relies on
+  /// surface contrast and hairlines instead.
+  List<BoxShadow> get cardShadow => isDark ? const [] : _lightCardShadow;
+
+  static const _lightCardShadow = [
+    BoxShadow(
+      color: Color(0x14000000),
+      blurRadius: 10,
+      spreadRadius: -2,
+      offset: Offset(0, 3),
+    ),
+  ];
 }
 
 /// Tokens for the always-dark hero stage, dark feature cards and the

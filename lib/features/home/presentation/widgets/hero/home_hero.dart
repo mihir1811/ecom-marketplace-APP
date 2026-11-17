@@ -26,7 +26,6 @@ class HomeHero extends StatefulWidget {
     required this.topInset,
     required this.scrollOffset,
     this.bottomInset = 0,
-    this.overlap = 0,
     super.key,
   });
 
@@ -40,19 +39,9 @@ class HomeHero extends StatefulWidget {
   /// dock, the spotlight stays above it.
   final double bottomInset;
 
-  /// How far the next section rides up over the hero's fade, so the two read
-  /// as one surface.
-  final double overlap;
-
   @override
   State<HomeHero> createState() => _HomeHeroState();
 }
-
-/// Height of the stage-to-page fade under the hero.
-const _fadeHeight = 180.0;
-
-/// Samples along the fade; dense stops keep the eased curve free of bands.
-const _fadeSteps = 24;
 
 class _HomeHeroState extends State<HomeHero>
     with SingleTickerProviderStateMixin {
@@ -202,102 +191,59 @@ class _HomeHeroState extends State<HomeHero>
     final width = MediaQuery.sizeOf(context).width;
     final gutter = width > 720 ? (width - 680) / 2 : HomeSpace.gutter;
 
-    final canvas = HomePalette.of(context).canvas;
-    final total = widget.height + _fadeHeight;
-
-    // The stage runs on under its own fade, so backdrop and page meet in a
-    // single painted gradient with no edge between separate boxes.
+    // The stage ends on a clean edge; no fade bleeds into the page below.
     return Semantics(
       container: true,
       child: SizedBox(
-        height: total - widget.overlap,
-        child: OverflowBox(
-          alignment: Alignment.topCenter,
-          minHeight: total,
-          maxHeight: total,
-          child: ClipRect(
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: StageBackdrop(
-                    clock: _clock,
-                    progress: _progress,
-                    focusY: 0.32 * widget.height / total,
-                  ),
+        height: widget.height,
+        child: ClipRect(
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: StageBackdrop(
+                  clock: _clock,
+                  progress: _progress,
+                  focusY: 0.32,
                 ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  height: _fadeHeight + 24 + widget.bottomInset,
-                  child: IgnorePointer(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          stops: [
-                            for (var i = 0; i <= _fadeSteps; i++)
-                              i / _fadeSteps,
-                          ],
-                          colors: [
-                            for (var i = 0; i <= _fadeSteps; i++)
-                              canvas.withValues(
-                                alpha: Curves.easeInOutSine.transform(
-                                  i / _fadeSteps,
-                                ),
-                              ),
-                          ],
+              ),
+              Positioned.fill(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(height: widget.topInset),
+                    Expanded(child: _buildCosmos(context)),
+                    const SizedBox(height: 10),
+                    AnimatedBuilder(
+                      animation: _progress,
+                      builder: (context, child) {
+                        final p = _progress.value;
+                        return Opacity(
+                          opacity: (1 - p * 1.8).clamp(0.0, 1.0),
+                          child: Transform.translate(
+                            offset: Offset(0, -p * 60),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          bottom: 16 + widget.bottomInset,
+                        ),
+                        // Paid HOME_BANNER ads from the spotlight API;
+                        // GemWorld info banners while none is live.
+                        child: SpotlightBannerCarousel(
+                          query: spotlightQuery(SpotlightPlacement.homeBanner),
+                          padding: EdgeInsets.symmetric(horizontal: gutter),
+                          activeDotColor: HomeStage.gold,
+                          dotColor: HomeStage.ink.withValues(alpha: 0.25),
+                          empty: const HomeInfoBanners(),
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 0,
-                  height: widget.height,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      SizedBox(height: widget.topInset),
-                      Expanded(child: _buildCosmos(context)),
-                      const SizedBox(height: 10),
-                      AnimatedBuilder(
-                        animation: _progress,
-                        builder: (context, child) {
-                          final p = _progress.value;
-                          return Opacity(
-                            opacity: (1 - p * 1.8).clamp(0.0, 1.0),
-                            child: Transform.translate(
-                              offset: Offset(0, -p * 60),
-                              child: child,
-                            ),
-                          );
-                        },
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            bottom: 16 + widget.bottomInset,
-                          ),
-                          // Paid HOME_BANNER ads from the spotlight API;
-                          // GemWorld info banners while none is live.
-                          child: SpotlightBannerCarousel(
-                            query: spotlightQuery(
-                              SpotlightPlacement.homeBanner,
-                            ),
-                            padding: EdgeInsets.symmetric(horizontal: gutter),
-                            activeDotColor: HomeStage.gold,
-                            dotColor: HomeStage.ink.withValues(alpha: 0.25),
-                            empty: const HomeInfoBanners(),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

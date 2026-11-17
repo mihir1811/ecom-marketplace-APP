@@ -8,16 +8,17 @@ class AppShadows {
 
   static const List<BoxShadow> none = [];
 
-  // Soft premium card shadow (subtle blur, low opacity)
+  // Card shadow strong enough to lift a white card off the white page.
   static List<BoxShadow> get cardLight => [
     BoxShadow(
-      color: AppPalette.current.chrome.shadowTint.withValues(alpha: 0.04),
-      blurRadius: 10,
+      color: AppPalette.current.chrome.shadowTint.withValues(alpha: 0.08),
+      blurRadius: 12,
+      spreadRadius: -2,
       offset: const Offset(0, 4),
     ),
     BoxShadow(
-      color: AppPalette.current.chrome.shadowTint.withValues(alpha: 0.02),
-      blurRadius: 4,
+      color: AppPalette.current.chrome.shadowTint.withValues(alpha: 0.05),
+      blurRadius: 3,
       offset: const Offset(0, 1),
     ),
   ];
@@ -25,9 +26,10 @@ class AppShadows {
   // Elevated modal/dialog shadow
   static List<BoxShadow> get modalLight => [
     BoxShadow(
-      color: AppPalette.current.chrome.shadowTint.withValues(alpha: 0.08),
-      blurRadius: 24,
-      offset: const Offset(0, 8),
+      color: AppPalette.current.chrome.shadowTint.withValues(alpha: 0.14),
+      blurRadius: 28,
+      spreadRadius: -4,
+      offset: const Offset(0, 10),
     ),
   ];
 }

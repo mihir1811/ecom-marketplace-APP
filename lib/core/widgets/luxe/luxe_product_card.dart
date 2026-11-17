@@ -361,6 +361,7 @@ class _LuxeCardFrameState extends State<LuxeCardFrame> {
                       ? p.accent.withValues(alpha: 0.45)
                       : p.hairline),
             ),
+            boxShadow: p.cardShadow,
           ),
           child: widget.child,
         ),

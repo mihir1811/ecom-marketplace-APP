@@ -103,15 +103,10 @@ class _GlyphPainter extends CustomPainter {
 
 /// Screen hero: an eyebrow, a serif statement and one supporting line.
 class AuthHero extends StatelessWidget {
-  const AuthHero({
-    super.key,
-    required this.eyebrow,
-    required this.title,
-    this.subtitle,
-  });
+  const AuthHero({super.key, required this.eyebrow, this.title, this.subtitle});
 
   final String eyebrow;
-  final String title;
+  final String? title;
   final Widget? subtitle;
 
   @override
@@ -129,19 +124,21 @@ class AuthHero extends StatelessWidget {
             style: AuthType.eyebrow(p),
           ),
         ),
-        const SizedBox(height: AuthSpace.s12),
-        AuthReveal(
-          index: 2,
-          blur: true,
-          child: Semantics(
-            header: true,
-            child: Text(
-              title,
-              textAlign: TextAlign.center,
-              style: AuthType.display(p),
+        if (title != null) ...[
+          const SizedBox(height: AuthSpace.s12),
+          AuthReveal(
+            index: 2,
+            blur: true,
+            child: Semantics(
+              header: true,
+              child: Text(
+                title!,
+                textAlign: TextAlign.center,
+                style: AuthType.display(p),
+              ),
             ),
           ),
-        ),
+        ],
         if (subtitle != null) ...[
           const SizedBox(height: AuthSpace.s12),
           AuthReveal(

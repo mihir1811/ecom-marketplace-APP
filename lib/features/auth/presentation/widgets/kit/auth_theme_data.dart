@@ -20,14 +20,15 @@ ThemeData authThemeData(ThemeData base, AuthPalette p) {
     onSecondary: p.onCta,
     error: p.danger,
     onError: p.isDark ? const Color(0xFF1A0E0B) : const Color(0xFFFFFFFF),
-    surface: p.isDark ? const Color(0xFF141317) : const Color(0xFFFBF8F2),
+    surface: p.isDark ? const Color(0xFF141317) : const Color(0xFFFFFFFF),
     onSurface: p.ink,
     onSurfaceVariant: p.inkSoft,
     outline: p.hairlineStrong,
     outlineVariant: p.hairline,
+    surfaceTint: Colors.transparent,
     surfaceContainerHighest: p.isDark
         ? const Color(0xFF1C1B20)
-        : const Color(0xFFF1EBE0),
+        : const Color(0xFFF4F4F5),
   );
 
   final fieldText = AuthType.field(p);

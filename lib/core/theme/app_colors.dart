@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'app_palette.dart';
 import 'luxe_scope.dart';
 
-/// Which finder owns the Single/Melee screen background palette.
+/// Which finder a Single/Melee control belongs to (picks its accent).
 enum MeleeBgFamily {
   labGrown,
   natural,
@@ -42,7 +42,7 @@ class AppColors {
   static const terracotta = Color(0xFFD9463E);
   static const terracottaLight = Color(0xFFE5736E);
 
-  // Light Mode Surfaces (Warm Cream and Soft Sands)
+  // Light Mode Surfaces (white page, neutral grey fills and hairlines)
   static Color get creamBg => _chrome.creamBg;
   static Color get sandSurface => _chrome.sandSurface;
   static Color get warmWhite => _chrome.warmWhite;
@@ -52,64 +52,6 @@ class AppColors {
   static Color get obsidianBg => _chrome.obsidianBg;
   static Color get slateSurface => _chrome.slateSurface;
   static Color get slateBorder => _chrome.slateBorder;
-
-  /// Catalog Single/Melee screen backgrounds — light contrasting pairs
-  /// (cool ↔ warm opposites; never pure white/black).
-  /// Natural diamond finder — cool mist ↔ warm peach
-  static const naturalSingleBg = Color.fromARGB(
-    255,
-    190,
-    217,
-    248,
-  ); // cool mist (default)
-  static const naturalMeleeBg = Color.fromARGB(255, 248, 213, 182); // peach
-
-  /// Lab-grown diamond finder — warm blush ↔ cool mint
-  static const labGrownSingleBg = Color.fromARGB(
-    255,
-    242,
-    248,
-    190,
-  ); // warm blush (default)
-  static const labGrownMeleeBg = Color(0xFFC8DED6); // cool mint
-
-  /// Gemstone — Natural stone type — cool lilac ↔ warm apricot
-  static const gemstoneNaturalSingleBg = Color.fromARGB(
-    255,
-    224,
-    205,
-    255,
-  ); // cool lilac (default)
-  static const gemstoneNaturalMeleeBg = Color.fromARGB(
-    255,
-    202,
-    247,
-    199,
-  ); // warm apricot
-
-  /// Gemstone — Lab Grown stone type — warm sand ↔ cool steel
-  static const gemstoneLabSingleBg = Color.fromARGB(
-    255,
-    248,
-    199,
-    250,
-  ); // warm sand (default)
-  static const gemstoneLabMeleeBg = Color.fromARGB(
-    255,
-    248,
-    196,
-    196,
-  ); // cool steel
-
-  /// Dark-mode tinted bands — unused; dark mode uses neutral surfaces only.
-  static const naturalSingleBgDark = Color(0xFF4A4036);
-  static const naturalMeleeBgDark = Color(0xFF5E5144);
-  static const labGrownSingleBgDark = Color(0xFF2A3832);
-  static const labGrownMeleeBgDark = Color(0xFF344840);
-  static const gemstoneNaturalSingleBgDark = Color(0xFF4A3E34);
-  static const gemstoneNaturalMeleeBgDark = Color(0xFF5C4C3E);
-  static const gemstoneLabSingleBgDark = Color(0xFF2C3440);
-  static const gemstoneLabMeleeBgDark = Color(0xFF364050);
 
   /// Soft highlight used by melee water-reveal rings (lighter than bronze).
   static Color get meleeRevealAccentLight => _chrome.meleeRevealAccentLight;
@@ -156,50 +98,27 @@ class AppColors {
     return MeleeBgFamily.gemstoneNatural;
   }
 
-  /// Soft melee tint of the screen background (light-mode pastels).
+  /// Finder screen background. Every family and mode uses the plain page
+  /// colour; the finders no longer tint the page.
   static Color screenBg({
     bool melee = false,
     MeleeBgFamily family = MeleeBgFamily.natural,
-  }) {
-    if (!_chrome.classicTints) return melee ? sandSurface : creamBg;
-    switch (family) {
-      case MeleeBgFamily.labGrown:
-        return melee ? labGrownMeleeBg : labGrownSingleBg;
-      case MeleeBgFamily.natural:
-        return melee ? naturalMeleeBg : naturalSingleBg;
-      case MeleeBgFamily.gemstoneNatural:
-        return melee ? gemstoneNaturalMeleeBg : gemstoneNaturalSingleBg;
-      case MeleeBgFamily.gemstoneLabGrown:
-        return melee ? gemstoneLabMeleeBg : gemstoneLabSingleBg;
-    }
-  }
+  }) => creamBg;
 
-  /// Soft melee tint for sticky surfaces (nav / bottom bar).
-  /// Matches [screenBg] light-mode families so sticky chrome tracks the page.
+  /// Background for sticky finder chrome (nav / bottom bar); tracks
+  /// [screenBg].
   static Color surfaceBg({
     bool melee = false,
     MeleeBgFamily family = MeleeBgFamily.natural,
-  }) {
-    return screenBg(melee: melee, family: family);
-  }
+  }) => screenBg(melee: melee, family: family);
 
-  /// Melee-family screen tint. Light mode uses pastels; dark mode stays neutral
-  /// (no family color shift — looks muddy on dark surfaces).
+  /// Finder screen background for [context]: the plain page colour of the
+  /// active theme, whatever the family or mode.
   static Color screenBgFor(
     BuildContext context, {
     bool melee = false,
     MeleeBgFamily family = MeleeBgFamily.natural,
-  }) {
-    final luxe = LuxeScope.paletteOf(context);
-    if (luxe != null) return melee ? luxe.surfaceRaised : luxe.canvas;
-    final c = _of(context);
-    if (isDark(context)) return c.slateSurface;
-    if (!c.classicTints) return melee ? c.sandSurface : c.creamBg;
-    return screenBg(melee: melee, family: family);
-  }
-
-  /// Shared duration for melee background color transitions.
-  static const Duration meleeBgDuration = Duration(milliseconds: 900);
+  }) => bg(context);
 
   // Text colors (Light mode)
   static Color get textPrimaryLight => _chrome.textPrimaryLight;

@@ -41,11 +41,21 @@ class AppTheme {
         onSecondary: c.warmWhite,
         error: AppColors.error,
         onError: c.warmWhite,
-        surface: c.sandSurface,
+        // White page and sheets; neutral grey tiers for filled controls.
+        surface: c.warmWhite,
         onSurface: c.textPrimaryLight,
+        surfaceContainerLowest: c.warmWhite,
+        surfaceContainerLow: const Color(0xFFFAFAFA),
+        surfaceContainer: c.sandSurface,
+        surfaceContainerHigh: const Color(0xFFEFEFF1),
+        surfaceContainerHighest: const Color(0xFFE9E9EC),
+        surfaceTint: Colors.transparent,
         outline: c.warmBorder,
+        outlineVariant: c.warmBorder,
+        shadow: c.shadowTint,
       ),
       scaffoldBackgroundColor: c.creamBg,
+      canvasColor: c.creamBg,
 
       // Typography
       textTheme: defaultTextTheme,
@@ -53,11 +63,35 @@ class AppTheme {
       // AppBar configuration
       appBarTheme: AppBarTheme(
         backgroundColor: c.creamBg,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
         titleTextStyle: AppTypography.title.copyWith(color: c.textPrimaryLight),
         iconTheme: IconThemeData(color: c.textPrimaryLight),
+      ),
+
+      // Floating surfaces stay white and lift off the page with a shadow.
+      dialogTheme: DialogThemeData(
+        backgroundColor: c.warmWhite,
+        surfaceTintColor: Colors.transparent,
+        elevation: 6,
+        shadowColor: c.shadowTint.withValues(alpha: 0.35),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: c.warmWhite,
+        modalBackgroundColor: c.warmWhite,
+        surfaceTintColor: Colors.transparent,
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: c.warmWhite,
+        surfaceTintColor: Colors.transparent,
+        elevation: 4,
+        shadowColor: c.shadowTint.withValues(alpha: 0.3),
+        shape: RoundedRectangleBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(AppSpacing.r12)),
+          side: BorderSide(color: c.warmBorder),
+        ),
       ),
 
       // Compact list rows for phone screens.
@@ -68,10 +102,12 @@ class AppTheme {
         minLeadingWidth: 28,
       ),
 
-      // Card Design
+      // Card Design: white card, hairline edge and a soft lift.
       cardTheme: CardThemeData(
-        color: c.sandSurface,
-        elevation: 0,
+        color: c.warmWhite,
+        surfaceTintColor: Colors.transparent,
+        elevation: 1,
+        shadowColor: c.shadowTint.withValues(alpha: 0.25),
         shape: RoundedRectangleBorder(
           borderRadius: const BorderRadius.all(Radius.circular(AppSpacing.r12)),
           side: BorderSide(color: c.warmBorder, width: 1.0),
