@@ -15,3 +15,15 @@ commercial and non-commercial use, no permission or attribution required
 | `bracelets.webp` | [Person wearing a bracelet](https://unsplash.com/photos/h_ssRPj8UZo) | Sama Hosseini (@samahosseini) |
 
 Files were resized to at most 1200 px and re-encoded as WebP.
+
+## `public/images/homeHero/` (home hero info banners)
+
+| File | Photo | Photographer |
+|---|---|---|
+| `about.webp` | [Stack of ornate gold bangles](https://unsplash.com/photos/wreS7kv_tLE) | Zayed Ahmed Zadu (@zayed_ahmed_zadu) |
+| `certified.webp` | [Diamonds on reflective black surface](https://unsplash.com/photos/gb0BZGae1Nk) | Edgar Soto (@edgardo1987) |
+| `live.webp` | [Gold necklace and earrings on white stands](https://unsplash.com/photos/LA0edB8tqC0) | Zayed Ahmed Zadu (@zayed_ahmed_zadu) |
+| `learn.webp` | [Diamond held in tweezers](https://unsplash.com/photos/R13RJX_V42A) | Tahlia Doyle (@tahliaclaire) |
+| `secure.webp` | [Pile of gold bars](https://unsplash.com/photos/uIPmrpU4awE) | Scottsdale Mint (@scottsdalemint) |
+
+Files were resized to at most 1200 px and re-encoded as WebP.

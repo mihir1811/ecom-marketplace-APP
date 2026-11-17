@@ -100,6 +100,7 @@ flutter:
     - public/images/jewelryCategoryImages/
     - public/images/jewelryShowcase/
     - public/images/jewelryHero/
+    - public/images/homeHero/
     - public/images/watch_logo/
     - assets/shapes/
     - assets/shapes/simulator/

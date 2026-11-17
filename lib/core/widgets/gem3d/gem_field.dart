@@ -133,8 +133,8 @@ class _Eased {
 ///   to how deep they sit and dragged along by its motion.
 /// * Stones never overlap: each step pairs of stones that touch are
 ///   separated, so the herd banks up around the body and jostles.
-/// * Each stone faces its direction of travel, turning toward it quickly,
-///   so pushed stones swing round as they are shoved.
+/// * Each stone faces its direction of travel, easing toward it over about
+///   a second, so pushed stones swing round smoothly as they are shoved.
 /// * A point light rides just in front of the cursor with an inverse
 ///   square falloff, so only stones near it shine out of the dark. It stays
 ///   where the cursor last was.
@@ -184,13 +184,66 @@ class GemFieldController extends ChangeNotifier {
   /// costliest CPU work; outlines still move every frame), then a share of
   /// the stones and fine facets. Stones drawn at least `detail` pixels in
   /// radius use the full model; `clear` is the smallest radius drawn as
-  /// see-through crystal (twice the facets).
+  /// see-through crystal (twice the facets). `fps` caps how often the
+  /// field steps (0 = every vsync); the two low-end tiers run at 30 fps,
+  /// draw every stone with its coarse model and skip see-through crystal.
   static const _tiers = [
-    (blur: true, density: 1.0, detail: 22.0, shadeEvery: 1, clear: 12.0),
-    (blur: false, density: 1.0, detail: 22.0, shadeEvery: 2, clear: 12.0),
-    (blur: false, density: 0.85, detail: 30.0, shadeEvery: 2, clear: 14.0),
-    (blur: false, density: 0.7, detail: 44.0, shadeEvery: 3, clear: 17.0),
-    (blur: false, density: 0.55, detail: 60.0, shadeEvery: 3, clear: 20.0),
+    (
+      blur: true,
+      density: 1.0,
+      detail: 22.0,
+      shadeEvery: 1,
+      clear: 12.0,
+      fps: 0,
+    ),
+    (
+      blur: false,
+      density: 1.0,
+      detail: 22.0,
+      shadeEvery: 2,
+      clear: 12.0,
+      fps: 60,
+    ),
+    (
+      blur: false,
+      density: 0.85,
+      detail: 30.0,
+      shadeEvery: 2,
+      clear: 14.0,
+      fps: 60,
+    ),
+    (
+      blur: false,
+      density: 0.7,
+      detail: 44.0,
+      shadeEvery: 3,
+      clear: 17.0,
+      fps: 60,
+    ),
+    (
+      blur: false,
+      density: 0.55,
+      detail: 60.0,
+      shadeEvery: 3,
+      clear: 20.0,
+      fps: 60,
+    ),
+    (
+      blur: false,
+      density: 0.4,
+      detail: double.infinity,
+      shadeEvery: 4,
+      clear: double.infinity,
+      fps: 30,
+    ),
+    (
+      blur: false,
+      density: 0.28,
+      detail: double.infinity,
+      shadeEvery: 4,
+      clear: double.infinity,
+      fps: 30,
+    ),
   ];
   static int get tierCount => _tiers.length;
   int _quality = 0;
@@ -199,9 +252,17 @@ class GemFieldController extends ChangeNotifier {
   int get quality => _quality;
   bool get blur => _tiers[_quality].blur;
 
-  /// Below the best tier the field steps at most 60 times a second, so
-  /// 90/120 Hz screens do not double the work.
-  bool get capFrameRate => _quality > 0;
+  /// Shortest gap between two steps at this tier (zero: every vsync).
+  /// Below the best tier 90/120 Hz screens do not multiply the work, and
+  /// the low-end tiers step at 30 fps.
+  Duration get minFrameInterval {
+    final fps = _tiers[_quality].fps;
+    // A little under the frame period, so vsync jitter does not skip a
+    // frame that is due.
+    return fps <= 0
+        ? Duration.zero
+        : Duration(microseconds: (1e6 / fps * 0.9).round());
+  }
 
   /// Drops to the next cheaper tier; false when already at the cheapest.
   bool lowerQuality() {
@@ -249,10 +310,12 @@ class GemFieldController extends ChangeNotifier {
   // path runs 1.118 units); [_k] scales them onto this field.
   static const _pathLength = 1.118033988749895;
   static const _pathRadius = 0.05;
-  static const _curveFrequency = 8.0;
+  // Snake and spiral wound far looser than the original (8, 0.25, 8), so
+  // stones sway gently while they fall instead of whirling in circles.
+  static const _curveFrequency = 3.0;
   static const _curveAmplitude = 0.05;
-  static const _curvePhaseSpeed = 0.25;
-  static const _spiralFrequency = 8.0;
+  static const _curvePhaseSpeed = 0.1;
+  static const _spiralFrequency = 1.5;
   static const _driftSpeed = 0.1;
   static const _driftRate = 2.0;
   static const _attractionRate = 0.5;
@@ -260,6 +323,9 @@ class GemFieldController extends ChangeNotifier {
   static const _mouseRadius = 0.1;
   static const _mousePushForce = 0.25;
   static const _lightLift = 0.1;
+
+  /// How fast a stone turns to face its direction of travel, 1/s.
+  static const _turnRate = 2.5;
 
   /// Stones overlap by up to 30% of their size before they are separated.
   static const _contact = 0.7;
@@ -363,7 +429,7 @@ class GemFieldController extends ChangeNotifier {
         pathRadius: 2 * math.pow(rng.nextDouble(), 0.75) * _pathRadius,
         pathPhase: 2 * math.pi * rng.nextDouble(),
         spiral: 2 * rng.nextDouble(),
-        roll: (0.12 + rng.nextDouble() * 0.3) * (rng.nextBool() ? 1 : -1),
+        roll: (0.06 + rng.nextDouble() * 0.16) * (rng.nextBool() ? 1 : -1),
         offset: _axisAngle(axis, (rng.nextDouble() - 0.5) * 2 * math.pi),
         fluor: fluor.strength,
         fluorColor: fluor.color,
@@ -470,7 +536,9 @@ class GemFieldController extends ChangeNotifier {
     final drift = 1 - math.exp(-dt * _driftRate);
     final damp = math.exp(-dt * _dampingRate);
     final pace = _driftSpeed * _k * motion;
-    final turn = 1 - math.pow(0.2, dt * 60).toDouble();
+    // Eases toward the heading over about a second, so stones turn
+    // smoothly rather than snapping round with every sway.
+    final turn = 1 - math.exp(-dt * _turnRate);
     var energy = 0.0;
 
     _active.clear();
@@ -530,7 +598,7 @@ class GemFieldController extends ChangeNotifier {
         math.pow(math.min(1.0, att * 0.12), 0.45).toDouble(),
       );
 
-      // Face the direction of travel, turning toward it quickly.
+      // Face the direction of travel, turning toward it smoothly.
       final sp = math.sqrt(g.vx * g.vx + g.vy * g.vy + g.vz * g.vz);
       if (sp > 0.001) {
         _headingTarget(g.vx, g.vy, g.vz, _q);
@@ -543,37 +611,101 @@ class GemFieldController extends ChangeNotifier {
     }
 
     // Stones never overlap: separate every touching pair, half each.
-    final n = _active.length;
-    for (var i = 0; i < n; i++) {
-      final a = _active[i], pa = a.pose;
-      for (var j = i + 1; j < n; j++) {
-        final b = _active[j], pb = b.pose;
-        final reach = (a.scale + b.scale) * _contact;
-        final dx = pb.x - pa.x;
-        if (dx >= reach || dx <= -reach) continue;
-        final dy = pb.y - pa.y;
-        if (dy >= reach || dy <= -reach) continue;
-        final dz = pb.z - pa.z;
-        final d2 = dx * dx + dy * dy + dz * dz;
-        if (d2 >= reach * reach || d2 < 1e-12) continue;
-        final d = math.sqrt(d2);
-        final s = (reach - d) * 0.5 / d;
-        pa
-          ..x -= dx * s
-          ..y -= dy * s
-          ..z -= dz * s;
-        pb
-          ..x += dx * s
-          ..y += dy * s
-          ..z += dz * s;
-      }
-    }
+    _separate();
     for (final g in _active) {
       g.pose.z = g.pose.z.clamp(g.zLo, g.zHi);
     }
 
+    final n = _active.length;
     _energy = n == 0 ? 0 : energy / n;
     notifyListeners();
+  }
+
+  // Uniform grid over the active stones (x, y only; the slab is thin),
+  // as linked lists: first stone per cell, next stone in the same cell.
+  Int32List _cellHead = Int32List(0);
+  Int32List _cellNext = Int32List(0);
+  Int32List _cellX = Int32List(0), _cellY = Int32List(0);
+
+  /// Separates every touching pair of active stones. Stones are bucketed
+  /// into cells at least as wide as the largest contact reach, so a stone
+  /// only tests the stones in its own and the 8 neighbouring cells: about
+  /// linear in the stone count instead of testing every pair.
+  void _separate() {
+    final n = _active.length;
+    if (n < 2) return;
+    var minX = double.infinity, minY = double.infinity;
+    var maxX = double.negativeInfinity, maxY = double.negativeInfinity;
+    var maxScale = 0.0;
+    for (final g in _active) {
+      final p = g.pose;
+      if (p.x < minX) minX = p.x;
+      if (p.x > maxX) maxX = p.x;
+      if (p.y < minY) minY = p.y;
+      if (p.y > maxY) maxY = p.y;
+      if (g.scale > maxScale) maxScale = g.scale;
+    }
+    var cell = 2 * maxScale * _contact;
+    if (cell <= 0 || !minX.isFinite || !minY.isFinite) return;
+    int cols() => ((maxX - minX) / cell).floor() + 1;
+    int rows() => ((maxY - minY) / cell).floor() + 1;
+    // Cap the grid; larger cells stay correct, only less selective.
+    while (cols() * rows() > 8192) {
+      cell *= 2;
+    }
+    final w = cols(), h = rows(), cells = w * h;
+    if (_cellHead.length < cells) _cellHead = Int32List(cells);
+    _cellHead.fillRange(0, cells, -1);
+    if (_cellNext.length < n) {
+      _cellNext = Int32List(n);
+      _cellX = Int32List(n);
+      _cellY = Int32List(n);
+    }
+    for (var i = 0; i < n; i++) {
+      final p = _active[i].pose;
+      final cx = ((p.x - minX) / cell).floor().clamp(0, w - 1);
+      final cy = ((p.y - minY) / cell).floor().clamp(0, h - 1);
+      _cellX[i] = cx;
+      _cellY[i] = cy;
+      final c = cy * w + cx;
+      _cellNext[i] = _cellHead[c];
+      _cellHead[c] = i;
+    }
+    for (var i = 0; i < n; i++) {
+      final a = _active[i];
+      final cx = _cellX[i], cy = _cellY[i];
+      for (var y = math.max(0, cy - 1); y <= math.min(h - 1, cy + 1); y++) {
+        for (var x = math.max(0, cx - 1); x <= math.min(w - 1, cx + 1); x++) {
+          // Each pair once: only partners later in the active list.
+          for (var j = _cellHead[y * w + x]; j >= 0; j = _cellNext[j]) {
+            if (j > i) _collide(a, _active[j]);
+          }
+        }
+      }
+    }
+  }
+
+  /// Pushes [a] and [b] apart, half each, when they overlap.
+  static void _collide(_FieldGem a, _FieldGem b) {
+    final pa = a.pose, pb = b.pose;
+    final reach = (a.scale + b.scale) * _contact;
+    final dx = pb.x - pa.x;
+    if (dx >= reach || dx <= -reach) return;
+    final dy = pb.y - pa.y;
+    if (dy >= reach || dy <= -reach) return;
+    final dz = pb.z - pa.z;
+    final d2 = dx * dx + dy * dy + dz * dz;
+    if (d2 >= reach * reach || d2 < 1e-12) return;
+    final d = math.sqrt(d2);
+    final s = (reach - d) * 0.5 / d;
+    pa
+      ..x -= dx * s
+      ..y -= dy * s
+      ..z -= dz * s;
+    pb
+      ..x += dx * s
+      ..y += dy * s
+      ..z += dz * s;
   }
 
   void pointerDown(Offset at) {
@@ -1004,10 +1136,12 @@ abstract final class GemFieldWarmup {
   static Future<int> _deviceTier() async {
     if (kIsWeb) return 0;
     try {
+      final cheapest = GemFieldController.tierCount - 1;
       int tierFor(int ramMb, {bool lowRam = false}) {
-        if (ramMb <= 0) return lowRam ? 3 : 0;
-        if (lowRam || ramMb < 3 * 1024) return 3;
-        if (ramMb < 4 * 1024 + 512) return 2;
+        if (ramMb <= 0) return lowRam ? cheapest : 0;
+        if (lowRam || ramMb < 2 * 1024 + 512) return cheapest;
+        if (ramMb < 3 * 1024 + 512) return cheapest - 1;
+        if (ramMb < 4 * 1024 + 512) return 3;
         if (ramMb < 6 * 1024 + 512) return 1;
         return 0;
       }
@@ -1021,6 +1155,7 @@ abstract final class GemFieldWarmup {
           final info = await DeviceInfoPlugin().iosInfo;
           final ram = info.physicalRamSize;
           if (ram <= 0) return 0;
+          if (ram < 1536) return GemFieldController.tierCount - 2;
           if (ram < 2560) return 2;
           if (ram < 3584) return 1;
           return 0;
@@ -1184,10 +1319,11 @@ class _GemFieldState extends State<GemField>
   }
 
   void _tick(Duration elapsed) {
-    // On 90/120 Hz screens a degraded field steps every other vsync.
-    if (_field.capFrameRate &&
+    // A degraded field steps at its tier's capped rate, not every vsync.
+    final interval = _field.minFrameInterval;
+    if (interval > Duration.zero &&
         _last != Duration.zero &&
-        elapsed - _last < const Duration(microseconds: 15000)) {
+        elapsed - _last < interval) {
       return;
     }
     final dt = _last == Duration.zero
