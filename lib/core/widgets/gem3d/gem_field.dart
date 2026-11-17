@@ -33,6 +33,8 @@ class _FieldGem {
     required this.spiral,
     required this.roll,
     required this.offset,
+    required this.fluor,
+    required this.fluorColor,
   }) : pose = GemPose(z: hz, scale: scale)..basis = Float64List(9);
 
   /// Seeding order; staggers which frame each stone is re-shaded on.
@@ -64,6 +66,10 @@ class _FieldGem {
 
   /// Fixed random turn of the cut relative to its heading (x, y, z, w).
   final Float64List offset;
+
+  /// Fluorescence strength (0 inert) and the colour the stone glows.
+  final double fluor;
+  final Color fluorColor;
 
   /// Unit quaternion turning local +y onto the direction of travel.
   final Float64List heading = Float64List(4)..[3] = 1;
@@ -147,6 +153,10 @@ class GemFieldController extends ChangeNotifier {
   /// unit tangent, the across-stream axis, and world units per path unit.
   double _startX = 0, _startY = 0, _segX = 1, _segY = 0, _segLenSq = 1;
   double _tanX = 1, _tanY = 0, _perpX = 0, _perpY = -1, _k = 1;
+
+  /// Widens the stream across the screen beyond the original's slim
+  /// band, so it fills the empty corners on either side.
+  double _spread = 1;
   double _tx = 0, _ty = 0, _tz = 0;
 
   Offset? _pointer;
@@ -312,9 +322,14 @@ class GemFieldController extends ChangeNotifier {
     _segY = 2 * half * _tanY;
     _segLenSq = 4 * half * half;
     _k = 2 * half / _pathLength;
+    // The widest orbit plus the snake reaches 0.15 path units off the
+    // core; stretch that to most of the way to the side corners.
+    final corner = 2 * halfW * halfH / diag;
+    _spread = math.max(1, corner * 0.8 / (0.15 * _k));
 
     // Packed like a pour of beans, capped for frame budget.
-    final count = (size.width * size.height / 560).round().clamp(160, 420);
+    // A wider stream holds more stones at the same packing.
+    final count = (size.width * size.height / 430).round().clamp(180, 520);
     for (var i = 0; i < count; i++) {
       final z = _zNear + rng.nextDouble() * _zDepth;
       final band = z < _zFar
@@ -327,6 +342,7 @@ class GemFieldController extends ChangeNotifier {
         _Band.focus => (_zFar, _zFront),
         _Band.near => (_zFront, _zNear + _zDepth),
       };
+      final fluor = _fluorescence(rng);
       final axis = _unit3(
         rng.nextDouble() * 2 - 1,
         rng.nextDouble() * 2 - 1,
@@ -343,11 +359,14 @@ class GemFieldController extends ChangeNotifier {
         // Mostly small stones with the odd big one, like a real pour.
         scale: 0.1 + 0.26 * math.pow(rng.nextDouble(), 1.8),
         phase: rng.nextDouble(),
-        pathRadius: 2 * rng.nextDouble() * _pathRadius,
+        // Denser toward the core, yet reaching well out to the sides.
+        pathRadius: 2 * math.pow(rng.nextDouble(), 0.75) * _pathRadius,
         pathPhase: 2 * math.pi * rng.nextDouble(),
         spiral: 2 * rng.nextDouble(),
         roll: (0.12 + rng.nextDouble() * 0.3) * (rng.nextBool() ? 1 : -1),
         offset: _axisAngle(axis, (rng.nextDouble() - 0.5) * 2 * math.pi),
+        fluor: fluor.strength,
+        fluorColor: fluor.color,
       );
       _target(rng.nextDouble(), g);
       g.pose
@@ -368,6 +387,33 @@ class GemFieldController extends ChangeNotifier {
     _energy = 1;
   }
 
+  /// Fluorescence as graded on real diamonds: about a third of stones
+  /// fluoresce, nearly all of them blue, a few yellow, green or orange;
+  /// strength runs faint, medium, strong, very strong.
+  static ({double strength, Color color}) _fluorescence(math.Random rng) {
+    const blue = [Color(0xFF4F7DFF), Color(0xFF5B8CFF), Color(0xFF6E9BFF)];
+    final has = rng.nextDouble() < 0.32;
+    final hue = rng.nextDouble();
+    final grade = rng.nextDouble();
+    final pick = rng.nextInt(blue.length);
+    if (!has) return (strength: 0, color: blue[pick]);
+    final strength = grade < 0.4
+        ? 0.3
+        : grade < 0.72
+        ? 0.5
+        : grade < 0.92
+        ? 0.75
+        : 1.0;
+    final color = hue < 0.88
+        ? blue[pick]
+        : hue < 0.94
+        ? const Color(0xFFF2E26A) // yellow
+        : hue < 0.98
+        ? const Color(0xFF7FF0A0) // green
+        : const Color(0xFFFFA45C); // orange
+    return (strength: strength, color: color);
+  }
+
   /// Where stone [g] belongs at path position [u] (0 start, 1 end), into
   /// [_tx], [_ty], [_tz]: the path snakes as a whole, and the stone winds
   /// around it on its own spiral.
@@ -375,7 +421,7 @@ class GemFieldController extends ChangeNotifier {
     final a = _curveFrequency * u * _pathLength + _time * _curvePhaseSpeed;
     final b = _spiralFrequency * g.spiral * u * _pathLength + g.pathPhase;
     final amp = _curveAmplitude * _k, r = g.pathRadius * _k;
-    final across = amp * math.sin(a) + r * math.cos(b);
+    final across = (amp * math.sin(a) + r * math.cos(b)) * _spread;
     final depth = amp * math.cos(a) + r * math.sin(b);
     _tx = _startX + _segX * u + _perpX * across;
     _ty = _startY + _segY * u + _perpY * across;
@@ -708,6 +754,18 @@ class GemFieldController extends ChangeNotifier {
       if (g.rank >= tier.density) continue;
       final model = models[(g.pick * models.length).floor() % models.length];
       final glow = g.lit * g.lit;
+      // Fluorescence answers the light riding the cursor, as a stone does
+      // under a UV torch, with a trace left in the dark.
+      final fluor = g.fluor * (0.3 + 0.7 * g.lit);
+      if (fluor > 0.04) {
+        final at = cam.project(g.pose.x, g.pose.y, g.pose.z);
+        _addHalo(
+          at,
+          g.scale * cam.depthScale(g.pose.z) * unit * 1.9,
+          g.fluorColor,
+          fluor * g.lit * 0.3,
+        );
+      }
       batch.add(
         // Small and defocused stones skip sub-pixel facets.
         mesh:
@@ -735,9 +793,64 @@ class GemFieldController extends ChangeNotifier {
         // Each frame re-shades its share of the stones; stones in the
         // light are always fresh.
         reshade: every == 1 || (g.slot + _frame) % every == 0 || g.lit > 0.3,
+        glowColor: g.fluorColor,
+        glow: fluor,
       );
     }
     batch.paint(canvas, sparkle: sparkle);
+    _paintHalos(canvas);
+  }
+
+  // Fluorescent halos of the band being painted, drawn in one atlas call.
+  Float32List _haloXform = Float32List(0);
+  Float32List _haloRects = Float32List(0);
+  Int32List _haloColor = Int32List(0);
+  int _halos = 0;
+
+  void _addHalo(Offset at, double radius, Color color, double strength) {
+    if (strength <= 0.003) return;
+    if (_haloColor.length <= _halos) {
+      final cap = math.max(32, _haloColor.length * 2);
+      _haloXform = Float32List(cap * 4)..setRange(0, _halos * 4, _haloXform);
+      _haloRects = Float32List(cap * 4)..setRange(0, _halos * 4, _haloRects);
+      _haloColor = Int32List(cap)..setRange(0, _halos, _haloColor);
+    }
+    const w = _FluorHalo.size;
+    final scale = radius * 2 / w;
+    final i = _halos * 4;
+    _haloXform
+      ..[i] = scale
+      ..[i + 1] = 0
+      ..[i + 2] = at.dx - radius
+      ..[i + 3] = at.dy - radius;
+    _haloRects
+      ..[i] = 0
+      ..[i + 1] = 0
+      ..[i + 2] = w
+      ..[i + 3] = w;
+    // Premultiplied for the additive blend.
+    final a = strength.clamp(0.0, 1.0);
+    int ch(double v) => (v * a * 255).round();
+    _haloColor[_halos] =
+        (a * 255).round() << 24 |
+        ch(color.r) << 16 |
+        ch(color.g) << 8 |
+        ch(color.b);
+    _halos++;
+  }
+
+  void _paintHalos(Canvas canvas) {
+    if (_halos == 0) return;
+    canvas.drawRawAtlas(
+      _FluorHalo.image,
+      Float32List.sublistView(_haloXform, 0, _halos * 4),
+      Float32List.sublistView(_haloRects, 0, _halos * 4),
+      Int32List.sublistView(_haloColor, 0, _halos),
+      BlendMode.modulate,
+      null,
+      Paint()..blendMode = BlendMode.plus,
+    );
+    _halos = 0;
   }
 
   /// One whole frame onto [canvas] as the widget would show it, blur
@@ -1204,4 +1317,33 @@ class _LightPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _LightPainter old) => old.field != field;
+}
+
+/// Lazily rendered soft white disc, tinted per stone for the glow a
+/// fluorescent diamond throws around itself.
+abstract final class _FluorHalo {
+  static const size = 64.0;
+  static ui.Image? _image;
+
+  static ui.Image get image => _image ??= _render();
+
+  static ui.Image _render() {
+    final recorder = ui.PictureRecorder();
+    const c = Offset(size / 2, size / 2);
+    Canvas(recorder).drawCircle(
+      c,
+      size / 2,
+      Paint()
+        ..shader = ui.Gradient.radial(
+          c,
+          size / 2,
+          const [Color(0xFFFFFFFF), Color(0x66FFFFFF), Color(0x00FFFFFF)],
+          const [0, 0.35, 1],
+        ),
+    );
+    final picture = recorder.endRecording();
+    final image = picture.toImageSync(size.toInt(), size.toInt());
+    picture.dispose();
+    return image;
+  }
 }

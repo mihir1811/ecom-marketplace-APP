@@ -196,6 +196,35 @@ class DiamondBatch {
     _sparks++;
   }
 
+  // Fluorescence of the stone being added: emitted colour and strength.
+  double _glowR = 0, _glowG = 0, _glowB = 0, _glow = 0;
+
+  /// ARGB of a facet: its [base] grey (before fog) plus the stone's
+  /// fluorescence, which glows from the body and so shows most in dark
+  /// facets and through the crystal ([inner]), then fogged.
+  int _facetColor(
+    double base,
+    double tone,
+    double seed,
+    double keep,
+    double fogGrey,
+    int alpha, {
+    bool inner = false,
+  }) {
+    if (_glow <= 0) {
+      final c = ((base * keep + fogGrey * (1 - keep)).clamp(0.0, 1.0) * 255)
+          .round();
+      return alpha << 24 | c << 16 | c << 8 | c;
+    }
+    final e =
+        _glow * (0.55 + 0.45 * seed) * (1 - 0.7 * tone) * (inner ? 1.3 : 1);
+    int ch(double glow) =>
+        (((base + e * glow) * keep + fogGrey * (1 - keep)).clamp(0.0, 1.0) *
+                255)
+            .round();
+    return alpha << 24 | ch(_glowR) << 16 | ch(_glowG) << 8 | ch(_glowB);
+  }
+
   static const _ior = 2.42;
   static const _eta = 1 / _ior;
 
@@ -245,6 +274,9 @@ class DiamondBatch {
   /// With a [shade] cache, facet colours are stored per stone; when
   /// [reshade] is false the stored colours are reused for every facet
   /// still facing the same way, so only the outline is recomputed.
+  ///
+  /// [glow] (0..1) is fluorescence: the body emits [glowColor], as a
+  /// fluorescent diamond does under a UV-rich light.
   void add({
     required DiamondMesh mesh,
     required GemPose pose,
@@ -263,7 +295,13 @@ class DiamondBatch {
     double seeThroughMin = 12,
     DiamondShade? shade,
     bool reshade = true,
+    Color glowColor = const Color(0xFF5B8CFF),
+    double glow = 0,
   }) {
+    _glow = glow.clamp(0.0, 1.0);
+    _glowR = glowColor.r;
+    _glowG = glowColor.g;
+    _glowB = glowColor.b;
     final eyeX = camera.eyeX, eyeY = camera.eyeY, eyeZ = camera.distance;
     final unit = camera.unit;
     final ccx = camera.center.dx, ccy = camera.center.dy;
@@ -421,11 +459,15 @@ class DiamondBatch {
           }
           lum *= exposure;
           final tone = 1 - math.exp(-lum * 1.7);
-          final grey =
-              (0.04 + tone * tone * (1.6 - 0.6 * tone)) * keep +
-              fogGrey * (1 - keep);
-          final c = (grey.clamp(0.0, 1.0) * 255).round();
-          final color = 0xFF000000 | c << 16 | c << 8 | c;
+          final color = _facetColor(
+            0.04 + tone * tone * (1.6 - 0.6 * tone),
+            tone,
+            seeds[f],
+            keep,
+            fogGrey,
+            0xFF,
+            inner: true,
+          );
           _emit(f, color, start, end);
           if (sides != null) {
             colors![f] = color;
@@ -516,14 +558,17 @@ class DiamondBatch {
         // Soft shoulder so bright facets stay crisp white, never a flat blob,
         // and a toe that sinks mid greys toward black for diamond contrast.
         final tone = 1 - math.exp(-lum * 1.7);
-        final grey =
-            (body + tone * tone * (1.6 - 0.6 * tone)) * keep +
-            fogGrey * (1 - keep);
-        final c = (grey.clamp(0.0, 1.0) * 255).round();
         // Clear stones: front facets let the crystal behind show through,
         // less so at grazing angles where the surface mirrors more.
         final alpha = clear ? (0.38 + 0.8 * fresnel).clamp(0.38, 0.92) : 1.0;
-        final color = (alpha * 255).round() << 24 | c << 16 | c << 8 | c;
+        final color = _facetColor(
+          body + tone * tone * (1.6 - 0.6 * tone),
+          tone,
+          seeds[f],
+          keep,
+          fogGrey,
+          (alpha * 255).round(),
+        );
         _emit(f, color, start, end);
         if (sides != null) {
           colors![f] = color;
