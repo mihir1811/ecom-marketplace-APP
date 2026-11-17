@@ -17,27 +17,32 @@ import '../../../../spotlight/presentation/widgets/spotlight_banner_carousel.dar
 import 'home_info_banners.dart';
 import 'stage_backdrop.dart';
 
-/// Full-bleed opening stage: a deep-space shader, interactive stardust that
-/// gathers into the GemWorld G, a brilliant and a galaxy, and a spotlight of
-/// promo banners with trust marks.
+/// Opening stage: a deep-space shader and interactive stardust that gathers
+/// into the GemWorld G, a brilliant and a galaxy, with the promo spotlight
+/// overlapping its lower edge.
+///
+/// The stage is a header, not a screen: it is sized so the next section peeks
+/// above the fold, its foot dissolves into the page canvas behind the
+/// spotlight card, and only sideways drags orbit the cosmos, so vertical
+/// swipes anywhere on it still scroll the page.
 class HomeHero extends StatefulWidget {
   const HomeHero({
     required this.height,
     required this.topInset,
     required this.scrollOffset,
-    this.bottomInset = 0,
     super.key,
   });
 
+  /// Height of the cosmos stage. The spotlight rises [overlap] into it.
   final double height;
 
   /// Space reserved above the cosmos.
   final double topInset;
   final ValueListenable<double> scrollOffset;
 
-  /// Space kept clear at the bottom: the stage runs on behind the floating
-  /// dock, the spotlight stays above it.
-  final double bottomInset;
+  /// How far the spotlight card rises into the stage; the stage dissolves
+  /// into the page canvas behind it.
+  static const overlap = 92.0;
 
   @override
   State<HomeHero> createState() => _HomeHeroState();
@@ -50,7 +55,6 @@ class _HomeHeroState extends State<HomeHero>
   final _progress = ValueNotifier<double>(0);
   final _hintVisible = ValueNotifier<bool>(true);
   int? _activePointer;
-  VelocityTracker? _tracker;
   late final Ticker _ticker = createTicker(_onTick);
   StardustSprites? _sprites;
   StardustPainter? _painter;
@@ -130,49 +134,47 @@ class _HomeHeroState extends State<HomeHero>
     if (_hintVisible.value) _hintVisible.value = false;
   }
 
-  // Dragging orbits the camera 360° exactly as before; the touch scatter is
-  // an add-on in screen space. Neither pauses or advances the formation
-  // cycle, and lifting the finger always lets every star spring home.
+  // Touch scatter is screen-space and runs on any press, including one that
+  // turns into a page scroll. Orbiting is a separate pan gesture that only
+  // wins the arena for sideways drags; once it wins it orbits the camera a
+  // full 360° on both axes as before. Neither pauses or advances the
+  // formation cycle, and lifting the finger always lets every star spring
+  // home.
   void _onPointerDown(PointerDownEvent e) {
     if (_activePointer != null) return;
     _activePointer = e.pointer;
-    _tracker = VelocityTracker.withKind(e.kind)
-      ..addPosition(e.timeStamp, e.position);
     _field
-      ..beginDrag()
       ..burst(e.localPosition)
       ..setPointer(e.localPosition);
-    if (e.kind == PointerDeviceKind.touch) AppHaptics.light();
-    _dismissHint();
   }
 
   void _onPointerMove(PointerMoveEvent e) {
     if (e.pointer != _activePointer) return;
-    _tracker?.addPosition(e.timeStamp, e.position);
-    _field
-      ..dragBy(e.delta)
-      ..setPointer(e.localPosition);
+    _field.setPointer(e.localPosition);
+  }
+
+  void _onPointerEnd(PointerEvent e) {
+    if (e.pointer != _activePointer) return;
+    _activePointer = null;
+    _field.setPointer(null);
+  }
+
+  void _onOrbitStart(DragStartDetails d) {
+    _field.beginDrag();
+    if (d.kind == PointerDeviceKind.touch) AppHaptics.light();
+    _dismissHint();
+  }
+
+  void _onOrbitUpdate(DragUpdateDetails d) {
+    _field.dragBy(d.delta);
     if (_reduceMotion) _field.reproject(_center, _scale);
   }
 
-  void _onPointerUp(PointerUpEvent e) {
-    if (e.pointer != _activePointer) return;
-    final v = _tracker?.getVelocity().pixelsPerSecond ?? Offset.zero;
-    _release(_reduceMotion ? Offset.zero : v);
+  void _onOrbitEnd(DragEndDetails d) {
+    _field.endDrag(_reduceMotion ? Offset.zero : d.velocity.pixelsPerSecond);
   }
 
-  void _onPointerCancel(PointerCancelEvent e) {
-    if (e.pointer != _activePointer) return;
-    _release(Offset.zero);
-  }
-
-  void _release(Offset velocity) {
-    _activePointer = null;
-    _tracker = null;
-    _field
-      ..endDrag(velocity)
-      ..setPointer(null);
-  }
+  void _onOrbitCancel() => _field.endDrag(Offset.zero);
 
   @override
   void dispose() {
@@ -190,62 +192,77 @@ class _HomeHeroState extends State<HomeHero>
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
     final gutter = width > 720 ? (width - 680) / 2 : HomeSpace.gutter;
+    final palette = HomePalette.of(context);
+    final stageHeight = widget.height;
+    const overlap = HomeHero.overlap;
 
-    // The stage ends on a clean edge; no fade bleeds into the page below.
     return Semantics(
       container: true,
-      child: SizedBox(
-        height: widget.height,
-        child: ClipRect(
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: StageBackdrop(
-                  clock: _clock,
-                  progress: _progress,
-                  focusY: 0.32,
-                ),
-              ),
-              Positioned.fill(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SizedBox(height: widget.topInset),
-                    Expanded(child: _buildCosmos(context)),
-                    const SizedBox(height: 10),
-                    AnimatedBuilder(
-                      animation: _progress,
-                      builder: (context, child) {
-                        final p = _progress.value;
-                        return Opacity(
-                          opacity: (1 - p * 1.8).clamp(0.0, 1.0),
-                          child: Transform.translate(
-                            offset: Offset(0, -p * 60),
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          bottom: 16 + widget.bottomInset,
-                        ),
-                        // Paid HOME_BANNER ads from the spotlight API;
-                        // GemWorld info banners while none is live.
-                        child: SpotlightBannerCarousel(
-                          query: spotlightQuery(SpotlightPlacement.homeBanner),
-                          padding: EdgeInsets.symmetric(horizontal: gutter),
-                          activeDotColor: HomeStage.gold,
-                          dotColor: HomeStage.ink.withValues(alpha: 0.25),
-                          empty: const HomeInfoBanners(),
-                        ),
-                      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: stageHeight,
+            child: ClipRect(
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: StageBackdrop(
+                      clock: _clock,
+                      progress: _progress,
+                      focusY: 0.36,
                     ),
-                  ],
+                  ),
+                  Positioned.fill(
+                    top: widget.topInset,
+                    child: _buildCosmos(context),
+                  ),
+                  // The stage's foot dissolves into the page behind the
+                  // spotlight card instead of ending on a hard edge.
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    height: overlap * 1.4,
+                    child: IgnorePointer(
+                      child: _StageFade(color: palette.canvas),
+                    ),
+                  ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: overlap + 12,
+                    child: _DragHint(
+                      visible: _hintVisible,
+                      animate: !_reduceMotion,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(height: stageHeight - overlap),
+              // Keeps the stage's dissolve covered while banners load.
+              ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: overlap),
+                // Paid HOME_BANNER ads from the spotlight API; GemWorld
+                // info banners while none is live.
+                child: SpotlightBannerCarousel(
+                  query: spotlightQuery(SpotlightPlacement.homeBanner),
+                  padding: EdgeInsets.symmetric(horizontal: gutter),
+                  activeDotColor: palette.accent,
+                  dotColor: palette.ink.withValues(alpha: 0.18),
+                  empty: const HomeInfoBanners(),
                 ),
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
@@ -254,8 +271,11 @@ class _HomeHeroState extends State<HomeHero>
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = constraints.biggest;
-        final center = Offset(size.width / 2, size.height * 0.42);
-        final scale = math.min(size.width * 0.46, size.height * 0.4);
+        // Centred in the stage area the spotlight leaves uncovered; stars
+        // that drift lower pass behind the card and its dissolve.
+        final open = size.height - HomeHero.overlap;
+        final center = Offset(size.width / 2, open * 0.52);
+        final scale = math.min(size.width * 0.46, open * 0.5);
         final sprites = _sprites;
         if (sprites != null &&
             (_painter == null ||
@@ -280,23 +300,30 @@ class _HomeHeroState extends State<HomeHero>
             Positioned.fill(
               child: Semantics(
                 label: context.tr(HomeL10n.dragHint),
-                // The eager recognizer wins the gesture arena on touch-down,
-                // so the page does not scroll while a finger orbits the
-                // cosmos. Scrolling from anywhere else is unaffected.
+                // Sideways drags orbit; mostly-vertical drags lose the arena
+                // to the page's scroll recognizer, so the stage never traps
+                // the scroll. The listener sees every pointer for scatter.
                 child: RawGestureDetector(
                   behavior: HitTestBehavior.opaque,
                   gestures: {
-                    EagerGestureRecognizer:
+                    PanGestureRecognizer:
                         GestureRecognizerFactoryWithHandlers<
-                          EagerGestureRecognizer
-                        >(EagerGestureRecognizer.new, (_) {}),
+                          PanGestureRecognizer
+                        >(
+                          PanGestureRecognizer.new,
+                          (r) => r
+                            ..onStart = _onOrbitStart
+                            ..onUpdate = _onOrbitUpdate
+                            ..onEnd = _onOrbitEnd
+                            ..onCancel = _onOrbitCancel,
+                        ),
                   },
                   child: Listener(
                     behavior: HitTestBehavior.opaque,
                     onPointerDown: _onPointerDown,
                     onPointerMove: _onPointerMove,
-                    onPointerUp: _onPointerUp,
-                    onPointerCancel: _onPointerCancel,
+                    onPointerUp: _onPointerEnd,
+                    onPointerCancel: _onPointerEnd,
                     child: RepaintBoundary(
                       child: CustomPaint(
                         painter: _painter,
@@ -307,15 +334,37 @@ class _HomeHeroState extends State<HomeHero>
                 ),
               ),
             ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 2,
-              child: _DragHint(visible: _hintVisible, animate: !_reduceMotion),
-            ),
           ],
         );
       },
+    );
+  }
+}
+
+/// Eased dissolve from transparent to the page [color]. Many stops on a
+/// smoothstep curve avoid the visible band a two-stop linear gradient leaves
+/// between a dark stage and a light page.
+class _StageFade extends StatelessWidget {
+  const _StageFade({required this.color});
+
+  final Color color;
+
+  static const _steps = 12;
+
+  @override
+  Widget build(BuildContext context) {
+    final stops = [for (var i = 0; i <= _steps; i++) i / _steps];
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: stops,
+          colors: [
+            for (final t in stops) color.withValues(alpha: t * t * (3 - 2 * t)),
+          ],
+        ),
+      ),
     );
   }
 }

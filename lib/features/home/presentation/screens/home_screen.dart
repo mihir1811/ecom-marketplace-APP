@@ -88,15 +88,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
     final media = MediaQuery.of(context);
-    // The hero runs from the shared tab bar to the screen's bottom edge,
-    // under the floating dock; its spotlight stays clear of the dock.
-    final dockClearance = media.padding.bottom;
-    final viewHeight =
-        media.size.height - media.padding.top - SectionTopBar.height;
-    final heroHeight = viewHeight.clamp(
-      560.0 + dockClearance,
-      940.0 + dockClearance,
-    );
+    // Height actually visible between the shared tab bar and the floating
+    // dock.
+    final visibleHeight =
+        media.size.height -
+        media.padding.top -
+        SectionTopBar.height -
+        media.padding.bottom;
+    // The stage is a header, not a screen: the spotlight overlaps its foot
+    // and the collections heading plus the first tiles peek above the fold,
+    // so the page never reads as finished at the first screen.
+    final heroHeight = (visibleHeight * 0.62).clamp(340.0, 520.0);
     final gutter = homeGutter(context);
 
     return AppSystemBackScope(
@@ -118,10 +120,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     HomeHero(
                       height: heroHeight,
                       topInset: 8,
-                      bottomInset: dockClearance,
                       scrollOffset: _offset,
                     ),
-                    const HomeCollections(topSpacing: 28),
+                    const HomeCollections(topSpacing: 24),
                   ],
                 ),
               ),

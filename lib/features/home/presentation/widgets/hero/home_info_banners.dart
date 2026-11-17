@@ -197,9 +197,10 @@ class _HomeInfoBannersState extends State<HomeInfoBanners> {
                 width: i == active ? 18 : 6,
                 height: 6,
                 decoration: BoxDecoration(
+                  // Dots sit on the page canvas below the hero stage.
                   color: i == active
-                      ? HomeStage.gold
-                      : HomeStage.ink.withValues(alpha: 0.25),
+                      ? HomePalette.of(context).accent
+                      : HomePalette.of(context).ink.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(3),
                 ),
               ),
