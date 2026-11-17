@@ -176,13 +176,7 @@ class _JewelryCategoriesScreenState
                       ),
                     ),
                   ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 18)),
-                  SliverToBoxAdapter(
-                    child: JewelryCategoryRail(
-                      onOpen: (slug) => _openEntry(category: slug),
-                    ),
-                  ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 14)),
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
                   SliverToBoxAdapter(
                     child: JewelryHeroCarousel(
                       onOpen: (slug) => _openEntry(category: slug),

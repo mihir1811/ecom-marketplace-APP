@@ -19,7 +19,6 @@ import '../../application/jewelry_home_providers.dart';
 import '../../domain/models/jewelry_filter_state.dart';
 import '../../domain/models/marketplace_enums.dart';
 import '../../domain/models/marketplace_listing.dart';
-import '../jewellery_category_images.dart';
 import 'jewelry_house_parts.dart';
 import 'jewelry_luxe_cards.dart';
 
@@ -102,103 +101,6 @@ class JewelryHomeHeading extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Category rail
-// ---------------------------------------------------------------------------
-
-/// Round category shortcuts ("All", Rings, Earrings, …) — the first thing
-/// shoppers reach for on every leading jewelry app.
-class JewelryCategoryRail extends ConsumerWidget {
-  const JewelryCategoryRail({required this.onOpen, super.key});
-
-  /// Null opens every collection.
-  final ValueChanged<String?> onOpen;
-
-  static const _size = 68.0;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final p = LuxePalette.of(context);
-    final categories = ref.watch(jewelleryCategoriesProvider);
-    final height = _size + 10 + MediaQuery.textScalerOf(context).scale(34);
-
-    Widget rail(List<Widget> children) => SizedBox(
-      height: height,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: children.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 6),
-        itemBuilder: (_, i) => children[i],
-      ),
-    );
-
-    return categories.when(
-      skipLoadingOnRefresh: true,
-      loading: () => rail([
-        for (var i = 0; i < 5; i++)
-          const SizedBox(
-            width: _size + 12,
-            child: Column(
-              children: [
-                LuxeSkeleton(width: _size, height: _size, radius: 34),
-                SizedBox(height: 10),
-                LuxeSkeleton(width: _size * 0.7, height: 10),
-              ],
-            ),
-          ),
-      ]),
-      error: (_, _) => const SizedBox.shrink(),
-      data: (items) {
-        if (items.isEmpty) return const SizedBox.shrink();
-        return rail([
-          _CircleTile(
-            label: context.tr(JewelryFlowL10n.homeAll),
-            size: _size,
-            onTap: () => onOpen(null),
-            child: ColoredBox(
-              color: p.accentSoft,
-              child: Icon(Icons.grid_view_rounded, color: p.accent, size: 26),
-            ),
-          ),
-          for (final c in items)
-            _CircleTile(
-              label: c.name,
-              size: _size,
-              onTap: () => onOpen(c.slug),
-              child: _CategoryArt(category: c),
-            ),
-        ]);
-      },
-    );
-  }
-}
-
-class _CategoryArt extends StatelessWidget {
-  const _CategoryArt({required this.category});
-
-  final MarketplaceCategory category;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = LuxePalette.of(context);
-    final fallback = Image.asset(
-      JewelleryCategoryImages.assetFor(category.slug),
-      fit: BoxFit.cover,
-      cacheWidth: 240,
-      errorBuilder: (_, _, _) => ColoredBox(
-        color: p.surfaceRaised,
-        child: Icon(Icons.diamond_outlined, color: p.accent, size: 24),
-      ),
-    );
-    final url = JewelleryCategoryImages.absoluteUrl(category.imageUrl);
-    return url == null
-        ? fallback
-        : AppNetworkImage(url: url, memCacheWidth: 240, error: fallback);
-  }
-}
-
 /// Circle image with a hairline gold ring and a two-line label under it.
 class _CircleTile extends StatelessWidget {
   const _CircleTile({
@@ -258,9 +160,32 @@ class _CircleTile extends StatelessWidget {
 // Hero carousel
 // ---------------------------------------------------------------------------
 
-/// Editorial hero: one collection per slide on the dark stage with its
-/// cut-out piece, a line of copy and "Shop now". Turns every 5 s (paused
-/// while touched or when motion is reduced) with page dots below.
+/// One hero slide: a photo (Unsplash License, see `docs/image-credits.md`),
+/// its collection and copy.
+class _HeroSlideData {
+  const _HeroSlideData({
+    required this.asset,
+    required this.labelKey,
+    required this.lineKey,
+    required this.category,
+    this.focus = Alignment.center,
+  });
+
+  final String asset;
+  final String labelKey;
+  final String lineKey;
+
+  /// Collection name matched against the live categories.
+  final String category;
+
+  /// Where the piece sits in the photo, so the crop keeps it in view.
+  final Alignment focus;
+}
+
+/// Editorial hero: one collection per slide, the photo on the right fading
+/// into the dark stage on the left where the copy and "Shop now" sit, so
+/// text never covers the piece. Turns every 5 s (paused while touched or
+/// when motion is reduced) with page dots below.
 class JewelryHeroCarousel extends ConsumerStatefulWidget {
   const JewelryHeroCarousel({required this.onOpen, super.key});
 
@@ -274,14 +199,37 @@ class JewelryHeroCarousel extends ConsumerStatefulWidget {
 
 class _JewelryHeroCarouselState extends ConsumerState<JewelryHeroCarousel> {
   static const _interval = Duration(seconds: 5);
-  static const _slides = JewelryShowcasePiece.all;
+  static const _dir = 'public/images/jewelryHero';
 
-  static const _lines = {
-    JewelryFlowL10n.rings: JewelryFlowL10n.homeHeroRings,
-    JewelryFlowL10n.necklaces: JewelryFlowL10n.homeHeroNecklaces,
-    JewelryFlowL10n.earrings: JewelryFlowL10n.homeHeroEarrings,
-    JewelryFlowL10n.bracelets: JewelryFlowL10n.homeHeroBracelets,
-  };
+  static const _slides = [
+    _HeroSlideData(
+      asset: '$_dir/rings.webp',
+      labelKey: JewelryFlowL10n.rings,
+      lineKey: JewelryFlowL10n.homeHeroRings,
+      category: 'Rings',
+    ),
+    _HeroSlideData(
+      asset: '$_dir/necklaces.webp',
+      labelKey: JewelryFlowL10n.necklaces,
+      lineKey: JewelryFlowL10n.homeHeroNecklaces,
+      category: 'Necklaces',
+      focus: Alignment(0.4, 0),
+    ),
+    _HeroSlideData(
+      asset: '$_dir/earrings.webp',
+      labelKey: JewelryFlowL10n.earrings,
+      lineKey: JewelryFlowL10n.homeHeroEarrings,
+      category: 'Earrings',
+      focus: Alignment(0.3, 0),
+    ),
+    _HeroSlideData(
+      asset: '$_dir/bracelets.webp',
+      labelKey: JewelryFlowL10n.bracelets,
+      lineKey: JewelryFlowL10n.homeHeroBracelets,
+      category: 'Bracelets',
+      focus: Alignment(0, 0.3),
+    ),
+  ];
 
   /// Virtual pages so the hero always moves forward.
   static const _origin = 1000 * 4;
@@ -317,9 +265,9 @@ class _JewelryHeroCarouselState extends ConsumerState<JewelryHeroCarousel> {
   }
 
   /// Live slug whose name or slug matches the slide's collection.
-  String? _slugFor(JewelryShowcasePiece piece) {
+  String? _slugFor(_HeroSlideData slide) {
     final live = ref.read(jewelleryCategoriesProvider).value ?? const [];
-    final want = piece.category.toLowerCase();
+    final want = slide.category.toLowerCase();
     final singular = want.endsWith('s')
         ? want.substring(0, want.length - 1)
         : want;
@@ -340,7 +288,7 @@ class _JewelryHeroCarouselState extends ConsumerState<JewelryHeroCarousel> {
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
     final width = MediaQuery.sizeOf(context).width;
-    final height = math.min(width * 0.62, 280.0);
+    final height = math.min(width * 0.6, 280.0);
     final active = _page % _slides.length;
 
     return Column(
@@ -355,15 +303,12 @@ class _JewelryHeroCarouselState extends ConsumerState<JewelryHeroCarousel> {
               controller: _controller,
               onPageChanged: (i) => setState(() => _page = i),
               itemBuilder: (context, i) {
-                final piece = _slides[i % _slides.length];
+                final slide = _slides[i % _slides.length];
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: _HeroSlide(
-                    piece: piece,
-                    line: context.tr(
-                      _lines[piece.labelKey] ?? JewelryFlowL10n.homeHeroEyebrow,
-                    ),
-                    onTap: () => widget.onOpen(_slugFor(piece)),
+                    slide: slide,
+                    onTap: () => widget.onOpen(_slugFor(slide)),
                   ),
                 );
               },
@@ -394,74 +339,63 @@ class _JewelryHeroCarouselState extends ConsumerState<JewelryHeroCarousel> {
 }
 
 class _HeroSlide extends StatelessWidget {
-  const _HeroSlide({
-    required this.piece,
-    required this.line,
-    required this.onTap,
-  });
+  const _HeroSlide({required this.slide, required this.onTap});
 
-  final JewelryShowcasePiece piece;
-  final String line;
+  final _HeroSlideData slide;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final title = context.tr(piece.labelKey);
+    final title = context.tr(slide.labelKey);
+    final line = context.tr(slide.lineKey);
+    final stage = LuxeStage.obsidian;
     return PressTilt(
       semanticLabel: '$title. $line',
       maxTilt: 0.02,
       onTap: onTap,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(LuxeSpace.radius),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [LuxeStage.raised, LuxeStage.obsidian],
-            ),
-          ),
+        child: ColoredBox(
+          color: stage,
           child: LayoutBuilder(
             builder: (context, c) {
-              final art = c.maxHeight * 0.95;
+              final photo = c.maxWidth * 0.62;
               return Stack(
                 children: [
-                  // Warm light behind the piece.
                   Positioned(
-                    right: -art * 0.2,
-                    top: (c.maxHeight - art * 1.3) / 2,
-                    width: art * 1.3,
-                    height: art * 1.3,
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: photo,
+                    child: ExcludeSemantics(
+                      child: Image.asset(
+                        slide.asset,
+                        fit: BoxFit.cover,
+                        alignment: slide.focus,
+                        cacheWidth: 900,
+                        errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                      ),
+                    ),
+                  ),
+                  // Blends the photo's left edge into the stage.
+                  Positioned(
+                    right: photo * 0.55,
+                    top: 0,
+                    bottom: 0,
+                    width: photo * 0.45 + 1,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        gradient: RadialGradient(
-                          colors: [
-                            piece.glow.withValues(alpha: 0.42),
-                            piece.glow.withValues(alpha: 0),
-                          ],
+                        gradient: LinearGradient(
+                          colors: [stage, stage.withValues(alpha: 0)],
                         ),
                       ),
                     ),
                   ),
                   Positioned(
-                    right: 0,
-                    top: (c.maxHeight - art) / 2,
-                    width: art,
-                    height: art,
-                    child: ExcludeSemantics(
-                      child: Image.asset(
-                        piece.asset,
-                        fit: BoxFit.contain,
-                        cacheWidth: 600,
-                        errorBuilder: (_, _, _) => const SizedBox.shrink(),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 20,
-                    top: 20,
-                    bottom: 20,
-                    width: c.maxWidth * 0.56,
+                    left: 18,
+                    top: 18,
+                    bottom: 18,
+                    width: c.maxWidth * 0.5,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -473,29 +407,34 @@ class _HeroSlide extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: LuxeType.eyebrow(
                             LuxeStage.gold,
-                          ).copyWith(fontSize: 10),
+                          ).copyWith(fontSize: 9.5, letterSpacing: 2),
                         ),
-                        const SizedBox(height: 10),
-                        Text(
-                          title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: LuxeType.display(36, LuxeStage.ink),
+                        const SizedBox(height: 8),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            title,
+                            maxLines: 1,
+                            style: LuxeType.display(34, LuxeStage.ink),
+                          ),
                         ),
                         const SizedBox(height: 6),
-                        Text(
-                          line,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: LuxeType.body(
-                            LuxeStage.inkMuted,
-                            size: 13.5,
-                          ).copyWith(height: 1.35),
+                        Flexible(
+                          child: Text(
+                            line,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: LuxeType.body(
+                              LuxeStage.inkMuted,
+                              size: 13,
+                            ).copyWith(height: 1.35),
+                          ),
                         ),
                         const Spacer(),
                         Container(
-                          height: 38,
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          height: 36,
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
                           decoration: ShapeDecoration(
                             color: LuxeStage.gold,
                             shape: const StadiumBorder(),
@@ -503,17 +442,21 @@ class _HeroSlide extends StatelessWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                context.tr(JewelryFlowL10n.homeHeroCta),
-                                style: LuxeType.label(
-                                  LuxeStage.obsidian,
-                                  size: 13,
-                                ).copyWith(fontWeight: FontWeight.w600),
+                              Flexible(
+                                child: Text(
+                                  context.tr(JewelryFlowL10n.homeHeroCta),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: LuxeType.label(
+                                    LuxeStage.obsidian,
+                                    size: 12.5,
+                                  ).copyWith(fontWeight: FontWeight.w600),
+                                ),
                               ),
                               const SizedBox(width: 6),
                               Icon(
                                 Icons.arrow_forward_rounded,
-                                size: 16,
+                                size: 15,
                                 color: LuxeStage.obsidian,
                               ),
                             ],

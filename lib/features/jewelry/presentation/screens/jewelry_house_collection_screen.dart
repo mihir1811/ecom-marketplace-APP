@@ -4,13 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/pagination/paginated_list_state.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/luxe_scope.dart';
 import '../../../../core/theme/luxe_tokens.dart';
-import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/luxe/luxe_card_reveal.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
@@ -20,22 +18,19 @@ import '../../../../core/widgets/navigation/top_bar/top_bar_actions.dart';
 import '../../../product_detail/presentation/widgets/luxe/luxe_detail_parts.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../application/jewellery_categories_provider.dart';
-import '../../application/jewelry_catalogue_providers.dart';
 import '../../application/jewelry_house_providers.dart';
 import '../../domain/models/jewelry.dart';
 import '../../domain/models/jewelry_filter_state.dart';
 import '../../domain/models/jewelry_filter_summary.dart';
 import '../../domain/models/marketplace_listing.dart';
-import '../jewellery_category_images.dart';
 import '../widgets/jewelry_filter_labels.dart';
-import '../widgets/jewelry_house_parts.dart';
 import '../widgets/jewelry_luxe_cards.dart';
 import 'jewelry_filter_screen.dart';
 
-/// One collection of one house, apart from the shared results page: a dark
-/// hero fronted by the house's newest piece, then the house's styles in
-/// this collection, Filters and Sort (pinned under the header once scrolled
-/// to) over its pieces, paged from `GET /marketplace/listings`.
+/// One collection of one house, apart from the shared results page: the
+/// house's styles in this collection as chips, Filters and Sort (pinned
+/// under the header once scrolled to) over its pieces, paged from
+/// `GET /marketplace/listings`.
 ///
 /// Styles are made by people and change, so they are read live and only
 /// those the house has pieces in are offered.
@@ -43,7 +38,6 @@ class JewelryHouseCollectionScreen extends ConsumerStatefulWidget {
   const JewelryHouseCollectionScreen({
     required this.shop,
     required this.category,
-    this.preview,
     super.key,
   });
 
@@ -52,9 +46,6 @@ class JewelryHouseCollectionScreen extends ConsumerStatefulWidget {
 
   /// Top-level category slug.
   final String category;
-
-  /// House data from the previous page, shown while it loads.
-  final MarketplaceShop? preview;
 
   @override
   ConsumerState<JewelryHouseCollectionScreen> createState() =>
@@ -188,16 +179,11 @@ class _JewelryHouseCollectionScreenState
 
   Widget _buildScaffold(BuildContext context) {
     final p = LuxePalette.of(context);
-    final house =
-        ref.watch(jewelryShopProvider(widget.shop)).value ?? widget.preview;
     final categories = ref.watch(jewelleryCategoriesProvider).value;
     final collection = categories == null
         ? null
         : MarketplaceCategory.find(categories, widget.category);
     final name = collection?.name ?? '';
-    final cover = _coverOf(
-      ref.watch(jewelryHouseCollectionsProvider(widget.shop)).value,
-    );
     final ownStyles = ref
         .watch(
           jewelryHouseStylesProvider((
@@ -211,9 +197,7 @@ class _JewelryHouseCollectionScreenState
         if (ownStyles != null && ownStyles.contains(s.slug)) s,
     ];
     final pieces = ref.watch(jewelryHousePiecesProvider(_query));
-    final total = pieces.isInitialLoading ? null : pieces.totalCount;
-    final topInset = MediaQuery.paddingOf(context).top + 64;
-    final heroHeight = topInset + 300;
+    final topInset = _headerBottom;
 
     Widget bar({required bool floating}) => _CollectionBar(
       styles: styles,
@@ -245,16 +229,7 @@ class _JewelryHouseCollectionScreenState
                   parent: AlwaysScrollableScrollPhysics(),
                 ),
                 slivers: [
-                  SliverToBoxAdapter(
-                    child: _CollectionHero(
-                      height: heroHeight,
-                      house: house,
-                      category: widget.category,
-                      name: name,
-                      cover: cover,
-                      total: total,
-                    ),
-                  ),
+                  SliverToBoxAdapter(child: SizedBox(height: topInset)),
                   SliverToBoxAdapter(
                     child: KeyedSubtree(
                       key: _barKey,
@@ -296,21 +271,14 @@ class _JewelryHouseCollectionScreenState
             child: LuxeFloatingHeader(
               title: name,
               offset: _offset,
-              solidAfter: heroHeight - topInset,
-              darkBackdrop: true,
+              // Always solid: the page opens on the canvas.
+              solidAfter: 0,
               actions: (glass) => [TopBarActions(glass: glass)],
             ),
           ),
         ],
       ),
     );
-  }
-
-  String? _coverOf(List<JewelryHouseCollection>? collections) {
-    for (final c in collections ?? const <JewelryHouseCollection>[]) {
-      if (c.category.slug == widget.category) return c.cover;
-    }
-    return null;
   }
 
   List<Widget> _pieces(
@@ -361,124 +329,7 @@ class _JewelryHouseCollectionScreenState
   }
 }
 
-/// The newest piece full-bleed on the dark stage, the house's mark and the
-/// collection's name.
-class _CollectionHero extends StatelessWidget {
-  const _CollectionHero({
-    required this.height,
-    required this.house,
-    required this.category,
-    required this.name,
-    required this.cover,
-    required this.total,
-  });
-
-  final double height;
-  final MarketplaceShop? house;
-  final String category;
-  final String name;
-  final String? cover;
-  final int? total;
-
-  @override
-  Widget build(BuildContext context) {
-    final fallback = Image.asset(
-      JewelleryCategoryImages.assetFor(category),
-      fit: BoxFit.cover,
-      errorBuilder: (_, _, _) => const SizedBox(),
-    );
-    final house = this.house;
-
-    return SizedBox(
-      height: height,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          const JewelryStageBackdrop(),
-          Opacity(
-            opacity: 0.9,
-            child: cover == null
-                ? fallback
-                : AppNetworkImage(url: cover!, error: fallback),
-          ),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  LuxeStage.obsidian.withValues(alpha: 0.55),
-                  LuxeStage.obsidian.withValues(alpha: 0.05),
-                  LuxeStage.obsidian.withValues(alpha: 0.6),
-                  LuxeStage.obsidian,
-                ],
-                stops: const [0, 0.3, 0.7, 1],
-              ),
-            ),
-          ),
-          Positioned(
-            left: 20,
-            right: 20,
-            bottom: 24,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (house != null)
-                  Row(
-                    children: [
-                      JewelryHouseLogo(house: house, radius: 13),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          house.name.toUpperCase(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: LuxeType.eyebrow(LuxeStage.gold),
-                        ),
-                      ),
-                    ],
-                  ),
-                const SizedBox(height: 10),
-                Text(
-                  name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: LuxeType.display(46, LuxeStage.ink),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        context.tr(JewelryFlowL10n.houseCollectionsTitle),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: LuxeType.displayItalic(18, LuxeStage.inkMuted),
-                      ),
-                    ),
-                    if (total != null) ...[
-                      const SizedBox(width: 8),
-                      Container(width: 18, height: 0.8, color: LuxeStage.gold),
-                      const SizedBox(width: 8),
-                      Text(
-                        context.tr(JewelryFlowL10n.results, {'count': total}),
-                        style: LuxeType.label(LuxeStage.gold, size: 12),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// The house's styles in this collection as editorial tabs with a gold
-/// underline, then the count, Filters and Sort. Drawn inline and, frosted,
+/// The house's styles in this collection as chips, then Filters and Sort. Drawn inline and, frosted,
 /// pinned under the header.
 class _CollectionBar extends StatelessWidget {
   const _CollectionBar({
@@ -521,24 +372,15 @@ class _CollectionBar extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (styles.isNotEmpty)
-            Container(
-              height: 52,
-              decoration: BoxDecoration(border: Border(bottom: hairline)),
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                itemCount: tabs.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 26),
-                itemBuilder: (context, i) {
-                  final t = tabs[i];
-                  return _StyleTab(
-                    label: t.label,
-                    selected: t.slug == selectedStyle,
-                    palette: p,
-                    onTap: () => onStyle(t.slug),
-                  );
-                },
+            Padding(
+              padding: const EdgeInsets.only(top: 10, bottom: 2),
+              child: LuxeQuickChips<String?>(
+                chips: [
+                  for (final t in tabs)
+                    LuxeQuickChip(value: t.slug, label: t.label),
+                ],
+                isSelected: (slug) => slug == selectedStyle,
+                onTap: onStyle,
               ),
             ),
           // Same Filters / Sort / grid-list toolbar as the listing screens.
@@ -569,57 +411,5 @@ class _CollectionBar extends StatelessWidget {
       );
     }
     return content;
-  }
-}
-
-class _StyleTab extends StatelessWidget {
-  const _StyleTab({
-    required this.label,
-    required this.selected,
-    required this.palette,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final LuxePalette palette;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = palette;
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: label,
-      excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () {
-          AppHaptics.selection();
-          onTap();
-        },
-        child: IntrinsicWidth(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              AnimatedDefaultTextStyle(
-                duration: LuxeMotion.fast,
-                style: LuxeType.display(17, selected ? p.ink : p.inkFaint),
-                child: Text(label, textAlign: TextAlign.center),
-              ),
-              const SizedBox(height: 8),
-              AnimatedContainer(
-                duration: LuxeMotion.medium,
-                curve: LuxeMotion.settle,
-                height: 1.6,
-                color: selected ? p.accent : Colors.transparent,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }

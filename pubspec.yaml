@@ -99,6 +99,7 @@ flutter:
     - public/images/gemstones/
     - public/images/jewelryCategoryImages/
     - public/images/jewelryShowcase/
+    - public/images/jewelryHero/
     - public/images/watch_logo/
     - assets/shapes/
     - assets/shapes/simulator/

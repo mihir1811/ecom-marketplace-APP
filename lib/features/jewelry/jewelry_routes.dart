@@ -53,9 +53,6 @@ final List<RouteBase> jewelryRoutes = [
     builder: (context, state) => JewelryHouseCollectionScreen(
       shop: state.pathParameters['slug'] ?? '',
       category: state.pathParameters['category'] ?? '',
-      preview: state.extra is MarketplaceShop
-          ? state.extra! as MarketplaceShop
-          : null,
     ),
   ),
   GoRoute(

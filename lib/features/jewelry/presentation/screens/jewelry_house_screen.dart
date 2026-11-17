@@ -57,7 +57,6 @@ class _JewelryHouseScreenState extends ConsumerState<JewelryHouseScreen> {
   void _openCollection(String category) {
     context.push(
       AppRouteNames.jewelryHouseCollectionPath(widget.slug, category),
-      extra: ref.read(jewelryShopProvider(widget.slug)).value ?? widget.preview,
     );
   }
 

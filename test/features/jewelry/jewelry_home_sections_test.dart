@@ -8,7 +8,8 @@ import 'package:gemworld/features/jewelry/domain/models/jewelry.dart';
 import 'package:gemworld/features/jewelry/domain/models/marketplace_listing.dart';
 import 'package:gemworld/features/jewelry/presentation/widgets/jewelry_home_sections.dart';
 
-const _long = 'Maison Lumière Fine Jewels and Heirloom Creations Private Limited';
+const _long =
+    'Maison Lumière Fine Jewels and Heirloom Creations Private Limited';
 
 final _categories = [
   for (final name in ['Rings', 'Earrings', 'Necklaces', 'Bracelets', _long])
@@ -46,7 +47,6 @@ Future<void> _pumpAt(WidgetTester tester, double width) async {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                JewelryCategoryRail(onOpen: (_) {}),
                 JewelryHeroCarousel(onOpen: (_) {}),
                 const JewelryHomeHeading(
                   title: _long,

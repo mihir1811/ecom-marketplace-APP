@@ -129,34 +129,6 @@ class _JewelryPremiumScreenState extends ConsumerState<JewelryPremiumScreen> {
               parent: AlwaysScrollableScrollPhysics(),
             ),
             slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 6, 12, 4),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.tr(JewelryMarketL10n.premium).toUpperCase(),
-                        style: LuxeType.eyebrow(p.accent),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        context.tr(JewelryMarketL10n.premiumSegment),
-                        style: LuxeType.display(30, p.ink),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        pieces.isInitialLoading
-                            ? ''
-                            : context.tr(JewelryMarketL10n.premiumCount, {
-                                'count': pieces.totalCount,
-                              }),
-                        style: LuxeType.body(p.inkMuted, size: 13),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
               if (categories.length >= 2)
                 SliverToBoxAdapter(
                   child: Padding(
