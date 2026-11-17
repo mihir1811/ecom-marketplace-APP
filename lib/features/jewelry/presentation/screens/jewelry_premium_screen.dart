@@ -154,52 +154,48 @@ class _JewelryPremiumScreenState extends ConsumerState<JewelryPremiumScreen> {
                 ),
               ),
             ),
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: 52,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  children: [
-                    if (categories.length >= 2) ...[
-                      ChoiceChip(
-                        label: Text(context.tr(JewelryMarketL10n.allPieces)),
-                        selected: _category == null,
-                        onSelected: (_) => _selectCategory(null),
+            if (categories.length >= 2)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: LuxeQuickChips<String?>(
+                    chips: [
+                      LuxeQuickChip(
+                        value: null,
+                        label: context.tr(JewelryMarketL10n.allPieces),
                       ),
-                      for (final c in categories) ...[
-                        const SizedBox(width: 6),
-                        ChoiceChip(
-                          label: Text('${c.name} (${c.count})'),
-                          selected: _category == c.slug,
-                          onSelected: (_) => _selectCategory(c.slug),
+                      for (final c in categories)
+                        LuxeQuickChip(
+                          value: c.slug,
+                          label: '${c.name} (${c.count})',
                         ),
-                      ],
-                      const SizedBox(width: 8),
                     ],
-                    ActionChip(
-                      avatar: const Icon(Icons.swap_vert_rounded, size: 18),
-                      label: Text(context.tr(JewelryFlowL10n.sortTitle)),
-                      onPressed: _openSort,
+                    isSelected: (slug) => slug == _category,
+                    onTap: _selectCategory,
+                  ),
+                ),
+              ),
+            // Same Sort / grid-list toolbar as the listing screens; premium
+            // has no filter sheet, so the Filters pill is left out.
+            LuxePinnedBar(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                child: Row(
+                  children: [
+                    LuxeToolbarPill(
+                      icon: Icons.swap_vert_rounded,
+                      label: context.tr(DiamondFlowL10n.sort),
+                      onTap: _openSort,
                     ),
-                    const SizedBox(width: 6),
-                    ActionChip(
-                      avatar: Icon(
-                        _viewMode == LuxeViewMode.grid
-                            ? Icons.view_agenda_outlined
-                            : Icons.grid_view_rounded,
-                        size: 18,
-                      ),
-                      label: const SizedBox.shrink(),
-                      labelPadding: EdgeInsets.zero,
-                      onPressed: () => setState(
-                        () => _viewMode = _viewMode == LuxeViewMode.grid
-                            ? LuxeViewMode.list
-                            : LuxeViewMode.grid,
-                      ),
+                    const Spacer(),
+                    LuxeViewToggle(
+                      viewMode: _viewMode,
+                      onChanged: (m) => setState(() => _viewMode = m),
+                      gridLabel: context.tr(DiamondFlowL10n.grid),
+                      listLabel: context.tr(DiamondFlowL10n.list),
                     ),
                   ],
                 ),

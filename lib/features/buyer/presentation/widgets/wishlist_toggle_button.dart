@@ -47,6 +47,9 @@ Future<bool?> toggleWishlistItem(
                   : removedMessage ??
                         context.tr(AccountCommerceL10n.removedWishlist)),
       ),
+      // Floating so it rests just above the bottom dock on every screen.
+      behavior: SnackBarBehavior.floating,
+      margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
       duration: const Duration(seconds: 1),
     ),
   );

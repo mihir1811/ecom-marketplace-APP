@@ -79,7 +79,7 @@ class LuxeProductGridCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
-    final metaText = LuxeScrambleText(
+    final metaText = _CardLine(
       meta ?? ' ',
       style: LuxeType.label(p.inkFaint, size: 11.5),
     );
@@ -122,12 +122,12 @@ class LuxeProductGridCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                LuxeRollTitle(
+                _CardLine(
                   title,
                   style: LuxeType.display(19, p.ink).copyWith(height: 1.1),
                 ),
                 const SizedBox(height: 5),
-                LuxeScrambleText(
+                _CardLine(
                   subtitle,
                   style: LuxeType.label(p.inkMuted, size: 12.5),
                 ),
@@ -242,7 +242,7 @@ class LuxeProductListCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: LuxeRollTitle(
+                        child: _CardLine(
                           title,
                           style: LuxeType.display(20, p.ink),
                         ),
@@ -250,7 +250,7 @@ class LuxeProductListCard extends StatelessWidget {
                       ?titleAction,
                     ],
                   ),
-                  LuxeScrambleText(
+                  _CardLine(
                     subtitle,
                     style: LuxeType.label(p.inkMuted, size: 12.5),
                   ),
@@ -264,7 +264,7 @@ class LuxeProductListCard extends StatelessWidget {
                           const SizedBox(width: 5),
                         ],
                         Expanded(
-                          child: LuxeScrambleText(
+                          child: _CardLine(
                             detail ?? '',
                             style: LuxeType.label(p.inkFaint, size: 11.5),
                           ),
@@ -534,4 +534,16 @@ class _BadgeTextScale extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
       MediaQuery.withClampedTextScaling(maxScaleFactor: 1.3, child: child);
+}
+
+/// Single-line card text, ellipsized; shown plainly (no reveal animation).
+class _CardLine extends StatelessWidget {
+  const _CardLine(this.text, {required this.style});
+
+  final String text;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) =>
+      Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: style);
 }

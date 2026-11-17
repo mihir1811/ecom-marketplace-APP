@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
 
 /// Circular "add to compare" control.
 class CompareAddButton extends StatelessWidget {
@@ -64,13 +63,10 @@ void showCompareFeedback(BuildContext context, String message) {
     ..showSnackBar(
       SnackBar(
         content: Text(message),
+        // Floating snack bars already sit above the bottom dock (pages report
+        // its clearance as view padding), so only a small gap is added here.
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.fromLTRB(
-          AppSpacing.s16,
-          0,
-          AppSpacing.s16,
-          88,
-        ),
+        margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
         duration: const Duration(seconds: 2),
       ),
     );
