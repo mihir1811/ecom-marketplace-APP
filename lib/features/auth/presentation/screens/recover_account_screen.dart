@@ -8,7 +8,6 @@ import '../../../../core/auth/auth_validators.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../widgets/kit/auth_kit.dart';
 
 /// Public screen to recover a scheduled-for-deletion account.
@@ -130,7 +129,6 @@ class _RecoverAccountScreenState extends ConsumerState<RecoverAccountScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             AuthHero(
-              cut: GemCut.emerald,
               eyebrow: context.tr(AccountCommerceL10n.recoverAccount),
               title: context.tr(AuthL10n.recoverTitle),
             ),

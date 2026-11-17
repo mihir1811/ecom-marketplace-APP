@@ -4,8 +4,6 @@ import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../core/widgets/gem3d/gem_renderer.dart';
 import '../../../info/data/policies_repository.dart';
 import '../../../info/domain/models/policy_document.dart';
 import '../../../info/presentation/widgets/policy_body.dart';
@@ -84,8 +82,6 @@ class _SellerPoliciesHubScreenState extends State<SellerPoliciesHubScreen> {
           children: [
             AtelierHero(
               title: context.tr(RemainingL10n.policiesLegal),
-              cut: GemCut.asscher,
-              look: GemLook.ice,
               action: Wrap(
                 spacing: 8,
                 runSpacing: 8,

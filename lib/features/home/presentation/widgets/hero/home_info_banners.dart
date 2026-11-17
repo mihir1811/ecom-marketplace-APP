@@ -149,16 +149,40 @@ class _HomeInfoBannersState extends State<HomeInfoBanners> {
           onPointerCancel: (_) => _setTouching(false),
           child: AspectRatio(
             aspectRatio: tablet ? 4 : 2,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(HomeSpace.radiusSmall),
-              child: PageView.builder(
-                controller: _controller,
-                onPageChanged: (i) => setState(() => _page = i),
-                itemBuilder: (context, i) => _InfoFace(
-                  slide: _slides[i % _slides.length],
-                  tablet: tablet,
-                ),
-              ),
+            // Each slide is its own card that travels as a whole. The pager
+            // spans the full screen width so a card slides out past the
+            // gutter instead of being cropped by a fixed frame, and the
+            // gutter becomes the gap between neighbouring cards.
+            child: LayoutBuilder(
+              builder: (context, box) {
+                final screen = MediaQuery.sizeOf(context).width;
+                final bleed = ((screen - box.maxWidth) / 2).clamp(
+                  0.0,
+                  double.infinity,
+                );
+                final full = box.maxWidth + bleed * 2;
+
+                return OverflowBox(
+                  minWidth: full,
+                  maxWidth: full,
+                  child: PageView.builder(
+                    controller: _controller,
+                    onPageChanged: (i) => setState(() => _page = i),
+                    itemBuilder: (context, i) => Padding(
+                      padding: EdgeInsets.symmetric(horizontal: bleed),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          HomeSpace.radiusSmall,
+                        ),
+                        child: _InfoFace(
+                          slide: _slides[i % _slides.length],
+                          tablet: tablet,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ),

@@ -4,14 +4,8 @@ import 'package:gemworld/core/auth/auth_validators.dart';
 void main() {
   group('dateOfBirth helpers', () {
     test('formats API value as YYYY-MM-DD', () {
-      expect(
-        formatDateOfBirthForApi(DateTime(1995, 6, 15)),
-        '1995-06-15',
-      );
-      expect(
-        formatDateOfBirthForApi(DateTime(2000, 1, 5)),
-        '2000-01-05',
-      );
+      expect(formatDateOfBirthForApi(DateTime(1995, 6, 15)), '1995-06-15');
+      expect(formatDateOfBirthForApi(DateTime(2000, 1, 5)), '2000-01-05');
     });
 
     test('requires a date', () {

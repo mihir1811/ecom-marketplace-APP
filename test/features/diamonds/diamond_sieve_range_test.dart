@@ -11,10 +11,14 @@ void main() {
     notifier.toggleSieveSize(3);
     notifier.toggleSieveSize(8);
 
-    expect(
-      container.read(diamondSearchProvider).selectedSieveIndices,
-      [3, 4, 5, 6, 7, 8],
-    );
+    expect(container.read(diamondSearchProvider).selectedSieveIndices, [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+    ]);
   });
 
   test('sieve range can be narrowed and deselected like color range', () {
@@ -24,10 +28,14 @@ void main() {
 
     notifier.toggleSieveSize(8);
     notifier.toggleSieveSize(3);
-    expect(
-      container.read(diamondSearchProvider).selectedSieveIndices,
-      [3, 4, 5, 6, 7, 8],
-    );
+    expect(container.read(diamondSearchProvider).selectedSieveIndices, [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+    ]);
 
     notifier.toggleSieveSize(3);
     expect(container.read(diamondSearchProvider).selectedSieveIndices, [3]);

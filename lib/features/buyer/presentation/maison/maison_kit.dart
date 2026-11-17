@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/haptics/app_haptics.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../core/widgets/gem3d/gem_renderer.dart';
-import '../../../../core/widgets/gem3d/gem_view.dart';
 import '../../../seller/presentation/atelier/atelier_components.dart';
 import '../../../seller/presentation/atelier/atelier_feedback.dart';
 import '../../../seller/presentation/atelier/atelier_motion.dart';
 import '../../../seller/presentation/atelier/atelier_studio.dart';
 import '../../../seller/presentation/atelier/atelier_theme.dart';
-import '../../../../core/theme/luxe_tokens.dart';
 
 // ── Formatting ──────────────────────────────────────────────────────────
 
@@ -85,17 +80,9 @@ String maisonShortId(String id) {
 /// stone took space without purpose, so only [trailing] (a primary action)
 /// still shows; otherwise it renders nothing.
 class MaisonHeader extends StatelessWidget {
-  const MaisonHeader({
-    required this.title,
-    this.cut,
-    this.look = GemLook.white,
-    this.trailing,
-    super.key,
-  });
+  const MaisonHeader({required this.title, this.trailing, super.key});
 
   final String title;
-  final GemCut? cut;
-  final GemLook look;
 
   /// Primary action, kept right-aligned.
   final Widget? trailing;
@@ -105,62 +92,6 @@ class MaisonHeader extends StatelessWidget {
     final action = trailing;
     if (action == null) return const SizedBox.shrink();
     return Align(alignment: Alignment.centerRight, child: action);
-  }
-}
-
-/// A live 3D stone inside a dark jeweller's loupe with a fine gold ring.
-class MaisonLoupe extends StatelessWidget {
-  const MaisonLoupe({
-    required this.cut,
-    this.look = GemLook.white,
-    this.size = 96,
-    this.interactive = true,
-    super.key,
-  });
-
-  final GemCut cut;
-  final GemLook look;
-  final double size;
-  final bool interactive;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.atelier;
-    Widget ring = Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [LuxeStage.vaultTop, LuxeStage.vaultBottom],
-          stops: const [0.1, 1],
-        ),
-        border: Border.all(color: p.gold.withValues(alpha: 0.45)),
-        boxShadow: [
-          BoxShadow(
-            color: p.gold.withValues(alpha: p.isDark ? 0.14 : 0.22),
-            blurRadius: size * 0.4,
-            spreadRadius: -size * 0.12,
-          ),
-        ],
-      ),
-      alignment: Alignment.center,
-      child: GemView(
-        cut: cut,
-        look: look,
-        size: size * 0.82,
-        spin: 0.34,
-        tilt: 0.42,
-        interactive: interactive,
-        semanticLabel: 'Rotating gem. Drag to turn it.',
-      ),
-    );
-    if (!context.reduceMotion) {
-      ring = ring
-          .animate(onPlay: (c) => c.repeat(reverse: true))
-          .moveY(begin: -2, end: 2, duration: 3200.ms, curve: Curves.easeInOut);
-    }
-    return ring;
   }
 }
 
@@ -458,12 +389,11 @@ class MaisonListFooter extends StatelessWidget {
   }
 }
 
-/// Empty state with a live stone instead of an icon.
+/// Empty state: title, message and an optional action.
 class MaisonEmptyState extends StatelessWidget {
   const MaisonEmptyState({
     required this.title,
     required this.message,
-    this.cut = GemCut.round,
     this.actionLabel,
     this.actionIcon,
     this.onAction,
@@ -472,7 +402,6 @@ class MaisonEmptyState extends StatelessWidget {
 
   final String title;
   final String message;
-  final GemCut cut;
   final String? actionLabel;
   final IconData? actionIcon;
   final VoidCallback? onAction;
@@ -485,10 +414,7 @@ class MaisonEmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Reveal(child: MaisonLoupe(cut: cut, size: 120)),
-          const SizedBox(height: 16),
           Reveal(
-            index: 1,
             child: Text(
               title,
               textAlign: TextAlign.center,

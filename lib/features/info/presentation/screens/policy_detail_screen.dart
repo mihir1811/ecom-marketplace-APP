@@ -5,8 +5,6 @@ import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/widgets/app_scaffold.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../core/widgets/gem3d/gem_renderer.dart';
 import '../../data/policies_repository.dart';
 import '../../domain/models/policy_document.dart';
 import '../widgets/policy_body.dart';
@@ -80,12 +78,6 @@ class _PolicyDetailScreenState extends State<PolicyDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final p = context.atelier;
-    final cut = widget.policyId == 'privacy'
-        ? GemCut.oval
-        : widget.policyId == 'terms'
-        ? GemCut.emerald
-        : GemCut.cushion;
-    final look = widget.policyId == 'privacy' ? GemLook.ice : GemLook.champagne;
 
     return AppScaffold(
       backgroundColor: p.canvas,
@@ -118,8 +110,6 @@ class _PolicyDetailScreenState extends State<PolicyDetailScreen> {
                 title: loading
                     ? context.tr(RemainingL10n.policy)
                     : (doc?.title ?? context.tr(RemainingL10n.policy)),
-                cut: cut,
-                look: look,
                 action: AtelierButton(
                   label: context.tr(RemainingL10n.allPolicies),
                   variant: AtelierButtonVariant.secondary,

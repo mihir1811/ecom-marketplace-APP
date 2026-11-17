@@ -77,9 +77,8 @@ void main() {
     'price range': () =>
         card(price: const LuxePriceRow(price: 9000, prefix: 'from')),
     'sponsored': () => card(metaLeading: const SpotlightTag(pill: true)),
-    'rating': () => card(
-      metaLeading: const JewelryRatingChip(average: 4.7, count: 12),
-    ),
+    'rating': () =>
+        card(metaLeading: const JewelryRatingChip(average: 4.7, count: 12)),
   };
 
   for (final scale in [1.0, 1.3, 2.0]) {
@@ -89,7 +88,11 @@ void main() {
       ) async {
         final m = await measure(tester, entry.value(), scale);
         final slack = m.extent - m.natural;
-        expect(slack, greaterThanOrEqualTo(0), reason: 'overflows by ${-slack}');
+        expect(
+          slack,
+          greaterThanOrEqualTo(0),
+          reason: 'overflows by ${-slack}',
+        );
         expect(slack, lessThan(8), reason: 'empty band of $slack px');
       });
     }

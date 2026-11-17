@@ -21,6 +21,7 @@ class Diamond {
   final bool hasVideo;
   final bool hasImage;
   final double? discount;
+
   /// RAP / list price per carat from the catalog API (when present).
   final double? rap;
   final bool isLabGrown;

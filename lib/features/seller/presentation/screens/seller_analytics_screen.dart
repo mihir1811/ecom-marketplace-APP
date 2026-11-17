@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/utils/app_currency.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../../application/seller_insights_provider.dart';
 import '../../domain/models/seller_insights.dart';
 import '../widgets/dashboard/dashboard_performance.dart';
@@ -93,7 +92,6 @@ class _SellerAnalyticsScreenState extends ConsumerState<SellerAnalyticsScreen> {
       children: [
         AtelierHero(
           title: context.tr(RemainingL10n.analytics),
-          cut: GemCut.radiant,
           footer: _HeroHeadline(
             label:
                 '${headline?.title ?? context.tr(RemainingL10n.revenue)}'

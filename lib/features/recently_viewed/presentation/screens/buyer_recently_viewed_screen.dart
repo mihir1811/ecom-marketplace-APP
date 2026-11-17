@@ -8,7 +8,6 @@ import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../../../buyer/domain/models/wishlist_item.dart';
 import '../../../buyer/presentation/maison/maison_kit.dart';
 import '../../../buyer/presentation/maison/maison_layout.dart';
@@ -342,7 +341,6 @@ class _BuyerRecentlyViewedScreenState
       return [
         boxed(
           MaisonEmptyState(
-            cut: GemCut.pear,
             title: context.tr(AccountCommerceL10n.noRecent),
             message: context.tr(AccountCommerceL10n.noRecentHint),
             actionLabel: 'Explore the collection',

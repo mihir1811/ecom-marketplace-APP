@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../../../refunds/application/refund_providers.dart';
 import '../../../refunds/domain/models/refund_request.dart';
 import '../../../seller/presentation/atelier/atelier_components.dart';
@@ -155,7 +154,6 @@ class _BuyerRefundsScreenState extends ConsumerState<BuyerRefundsScreen> {
                       children: [
                         MaisonHeader(
                           title: context.tr(AccountCommerceL10n.refunds),
-                          cut: GemCut.pear,
                         ),
                       ],
                     ),
@@ -232,7 +230,6 @@ class _BuyerRefundsScreenState extends ConsumerState<BuyerRefundsScreen> {
     if (state.items.isEmpty) {
       return SliverToBoxAdapter(
         child: MaisonEmptyState(
-          cut: GemCut.pear,
           title: 'No refund requests',
           message:
               '${context.tr(AccountCommerceL10n.noRefunds)} Requests start '

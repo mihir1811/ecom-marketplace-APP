@@ -5,8 +5,9 @@ import 'package:gemworld/features/diamonds/presentation/screens/lab_grown_diamon
 import 'package:gemworld/features/diamonds/presentation/widgets/lab_grown_diamond_scope.dart';
 
 void main() {
-  testWidgets('lab grown finder shows primary action, lab controls and reset',
-      (tester) async {
+  testWidgets('lab grown finder shows primary action, lab controls and reset', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       const ProviderScope(
         child: MaterialApp(

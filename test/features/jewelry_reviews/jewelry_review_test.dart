@@ -115,7 +115,12 @@ void main() {
       'title': 'Ring',
       'ratingAverage': '4.67',
       'ratingCount': 3,
-      'shop': {'slug': 's', 'name': 'S', 'ratingAverage': '5', 'ratingCount': 1},
+      'shop': {
+        'slug': 's',
+        'name': 'S',
+        'ratingAverage': '5',
+        'ratingCount': 1,
+      },
     });
     expect(listing.ratingAverage, closeTo(4.67, 1e-9));
     expect(listing.shop?.ratingAverage, 5);

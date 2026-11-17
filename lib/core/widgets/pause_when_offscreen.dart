@@ -61,8 +61,7 @@ class _PauseWhenOffscreenState extends State<PauseWhenOffscreen> {
     final top = box.localToGlobal(Offset.zero).dy;
     final bottom = top + box.size.height;
     final viewport = MediaQuery.sizeOf(context).height;
-    final visible =
-        bottom > -widget.margin && top < viewport + widget.margin;
+    final visible = bottom > -widget.margin && top < viewport + widget.margin;
     if (visible != _visible) setState(() => _visible = visible);
   }
 

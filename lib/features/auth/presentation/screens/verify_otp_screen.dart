@@ -8,7 +8,6 @@ import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../widgets/kit/auth_kit.dart';
 
 /// OTP verification after registration.
@@ -147,7 +146,6 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AuthHero(
-            cut: GemCut.princess,
             eyebrow: context.tr(AccountCommerceL10n.verifyEmail),
             title: context.tr(AuthL10n.otpTitle),
             subtitle: email.isEmpty

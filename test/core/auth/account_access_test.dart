@@ -5,13 +5,13 @@ import 'package:gemworld/core/auth/auth_user.dart';
 
 void main() {
   AuthUser user({required bool verified}) => AuthUser(
-        id: 'u1',
-        fullName: 'Test',
-        username: 'test',
-        email: 't@example.com',
-        role: 'buyer',
-        isVerified: verified,
-      );
+    id: 'u1',
+    fullName: 'Test',
+    username: 'test',
+    email: 't@example.com',
+    role: 'buyer',
+    isVerified: verified,
+  );
 
   test('hides protected chrome while admin KYC is pending', () {
     final pending = AuthState(user: user(verified: false));

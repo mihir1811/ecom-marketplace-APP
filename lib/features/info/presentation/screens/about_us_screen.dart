@@ -4,8 +4,6 @@ import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/widgets/app_scaffold.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../core/widgets/gem3d/gem_renderer.dart';
 import '../../../seller/presentation/atelier/atelier_components.dart';
 import '../../../seller/presentation/atelier/atelier_motion.dart';
 import '../../../seller/presentation/atelier/atelier_studio.dart';
@@ -93,8 +91,6 @@ class AboutUsScreen extends StatelessWidget {
         children: [
           AtelierHero(
             title: context.tr(RemainingL10n.aboutGemWorld),
-            cut: GemCut.oval,
-            look: GemLook.champagne,
             action: Text(
               context.tr(
                 RemainingL10n.expertDrivenMarketplaceForLuxuryAssetsAnd,

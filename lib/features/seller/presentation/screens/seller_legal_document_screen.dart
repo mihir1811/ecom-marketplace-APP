@@ -4,8 +4,6 @@ import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../core/widgets/gem3d/gem_renderer.dart';
 import '../../../info/data/policies_repository.dart';
 import '../../../info/domain/models/policy_document.dart';
 import '../../../info/presentation/widgets/policy_body.dart';
@@ -20,11 +18,7 @@ class SellerPrivacyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _SellerLegalDocumentScreen(
-      policyId: 'privacy',
-      cut: GemCut.oval,
-      look: GemLook.ice,
-    );
+    return const _SellerLegalDocumentScreen(policyId: 'privacy');
   }
 }
 
@@ -34,11 +28,7 @@ class SellerTermsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _SellerLegalDocumentScreen(
-      policyId: 'terms',
-      cut: GemCut.emerald,
-      look: GemLook.champagne,
-    );
+    return const _SellerLegalDocumentScreen(policyId: 'terms');
   }
 }
 
@@ -50,24 +40,14 @@ class SellerPolicyDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _SellerLegalDocumentScreen(
-      policyId: policyId,
-      cut: GemCut.cushion,
-      look: GemLook.white,
-    );
+    return _SellerLegalDocumentScreen(policyId: policyId);
   }
 }
 
 class _SellerLegalDocumentScreen extends StatefulWidget {
-  const _SellerLegalDocumentScreen({
-    required this.policyId,
-    required this.cut,
-    required this.look,
-  });
+  const _SellerLegalDocumentScreen({required this.policyId});
 
   final String policyId;
-  final GemCut cut;
-  final GemLook look;
 
   @override
   State<_SellerLegalDocumentScreen> createState() =>
@@ -148,8 +128,6 @@ class _SellerLegalDocumentScreenState
               title: loading
                   ? context.tr(RemainingL10n.policy)
                   : (doc?.title ?? context.tr(RemainingL10n.policy)),
-              cut: widget.cut,
-              look: widget.look,
               action: failed
                   ? AtelierButton(
                       label: context.tr(RemainingL10n.retry),

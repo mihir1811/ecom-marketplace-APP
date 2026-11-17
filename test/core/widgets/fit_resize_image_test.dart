@@ -36,12 +36,21 @@ void main() {
   });
 
   test('keys differ by target size so caches do not mix', () async {
-    final a = await box(100, 100, BoxFit.cover)
-        .obtainKey(ImageConfiguration.empty);
-    final b = await box(200, 100, BoxFit.cover)
-        .obtainKey(ImageConfiguration.empty);
-    final a2 = await box(100, 100, BoxFit.cover)
-        .obtainKey(ImageConfiguration.empty);
+    final a = await box(
+      100,
+      100,
+      BoxFit.cover,
+    ).obtainKey(ImageConfiguration.empty);
+    final b = await box(
+      200,
+      100,
+      BoxFit.cover,
+    ).obtainKey(ImageConfiguration.empty);
+    final a2 = await box(
+      100,
+      100,
+      BoxFit.cover,
+    ).obtainKey(ImageConfiguration.empty);
     expect(a, isNot(b));
     expect(a, a2);
   });

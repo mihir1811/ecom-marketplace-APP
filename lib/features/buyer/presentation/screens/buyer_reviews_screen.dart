@@ -5,8 +5,6 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../core/widgets/gem3d/gem_renderer.dart';
 import '../../../seller/application/seller_reviews_provider.dart';
 import '../../../seller/domain/models/seller_review.dart';
 import '../../../seller/presentation/atelier/atelier_components.dart';
@@ -184,8 +182,6 @@ class _BuyerReviewsScreenState extends ConsumerState<BuyerReviewsScreen> {
                     children: [
                       MaisonHeader(
                         title: context.tr(AccountCommerceL10n.myReviews),
-                        cut: GemCut.radiant,
-                        look: GemLook.champagne,
                       ),
                       if (reviews.isNotEmpty) ...[
                         const SizedBox(height: 14),
@@ -295,7 +291,6 @@ class _BuyerReviewsScreenState extends ConsumerState<BuyerReviewsScreen> {
     }
     if (reviews.isEmpty) {
       return MaisonEmptyState(
-        cut: GemCut.radiant,
         title: context.tr(AccountCommerceL10n.noReviews),
         message:
             'Once an order is paid you can rate the atelier behind it — '

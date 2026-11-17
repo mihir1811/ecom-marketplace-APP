@@ -5,8 +5,6 @@ import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/widgets/app_scaffold.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../core/widgets/gem3d/gem_renderer.dart';
 import '../../data/policies_repository.dart';
 import '../../domain/models/policy_document.dart';
 import '../widgets/policy_body.dart';
@@ -97,8 +95,6 @@ class _PoliciesHubScreenState extends State<PoliciesHubScreen> {
             children: [
               AtelierHero(
                 title: context.tr(RemainingL10n.policiesLegal),
-                cut: GemCut.asscher,
-                look: GemLook.ice,
                 action: Wrap(
                   spacing: 8,
                   runSpacing: 8,

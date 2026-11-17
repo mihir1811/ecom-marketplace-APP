@@ -37,10 +37,7 @@ void main() {
 
     await Future<void>.delayed(const Duration(milliseconds: 120));
     expect(calls, isNotEmpty);
-    expect(
-      calls.every((c) => c.method.startsWith('HapticFeedback.')),
-      isTrue,
-    );
+    expect(calls.every((c) => c.method.startsWith('HapticFeedback.')), isTrue);
   });
 
   test('debugDisable prevents platform channel calls', () async {

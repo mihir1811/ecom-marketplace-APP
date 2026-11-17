@@ -4,8 +4,6 @@ import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../core/widgets/gem3d/gem_renderer.dart';
 import '../../../info/data/policies_repository.dart';
 import '../../../info/domain/models/policy_document.dart';
 import '../../../info/presentation/widgets/policy_body.dart';
@@ -23,8 +21,6 @@ class BuyerPrivacyScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return const _BuyerLegalDocumentScreen(
       policyId: 'privacy',
-      cut: GemCut.oval,
-      look: GemLook.ice,
       helpRoute: AppRouteNames.buyerHelpCenter,
       policiesRoute: AppRouteNames.buyerPolicies,
       aboutRoute: AppRouteNames.buyerAbout,
@@ -40,8 +36,6 @@ class BuyerTermsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return const _BuyerLegalDocumentScreen(
       policyId: 'terms',
-      cut: GemCut.emerald,
-      look: GemLook.champagne,
       helpRoute: AppRouteNames.buyerHelpCenter,
       policiesRoute: AppRouteNames.buyerPolicies,
       aboutRoute: AppRouteNames.buyerAbout,
@@ -59,8 +53,6 @@ class BuyerPolicyDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return _BuyerLegalDocumentScreen(
       policyId: policyId,
-      cut: GemCut.cushion,
-      look: GemLook.white,
       helpRoute: AppRouteNames.buyerHelpCenter,
       policiesRoute: AppRouteNames.buyerPolicies,
       aboutRoute: AppRouteNames.buyerAbout,
@@ -71,16 +63,12 @@ class BuyerPolicyDetailScreen extends StatelessWidget {
 class _BuyerLegalDocumentScreen extends StatefulWidget {
   const _BuyerLegalDocumentScreen({
     required this.policyId,
-    required this.cut,
-    required this.look,
     required this.helpRoute,
     required this.policiesRoute,
     required this.aboutRoute,
   });
 
   final String policyId;
-  final GemCut cut;
-  final GemLook look;
   final String helpRoute;
   final String policiesRoute;
   final String aboutRoute;
@@ -183,8 +171,6 @@ class _BuyerLegalDocumentScreenState extends State<_BuyerLegalDocumentScreen> {
                       title: loading
                           ? context.tr(RemainingL10n.policy)
                           : (doc?.title ?? context.tr(RemainingL10n.policy)),
-                      cut: widget.cut,
-                      look: widget.look,
                     ),
                     const SizedBox(height: 14),
                     if (loading)
@@ -194,7 +180,6 @@ class _BuyerLegalDocumentScreenState extends State<_BuyerLegalDocumentScreen> {
                         MaisonEmptyState(
                           title: context.tr(RemainingL10n.policyNotFound),
                           message: context.tr(RemainingL10n.unableLoadPolicies),
-                          cut: widget.cut,
                           actionLabel: context.tr(
                             RemainingL10n.viewAllPolicies,
                           ),

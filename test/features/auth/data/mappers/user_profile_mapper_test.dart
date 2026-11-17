@@ -16,9 +16,7 @@ void main() {
           'role': 'seller',
           'isVerified': false,
         },
-        'business': {
-          'companyName': 'Sattvam',
-        },
+        'business': {'companyName': 'Sattvam'},
       },
     });
 
@@ -68,10 +66,7 @@ void main() {
       'email': 'h@x.com',
       'role': 'seller',
       'isVerified': true,
-      'sellerData': {
-        'companyName': 'temp',
-        'isVerified': false,
-      },
+      'sellerData': {'companyName': 'temp', 'isVerified': false},
     });
 
     expect(profile.isVerified, isFalse);

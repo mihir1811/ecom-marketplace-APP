@@ -7,7 +7,6 @@ import '../../../../core/auth/auth_validators.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../widgets/kit/auth_kit.dart';
 
 /// Reset password screen opened from email deep link (`?token=`).
@@ -169,7 +168,6 @@ class _ResetForm extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AuthHero(
-            cut: GemCut.cushion,
             eyebrow: context.tr(AccountCommerceL10n.resetPassword),
             title: context.tr(AuthL10n.resetTitle),
             subtitle: Text(context.tr(AccountCommerceL10n.chooseNewPassword)),

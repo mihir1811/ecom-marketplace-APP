@@ -7,9 +7,6 @@ import '../../../../core/router/app_navigation.dart';
 import '../../../../core/theme/luxe_scope.dart';
 import '../../../../core/theme/luxe_tokens.dart';
 import '../../../../core/widgets/app_scaffold.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../core/widgets/gem3d/gem_renderer.dart';
-import '../../../../core/widgets/gem3d/gem_view.dart';
 import '../../../../core/widgets/luxe/luxe_button.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
@@ -227,24 +224,6 @@ class _CartEmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 168,
-              height: 168,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [LuxeStage.raised, LuxeStage.obsidian],
-                ),
-              ),
-              alignment: Alignment.center,
-              child: const GemView(
-                size: 140,
-                cut: GemCut.cushion,
-                look: GemLook.champagne,
-                interactive: true,
-              ),
-            ),
-            const SizedBox(height: 18),
             Text(
               context.tr(AccountCommerceL10n.cartEmpty),
               textAlign: TextAlign.center,

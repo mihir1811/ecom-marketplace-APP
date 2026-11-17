@@ -112,7 +112,11 @@ void main() {
     await expectLater(
       future,
       throwsA(
-        isA<DioException>().having((e) => e.type, 'type', DioExceptionType.cancel),
+        isA<DioException>().having(
+          (e) => e.type,
+          'type',
+          DioExceptionType.cancel,
+        ),
       ),
     );
     expect(adapter.calls, 1);

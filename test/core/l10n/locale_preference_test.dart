@@ -63,10 +63,8 @@ void main() {
 
   test('every translation preserves interpolation placeholders', () {
     final placeholder = RegExp(r'\{([A-Za-z][A-Za-z0-9_]*)\}');
-    Set<String> placeholders(String value) => placeholder
-        .allMatches(value)
-        .map((match) => match.group(1)!)
-        .toSet();
+    Set<String> placeholders(String value) =>
+        placeholder.allMatches(value).map((match) => match.group(1)!).toSet();
 
     for (final entry in AppLocalizations.messages.entries) {
       final message = entry.value;
@@ -89,9 +87,7 @@ void main() {
   testWidgets('language selection updates the visible UI immediately', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      const ProviderScope(child: _LocaleTestApp()),
-    );
+    await tester.pumpWidget(const ProviderScope(child: _LocaleTestApp()));
 
     expect(find.text('Language'), findsOneWidget);
     await tester.tap(find.text('Language'));

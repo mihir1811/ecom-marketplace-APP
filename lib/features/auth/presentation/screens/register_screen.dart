@@ -10,7 +10,6 @@ import '../../../../core/auth/business_registration_data.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../widgets/business_registration_fields.dart';
 import '../widgets/kit/auth_kit.dart';
 
@@ -307,7 +306,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               AuthHero(
-                cut: _isSeller ? GemCut.emerald : GemCut.oval,
                 eyebrow: context.tr(
                   _isSeller
                       ? AccountCommerceL10n.sellerAccount

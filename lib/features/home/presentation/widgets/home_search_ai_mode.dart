@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/widgets/gem3d/gem_view.dart';
 import '../theme/home_tokens.dart';
 
 /// Catalogue search ⇄ AI Mode. A capsule glides to the active mode; AI Mode
@@ -254,12 +253,13 @@ class _GemAiMark extends StatelessWidget {
         border: Border.all(color: HomeStage.gold.withValues(alpha: 0.5)),
       ),
       alignment: Alignment.center,
-      child: GemView(
-        size: 34,
-        spin: 0.7,
-        tilt: 0.5,
-        glints: true,
-        semanticLabel: context.tr(RemainingL10n.gemAi),
+      child: Semantics(
+        label: context.tr(RemainingL10n.gemAi),
+        child: Icon(
+          Icons.auto_awesome_rounded,
+          size: 22,
+          color: HomeStage.gold,
+        ),
       ),
     );
   }

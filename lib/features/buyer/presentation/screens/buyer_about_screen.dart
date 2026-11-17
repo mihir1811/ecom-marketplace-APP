@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../core/widgets/gem3d/gem_renderer.dart';
 import '../../../seller/presentation/atelier/atelier_components.dart';
 import '../../../seller/presentation/atelier/atelier_motion.dart';
 import '../../../seller/presentation/atelier/atelier_theme.dart';
@@ -95,11 +93,7 @@ class BuyerAboutScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                MaisonHeader(
-                  title: context.tr(RemainingL10n.aboutGemWorld),
-                  cut: GemCut.oval,
-                  look: GemLook.champagne,
-                ),
+                MaisonHeader(title: context.tr(RemainingL10n.aboutGemWorld)),
                 const SizedBox(height: 8),
                 reveal(
                   Text(

@@ -4,8 +4,6 @@ import '../localized_message.dart';
 /// Gem AI advisor, cart and diamond project dashboard.
 abstract final class ExperienceL10n {
   // Gem stage (home footer)
-  static const stageHeadline = 'experience.stageHeadline';
-  static const stageBody = 'experience.stageBody';
 
   // Gem AI
   static const aiAdvisor = 'experience.aiAdvisor';
@@ -50,22 +48,6 @@ abstract final class ExperienceL10n {
 }
 
 const experienceMessages = <String, LocalizedMessage>{
-  ExperienceL10n.stageHeadline: LocalizedMessage(
-    english: 'Every facet,\nin your hands.',
-    hindi: 'हर पहलू,\nआपके हाथों में।',
-    gujarati: 'દરેક પાસું,\nતમારા હાથમાં.',
-  ),
-  ExperienceL10n.stageBody: LocalizedMessage(
-    english:
-        'Round to heart, princess to pear — touch the stones and '
-        'watch them catch the light.',
-    hindi:
-        'राउंड से हार्ट, प्रिंसेस से पियर तक — पत्थरों को छुएँ और उन्हें '
-        'रोशनी में चमकते देखें।',
-    gujarati:
-        'રાઉન્ડથી હાર્ટ, પ્રિન્સેસથી પિયર સુધી — પથ્થરોને સ્પર્શો અને '
-        'તેમને પ્રકાશમાં ઝળહળતા જુઓ.',
-  ),
   ExperienceL10n.aiAdvisor: LocalizedMessage(
     english: 'Your gem advisor',
     hindi: 'आपका रत्न सलाहकार',

@@ -61,7 +61,6 @@ Future<void> _pressBack(WidgetTester tester) async {
 }
 
 void main() {
-
   testWidgets('confirm → progress → success stays until closed with icon', (
     tester,
   ) async {

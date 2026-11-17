@@ -68,29 +68,28 @@ void main() {
     expect(merged.fullName, 'harshil');
   });
 
-  test('JWT bootstrap keeps cached address when claims only have companyName', () {
-    final user = AuthUser.fromJwtClaims(
-      {
-        'sub': 'u1',
-        'userName': 'harshil123',
-        'role': 'seller',
-        'isVerified': true,
-        'seller': {
-          'id': 's1',
-          'companyName': 'temp',
-          'isVerified': false,
+  test(
+    'JWT bootstrap keeps cached address when claims only have companyName',
+    () {
+      final user = AuthUser.fromJwtClaims(
+        {
+          'sub': 'u1',
+          'userName': 'harshil123',
+          'role': 'seller',
+          'isVerified': true,
+          'seller': {'id': 's1', 'companyName': 'temp', 'isVerified': false},
         },
-      },
-      cachedSellerAccount: const SellerAccountSnapshot(
-        companyName: 'temp',
-        addressLine1: '12 Market St',
-        city: 'Surat',
-      ),
-    );
+        cachedSellerAccount: const SellerAccountSnapshot(
+          companyName: 'temp',
+          addressLine1: '12 Market St',
+          city: 'Surat',
+        ),
+      );
 
-    expect(user.isVerified, isFalse);
-    expect(user.sellerAccount?.companyName, 'temp');
-    expect(user.sellerAccount?.addressLine1, '12 Market St');
-    expect(user.sellerAccount?.city, 'Surat');
-  });
+      expect(user.isVerified, isFalse);
+      expect(user.sellerAccount?.companyName, 'temp');
+      expect(user.sellerAccount?.addressLine1, '12 Market St');
+      expect(user.sellerAccount?.city, 'Surat');
+    },
+  );
 }

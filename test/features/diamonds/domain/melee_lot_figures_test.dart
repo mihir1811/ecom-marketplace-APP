@@ -32,12 +32,7 @@ Diamond _melee({
 void main() {
   test('seller values pass through, nothing approximate', () {
     final f = MeleeLotFigures.of(
-      _melee(
-        totalPcs: 100,
-        totalCarat: 2,
-        pricePerPcs: 10,
-        pricePerCarat: 500,
-      ),
+      _melee(totalPcs: 100, totalCarat: 2, pricePerPcs: 10, pricePerCarat: 500),
     );
     expect(f.totalPcs, 100);
     expect(f.totalCarat, 2);

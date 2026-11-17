@@ -7,7 +7,6 @@ import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../../../seller/presentation/atelier/atelier_components.dart';
 import '../../../seller/presentation/atelier/atelier_feedback.dart';
 import '../../../seller/presentation/atelier/atelier_motion.dart';
@@ -251,7 +250,6 @@ class _BuyerWishlistScreenState extends ConsumerState<BuyerWishlistScreen> {
       return [
         boxed(
           MaisonEmptyState(
-            cut: GemCut.heart,
             title: context.tr(AccountCommerceL10n.wishlistEmpty),
             message: context.tr(AccountCommerceL10n.wishlistEmptyHint),
             actionLabel: 'Discover pieces',

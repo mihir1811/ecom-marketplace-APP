@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/luxe_tokens.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../core/widgets/gem3d/gem_view.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
 import '../../domain/models/diamond_project_item.dart';
 import '../../domain/models/diamond_project_stats.dart';
@@ -54,16 +52,6 @@ class DiamondProjectHero extends StatelessWidget {
       out.write(digits[i]);
     }
     return out.toString();
-  }
-
-  static GemCut cutFor(String? shape) {
-    final s = (shape ?? '').toLowerCase();
-    for (final cut in GemCut.values) {
-      if (s.contains(cut.name)) return cut;
-    }
-    if (s.contains('square')) return GemCut.princess;
-    if (s.contains('rect')) return GemCut.emerald;
-    return GemCut.round;
   }
 
   @override
@@ -185,12 +173,6 @@ class DiamondProjectHero extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-              GemView(
-                size: compact ? 88 : 118,
-                cut: cutFor(dominant),
-                interactive: true,
-                semanticLabel: dominant,
               ),
             ],
           ),

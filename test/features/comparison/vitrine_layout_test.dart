@@ -26,7 +26,6 @@ CompareItem _diamond(String id, String shape, double carat, double price) =>
     );
 
 void main() {
-
   final items = [
     _diamond('a', 'Pear', 0.18, 571.43),
     _diamond('b', 'Marquise', 0.23, 1072),

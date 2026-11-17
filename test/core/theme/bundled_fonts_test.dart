@@ -20,8 +20,10 @@ void main() {
     );
     expect(AppFonts.monoFontFamily, 'JetBrainsMono_regular');
     expect(
-      BundledFonts.style('Instrument Serif', fontStyle: FontStyle.italic)
-          .fontFamily,
+      BundledFonts.style(
+        'Instrument Serif',
+        fontStyle: FontStyle.italic,
+      ).fontFamily,
       'InstrumentSerif_italic',
     );
     expect(AppFonts.primary().fontFamilyFallback, ['Outfit']);
@@ -67,8 +69,10 @@ void main() {
       ],
       AppFonts.monoFontFamily,
       BundledFonts.style('Instrument Serif').fontFamily,
-      BundledFonts.style('Instrument Serif', fontStyle: FontStyle.italic)
-          .fontFamily,
+      BundledFonts.style(
+        'Instrument Serif',
+        fontStyle: FontStyle.italic,
+      ).fontFamily,
       for (final base in [
         ThemeData.light().textTheme,
         ThemeData.dark().textTheme,

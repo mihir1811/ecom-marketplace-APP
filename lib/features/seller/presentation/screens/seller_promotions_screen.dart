@@ -8,7 +8,6 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../../../promotions/application/promotions_providers.dart';
 import '../../../promotions/domain/models/promotion.dart';
 import '../atelier/atelier_components.dart';
@@ -153,7 +152,6 @@ class _SellerPromotionsScreenState
         children: [
           AtelierHero(
             title: context.tr(RemainingL10n.promotions),
-            cut: GemCut.pear,
             footer: AtelierHeroStats(
               stats: [
                 AtelierHeroStat(

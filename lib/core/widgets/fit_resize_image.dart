@@ -85,7 +85,12 @@ class FitResizeImage extends ImageProvider<FitResizeImageKey> {
 
 @immutable
 class FitResizeImageKey {
-  const FitResizeImageKey._(this._providerKey, this.width, this.height, this.fit);
+  const FitResizeImageKey._(
+    this._providerKey,
+    this.width,
+    this.height,
+    this.fit,
+  );
 
   final Object _providerKey;
   final int width;

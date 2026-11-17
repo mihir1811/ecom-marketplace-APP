@@ -4,7 +4,6 @@ import 'package:gemworld/features/diamond_projects/domain/models/diamond_project
 import 'package:gemworld/features/diamond_projects/presentation/widgets/diamond_project_histogram_card.dart';
 
 void main() {
-
   testWidgets('histogram bars share a baseline and equal spacing', (
     tester,
   ) async {

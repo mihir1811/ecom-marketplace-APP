@@ -5,11 +5,7 @@ import 'package:gemworld/features/product_detail/application/melee_qty_draft_pro
 import 'package:gemworld/features/product_detail/domain/models/product_detail.dart';
 
 void main() {
-  const qty = ProductMeleeQty(
-    totalPcs: 10,
-    totalCarat: 2.0,
-    caratPerPcs: 0.2,
-  );
+  const qty = ProductMeleeQty(totalPcs: 10, totalCarat: 2.0, caratPerPcs: 0.2);
 
   test('pieces input updates related carat', () {
     final container = ProviderContainer();
@@ -49,15 +45,12 @@ void main() {
 
   test('toSpecifications matches CART_API melee shape', () {
     const draft = MeleeQtyDraft(inCarat: true, pieces: 21, carat: 215);
-    expect(
-      draft.toSpecifications(calculatedPrice: 91.75),
-      {
-        'purchaseUnit': 'carat',
-        'selectedPcs': 21,
-        'selectedCarat': 215.0,
-        'calculatedPrice': 91.75,
-      },
-    );
+    expect(draft.toSpecifications(calculatedPrice: 91.75), {
+      'purchaseUnit': 'carat',
+      'selectedPcs': 21,
+      'selectedCarat': 215.0,
+      'calculatedPrice': 91.75,
+    });
   });
 
   test('pieces input clamps to total available', () {

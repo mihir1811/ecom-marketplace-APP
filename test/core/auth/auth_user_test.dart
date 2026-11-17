@@ -17,10 +17,7 @@ void main() {
   });
 
   test('pending verificationStatus is not verified', () {
-    expect(
-      parseAccountVerified({'verificationStatus': 'PENDING'}),
-      isFalse,
-    );
+    expect(parseAccountVerified({'verificationStatus': 'PENDING'}), isFalse);
     expect(parseAccountVerified({'isApproved': false}), isFalse);
     expect(parseAccountVerified({'isVerified': 'false'}), isFalse);
   });
@@ -57,10 +54,7 @@ void main() {
       'userName': 'harshil123',
       'role': 'seller',
       'isVerified': true,
-      'seller': {
-        'id': 's1',
-        'isVerified': false,
-      },
+      'seller': {'id': 's1', 'isVerified': false},
     });
 
     expect(user.isVerified, isFalse);

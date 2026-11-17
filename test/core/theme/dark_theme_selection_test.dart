@@ -16,9 +16,8 @@ Widget _harness({required bool dark, required Widget child}) {
     home: ProviderScope(
       overrides: [
         palettePreferenceProvider.overrideWith(
-          (ref) => PalettePreference(
-            dark ? AppPaletteId.onyx : AppPaletteId.ivory,
-          ),
+          (ref) =>
+              PalettePreference(dark ? AppPaletteId.onyx : AppPaletteId.ivory),
         ),
       ],
       child: DarkThemeScope(child: Scaffold(body: child)),
@@ -32,8 +31,9 @@ BoxDecoration _decorationOf(WidgetTester tester, Finder finder) {
 }
 
 void main() {
-  testWidgets('isDark resolves true inside DarkThemeScope when enabled',
-      (tester) async {
+  testWidgets('isDark resolves true inside DarkThemeScope when enabled', (
+    tester,
+  ) async {
     Color? resolved;
     await tester.pumpWidget(
       _harness(
@@ -49,18 +49,15 @@ void main() {
     expect(resolved, AppColors.obsidianBg);
   });
 
-  testWidgets('selected chip is warmWhite bg with charcoal text in dark mode',
-      (tester) async {
+  testWidgets('selected chip is warmWhite bg with charcoal text in dark mode', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       _harness(
         dark: true,
         child: Column(
           children: [
-            FilterChipWidget(
-              label: 'Selected',
-              isSelected: true,
-              onTap: () {},
-            ),
+            FilterChipWidget(label: 'Selected', isSelected: true, onTap: () {}),
             FilterChipWidget(
               label: 'Unselected',
               isSelected: false,
@@ -71,14 +68,20 @@ void main() {
       ),
     );
 
-    final selectedDeco = _decorationOf(tester, find.ancestor(
-      of: find.text('Selected'),
-      matching: find.byType(AnimatedContainer),
-    ));
-    final unselectedDeco = _decorationOf(tester, find.ancestor(
-      of: find.text('Unselected'),
-      matching: find.byType(AnimatedContainer),
-    ));
+    final selectedDeco = _decorationOf(
+      tester,
+      find.ancestor(
+        of: find.text('Selected'),
+        matching: find.byType(AnimatedContainer),
+      ),
+    );
+    final unselectedDeco = _decorationOf(
+      tester,
+      find.ancestor(
+        of: find.text('Unselected'),
+        matching: find.byType(AnimatedContainer),
+      ),
+    );
 
     expect(selectedDeco.color, AppColors.warmWhite);
     expect(unselectedDeco.color, AppColors.slateSurface);
@@ -89,46 +92,55 @@ void main() {
     expect(unselectedText.style!.color, AppColors.textPrimaryDark);
   });
 
-  testWidgets('selected chip is charcoal bg with warmWhite text in light mode',
-      (tester) async {
-    await tester.pumpWidget(
-      _harness(
-        dark: false,
-        child: Column(
-          children: [
-            FilterChipWidget(
-              label: 'Selected',
-              isSelected: true,
-              onTap: () {},
-            ),
-            FilterChipWidget(
-              label: 'Unselected',
-              isSelected: false,
-              onTap: () {},
-            ),
-          ],
+  testWidgets(
+    'selected chip is charcoal bg with warmWhite text in light mode',
+    (tester) async {
+      await tester.pumpWidget(
+        _harness(
+          dark: false,
+          child: Column(
+            children: [
+              FilterChipWidget(
+                label: 'Selected',
+                isSelected: true,
+                onTap: () {},
+              ),
+              FilterChipWidget(
+                label: 'Unselected',
+                isSelected: false,
+                onTap: () {},
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
 
-    final selectedDeco = _decorationOf(tester, find.ancestor(
-      of: find.text('Selected'),
-      matching: find.byType(AnimatedContainer),
-    ));
-    final unselectedDeco = _decorationOf(tester, find.ancestor(
-      of: find.text('Unselected'),
-      matching: find.byType(AnimatedContainer),
-    ));
+      final selectedDeco = _decorationOf(
+        tester,
+        find.ancestor(
+          of: find.text('Selected'),
+          matching: find.byType(AnimatedContainer),
+        ),
+      );
+      final unselectedDeco = _decorationOf(
+        tester,
+        find.ancestor(
+          of: find.text('Unselected'),
+          matching: find.byType(AnimatedContainer),
+        ),
+      );
 
-    expect(selectedDeco.color, AppColors.charcoal);
-    expect(unselectedDeco.color, AppColors.warmWhite);
+      expect(selectedDeco.color, AppColors.charcoal);
+      expect(unselectedDeco.color, AppColors.warmWhite);
 
-    final selectedText = tester.widget<Text>(find.text('Selected'));
-    expect(selectedText.style!.color, AppColors.warmWhite);
-  });
+      final selectedText = tester.widget<Text>(find.text('Selected'));
+      expect(selectedText.style!.color, AppColors.warmWhite);
+    },
+  );
 
-  testWidgets('segmented control selected segment is warmWhite in dark mode',
-      (tester) async {
+  testWidgets('segmented control selected segment is warmWhite in dark mode', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       _harness(
         dark: true,
@@ -140,18 +152,22 @@ void main() {
       ),
     );
 
-    final selectedDeco = _decorationOf(tester, find.ancestor(
-      of: find.text('LAB MELEE'),
-      matching: find.byType(AnimatedContainer),
-    ));
+    final selectedDeco = _decorationOf(
+      tester,
+      find.ancestor(
+        of: find.text('LAB MELEE'),
+        matching: find.byType(AnimatedContainer),
+      ),
+    );
     expect(selectedDeco.color, AppColors.warmWhite);
 
     final selectedText = tester.widget<Text>(find.text('LAB MELEE'));
     expect(selectedText.style!.color, AppColors.charcoal);
   });
 
-  testWidgets('quick range chip selected is warmWhite in dark mode',
-      (tester) async {
+  testWidgets('quick range chip selected is warmWhite in dark mode', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       _harness(
         dark: true,
@@ -163,10 +179,13 @@ void main() {
       ),
     );
 
-    final deco = _decorationOf(tester, find.ancestor(
-      of: find.text('1ct'),
-      matching: find.byType(AnimatedContainer),
-    ));
+    final deco = _decorationOf(
+      tester,
+      find.ancestor(
+        of: find.text('1ct'),
+        matching: find.byType(AnimatedContainer),
+      ),
+    );
     expect(deco.color, AppColors.warmWhite);
   });
 }

@@ -5,13 +5,10 @@ import 'package:gemworld/features/auction/domain/models/auction_models.dart';
 
 void main() {
   test('parses AUCTION_BID payload with a uuid auction id', () {
-    final event = auctionSocketEventFromRaw(
-      {
-        'auctionId': 'f16cbdf4-9630-4b9b-92d2-0e608fa35f80',
-        'amount': 400,
-      },
-      kind: AuctionSocketKind.bid,
-    );
+    final event = auctionSocketEventFromRaw({
+      'auctionId': 'f16cbdf4-9630-4b9b-92d2-0e608fa35f80',
+      'amount': 400,
+    }, kind: AuctionSocketKind.bid);
 
     expect(event?.auctionId, 'f16cbdf4-9630-4b9b-92d2-0e608fa35f80');
     expect(event?.amount, 400);
@@ -30,10 +27,10 @@ void main() {
   });
 
   test('parses a string bid amount', () {
-    final event = auctionSocketEventFromRaw(
-      {'auctionId': 'abc', 'amount': '910.50'},
-      kind: AuctionSocketKind.bid,
-    );
+    final event = auctionSocketEventFromRaw({
+      'auctionId': 'abc',
+      'amount': '910.50',
+    }, kind: AuctionSocketKind.bid);
     expect(event?.amount, 910.5);
   });
 

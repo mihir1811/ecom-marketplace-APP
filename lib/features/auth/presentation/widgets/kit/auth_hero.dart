@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-import '../../../../../core/widgets/gem3d/gem_mesh.dart';
 import 'auth_tokens.dart';
 
 /// Fades + lifts its child into place once, staggered by [index].
@@ -102,59 +101,18 @@ class _GlyphPainter extends CustomPainter {
   bool shouldRepaint(_GlyphPainter old) => old.color != color;
 }
 
-/// Soft breathing light pool that sits behind a gem.
-class AuthHalo extends StatelessWidget {
-  const AuthHalo({super.key, required this.size});
-
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = AuthPalette.of(context);
-    final halo = IgnorePointer(
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [
-              p.accent.withValues(alpha: p.isDark ? 0.22 : 0.16),
-              p.accent.withValues(alpha: 0),
-            ],
-          ),
-        ),
-      ),
-    );
-    if (AuthMotion.reduced(context)) return halo;
-    return halo
-        .animate(onPlay: (c) => c.repeat(reverse: true))
-        .scaleXY(
-          begin: 0.92,
-          end: 1.06,
-          duration: 3200.ms,
-          curve: AuthMotion.easeInOut,
-        );
-  }
-}
-
 /// Screen hero: an eyebrow, a serif statement and one supporting line.
-/// [cut] and [showGem] are kept for call sites; no gem is drawn.
 class AuthHero extends StatelessWidget {
   const AuthHero({
     super.key,
     required this.eyebrow,
     required this.title,
     this.subtitle,
-    this.cut = GemCut.round,
-    this.showGem = false,
   });
 
   final String eyebrow;
   final String title;
   final Widget? subtitle;
-  final GemCut cut;
-  final bool showGem;
 
   @override
   Widget build(BuildContext context) {

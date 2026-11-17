@@ -6,8 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/theme/luxe_tokens.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../core/widgets/gem3d/gem_view.dart';
 import '../../../../core/widgets/luxe/luxe_button.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../application/ai_chat_providers.dart';
@@ -291,7 +289,11 @@ class _Header extends StatelessWidget {
               border: Border.all(color: LuxeStage.gold.withValues(alpha: 0.5)),
             ),
             alignment: Alignment.center,
-            child: const GemView(size: 34, spin: 0.6, tilt: 0.5),
+            child: Icon(
+              Icons.auto_awesome_rounded,
+              size: 20,
+              color: LuxeStage.gold,
+            ),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -627,26 +629,6 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(
-            child: Container(
-              width: 112,
-              height: 112,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [LuxeStage.raised, LuxeStage.obsidian],
-                ),
-              ),
-              alignment: Alignment.center,
-              child: GemView(
-                size: 92,
-                cut: GemCut.round,
-                interactive: true,
-                semanticLabel: context.tr(RemainingL10n.gemAi),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
           Center(
             child: Text(
               context.tr(ExperienceL10n.aiGreeting),

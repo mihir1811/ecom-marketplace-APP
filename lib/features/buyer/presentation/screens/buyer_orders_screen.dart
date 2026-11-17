@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../../../seller/presentation/atelier/atelier_components.dart';
 import '../../../seller/presentation/atelier/atelier_feedback.dart';
 import '../../../seller/presentation/atelier/atelier_motion.dart';
@@ -224,7 +223,6 @@ class _OrdersBody extends StatelessWidget {
     if (orders.isEmpty) {
       return SliverToBoxAdapter(
         child: MaisonEmptyState(
-          cut: GemCut.cushion,
           title: 'Your first piece awaits',
           message: context.tr(AccountCommerceL10n.noOrders),
           actionLabel: 'Explore the collection',

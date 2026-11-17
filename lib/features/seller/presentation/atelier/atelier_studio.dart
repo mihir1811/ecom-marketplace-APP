@@ -6,8 +6,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/widgets/app_network_image.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../core/widgets/gem3d/gem_renderer.dart';
 import 'atelier_components.dart';
 import 'atelier_motion.dart';
 import 'atelier_theme.dart';
@@ -85,18 +83,9 @@ class AtelierPage extends StatelessWidget {
 /// the headline figures in [footer] on a slim onyx band. Renders nothing
 /// when it has neither.
 class AtelierHero extends StatelessWidget {
-  const AtelierHero({
-    required this.title,
-    this.cut,
-    this.look = GemLook.champagne,
-    this.action,
-    this.footer,
-    super.key,
-  });
+  const AtelierHero({required this.title, this.action, this.footer, super.key});
 
   final String title;
-  final GemCut? cut;
-  final GemLook look;
   final Widget? action;
   final Widget? footer;
 

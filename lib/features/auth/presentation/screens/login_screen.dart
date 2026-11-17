@@ -9,7 +9,6 @@ import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/widgets/app_system_back_scope.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../widgets/kit/auth_kit.dart';
 
 /// Sign in with username/email + password.
@@ -94,7 +93,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 AuthHero(
-                  cut: GemCut.round,
                   eyebrow: context.tr(AccountCommerceL10n.signInToGemWorld),
                   title: context.tr(AuthL10n.welcomeTitle),
                 ),

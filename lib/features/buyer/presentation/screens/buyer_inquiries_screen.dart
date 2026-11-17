@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../../../../core/widgets/navigation/top_bar/top_bar_create_action.dart';
 import '../../../seller/application/inquiry_provider.dart';
 import '../../../seller/domain/models/seller_inquiry.dart';
@@ -36,14 +35,6 @@ IconData _categoryIcon(InquiryCategory c) => switch (c) {
   InquiryCategory.bullion => Icons.toll_outlined,
   InquiryCategory.watch => Icons.watch_outlined,
   InquiryCategory.jewelry => Icons.workspace_premium_outlined,
-};
-
-GemCut _categoryCut(InquiryCategory c) => switch (c) {
-  InquiryCategory.diamond => GemCut.round,
-  InquiryCategory.gemstone => GemCut.oval,
-  InquiryCategory.bullion => GemCut.cushion,
-  InquiryCategory.watch => GemCut.radiant,
-  InquiryCategory.jewelry => GemCut.heart,
 };
 
 /// Buyer inquiries: requests sent to the Gemworld team, per category, with
@@ -227,7 +218,6 @@ class _BuyerInquiriesScreenState extends ConsumerState<BuyerInquiriesScreen> {
     if (state.items.isEmpty) {
       return SliverToBoxAdapter(
         child: MaisonEmptyState(
-          cut: _categoryCut(_category),
           title: 'No ${_category.label.toLowerCase()} inquiries',
           message:
               'Ask for a stone, piece or price you cannot find and our team '

@@ -148,20 +148,20 @@ void main() {
     expect(item.title, contains('3ct'));
   });
 
-  test('jewellery cart resolves variant price when calculatedPrice missing', () {
-    final price = MeleePurchaseMath.linePriceFromCartPayload(
-      specifications: {
-        'stoneWeight': '3ct',
-        'variantId': 'var-3ct',
-      },
-      product: {
-        'totalPrice': 1312000,
-        'variants': [
-          {'id': 'var-2ct', 'totalStoneCarat': 2, 'totalPrice': 1312000},
-          {'id': 'var-3ct', 'totalStoneCarat': 3, 'totalPrice': 2300000},
-        ],
-      },
-    );
-    expect(price, closeTo(2300000, 0.01));
-  });
+  test(
+    'jewellery cart resolves variant price when calculatedPrice missing',
+    () {
+      final price = MeleePurchaseMath.linePriceFromCartPayload(
+        specifications: {'stoneWeight': '3ct', 'variantId': 'var-3ct'},
+        product: {
+          'totalPrice': 1312000,
+          'variants': [
+            {'id': 'var-2ct', 'totalStoneCarat': 2, 'totalPrice': 1312000},
+            {'id': 'var-3ct', 'totalStoneCarat': 3, 'totalPrice': 2300000},
+          ],
+        },
+      );
+      expect(price, closeTo(2300000, 0.01));
+    },
+  );
 }

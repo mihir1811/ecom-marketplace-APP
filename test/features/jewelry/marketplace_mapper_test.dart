@@ -110,7 +110,12 @@ void main() {
         'imageUrl': '/relative.png',
         'children': [
           {'id': 'b', 'name': 'Bands', 'slug': 'bands', 'position': 1},
-          {'id': 'a', 'name': 'Engagement', 'slug': 'engagement', 'position': 0},
+          {
+            'id': 'a',
+            'name': 'Engagement',
+            'slug': 'engagement',
+            'position': 0,
+          },
         ],
       },
       {'id': 'x', 'name': '', 'slug': ''},
@@ -129,7 +134,11 @@ void main() {
     expect(l.detail.totalCaratWeight, 1.43);
     expect(l.skus.first.price, 98000, reason: 'regionalPrices.inr wins');
     expect(l.skus[1].price, 125584, reason: 'falls back to sku.price');
-    expect(l.skus.first.breakdown, {'metal': 90000, 'stone': 8000, 'making': 0});
+    expect(l.skus.first.breakdown, {
+      'metal': 90000,
+      'stone': 8000,
+      'making': 0,
+    });
     expect(l.media.map((m) => m.id), ['m1', 'm2']);
     expect(l.isFullRecord, isFalse);
     expect(l.parentCategorySlug, 'rings');
@@ -137,7 +146,9 @@ void main() {
 
   test('sold out only when out of stock and not made to order', () {
     expect(
-      MarketplaceMapper.listing(_card(totalStock: 0, madeToOrder: true)).soldOut,
+      MarketplaceMapper.listing(
+        _card(totalStock: 0, madeToOrder: true),
+      ).soldOut,
       isFalse,
     );
     expect(

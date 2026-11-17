@@ -53,8 +53,16 @@ ReferencePurchase _purchase(String id, double commission) => ReferencePurchase(
   orderType: 'diamond',
   buyerLabel: _long,
   items: const [
-    ReferencePurchaseItem(name: 'Round 1.02ct', productType: 'DIAMOND', quantity: 1),
-    ReferencePurchaseItem(name: 'Melee parcel', productType: 'MELEE', quantity: 3),
+    ReferencePurchaseItem(
+      name: 'Round 1.02ct',
+      productType: 'DIAMOND',
+      quantity: 1,
+    ),
+    ReferencePurchaseItem(
+      name: 'Melee parcel',
+      productType: 'MELEE',
+      quantity: 3,
+    ),
   ],
 );
 

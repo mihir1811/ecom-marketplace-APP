@@ -6,8 +6,6 @@ import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/account_nav.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/widgets/app_network_image.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../core/widgets/gem3d/gem_view.dart';
 import '../../../chat/application/chat_providers.dart';
 import '../../../chat/domain/models/chat_product_type.dart';
 import '../../../chat/domain/models/chat_thread.dart';
@@ -740,14 +738,6 @@ class _ConversationPlaceholder extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const GemView(
-                    cut: GemCut.pear,
-                    size: 150,
-                    spin: 0.28,
-                    interactive: true,
-                    semanticLabel: 'Rotating gem. Drag to turn it.',
-                  ),
-                  const SizedBox(height: AtelierSpace.s24),
                   Text('CORRESPONDENCE', style: AtelierType.overline(p.gold)),
                   const SizedBox(height: 8),
                   Text(

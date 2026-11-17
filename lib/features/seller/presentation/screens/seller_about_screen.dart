@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
-import '../../../../core/widgets/gem3d/gem_renderer.dart';
 import '../atelier/atelier_components.dart';
 import '../atelier/atelier_motion.dart';
 import '../atelier/atelier_studio.dart';
@@ -63,8 +61,6 @@ class SellerAboutScreen extends StatelessWidget {
       children: [
         AtelierHero(
           title: context.tr(RemainingL10n.aboutGemWorld),
-          cut: GemCut.radiant,
-          look: GemLook.champagne,
           action: Wrap(
             spacing: 8,
             runSpacing: 8,

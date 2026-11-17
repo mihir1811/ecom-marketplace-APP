@@ -8,7 +8,6 @@ import '../../../../core/error/result.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/route_names.dart';
-import '../../../../core/widgets/gem3d/gem_mesh.dart';
 import '../../../product_detail/application/catalog_product_detail_loader.dart';
 import '../../../product_detail/product_detail_navigation.dart';
 import '../../../product_offer/application/product_offer_providers.dart';
@@ -397,7 +396,6 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen>
                       children: [
                         MaisonHeader(
                           title: context.tr(DiamondFlowL10n.myOffers),
-                          cut: GemCut.cushion,
                         ),
                       ],
                     ),
@@ -452,7 +450,6 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen>
       return SliverToBoxAdapter(
         child: _filter == _OfferFilter.all
             ? MaisonEmptyState(
-                cut: GemCut.cushion,
                 title: 'No offers yet',
                 message:
                     'Stones that take offers show Make an offer on their '
