@@ -5,10 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
+import '../../../../core/auth/guest_login_redirect.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/navigation/top_bar/section_top_bar.dart';
 import '../../../../core/widgets/navigation/bottom_nav/app_bottom_nav_destinations.dart';
-import '../../../auth/presentation/screens/login_screen.dart';
 import '../../../seller/presentation/atelier/atelier_theme.dart';
 import '../widgets/buyer_drawer.dart';
 
@@ -35,7 +35,7 @@ class MaisonLayout extends ConsumerWidget {
     final auth = ref.watch(
       authProvider.select((s) => (signedIn: s.isAuthenticated)),
     );
-    if (!auth.signedIn) return const LoginScreen();
+    if (!auth.signedIn) return const GuestLoginRedirect();
 
     final p = context.atelier;
     final location = GoRouterState.of(context).uri.path;

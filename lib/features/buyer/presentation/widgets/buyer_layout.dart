@@ -5,11 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
+import '../../../../core/auth/guest_login_redirect.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_drawer_button.dart';
 import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/app_top_bar.dart';
-import '../../../auth/presentation/screens/login_screen.dart';
 import 'buyer_drawer.dart';
 
 void openBuyerDrawer([BuildContext? context]) {
@@ -39,7 +39,7 @@ class BuyerLayout extends ConsumerWidget {
     final authState = ref.watch(authProvider);
 
     if (!authState.isAuthenticated) {
-      return const LoginScreen();
+      return const GuestLoginRedirect();
     }
 
     final hasAppBar = title != null;

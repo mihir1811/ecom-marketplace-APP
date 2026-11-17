@@ -38,6 +38,39 @@ abstract final class AppNavigation {
     router.push(location, extra: extra);
   }
 
+  /// Moves between auth peers (login ⇄ register) without stacking copies.
+  ///
+  /// Returns to [location] when it is already in the stack; otherwise replaces
+  /// the current auth screen, or pushes when coming from a non-auth page.
+  static void switchAuth(BuildContext context, String location) {
+    final router = GoRouter.of(context);
+    final target = canonicalPath(location);
+    final stack = _stackPaths(router);
+    final current = stack.isEmpty ? AppRouteNames.home : stack.last;
+    if (target == current) return;
+
+    final existing = stack.lastIndexWhere((path) => path == target);
+    if (existing >= 0) {
+      var remaining = stack.length - 1 - existing;
+      while (remaining > 0 && router.canPop()) {
+        router.pop();
+        remaining--;
+      }
+      if (remaining == 0) return;
+    }
+
+    final onAuthScreen =
+        current == AppRouteNames.login ||
+        _authRoutesReturningToLogin.contains(current);
+    if (onAuthScreen && router.canPop()) {
+      router.pushReplacement(location);
+    } else if (onAuthScreen) {
+      router.go(location);
+    } else {
+      router.push(location);
+    }
+  }
+
   /// Replaces the current location without pushing (drawer / tab / shell peers).
   static void switchTo(BuildContext context, String location, {Object? extra}) {
     final router = GoRouter.of(context);
@@ -182,6 +215,9 @@ abstract final class AppNavigation {
 extension AppNavContext on BuildContext {
   void openRoute(String location, {Object? extra}) =>
       AppNavigation.open(this, location, extra: extra);
+
+  void switchAuthRoute(String location) =>
+      AppNavigation.switchAuth(this, location);
 
   void switchToRoute(String location, {Object? extra}) =>
       AppNavigation.switchTo(this, location, extra: extra);

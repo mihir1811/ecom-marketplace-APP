@@ -9,6 +9,7 @@ import '../../../../core/auth/auth_validators.dart';
 import '../../../../core/auth/business_registration_data.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../widgets/business_registration_fields.dart';
 import '../widgets/kit/auth_kit.dart';
@@ -247,7 +248,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         profilePicture: _profilePicture,
         isLoading: loading,
         showDateOfBirth: !_isSeller,
-        showPasswordRules: !_isSeller,
         dateOfBirth: _dateOfBirth,
         referralOpen: _referralOpen,
         onToggleReferral: () => setState(() => _referralOpen = !_referralOpen),
@@ -315,13 +315,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ? AccountCommerceL10n.sellerAccount
                       : AccountCommerceL10n.newAccount,
                 ),
-                title: _isSeller ? null : context.tr(AuthL10n.registerTitle),
-                subtitle: _isSeller
-                    ? null
-                    : Text(
-                        context.tr(AuthL10n.registerSubtitle),
-                        textAlign: TextAlign.center,
-                      ),
               ),
               const SizedBox(height: AuthSpace.s24),
               AuthReveal(
@@ -344,35 +337,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: AuthSpace.s12),
-              AuthReveal(
-                index: 5,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Icon(
-                        Icons.info_outline_rounded,
-                        size: 15,
-                        color: p.inkMuted,
-                      ),
-                    ),
-                    const SizedBox(width: AuthSpace.s8),
-                    Expanded(
-                      child: Text(
-                        context.tr(
-                          _isSeller
-                              ? AuthL10n.businessHint
-                              : AuthL10n.individualHint,
-                        ),
-                        style: AuthType.caption(p),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: _isSeller ? AuthSpace.s24 : AuthSpace.s32),
+              const SizedBox(height: AuthSpace.s24),
               AnimatedSize(
                 duration: AuthMotion.base,
                 curve: AuthMotion.ease,
@@ -541,7 +506,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     label: context.tr(AuthL10n.signIn),
                     onPressed: loading
                         ? null
-                        : () => context.go(AppRouteNames.login),
+                        : () => context.switchAuthRoute(AppRouteNames.login),
                   ),
                 ],
               ),
@@ -563,7 +528,6 @@ class _BasicDetailsFields extends StatelessWidget {
     required this.profilePicture,
     required this.isLoading,
     required this.showDateOfBirth,
-    required this.showPasswordRules,
     required this.dateOfBirth,
     required this.referralOpen,
     required this.onToggleReferral,
@@ -579,7 +543,6 @@ class _BasicDetailsFields extends StatelessWidget {
   final XFile? profilePicture;
   final bool isLoading;
   final bool showDateOfBirth;
-  final bool showPasswordRules;
   final DateTime? dateOfBirth;
   final bool referralOpen;
   final VoidCallback onToggleReferral;
@@ -710,7 +673,7 @@ class _BasicDetailsFields extends StatelessWidget {
           listenable: passwordController,
           builder: (context, _) => AuthPasswordMeter(
             password: passwordController.text,
-            showRules: showPasswordRules,
+            showRules: false,
           ),
         ),
         const SizedBox(height: AuthSpace.s16),

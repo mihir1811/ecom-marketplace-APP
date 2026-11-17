@@ -7,6 +7,7 @@ import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/auth/auth_validators.dart';
 import '../../../../core/haptics/app_haptics.dart';
 import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/widgets/app_system_back_scope.dart';
 import '../widgets/kit/auth_kit.dart';
@@ -85,7 +86,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     return AppSystemBackScope(
       child: AuthShell(
-        showBack: false,
+        showBack: GoRouter.of(context).canPop(),
         child: AutofillGroup(
           child: Form(
             key: _formKey,
@@ -191,7 +192,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     icon: Icons.person_add_alt_outlined,
                     onPressed: loading
                         ? null
-                        : () => context.push(AppRouteNames.register),
+                        : () => context.switchAuthRoute(AppRouteNames.register),
                   ),
                 ),
                 const SizedBox(height: AuthSpace.s20),

@@ -7,9 +7,9 @@ import '../../../../core/auth/account_access.dart';
 import '../../../../core/auth/auth_providers.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
+import '../../../../core/auth/guest_login_redirect.dart';
 import '../../../../core/widgets/app_drawer_button.dart';
 import '../../../../core/widgets/navigation/top_bar/section_top_bar.dart';
-import '../../../auth/presentation/screens/login_screen.dart';
 import '../atelier/atelier_shell.dart';
 import '../atelier/atelier_theme.dart';
 import 'seller_drawer.dart';
@@ -51,7 +51,7 @@ class SellerLayout extends ConsumerWidget {
     final authState = ref.watch(authProvider);
 
     if (!authState.isAuthenticated) {
-      return const LoginScreen();
+      return const GuestLoginRedirect();
     }
 
     if (!authState.isSeller) {
