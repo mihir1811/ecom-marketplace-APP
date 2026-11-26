@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app.dart';
-import 'core/firebase/crash_reporting.dart';
 import 'core/deep_links/order_links.dart';
 import 'core/l10n/app_localizations.dart';
 import 'core/theme/app_colors.dart';
@@ -23,9 +22,6 @@ void main() {
       // WhatsApp order links tapped while the app runs (before the router).
       OrderLinks.attach();
       await PushMessagingService.initializeFirebase();
-      await CrashReporting.init(
-        firebaseReady: PushMessagingService.isSupported,
-      );
       // Restore the palette before the first frame so it never flashes.
       final palette = await PalettePreference.load();
 
@@ -72,7 +68,6 @@ void main() {
 
       FlutterError.onError = (FlutterErrorDetails details) {
         if (kDebugMode) FlutterError.presentError(details);
-        CrashReporting.recordFlutterError(details);
       };
 
       runApp(
@@ -90,9 +85,8 @@ void main() {
       );
     },
     (Object error, StackTrace stack) {
-      // Uncaught async errors: logged in debug, reported in release.
+      // Uncaught async errors: logged in debug only.
       if (kDebugMode) debugPrint('Uncaught: $error\n$stack');
-      CrashReporting.recordError(error, stack, reason: 'uncaught async');
     },
   );
 }
