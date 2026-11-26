@@ -13,6 +13,7 @@ import 'package:gemworld/core/router/route_names.dart';
 import 'package:gemworld/features/chat/data/repositories/chat_repository_impl.dart';
 import 'package:gemworld/features/chat/domain/models/chat_message.dart';
 import 'package:gemworld/features/chat/domain/models/chat_product_type.dart';
+import 'package:gemworld/features/chat/domain/models/chat_send_blocked.dart';
 import 'package:gemworld/features/chat/domain/models/chat_thread.dart';
 import 'package:gemworld/features/chat/domain/repositories/chat_repository.dart';
 import 'package:gemworld/features/notifications/application/chat_message_alerts.dart';
@@ -41,6 +42,9 @@ class _SocketOnlyChatRepository implements ChatRepository {
 
   @override
   Stream<ChatMessage> get incomingMessages => socket.stream;
+
+  @override
+  Stream<ChatSendBlocked> get sendBlocked => const Stream.empty();
 
   @override
   Future<void> connectSocket({required String userId}) async => connects++;

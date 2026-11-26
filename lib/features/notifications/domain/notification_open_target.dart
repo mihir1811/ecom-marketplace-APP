@@ -128,8 +128,14 @@ NotificationOpenTarget notificationOpenTarget(
     case 'OFFER_COUNTER_ACCEPTED':
     case 'OFFER_COUNTER_DECLINED':
       return const NotificationInApp(AppRouteNames.sellerOffers);
+    case 'PRIVATE_OFFER_ACCEPTED':
+    case 'PRIVATE_OFFER_DECLINED':
+      return const NotificationInApp(AppRouteNames.sellerOffers);
+    case 'PRIVATE_OFFER_ENDED':
+      return const NotificationInApp(AppRouteNames.buyerOffers);
+    case 'PRIVATE_OFFER_RECEIVED':
     case 'OFFER_COUNTERED':
-      // `/user/offers?counter=<offerId>`: open that counter-offer to answer.
+      // `/user/offers?counter=<offerId>`: open that offer to answer.
       final counterId =
           _offerQueryId(notification.link, 'counter') ?? data['offerId'] ?? '';
       return NotificationInApp(

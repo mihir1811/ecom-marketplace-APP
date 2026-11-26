@@ -177,6 +177,15 @@ class _SellerChatDetailScreenState
       final before = prev?.messages.length ?? 0;
       final grew = next.messages.length - before;
       if (grew > 0 && before > 0 && _away) setState(() => _missed += grew);
+      // A blocked send hands its text back, unless something new was typed.
+      final draft = next.restoreDraft;
+      if (draft != null &&
+          next.restoreSeq != (prev?.restoreSeq ?? 0) &&
+          _messageCtrl.text.isEmpty) {
+        _messageCtrl
+          ..text = draft
+          ..selection = TextSelection.collapsed(offset: draft.length);
+      }
     });
 
     final state = ref.watch(chatThreadProvider(args));
@@ -231,6 +240,7 @@ class _SellerChatDetailScreenState
             focusNode: _focus,
             isSending: state.isSending,
             sendError: state.sendError,
+            sendBlocked: state.sendBlocked,
             showSuggestions: showSuggestions,
             onSuggestion: _useSuggestion,
             onSend: _send,
@@ -1150,6 +1160,7 @@ class _Composer extends StatefulWidget {
     required this.onSend,
     required this.onPickImage,
     this.sendError,
+    this.sendBlocked = false,
   });
 
   final TextEditingController controller;
@@ -1160,6 +1171,9 @@ class _Composer extends StatefulWidget {
   final VoidCallback onSend;
   final VoidCallback onPickImage;
   final String? sendError;
+
+  /// [sendError] is a "wait for the buyer's reply" notice, not a failure.
+  final bool sendBlocked;
 
   static const _suggestions = [
     'Yes, it’s available.',
@@ -1222,8 +1236,12 @@ class _ComposerState extends State<_Composer> {
                         padding: const EdgeInsets.only(bottom: 8),
                         child: AtelierNotice(
                           text: widget.sendError!,
-                          tone: AtelierTone.ruby,
-                          icon: Icons.error_outline_rounded,
+                          tone: widget.sendBlocked
+                              ? AtelierTone.amber
+                              : AtelierTone.ruby,
+                          icon: widget.sendBlocked
+                              ? Icons.hourglass_top_rounded
+                              : Icons.error_outline_rounded,
                         ),
                       ),
               ),

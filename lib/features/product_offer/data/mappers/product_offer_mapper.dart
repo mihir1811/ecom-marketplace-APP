@@ -7,6 +7,8 @@ abstract final class ProductOfferMapper {
     final productMap = product is Map<String, dynamic> ? product : null;
     final buyer = json['buyer'] ?? json['user'];
     final buyerMap = buyer is Map<String, dynamic> ? buyer : null;
+    final seller = json['seller'];
+    final sellerMap = seller is Map<String, dynamic> ? seller : null;
     final productId =
         json['productId']?.toString() ?? productMap?['id']?.toString() ?? '';
     final createdAt = _parseDate(json['createdAt']);
@@ -53,7 +55,19 @@ abstract final class ProductOfferMapper {
       history: _history(json['history']),
       attemptsUsed: _asInt(json['attemptsUsed']),
       maxAttempts: _asInt(json['maxAttempts']),
+      privateOffer: json['privateOffer'] == true,
+      sellerName: _sellerName(sellerMap) ?? _nullableString(json['sellerName']),
     );
+  }
+
+  static String? _sellerName(Map<String, dynamic>? seller) {
+    if (seller == null) return null;
+    final account = seller['sellerAccount'];
+    final accountMap = account is Map<String, dynamic> ? account : null;
+    return _nullableString(seller['companyName']) ??
+        _nullableString(accountMap?['companyName']) ??
+        _nullableString(seller['name']) ??
+        _nullableString(seller['fullName']);
   }
 
   static List<OfferMove> _history(Object? raw) {

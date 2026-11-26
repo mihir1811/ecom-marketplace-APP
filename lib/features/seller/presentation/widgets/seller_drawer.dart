@@ -76,6 +76,11 @@ class SellerDrawer extends ConsumerWidget {
               Icons.local_offer_outlined,
             ),
             item(
+              AppRouteNames.sellerInterestedBuyers,
+              InterestedBuyersL10n.menu,
+              Icons.shopping_cart_checkout_outlined,
+            ),
+            item(
               AppRouteNames.sellerAuctions,
               RemainingL10n.auctions,
               Icons.gavel_outlined,

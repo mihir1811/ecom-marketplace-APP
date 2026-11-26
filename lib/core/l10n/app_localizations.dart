@@ -18,6 +18,7 @@ import 'translations/jewelry_flow_messages.dart';
 import 'translations/jewelry_market_messages.dart';
 import 'translations/jewelry_review_messages.dart';
 import 'translations/home_messages.dart';
+import 'translations/interested_buyers_messages.dart';
 import 'translations/navigation_messages.dart';
 import 'translations/remaining_messages.dart';
 import 'translations/spotlight_messages.dart';
@@ -37,6 +38,7 @@ export 'translations/jewelry_flow_messages.dart';
 export 'translations/jewelry_market_messages.dart';
 export 'translations/jewelry_review_messages.dart';
 export 'translations/home_messages.dart';
+export 'translations/interested_buyers_messages.dart';
 export 'translations/navigation_messages.dart';
 export 'translations/remaining_messages.dart';
 export 'translations/spotlight_messages.dart';
@@ -79,6 +81,7 @@ class AppLocalizations {
     ...educationMessages,
     ...jewelryEducationMessages,
     ...spotlightMessages,
+    ...interestedBuyersMessages,
   };
 
   /// Complete immutable message catalog, exposed for validation tests.

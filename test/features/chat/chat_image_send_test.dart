@@ -15,6 +15,7 @@ import 'package:gemworld/features/chat/data/mappers/chat_mapper.dart';
 import 'package:gemworld/features/chat/data/repositories/chat_repository_impl.dart';
 import 'package:gemworld/features/chat/domain/models/chat_message.dart';
 import 'package:gemworld/features/chat/domain/models/chat_product_type.dart';
+import 'package:gemworld/features/chat/domain/models/chat_send_blocked.dart';
 import 'package:gemworld/features/chat/domain/models/chat_thread.dart';
 import 'package:gemworld/features/chat/domain/models/product_chat_context.dart';
 import 'package:gemworld/features/chat/domain/repositories/chat_repository.dart';
@@ -52,6 +53,11 @@ class _FakeChatRepository implements ChatRepository {
 
   @override
   Stream<ChatMessage> get incomingMessages => _incoming.stream;
+
+  final blocked = StreamController<ChatSendBlocked>.broadcast();
+
+  @override
+  Stream<ChatSendBlocked> get sendBlocked => blocked.stream;
 
   @override
   Future<void> connectSocket({required String userId}) async {}
@@ -243,5 +249,80 @@ void main() {
     expect(message.isMine, isFalse);
     expect(message.fileUrl, endsWith('/uploads/chat/p.jpg'));
     expect(Uri.parse(message.fileUrl!).hasScheme, isTrue);
+  });
+
+  group('CHAT_SEND_BLOCKED', () {
+    const notice =
+        'You can send another message after this buyer replies to you.';
+
+    ChatSendBlocked event({String toId = 'peer'}) => ChatSendBlocked(
+      code: 'CART_OUTREACH_AWAITING_REPLY',
+      message: notice,
+      toId: toId,
+      productId: 'p1',
+    );
+
+    test('shows the notice and hands the text back', () async {
+      await notifier().sendText('Still interested?');
+      repo.blocked.add(event());
+      await Future<void>.delayed(Duration.zero);
+
+      final state = container.read(chatThreadProvider(args));
+      expect(state.sendError, notice);
+      expect(state.sendBlocked, isTrue);
+      expect(state.restoreDraft, 'Still interested?');
+      expect(state.restoreSeq, 1);
+      expect(state.messages, isEmpty);
+    });
+
+    test('ignores events for another chat', () async {
+      await notifier().sendText('Hello');
+      repo.blocked.add(event(toId: 'someone-else'));
+      await Future<void>.delayed(Duration.zero);
+
+      final state = container.read(chatThreadProvider(args));
+      expect(state.sendError, isNull);
+      expect(state.sendBlocked, isFalse);
+    });
+
+    test('a refresh keeps the notice; the buyer writing clears it', () async {
+      await notifier().sendText('Hello');
+      repo.blocked.add(event());
+      await Future<void>.delayed(Duration.zero);
+      await notifier().refresh();
+      expect(container.read(chatThreadProvider(args)).sendError, notice);
+
+      repo._incoming.add(
+        ChatMessage(
+          id: 'm1',
+          fromId: 'peer',
+          toId: 'me',
+          body: 'Yes, tell me more',
+          messageType: ChatMessageType.text,
+          createdAt: DateTime(2026, 11, 24),
+          isRead: false,
+          isMine: false,
+          productId: 'p1',
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      final state = container.read(chatThreadProvider(args));
+      expect(state.sendError, isNull);
+      expect(state.sendBlocked, isFalse);
+    });
+
+    test('parses the socket payload', () {
+      final parsed = ChatSendBlocked.fromJson({
+        'code': 'CART_OUTREACH_AWAITING_REPLY',
+        'message': notice,
+        'toId': 'buyer-1',
+        'productId': null,
+      });
+      expect(parsed?.toId, 'buyer-1');
+      expect(parsed?.productId, isNull);
+      expect(parsed?.message, notice);
+      expect(ChatSendBlocked.fromJson({'message': 'x'}), isNull);
+    });
   });
 }

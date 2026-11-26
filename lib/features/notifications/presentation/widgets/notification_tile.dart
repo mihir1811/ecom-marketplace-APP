@@ -171,7 +171,11 @@ IconData notificationTypeIcon(String type) {
     'AUCTION_WINNER_UNPAID_SELLER' => Icons.gavel_outlined,
     'OFFER_RECEIVED' ||
     'OFFER_ACCEPTED' ||
-    'OFFER_REJECTED' => Icons.local_offer_outlined,
+    'OFFER_REJECTED' ||
+    'PRIVATE_OFFER_RECEIVED' ||
+    'PRIVATE_OFFER_ENDED' ||
+    'PRIVATE_OFFER_ACCEPTED' ||
+    'PRIVATE_OFFER_DECLINED' => Icons.local_offer_outlined,
     'OFFER_COUNTERED' ||
     'OFFER_COUNTERED_BY_BUYER' ||
     'OFFER_COUNTER_ACCEPTED' ||

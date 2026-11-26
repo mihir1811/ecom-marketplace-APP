@@ -233,6 +233,16 @@ abstract final class ApiEndpoints {
   static const String productOfferSeller = '/product-offer/seller';
   static String productOfferRespond(String id) => '/product-offer/$id/respond';
 
+  // Interested buyers: sellers reach buyers with their item in the cart for
+  // an hour or more; buyers opt out with the preference.
+  static const String interestedBuyers = '/interested-buyers';
+  static String interestedBuyerMessage(String cartId) =>
+      '/interested-buyers/${Uri.encodeComponent(cartId)}/message';
+  static String interestedBuyerOffer(String cartId) =>
+      '/interested-buyers/${Uri.encodeComponent(cartId)}/offer';
+  static const String interestedBuyersPreference =
+      '/interested-buyers/preference';
+
   // Favorites (wishlist)
   static const String favorites = '/favorites';
   static const String favoritesAll = '/favorites/all';

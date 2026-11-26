@@ -477,7 +477,8 @@ class _CounterWaiting extends StatelessWidget {
       onExpired: onExpired,
       builder: (context, left) => AtelierNotice(
         text:
-            'Your counter-offer · waiting for the buyer · '
+            '${offer.privateOffer ? 'Your private offer' : 'Your counter-offer'}'
+            ' · waiting for the buyer · '
             '${formatOfferTimeLeft(left)} left.',
         tone: AtelierTone.gold,
         icon: Icons.swap_horiz_rounded,
@@ -728,7 +729,11 @@ class _PriceLine extends StatelessWidget {
       textBaseline: TextBaseline.alphabetic,
       children: [
         Text(
-          offer.fromSeller ? 'Counter ' : 'Offer ',
+          offer.privateOffer
+              ? 'Private offer '
+              : offer.fromSeller
+              ? 'Counter '
+              : 'Offer ',
           style: AtelierType.caption(p.muted, size: 11),
         ),
         Text(
@@ -790,7 +795,9 @@ class _PriceComparison extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      offer.fromSeller
+                      offer.privateOffer
+                          ? 'YOUR PRIVATE OFFER'
+                          : offer.fromSeller
                           ? 'YOUR COUNTER-OFFER'
                           : context.tr(RemainingL10n.buyerOffer).toUpperCase(),
                       style: AtelierType.overline(p.gold),

@@ -11,6 +11,7 @@ import '../../../core/error/result.dart';
 import '../data/repositories/chat_repository_impl.dart';
 import '../domain/chat_image_rules.dart';
 import '../domain/models/chat_message.dart';
+import '../domain/models/chat_send_blocked.dart';
 import '../domain/models/chat_thread.dart';
 import '../domain/models/product_chat_context.dart';
 import '../domain/repositories/chat_repository.dart';
@@ -130,6 +131,9 @@ class ChatThreadState {
     this.sendError,
     this.pendingImage,
     this.uploadProgress,
+    this.sendBlocked = false,
+    this.restoreDraft,
+    this.restoreSeq = 0,
   });
 
   final List<ChatMessage> messages;
@@ -145,6 +149,15 @@ class ChatThreadState {
   /// Upload progress of [pendingImage], 0–1.
   final double? uploadProgress;
 
+  /// [sendError] is the server's `CHAT_SEND_BLOCKED` notice: the seller
+  /// contacted this buyer from Interested buyers and must wait for a reply.
+  final bool sendBlocked;
+
+  /// Text of the blocked message, for the composer to put back; a new
+  /// [restoreSeq] marks each new restore.
+  final String? restoreDraft;
+  final int restoreSeq;
+
   ChatThreadState copyWith({
     List<ChatMessage>? messages,
     ProductChatContext? context,
@@ -158,6 +171,9 @@ class ChatThreadState {
     bool clearSendError = false,
     bool clearContext = false,
     bool clearPendingImage = false,
+    bool? sendBlocked,
+    String? restoreDraft,
+    int? restoreSeq,
   }) {
     return ChatThreadState(
       messages: messages ?? this.messages,
@@ -172,6 +188,9 @@ class ChatThreadState {
       uploadProgress: clearPendingImage
           ? null
           : (uploadProgress ?? this.uploadProgress),
+      sendBlocked: sendBlocked ?? (clearSendError ? false : this.sendBlocked),
+      restoreDraft: restoreDraft ?? this.restoreDraft,
+      restoreSeq: restoreSeq ?? this.restoreSeq,
     );
   }
 }
@@ -185,12 +204,17 @@ class ChatThreadNotifier extends Notifier<ChatThreadState>
 
   CancelToken? _cancelToken;
   StreamSubscription<ChatMessage>? _socketSub;
+  StreamSubscription<ChatSendBlocked>? _blockedSub;
+
+  /// Last text sent, put back in the composer if the server blocks it.
+  String? _lastSentText;
 
   @override
   ChatThreadState build() {
     ref.onDispose(() {
       _cancelToken?.cancel();
       _socketSub?.cancel();
+      _blockedSub?.cancel();
     });
 
     final userId = ref.watch(authProvider.select((s) => s.user?.id));
@@ -205,6 +229,11 @@ class ChatThreadNotifier extends Notifier<ChatThreadState>
           .read(chatRepositoryProvider)
           .incomingMessages
           .listen(_onIncoming);
+      _blockedSub?.cancel();
+      _blockedSub = ref
+          .read(chatRepositoryProvider)
+          .sendBlocked
+          .listen(_onSendBlocked);
     }
 
     return const ChatThreadState(isLoading: true);
@@ -218,7 +247,28 @@ class ChatThreadNotifier extends Notifier<ChatThreadState>
     return productOk && peerOk;
   }
 
+  /// The server dropped our last send: show its notice above the composer
+  /// and hand the text back. Nothing reached the buyer or was saved.
+  void _onSendBlocked(ChatSendBlocked event) {
+    if (event.toId != arg.peerUserId) return;
+    final draft = _lastSentText;
+    _lastSentText = null;
+    state = state.copyWith(
+      isSending: false,
+      sendError: event.message,
+      sendBlocked: true,
+      restoreDraft: draft,
+      restoreSeq: draft == null ? null : state.restoreSeq + 1,
+    );
+  }
+
   void _onIncoming(ChatMessage msg) {
+    // The buyer wrote back: the cart-contact gate is gone for this pair.
+    if (state.sendBlocked &&
+        !msg.isMine &&
+        msg.fromId == arg.peerUserId) {
+      state = state.copyWith(clearSendError: true);
+    }
     if (!_belongs(msg)) return;
     final exists = state.messages.any((m) => m.id == msg.id);
     if (exists) return;
@@ -269,6 +319,11 @@ class ChatThreadNotifier extends Notifier<ChatThreadState>
           isSending: state.isSending,
           pendingImage: state.pendingImage,
           uploadProgress: state.uploadProgress,
+          // Keep the blocked-send notice; a refresh doesn't lift the gate.
+          sendError: state.sendBlocked ? state.sendError : null,
+          sendBlocked: state.sendBlocked,
+          restoreDraft: state.restoreDraft,
+          restoreSeq: state.restoreSeq,
         );
         await _markUnread(filtered);
         if (!ref.mounted) return;
@@ -305,6 +360,7 @@ class ChatThreadNotifier extends Notifier<ChatThreadState>
     }
 
     state = state.copyWith(isSending: true, clearSendError: true);
+    _lastSentText = body;
     final type = ChatThread.decodeId(arg.threadId)?.productType;
     final result = await _repo.sendMessage(
       fromId: myId,

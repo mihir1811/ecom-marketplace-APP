@@ -5,6 +5,7 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/error/result.dart';
 import '../models/chat_message.dart';
 import '../models/chat_product_type.dart';
+import '../models/chat_send_blocked.dart';
 import '../models/chat_thread.dart';
 import '../models/product_chat_context.dart';
 
@@ -60,4 +61,7 @@ abstract class ChatRepository {
   Future<void> disconnectSocket();
 
   Stream<ChatMessage> get incomingMessages;
+
+  /// The server dropped one of this user's sends (`CHAT_SEND_BLOCKED`).
+  Stream<ChatSendBlocked> get sendBlocked;
 }

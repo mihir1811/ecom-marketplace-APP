@@ -186,6 +186,9 @@ class AppRouteNames {
   static String sellerInquiryDetailPath(String category, String inquiryId) =>
       '/seller/inquiries/$category/$inquiryId';
   static const String sellerOffers = '/seller/offers';
+
+  /// Buyers with the seller's item in their cart for an hour or more.
+  static const String sellerInterestedBuyers = '/seller/interested-buyers';
   static const String sellerAuctions = '/seller/auctions';
   static const String sellerAnalytics = '/seller/analytics';
   static const String sellerChat = '/seller/chat';

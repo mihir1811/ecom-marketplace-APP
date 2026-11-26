@@ -154,6 +154,11 @@ class OpenScreenTool extends AgentTool {
       AppRouteNames.sellerOffers,
       AgentToolAccess.seller,
     ),
+    'seller_interested_buyers': _Destination(
+      'Interested buyers (buyers with my items in their cart)',
+      AppRouteNames.sellerInterestedBuyers,
+      AgentToolAccess.seller,
+    ),
     'seller_auctions': _Destination(
       'My auctions',
       AppRouteNames.sellerAuctions,

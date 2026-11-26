@@ -93,6 +93,8 @@ class ProductOffer {
     this.history = const [],
     this.attemptsUsed,
     this.maxAttempts,
+    this.privateOffer = false,
+    this.sellerName,
   });
 
   final String id;
@@ -153,6 +155,13 @@ class ProductOffer {
   /// once they are equal.
   final int? attemptsUsed;
   final int? maxAttempts;
+
+  /// The seller started this negotiation from the buyer's cart (Interested
+  /// buyers); no buyer offer came before it. Only the opening row carries it.
+  final bool privateOffer;
+
+  /// Seller's shop or display name, when the row includes it.
+  final String? sellerName;
 
   /// No attempts left for another offer or counter-offer. Accept and
   /// decline still work.
@@ -220,7 +229,7 @@ class ProductOffer {
     if (status == ProductOfferStatus.accepted) {
       return isPayable ? 'Awaiting payment' : 'Accepted';
     }
-    if (isOpenCounter) return 'Counter-offer';
+    if (isOpenCounter) return privateOffer ? 'Private offer' : 'Counter-offer';
     return status.label;
   }
 
@@ -263,6 +272,8 @@ class ProductOffer {
       history: history,
       attemptsUsed: attemptsUsed,
       maxAttempts: maxAttempts,
+      privateOffer: privateOffer,
+      sellerName: sellerName,
     );
   }
 }

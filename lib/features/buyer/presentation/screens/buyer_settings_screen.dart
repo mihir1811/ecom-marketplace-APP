@@ -7,6 +7,7 @@ import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/router/app_navigation.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/theme_preference_provider.dart';
+import '../../../interested_buyers/presentation/widgets/seller_cart_outreach_setting.dart';
 import '../../../seller/presentation/atelier/atelier_feedback.dart';
 import '../../../seller/presentation/atelier/atelier_motion.dart';
 import '../../../seller/presentation/atelier/atelier_studio.dart';
@@ -141,6 +142,18 @@ class BuyerSettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+              // Buyer privacy: may sellers reach out about this cart.
+              if (!seller && user != null) ...[
+                const SizedBox(height: 8),
+                reveal(
+                  MaisonGroupLabel(
+                    label: context.tr(InterestedBuyersL10n.privacyGroup),
+                  ),
+                ),
+                reveal(
+                  const SettingsGroup(children: [SellerCartOutreachSetting()]),
+                ),
+              ],
               const SizedBox(height: 8),
               reveal(const MaisonGroupLabel(label: 'About')),
               reveal(

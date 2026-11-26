@@ -17,7 +17,9 @@ AtelierTone _toneFor(String type) {
   if (type == 'CHAT_MESSAGE') return AtelierTone.sapphire;
   if (type.startsWith('ORDER_')) return AtelierTone.emerald;
   if (type.startsWith('AUCTION_')) return AtelierTone.amber;
-  if (type.startsWith('OFFER_')) return AtelierTone.gold;
+  if (type.startsWith('OFFER_') || type.startsWith('PRIVATE_OFFER_')) {
+    return AtelierTone.gold;
+  }
   if (type == 'ADMIN_BROADCAST') return AtelierTone.gold;
   return AtelierTone.neutral;
 }

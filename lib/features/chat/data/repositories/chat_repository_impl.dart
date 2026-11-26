@@ -13,6 +13,7 @@ import '../../../../core/network/dio_provider.dart';
 import '../../domain/chat_image_rules.dart';
 import '../../domain/models/chat_message.dart';
 import '../../domain/models/chat_product_type.dart';
+import '../../domain/models/chat_send_blocked.dart';
 import '../../domain/models/chat_thread.dart';
 import '../../domain/models/product_chat_context.dart';
 import '../../domain/repositories/chat_repository.dart';
@@ -42,6 +43,9 @@ class ChatRepositoryImpl implements ChatRepository {
 
   @override
   Stream<ChatMessage> get incomingMessages => _socket.incomingMessages;
+
+  @override
+  Stream<ChatSendBlocked> get sendBlocked => _socket.sendBlocked;
 
   @override
   Future<void> connectSocket({required String userId}) =>

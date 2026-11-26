@@ -10,6 +10,7 @@ import '../../../../core/widgets/app_scaffold.dart';
 import '../../../../core/widgets/luxe/luxe_button.dart';
 import '../../../../core/widgets/luxe/luxe_feedback.dart';
 import '../../../../core/widgets/luxe/luxe_layout.dart';
+import '../../../interested_buyers/presentation/widgets/cart_outreach_notice.dart';
 import '../../../jewelry_checkout/presentation/widgets/jewelry_bag_banner.dart';
 import '../../application/cart_provider.dart';
 import '../../application/fees_providers.dart';
@@ -115,6 +116,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 CartPromoSection(),
                 CartPaymentOptions(),
                 CartTotalsSection(),
+                CartOutreachNotice(),
               ]),
             ],
           ),

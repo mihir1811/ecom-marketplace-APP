@@ -24,6 +24,7 @@ import 'presentation/widgets/seller_layout.dart';
 import '../auth/presentation/screens/profile_screen.dart';
 import '../buyer/presentation/screens/buyer_settings_screen.dart';
 import '../help_center/presentation/screens/help_center_screen.dart';
+import '../interested_buyers/presentation/screens/seller_interested_buyers_screen.dart';
 import '../reference/presentation/screens/seller_references_screen.dart';
 import '../notifications/presentation/screens/notifications_screen.dart';
 import '../wallet/presentation/screens/wallet_screen.dart';
@@ -102,6 +103,11 @@ final List<RouteBase> sellerRoutes = [
         builder: (context, state) => SellerOffersScreen(
           initialStatus: state.uri.queryParameters['status'],
         ),
+      ),
+      GoRoute(
+        caseSensitive: false,
+        path: AppRouteNames.sellerInterestedBuyers,
+        builder: (context, state) => const SellerInterestedBuyersScreen(),
       ),
       GoRoute(
         caseSensitive: false,

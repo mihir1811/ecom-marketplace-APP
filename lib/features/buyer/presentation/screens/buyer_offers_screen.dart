@@ -114,8 +114,8 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen>
     if (offer == null || !offer.isOpenCounter) {
       showAtelierToast(
         context,
-        'This counter-offer is no longer open. It may have expired after '
-        '24 hours.',
+        'This offer is no longer open. It may have expired after 24 hours, '
+        'or the item was reserved by another buyer.',
         tone: AtelierTone.neutral,
       );
       return;
@@ -127,7 +127,9 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen>
   Future<void> _answer(ProductOffer offer) async {
     final choice = await showAtelierOptions<ProductOfferStatus>(
       context: context,
-      title: 'Counter-offer · ${maisonUsd(offer.amount)}',
+      title:
+          '${offer.privateOffer ? 'Private offer' : 'Counter-offer'} · '
+          '${maisonUsd(offer.amount)}',
       subtitle: offer.displayTitle,
       options: [
         const AtelierOption(
@@ -213,7 +215,9 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen>
   Future<void> _declineCounter(ProductOffer offer) async {
     final ok = await showAtelierConfirm(
       context: context,
-      title: 'Decline this counter-offer?',
+      title: offer.privateOffer
+          ? 'Decline this private offer?'
+          : 'Decline this counter-offer?',
       message:
           'The seller will be told you passed on ${maisonUsd(offer.amount)}. '
           'You can make a new offer while you have attempts left.',
@@ -225,7 +229,10 @@ class _BuyerOffersScreenState extends ConsumerState<BuyerOffersScreen>
     final result = await _sendAnswer(offer, ProductOfferStatus.rejected);
     if (result == null || !mounted) return;
     AppHaptics.warning();
-    showAtelierToast(context, 'Counter-offer declined.');
+    showAtelierToast(
+      context,
+      offer.privateOffer ? 'Private offer declined.' : 'Counter-offer declined.',
+    );
   }
 
   /// Counter back below the seller's price; uses one attempt.
@@ -608,6 +615,18 @@ class BuyerOfferCard extends StatelessWidget {
               ),
             ],
           ),
+          if (offer.privateOffer) ...[
+            const SizedBox(height: 10),
+            AtelierNotice(
+              text:
+                  'Private offer from ${offer.sellerName ?? 'the seller'}. '
+                  'The seller offered you a lower price on an item in your '
+                  'cart.',
+              tone: AtelierTone.gold,
+              icon: Icons.local_offer_outlined,
+              dense: true,
+            ),
+          ],
           if (offer.history.isNotEmpty) ...[
             const SizedBox(height: 10),
             OfferExchangeLine(offer: offer, asSeller: false),
@@ -672,7 +691,8 @@ class BuyerOfferCard extends StatelessWidget {
                   children: [
                     AtelierButton(
                       label:
-                          'Answer counter-offer · ${maisonUsd(offer.amount)}',
+                          '${offer.privateOffer ? 'Answer private offer' : 'Answer counter-offer'}'
+                          ' · ${maisonUsd(offer.amount)}',
                       icon: Icons.swap_horiz_rounded,
                       variant: AtelierButtonVariant.gold,
                       loading: busy,
