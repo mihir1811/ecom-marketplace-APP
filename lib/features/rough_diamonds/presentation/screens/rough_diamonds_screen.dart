@@ -212,14 +212,7 @@ class _RoughDiamondsScreenState extends ConsumerState<RoughDiamondsScreen>
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
-                  child: Text(
-                    context.tr(RoughFlowL10n.title),
-                    style: LuxeType.display(32, p.ink),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                  padding: const EdgeInsets.fromLTRB(12, 5, 12, 10),
                   child: LuxeSegmented<RoughDiamondType>(
                     options: RoughDiamondType.values,
                     selected: type,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -27,22 +28,18 @@ class _InfoSlide {
     required this.action,
     required this.route,
     required this.background,
-    this.focus = Alignment.center,
   });
 
-  /// Photo that fills the right of the card. Credits in
-  /// `docs/image-credits.md`.
+  /// Square photo of the product on a plain studio backdrop, shown whole
+  /// at the right of the card. Credits in `docs/image-credits.md`.
   final String image;
-
-  /// Which part of the photo stays in frame when it is cropped to the card.
-  final Alignment focus;
   final String title;
   final String body;
   final String action;
   final String route;
 
-  /// Flat studio colour behind the product. Each slide has its own, the way
-  /// a shoot uses a different paper backdrop per piece.
+  /// The photo's own backdrop colour. Each photo's edges were evened out to
+  /// exactly this colour, so the card and photo read as one surface.
   final Color background;
 }
 
@@ -51,12 +48,11 @@ const _dir = 'public/images/homeHero';
 const _slides = [
   _InfoSlide(
     image: '$_dir/about.webp',
-    focus: Alignment(-0.2, 0),
     title: HomeL10n.infoAboutTitle,
     body: HomeL10n.infoAboutBody,
     action: HomeL10n.infoAboutAction,
     route: AppRouteNames.aboutUs,
-    background: Color(0xFFEEE5D5),
+    background: Color(0xFFF1F2F2),
   ),
   _InfoSlide(
     image: '$_dir/certified.webp',
@@ -64,7 +60,7 @@ const _slides = [
     body: HomeL10n.infoCertifiedBody,
     action: HomeL10n.infoCertifiedAction,
     route: AppRouteNames.diamonds,
-    background: Color(0xFFDFE5EA),
+    background: Color(0xFFDBDCE0),
   ),
   _InfoSlide(
     image: '$_dir/live.webp',
@@ -72,16 +68,15 @@ const _slides = [
     body: HomeL10n.infoLiveBody,
     action: HomeL10n.infoLiveAction,
     route: AppRouteNames.liveShows,
-    background: Color(0xFFEAE2EC),
+    background: Color(0xFFEEEFF1),
   ),
   _InfoSlide(
     image: '$_dir/learn.webp',
-    focus: Alignment(0, -0.1),
     title: HomeL10n.infoLearnTitle,
     body: HomeL10n.infoLearnBody,
     action: HomeL10n.infoLearnAction,
     route: AppRouteNames.diamondEducation,
-    background: Color(0xFFE1E7DE),
+    background: Color(0xFFDEE0E2),
   ),
   _InfoSlide(
     image: '$_dir/secure.webp',
@@ -89,7 +84,7 @@ const _slides = [
     body: HomeL10n.infoSecureBody,
     action: HomeL10n.infoSecureAction,
     route: AppRouteNames.policies,
-    background: Color(0xFFF1E3DF),
+    background: Color(0xFFEFF0F0),
   ),
 ];
 
@@ -220,10 +215,11 @@ class _HomeInfoBannersState extends State<HomeInfoBanners> {
   }
 }
 
-/// Split campaign card: photo on the right, softened into the slide colour at
-/// its inner edge, with headline, one supporting line and a text-link action
-/// on the left. No glow, frame or badge, so it reads like a printed campaign
-/// rather than a generated tile.
+/// Split campaign card: the whole photo, uncropped and with no overlay, on
+/// the right at full card height, set on its own backdrop colour so there is
+/// no seam; headline, one supporting line and a text-link action on the
+/// left. No glow, frame or badge, so it reads like a printed campaign rather
+/// than a generated tile.
 class _InfoFace extends StatelessWidget {
   const _InfoFace({required this.slide, required this.tablet});
 
@@ -252,7 +248,10 @@ class _InfoFace extends StatelessWidget {
           color: slide.background,
           child: LayoutBuilder(
             builder: (context, box) {
-              final photoWidth = box.maxWidth * (tablet ? 0.42 : 0.46);
+              // Photos are square: full card height, flush with the right,
+              // top and bottom edges, so only their (evened) left edge meets
+              // the card colour.
+              final photoSide = box.maxHeight;
               final pad = tablet ? 28.0 : 18.0;
 
               return Stack(
@@ -262,32 +261,13 @@ class _InfoFace extends StatelessWidget {
                     right: 0,
                     top: 0,
                     bottom: 0,
-                    width: photoWidth,
+                    width: photoSide,
                     child: ExcludeSemantics(
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          Image.asset(
-                            slide.image,
-                            cacheWidth: (photoWidth * dpr).round(),
-                            fit: BoxFit.cover,
-                            alignment: slide.focus,
-                            filterQuality: FilterQuality.medium,
-                          ),
-                          // Blends the photo's inner edge into the card so
-                          // the split has no hard seam.
-                          DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  slide.background,
-                                  slide.background.withValues(alpha: 0),
-                                ],
-                                stops: const [0, 0.32],
-                              ),
-                            ),
-                          ),
-                        ],
+                      child: Image.asset(
+                        slide.image,
+                        cacheWidth: (photoSide * dpr).round(),
+                        fit: BoxFit.contain,
+                        filterQuality: FilterQuality.medium,
                       ),
                     ),
                   ),
@@ -295,7 +275,14 @@ class _InfoFace extends StatelessWidget {
                     left: pad,
                     top: pad - 4,
                     bottom: pad - 4,
-                    width: box.maxWidth * (tablet ? 0.52 : 0.56) - pad,
+                    // Copy stays clear of the product, which sits at least a
+                    // tenth of the photo in from its left edge.
+                    width:
+                        math.min(
+                          box.maxWidth * (tablet ? 0.52 : 0.56),
+                          box.maxWidth - photoSide * 0.92,
+                        ) -
+                        pad,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,

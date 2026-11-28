@@ -20,10 +20,14 @@ Files were resized to at most 1200 px and re-encoded as WebP.
 
 | File | Photo | Photographer |
 |---|---|---|
-| `about.webp` | [Stack of ornate gold bangles](https://unsplash.com/photos/wreS7kv_tLE) | Zayed Ahmed Zadu (@zayed_ahmed_zadu) |
-| `certified.webp` | [Diamonds on reflective black surface](https://unsplash.com/photos/gb0BZGae1Nk) | Edgar Soto (@edgardo1987) |
-| `live.webp` | [Gold necklace and earrings on white stands](https://unsplash.com/photos/LA0edB8tqC0) | Zayed Ahmed Zadu (@zayed_ahmed_zadu) |
+| `about.webp` | [Two gold rings with engraved circular motifs](https://unsplash.com/photos/gold-rings-with-engraved-circular-motifs-fz0VMD5QNh0) | Diego Castañeda |
+| `certified.webp` | [Diamond ring on white surface](https://unsplash.com/photos/silver-diamond-studded-ring-on-white-surface-B-JtfqdHemU) | Jenna Day |
+| `live.webp` | [Gold heart pendant on a white background](https://unsplash.com/photos/a-pair-of-gold-heart-shaped-earrings-on-a-white-background-g3CYPDYDydk) | Sixteen Miles Out |
 | `learn.webp` | [Diamond held in tweezers](https://unsplash.com/photos/R13RJX_V42A) | Tahlia Doyle (@tahliaclaire) |
-| `secure.webp` | [Pile of gold bars](https://unsplash.com/photos/uIPmrpU4awE) | Scottsdale Mint (@scottsdalemint) |
+| `secure.webp` | [Pile of gold coins on a white table](https://unsplash.com/photos/a-pile-of-gold-coins-sitting-on-top-of-a-white-table-ydvRnbfHfMA) | William Warby |
 
-Files were resized to at most 1200 px and re-encoded as WebP.
+Each photo is cropped (backdrop only, never the product) to a square with
+the product whole, then only the backdrop near the inner edges is eased to
+one flat colour; that colour is the card background in
+`home_info_banners.dart`, so photo and card meet with no seam. Re-encoded
+as WebP, at most 1080 px.

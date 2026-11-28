@@ -393,9 +393,10 @@ class GemFieldController extends ChangeNotifier {
     final corner = 2 * halfW * halfH / diag;
     _spread = math.max(1, corner * 0.8 / (0.15 * _k));
 
-    // Packed like a pour of beans, capped for frame budget.
-    // A wider stream holds more stones at the same packing.
-    final count = (size.width * size.height / 430).round().clamp(180, 520);
+    // Loosely scattered rather than packed, so single stones read on their
+    // own; capped for frame budget. A wider stream holds more stones at the
+    // same spacing.
+    final count = (size.width * size.height / 1100).round().clamp(90, 240);
     for (var i = 0; i < count; i++) {
       final z = _zNear + rng.nextDouble() * _zDepth;
       final band = z < _zFar
