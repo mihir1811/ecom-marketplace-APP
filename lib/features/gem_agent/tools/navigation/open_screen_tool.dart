@@ -41,6 +41,10 @@ class OpenScreenTool extends AgentTool {
     ),
     'watches': _Destination('Watches', AppRouteNames.watches),
     'bullion': _Destination('Bullion', AppRouteNames.bullions),
+    'rough_diamonds': _Destination(
+      'Rough diamonds',
+      AppRouteNames.roughDiamonds,
+    ),
     'auctions': _Destination('Auctions', AppRouteNames.auctions),
     'live_shows': _Destination('Live shows', AppRouteNames.liveShows),
     'compare': _Destination('Compare', AppRouteNames.comparison),

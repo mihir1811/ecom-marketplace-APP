@@ -16,6 +16,9 @@ import '../../../gemstones/domain/models/gemstone_filter_state.dart';
 import '../../../gemstones/domain/repositories/gemstone_repository.dart';
 import '../../../jewelry/data/repositories/jewelry_repository_impl.dart';
 import '../../../jewelry/domain/repositories/jewelry_repository.dart';
+import '../../../rough_diamonds/data/repositories/rough_diamond_repository_impl.dart';
+import '../../../rough_diamonds/domain/models/rough_filter_state.dart';
+import '../../../rough_diamonds/domain/repositories/rough_diamond_repository.dart';
 import '../../../watches/data/repositories/watch_repository_impl.dart';
 import '../../../watches/domain/models/watch_filter_state.dart';
 import '../../../watches/domain/repositories/watch_repository.dart';
@@ -23,6 +26,7 @@ import '../../domain/adapters/bullion_product_detail.dart';
 import '../../domain/adapters/diamond_product_detail.dart';
 import '../../domain/adapters/gemstone_product_detail.dart';
 import '../../domain/adapters/jewelry_product_detail.dart';
+import '../../domain/adapters/rough_product_detail.dart';
 import '../../domain/adapters/watch_product_detail.dart';
 import '../../domain/models/product_detail.dart';
 import '../../domain/repositories/suggested_seller_products_repository.dart';
@@ -35,6 +39,7 @@ final suggestedSellerProductsRepositoryProvider =
         jewelry: ref.watch(jewelryRepositoryProvider),
         watches: ref.watch(watchRepositoryProvider),
         bullions: ref.watch(bullionsRepositoryProvider),
+        rough: ref.watch(roughDiamondRepositoryProvider),
       ),
     );
 
@@ -46,6 +51,7 @@ class SuggestedSellerProductsRepositoryImpl
     required this._jewelry,
     required this._watches,
     required this._bullions,
+    required this._rough,
   });
 
   final DiamondRepository _diamonds;
@@ -53,6 +59,7 @@ class SuggestedSellerProductsRepositoryImpl
   final JewelryRepository _jewelry;
   final WatchRepository _watches;
   final BullionsRepository _bullions;
+  final RoughDiamondRepository _rough;
 
   @override
   Future<Result<PaginatedPage<ProductDetail>, Failure>> getPage({
@@ -117,6 +124,50 @@ class SuggestedSellerProductsRepositoryImpl
         pageSize: pageSize,
         cancelToken: cancelToken,
       ),
+      ProductSegment.roughDiamond => _loadRough(
+        excludeProductId: excludeProductId,
+        sellerId: sid,
+        page: page,
+        pageSize: pageSize,
+        cancelToken: cancelToken,
+      ),
+    };
+  }
+
+  /// A seller's rough parcels, natural and lab together. Rough search has
+  /// no company-name filter, so it needs the seller id.
+  Future<Result<PaginatedPage<ProductDetail>, Failure>> _loadRough({
+    required String excludeProductId,
+    required String? sellerId,
+    required int page,
+    required int pageSize,
+    CancelToken? cancelToken,
+  }) async {
+    if (sellerId == null || sellerId.isEmpty) {
+      return const Success(
+        PaginatedPage<ProductDetail>(items: [], hasMore: false, totalCount: 0),
+      );
+    }
+    final result = await _rough.search(
+      filters: const RoughFilterState(),
+      page: page,
+      pageSize: pageSize,
+      sellerId: sellerId,
+      allTypes: true,
+      cancelToken: cancelToken,
+    );
+    return switch (result) {
+      Success(value: final response) => Success(
+        PaginatedPage<ProductDetail>(
+          items: [
+            for (final p in response.parcels)
+              if (p.id != excludeProductId) roughProductDetail(p),
+          ],
+          hasMore: response.hasMore,
+          totalCount: response.totalCount,
+        ),
+      ),
+      ResultFailure(failure: final failure) => ResultFailure(failure),
     };
   }
 

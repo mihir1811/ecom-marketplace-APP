@@ -2,6 +2,7 @@ import '../../../diamonds/domain/models/diamond.dart';
 import '../../../diamonds/domain/models/diamond_display.dart';
 import '../../../gemstones/domain/models/gemstone.dart';
 import '../../../jewelry/domain/models/jewelry.dart';
+import '../../../rough_diamonds/domain/models/rough_parcel.dart';
 import '../../../watches/domain/models/watch.dart';
 import 'compare_category.dart';
 import '../../../../core/utils/app_currency.dart';
@@ -159,6 +160,53 @@ class CompareItem {
         'price': j.price,
         'metalWeight': j.metalWeightG > 0 ? j.metalWeightG : null,
         'stoneWeight': j.stoneWeightCt > 0 ? j.stoneWeightCt : null,
+      },
+    );
+  }
+
+  factory CompareItem.fromRough(RoughParcel r) {
+    String text(String? v) {
+      final t = v?.trim() ?? '';
+      return t.isEmpty ? 'N/A' : t;
+    }
+
+    final cpp = r.caratPerPiece;
+    final growth = r.growthType?.trim() ?? '';
+    return CompareItem(
+      id: r.id,
+      category: CompareCategory.roughDiamond,
+      title: r.displayName,
+      price: r.totalPrice,
+      imageUrl: r.images.isEmpty ? null : r.images.first,
+      shape: 'Rough',
+      subtitle: r.isLab ? 'Lab-grown rough' : 'Natural rough',
+      displayValues: {
+        'price': AppCurrency.format(_fmtPrice(r.totalPrice)),
+        'carat': '${r.totalCaratWeight.toStringAsFixed(2)}ct',
+        'ppc': r.pricePerCarat > 0
+            ? '${AppCurrency.format(_fmtPrice(r.pricePerCarat))}/ct'
+            : 'N/A',
+        'pieces': '${r.totalPcs}',
+        'avgCarat': cpp == null ? 'N/A' : '${cpp.toStringAsFixed(2)}ct',
+        'type': !r.isLab
+            ? 'Natural'
+            : (growth.isEmpty ? 'Lab-grown' : 'Lab-grown · $growth'),
+        'crystalShape': text(r.crystalShape),
+        'quality': text(r.roughQuality),
+        'potential': text(r.manufacturingPotential),
+        'color': text(r.colorRange),
+        'clarity': text(r.clarityRange),
+        'yield': r.estimatedYield == null
+            ? 'N/A'
+            : '${r.estimatedYield!.toStringAsFixed(0)}%',
+        'parcelType': text(r.parcelType),
+        'origin': text(r.countryOfOrigin ?? r.mineSource),
+      },
+      numericValues: {
+        'price': r.totalPrice,
+        'carat': r.totalCaratWeight,
+        'ppc': r.pricePerCarat > 0 ? r.pricePerCarat : null,
+        'yield': r.estimatedYield,
       },
     );
   }

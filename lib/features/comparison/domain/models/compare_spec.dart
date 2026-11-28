@@ -1,6 +1,7 @@
 import '../../../../core/l10n/translations/account_commerce_messages.dart';
 import '../../../../core/l10n/translations/catalog_messages.dart';
 import '../../../../core/l10n/translations/jewelry_flow_messages.dart';
+import '../../../../core/l10n/translations/rough_flow_messages.dart';
 import 'compare_category.dart';
 
 /// How a comparable spec picks a "leading" value among selected items.
@@ -169,12 +170,57 @@ const jewelryCompareSpecs = <CompareSpecDef>[
   CompareSpecDef(key: 'gender', label: AccountCommerceL10n.gender),
 ];
 
+/// Spec rows for rough parcel comparison.
+const roughCompareSpecs = <CompareSpecDef>[
+  CompareSpecDef(
+    key: 'price',
+    label: AccountCommerceL10n.price,
+    winRule: CompareWinRule.lowerBetter,
+  ),
+  CompareSpecDef(
+    key: 'carat',
+    label: AccountCommerceL10n.totalCarat,
+    winRule: CompareWinRule.higherBetter,
+  ),
+  CompareSpecDef(
+    key: 'ppc',
+    label: RoughFlowL10n.pricePerCarat,
+    winRule: CompareWinRule.lowerBetter,
+  ),
+  CompareSpecDef(key: 'pieces', label: RoughFlowL10n.pieces),
+  CompareSpecDef(key: 'avgCarat', label: RoughFlowL10n.avgCarat),
+  CompareSpecDef(key: 'type', label: AccountCommerceL10n.type),
+  CompareSpecDef(key: 'crystalShape', label: RoughFlowL10n.crystalShape),
+  CompareSpecDef(
+    key: 'quality',
+    label: RoughFlowL10n.roughQuality,
+    winRule: CompareWinRule.gradeBetter,
+    gradeOrder: [
+      'Gem quality',
+      'Near-gem quality',
+      'Industrial',
+      'Crushing / Boart',
+    ],
+  ),
+  CompareSpecDef(key: 'potential', label: RoughFlowL10n.manufacturingPotential),
+  CompareSpecDef(key: 'color', label: AccountCommerceL10n.color),
+  CompareSpecDef(key: 'clarity', label: AccountCommerceL10n.clarity),
+  CompareSpecDef(
+    key: 'yield',
+    label: RoughFlowL10n.estimatedYield,
+    winRule: CompareWinRule.higherBetter,
+  ),
+  CompareSpecDef(key: 'parcelType', label: RoughFlowL10n.parcelType),
+  CompareSpecDef(key: 'origin', label: AccountCommerceL10n.origin),
+];
+
 List<CompareSpecDef> specsForCategory(CompareCategory category) {
   return switch (category) {
     CompareCategory.diamond => diamondCompareSpecs,
     CompareCategory.gemstone => gemstoneCompareSpecs,
     CompareCategory.watch => watchCompareSpecs,
     CompareCategory.jewelry => jewelryCompareSpecs,
+    CompareCategory.roughDiamond => roughCompareSpecs,
   };
 }
 

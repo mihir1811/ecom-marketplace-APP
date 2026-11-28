@@ -7,7 +7,14 @@ import '../../../jewelry/domain/models/jewelry.dart';
 import '../../../watches/domain/models/watch.dart';
 import '../../../../core/utils/app_currency.dart';
 
-enum WishlistCategory { diamond, gemstone, jewelry, watch, bullion }
+enum WishlistCategory {
+  diamond,
+  gemstone,
+  jewelry,
+  watch,
+  bullion,
+  roughDiamond,
+}
 
 /// Backend `productType` values for `/favorites`.
 abstract final class FavoriteProductType {
@@ -17,6 +24,7 @@ abstract final class FavoriteProductType {
   static const String jewellery = 'jewellery';
   static const String watch = 'watch';
   static const String bullion = 'bullion';
+  static const String roughDiamond = 'roughDiamond';
 
   /// Jewellery marketplace piece: saved on the device, never sent to
   /// `/favorites` (id is the listing slug).
@@ -28,6 +36,7 @@ abstract final class FavoriteProductType {
     WishlistCategory.jewelry => jewellery,
     WishlistCategory.watch => watch,
     WishlistCategory.bullion => bullion,
+    WishlistCategory.roughDiamond => roughDiamond,
   };
 
   static WishlistCategory toCategory(String type) => switch (type) {
@@ -35,6 +44,7 @@ abstract final class FavoriteProductType {
     jewellery || marketplaceJewellery => WishlistCategory.jewelry,
     watch => WishlistCategory.watch,
     bullion => WishlistCategory.bullion,
+    roughDiamond => WishlistCategory.roughDiamond,
     _ => WishlistCategory.diamond,
   };
 
@@ -45,6 +55,7 @@ abstract final class FavoriteProductType {
     jewellery || marketplaceJewellery => 'Jewelry',
     watch => 'Watch',
     bullion => 'Bullion',
+    roughDiamond => 'Rough Diamond',
     _ => type,
   };
 }

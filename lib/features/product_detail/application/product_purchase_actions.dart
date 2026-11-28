@@ -331,6 +331,52 @@ abstract final class ProductPurchaseActions {
     }
   }
 
+  /// Puts the chosen sieve lots of a separable rough parcel in the cart
+  /// (`specifications.lotIds`, quantity 1). A parcel has one cart line:
+  /// adding again replaces its lot choice, and a whole-parcel add without
+  /// lot ids turns it back into the whole parcel.
+  static Future<bool> addRoughLots(
+    BuildContext context,
+    WidgetRef ref,
+    ProductDetail detail, {
+    required List<String> lotIds,
+    required PurchaseCopy copy,
+    required PurchaseNotify notify,
+  }) async {
+    if (!ref.read(authProvider).isAuthenticated) {
+      notify(copy.signInToBuy, PurchaseTone.warning);
+      context.push(AppRouteNames.login);
+      return false;
+    }
+    if (!AccountAccess.guard(context, ref)) return false;
+    final auth = ref.read(authProvider);
+    final blockMessage = detail.addToCartBlockMessage(
+      userId: auth.user?.id,
+      sellerId: auth.sellerId,
+    );
+    if (blockMessage != null) {
+      notify(blockMessage, PurchaseTone.warning);
+      return false;
+    }
+    if (lotIds.isEmpty) return false;
+    final result = await ref
+        .read(cartProvider.notifier)
+        .addProduct(
+          productId: detail.id,
+          productType: detail.apiProductType,
+          specifications: {'lotIds': lotIds},
+        );
+    if (!context.mounted) return false;
+    switch (result) {
+      case Success():
+        notify(copy.addedToCart, PurchaseTone.success);
+        return true;
+      case ResultFailure(:final failure):
+        notify(failure.message, PurchaseTone.error);
+        return false;
+    }
+  }
+
   /// Validates access, asks for the offer via [ask], then submits it.
   static Future<void> makeOffer(
     BuildContext context,

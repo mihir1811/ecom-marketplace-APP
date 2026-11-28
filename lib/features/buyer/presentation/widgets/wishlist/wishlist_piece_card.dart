@@ -16,6 +16,7 @@ IconData wishlistCategoryIcon(WishlistCategory c) => switch (c) {
   WishlistCategory.jewelry => Icons.workspace_premium_outlined,
   WishlistCategory.watch => Icons.watch_outlined,
   WishlistCategory.bullion => Icons.savings_outlined,
+  WishlistCategory.roughDiamond => Icons.landscape_outlined,
 };
 
 String wishlistCategoryLabel(WishlistCategory c) => switch (c) {
@@ -24,6 +25,7 @@ String wishlistCategoryLabel(WishlistCategory c) => switch (c) {
   WishlistCategory.jewelry => 'Jewelry',
   WishlistCategory.watch => 'Watches',
   WishlistCategory.bullion => 'Bullion',
+  WishlistCategory.roughDiamond => 'Rough',
 };
 
 /// A saved piece, as a gallery tile ([compact] false) or a list row.

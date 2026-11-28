@@ -772,6 +772,7 @@ IconData _typeIcon(ChatProductType type) => switch (type) {
   ChatProductType.jewellery => Icons.auto_awesome_outlined,
   ChatProductType.watch => Icons.watch_outlined,
   ChatProductType.bullion => Icons.view_module_outlined,
+  ChatProductType.roughDiamond => Icons.landscape_outlined,
 };
 
 String _relativeTime(BuildContext context, DateTime date) {

@@ -1,4 +1,5 @@
 import '../../../../core/l10n/translations/account_commerce_messages.dart';
+import '../../../../core/l10n/translations/rough_flow_messages.dart';
 import 'compare_category.dart';
 import 'compare_item.dart';
 import 'compare_spec.dart';
@@ -49,6 +50,21 @@ const _groupOrder = <CompareCategory, List<(String, List<String>)>>{
       AccountCommerceL10n.compareGroupCraft,
       ['movement', 'caseMaterial', 'dialColor'],
     ),
+  ],
+  CompareCategory.roughDiamond: [
+    (
+      AccountCommerceL10n.compareGroupEssentials,
+      ['price', 'carat', 'ppc', 'type'],
+    ),
+    (
+      AccountCommerceL10n.compareGroupCharacter,
+      ['crystalShape', 'quality', 'potential', 'color', 'clarity'],
+    ),
+    (
+      RoughFlowL10n.compareGroupParcel,
+      ['pieces', 'avgCarat', 'yield', 'parcelType'],
+    ),
+    (AccountCommerceL10n.compareGroupProvenance, ['origin']),
   ],
   CompareCategory.jewelry: [
     (AccountCommerceL10n.compareGroupEssentials, ['price', 'category']),

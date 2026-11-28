@@ -21,6 +21,7 @@ import 'translations/home_messages.dart';
 import 'translations/interested_buyers_messages.dart';
 import 'translations/navigation_messages.dart';
 import 'translations/remaining_messages.dart';
+import 'translations/rough_flow_messages.dart';
 import 'translations/spotlight_messages.dart';
 
 export 'locale_preference_provider.dart';
@@ -41,6 +42,7 @@ export 'translations/home_messages.dart';
 export 'translations/interested_buyers_messages.dart';
 export 'translations/navigation_messages.dart';
 export 'translations/remaining_messages.dart';
+export 'translations/rough_flow_messages.dart';
 export 'translations/spotlight_messages.dart';
 export 'catalog_filter_value_labels.dart';
 
@@ -72,6 +74,7 @@ class AppLocalizations {
     ...homeMessages,
     ...diamondFlowMessages,
     ...gemstoneFlowMessages,
+    ...roughFlowMessages,
     ...catalogFlowMessages,
     ...jewelryFlowMessages,
     ...jewelryMarketMessages,

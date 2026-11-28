@@ -17,6 +17,11 @@ import '../../../jewelry/data/mappers/jewelry_mapper.dart';
 import '../../../jewelry/data/mappers/marketplace_json.dart';
 import '../../../jewelry/data/mappers/marketplace_mapper.dart';
 import '../../../product_detail/domain/adapters/bullion_product_detail.dart';
+import '../../../product_detail/domain/adapters/rough_product_detail.dart';
+import '../../../rough_diamonds/data/mappers/rough_search_request_mapper.dart';
+import '../../../rough_diamonds/data/mappers/rough_parcel_mapper.dart';
+import '../../../rough_diamonds/domain/models/rough_filter_state.dart';
+import '../../../rough_diamonds/domain/models/rough_sort_option.dart';
 import '../../../product_detail/domain/adapters/diamond_product_detail.dart';
 import '../../../product_detail/domain/adapters/gemstone_product_detail.dart';
 import '../../../product_detail/domain/adapters/jewelry_product_detail.dart';
@@ -292,6 +297,7 @@ class HomeSearchRepositoryImpl implements HomeSearchRepository {
       _safe(() => _searchWatches(query, mode, page, limit, cancelToken)),
       _safe(() => _searchJewelry(query, mode, page, limit, cancelToken)),
       _safe(() => _searchBullions(query, mode, page, limit, cancelToken)),
+      _safe(() => _searchRough(query, page, limit, cancelToken)),
     ];
 
     final batches = await Future.wait(tasks);
@@ -772,6 +778,55 @@ class HomeSearchRepositoryImpl implements HomeSearchRepository {
           kind: HomeSearchKind.bullion,
           imageUrl: b.renderableImageUrl,
           detail: bullionProductDetail(b),
+        ),
+      );
+    }
+    return _CatalogBatch(
+      items: out,
+      hasMore: parsed.hasMore,
+      total: parsed.total,
+    );
+  }
+
+  /// Natural and lab rough together; the API matches stock number, title,
+  /// mine, country, crystal shape, description and seller company.
+  Future<_CatalogBatch> _searchRough(
+    String query,
+    int page,
+    int limit,
+    CancelToken? cancelToken,
+  ) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      ApiEndpoints.roughDiamondSearch,
+      data: RoughSearchRequestMapper.toBody(
+        filters: RoughFilterState(search: query),
+        page: page,
+        pageSize: limit,
+        sort: RoughSortOption.newest,
+        allTypes: true,
+      ),
+      cancelToken: cancelToken,
+    );
+
+    final parsed = _parseListResponse(response.data, limit: limit, page: page);
+    final out = <HomeSearchResult>[];
+    for (final item in parsed.items) {
+      final r = RoughParcelMapper.fromJson(item);
+      if (r.id.isEmpty) continue;
+      out.add(
+        HomeSearchResult(
+          id: r.id,
+          title: r.displayName,
+          subtitle: [
+            roughCarat(r.totalCaratWeight),
+            roughPieces(r.totalPcs),
+            if (r.stockNumber.isNotEmpty) r.stockNumber,
+          ].join(' · '),
+          categoryLabel: r.isLab ? 'Lab rough' : 'Rough diamond',
+          priceLabel: _usd(r.totalPrice),
+          kind: HomeSearchKind.rough,
+          imageUrl: r.images.isEmpty ? null : r.images.first,
+          detail: roughProductDetail(r),
         ),
       );
     }

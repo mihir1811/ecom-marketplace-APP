@@ -10,12 +10,14 @@ import '../../cart/domain/models/cart_product_type.dart';
 import '../../diamonds/data/repositories/diamond_repository_impl.dart';
 import '../../gemstones/data/repositories/gemstone_repository_impl.dart';
 import '../../jewelry/data/repositories/jewelry_repository_impl.dart';
+import '../../rough_diamonds/data/repositories/rough_diamond_repository_impl.dart';
 import '../../watches/data/mappers/watch_mapper.dart';
 import '../../watches/data/models/watch_dto.dart';
 import '../domain/adapters/bullion_product_detail.dart';
 import '../domain/adapters/diamond_product_detail.dart';
 import '../domain/adapters/gemstone_product_detail.dart';
 import '../domain/adapters/jewelry_product_detail.dart';
+import '../domain/adapters/rough_product_detail.dart';
 import '../domain/adapters/watch_product_detail.dart';
 import '../domain/models/product_detail.dart';
 
@@ -91,6 +93,12 @@ abstract final class CatalogProductDetailLoader {
               BullionMapper.toDomain(BullionDto.fromJson(json)),
             ),
           );
+        case CartProductType.roughDiamond:
+          final result = await read(roughDiamondRepositoryProvider).getById(id);
+          return switch (result) {
+            Success(value: final parcel) => roughProductDetail(parcel),
+            ResultFailure() => null,
+          };
         default:
           return null;
       }

@@ -73,8 +73,10 @@ enum SpotlightCategory {
   /// The section a product page belongs to.
   static SpotlightCategory fromSegment(ProductSegment segment) =>
       switch (segment) {
+        // Rough is sold by diamond sellers; it is booked with diamonds.
         ProductSegment.naturalDiamond ||
-        ProductSegment.labGrownDiamond => diamonds,
+        ProductSegment.labGrownDiamond ||
+        ProductSegment.roughDiamond => diamonds,
         ProductSegment.gemstone => gemstones,
         ProductSegment.jewelry => jewellery,
         ProductSegment.watch => watches,

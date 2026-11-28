@@ -298,6 +298,7 @@ String spotlightShopSectionTitleKey(ProductSegment s) => switch (s) {
   ProductSegment.jewelry => SpotlightL10n.jewelleryHouse,
   ProductSegment.watch => SpotlightL10n.watches,
   ProductSegment.bullion => SpotlightL10n.bullion,
+  ProductSegment.roughDiamond => RoughFlowL10n.title,
 };
 
 /// Text block height of [SpotlightShopProductCard] below its square image.

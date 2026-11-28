@@ -90,6 +90,13 @@ abstract final class ApiEndpoints {
   static const String bullionMetalShapes = '/bullion/metal-shapes';
   static const String bullionMetalFineness = '/bullion/metal-fineness';
 
+  /// Rough diamond parcels (natural + lab). Browsing is public; cart,
+  /// favorites, offers and chat use `productType: roughDiamond`.
+  static const String roughDiamondSearch = '/rough-diamond/search';
+  static const String roughDiamondFilters = '/rough-diamond/filters';
+  static String roughDiamondById(String id) =>
+      '/rough-diamond/${Uri.encodeComponent(id)}';
+
   // Cart
   static const String cart = '/cart';
   static const String cartAdd = '/cart/add';

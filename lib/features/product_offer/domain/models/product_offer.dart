@@ -29,7 +29,10 @@ abstract final class OfferProductType {
   static const String meleeDiamond = 'meleeDiamond';
   static const String gemstone = 'gemstone';
 
-  static const values = {diamond, meleeDiamond, gemstone};
+  /// Whole parcels only; once a lot is sold or held no offers are taken.
+  static const String roughDiamond = 'roughDiamond';
+
+  static const values = {diamond, meleeDiamond, gemstone, roughDiamond};
 
   static bool supports(String productType) => values.contains(productType);
 }

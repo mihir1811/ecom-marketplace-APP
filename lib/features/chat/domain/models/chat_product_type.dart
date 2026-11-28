@@ -4,7 +4,8 @@ enum ChatProductType {
   meleeDiamond('meleeDiamond'),
   jewellery('jewellery'),
   watch('watch'),
-  bullion('bullion');
+  bullion('bullion'),
+  roughDiamond('roughDiamond');
 
   const ChatProductType(this.apiValue);
 
@@ -26,5 +27,6 @@ enum ChatProductType {
     ChatProductType.jewellery => 'Jewellery',
     ChatProductType.watch => 'Watch',
     ChatProductType.bullion => 'Bullion',
+    ChatProductType.roughDiamond => 'Rough',
   };
 }

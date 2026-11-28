@@ -5,7 +5,8 @@ import '../../../router/route_names.dart';
 /// per section, never per screen: every screen of a section shows the same
 /// bar, so moving between them only ever changes the page underneath.
 enum TopBarSection {
-  /// Home and the diamond / gemstone / watch / bullion / auction catalogs.
+  /// Home and the diamond / rough / gemstone / watch / bullion / auction
+  /// catalogs.
   marketplace,
 
   /// The jewellery marketplace. It checks out through its own bag, never
@@ -27,7 +28,7 @@ enum TopBarSection {
 enum TopBarAction {
   notifications,
 
-  /// The common cart (diamonds, gemstones, watches, bullions).
+  /// The common cart (diamonds, rough, gemstones, watches, bullions).
   cart,
 
   /// The jewellery-only bag. Separate checkout from [cart]; a section shows

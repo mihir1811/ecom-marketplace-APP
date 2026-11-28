@@ -65,6 +65,8 @@ class _CategoryMenu extends StatelessWidget {
   /// page padding that already clears the dock itself.
   static const _bubbleClearance = 40.0;
 
+  static const _gridCount = 6;
+
   @override
   Widget build(BuildContext context) {
     final p = LuxePalette.of(context);
@@ -74,6 +76,9 @@ class _CategoryMenu extends StatelessWidget {
       reverseCurve: Curves.easeInCubic,
     );
     const items = HomeContent.collections;
+    // Six worlds fill the 3 × 2 grid; any more get a full-width row each.
+    final grid = items.take(_gridCount).toList();
+    final rows = items.skip(_gridCount).toList();
     final padding = MediaQuery.paddingOf(context);
 
     return Stack(
@@ -151,9 +156,9 @@ class _CategoryMenu extends StatelessWidget {
                               crossAxisSpacing: 8,
                               childAspectRatio: 0.8,
                               children: [
-                                for (var i = 0; i < items.length; i++)
+                                for (var i = 0; i < grid.length; i++)
                                   _CategoryTile(
-                                    item: items[i],
+                                    item: grid[i],
                                     reveal: CurvedAnimation(
                                       parent: animation,
                                       curve: Interval(
@@ -166,6 +171,20 @@ class _CategoryMenu extends StatelessWidget {
                               ],
                             ),
                           ),
+                          for (final item in rows) ...[
+                            const SizedBox(height: 10),
+                            _CollectionRow(
+                              item: item,
+                              reveal: CurvedAnimation(
+                                parent: animation,
+                                curve: const Interval(
+                                  0.25,
+                                  1,
+                                  curve: LuxeMotion.settle,
+                                ),
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: 10),
                           _LiveShowsRow(
                             reveal: CurvedAnimation(
@@ -247,6 +266,72 @@ class _CategoryTile extends StatelessWidget {
                 style: LuxeType.label(p.ink, size: 12),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A catalogue world past the grid (rough diamonds): thumbnail, title and
+/// chevron on one row, styled like the live shows row.
+class _CollectionRow extends StatelessWidget {
+  const _CollectionRow({required this.item, required this.reveal});
+
+  final HomeCollection item;
+  final Animation<double> reveal;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = LuxePalette.of(context);
+    final title = context.tr(item.titleKey);
+    final cacheWidth = (40 * MediaQuery.devicePixelRatioOf(context)).round();
+
+    return FadeTransition(
+      opacity: reveal,
+      child: Semantics(
+        button: true,
+        label: title,
+        excludeSemantics: true,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
+          onTap: () {
+            AppHaptics.selection();
+            Navigator.of(context).pop(item.route);
+          },
+          child: Ink(
+            padding: const EdgeInsets.fromLTRB(6, 6, 10, 6),
+            decoration: BoxDecoration(
+              color: p.surfaceRaised,
+              borderRadius: BorderRadius.circular(LuxeSpace.radiusSmall),
+              border: Border.all(color: p.hairline, width: 0.8),
+            ),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(
+                    LuxeSpace.radiusSmall - 2,
+                  ),
+                  child: SizedBox.square(
+                    dimension: 36,
+                    child: AppNetworkImage(
+                      url: item.imageUrl,
+                      memCacheWidth: cacheWidth,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: LuxeType.label(p.ink, size: 13),
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded, size: 20, color: p.inkMuted),
+              ],
+            ),
           ),
         ),
       ),

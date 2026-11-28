@@ -30,6 +30,10 @@ class AppRouteNames {
       '/watches/brand/${Uri.encodeComponent(brandName)}/filters';
   static const String bullions = '/bullions';
   static const String bullionsFilters = '/bullions/filters';
+
+  /// Rough parcels; `?type=lab` opens the lab-grown tab (website links).
+  static const String roughDiamonds = '/rough-diamonds';
+  static const String roughDiamondsFilters = '/rough-diamonds/filters';
   static const String jewelry = '/jewelry';
   static const String jewelryListing = '/jewelry/listing';
   static const String jewelryFilters = '/jewelry/filters';

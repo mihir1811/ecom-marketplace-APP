@@ -10,6 +10,7 @@ import '../../features/diamond_projects/diamond_projects_routes.dart';
 import '../../features/gemstones/gemstones_routes.dart';
 import '../../features/watches/watches_routes.dart';
 import '../../features/bullions/bullions_routes.dart';
+import '../../features/rough_diamonds/rough_diamonds_routes.dart';
 import '../../features/jewelry/jewelry_routes.dart';
 import '../../features/jewelry_checkout/jewelry_checkout_routes.dart';
 import '../../features/product_detail/product_detail_routes.dart';
@@ -60,6 +61,7 @@ final GoRouter appRouter = GoRouter(
     ...gemstonesRoutes,
     ...watchesRoutes,
     ...bullionsRoutes,
+    ...roughDiamondsRoutes,
     ...jewelryRoutes,
     ...jewelryCheckoutRoutes,
     ...productDetailRoutes,

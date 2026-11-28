@@ -10,9 +10,11 @@ import '../../../product_detail/domain/adapters/bullion_product_detail.dart';
 import '../../../product_detail/domain/adapters/diamond_product_detail.dart';
 import '../../../product_detail/domain/adapters/gemstone_product_detail.dart';
 import '../../../product_detail/domain/adapters/jewelry_product_detail.dart';
+import '../../../product_detail/domain/adapters/rough_product_detail.dart';
 import '../../../product_detail/domain/adapters/watch_product_detail.dart';
 import '../../../product_detail/domain/models/product_detail.dart';
 import '../../../watches/data/mappers/watch_mapper.dart';
+import '../../../rough_diamonds/data/mappers/rough_parcel_mapper.dart';
 import '../../../watches/data/models/watch_dto.dart';
 import '../../domain/models/product_share.dart';
 
@@ -43,6 +45,9 @@ abstract final class SharedProductDetailMapper {
         ),
         CartProductType.bullion => bullionProductDetail(
           BullionMapper.toDomain(BullionDto.fromJson(map)),
+        ),
+        CartProductType.roughDiamond => roughProductDetail(
+          RoughParcelMapper.fromJson(map),
         ),
         _ => null,
       };
@@ -88,6 +93,7 @@ abstract final class SharedProductDetailMapper {
       naturalSpecTabs: detail.naturalSpecTabs,
       jewelryDetail: detail.jewelryDetail,
       bullionDetail: detail.bullionDetail,
+      roughDetail: detail.roughDetail,
       availabilityStatus: detail.availabilityStatus,
       listingSeller: detail.listingSeller,
     );
@@ -162,6 +168,8 @@ abstract final class SharedProductDetailMapper {
       naturalSpecTabs: detail.naturalSpecTabs,
       jewelryDetail: detail.jewelryDetail,
       bullionDetail: detail.bullionDetail,
+      // Rough lots carry their own prices; a price-hidden share drops them.
+      roughDetail: includePrice ? detail.roughDetail : null,
       availabilityStatus: detail.availabilityStatus,
       listingSeller: detail.listingSeller,
     );

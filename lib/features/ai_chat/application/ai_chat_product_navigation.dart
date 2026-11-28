@@ -16,9 +16,11 @@ import '../../product_detail/domain/adapters/bullion_product_detail.dart';
 import '../../product_detail/domain/adapters/diamond_product_detail.dart';
 import '../../product_detail/domain/adapters/gemstone_product_detail.dart';
 import '../../product_detail/domain/adapters/jewelry_product_detail.dart';
+import '../../product_detail/domain/adapters/rough_product_detail.dart';
 import '../../product_detail/domain/adapters/watch_product_detail.dart';
 import '../../product_detail/domain/models/product_detail.dart';
 import '../../product_detail/product_detail_navigation.dart';
+import '../../rough_diamonds/data/mappers/rough_parcel_mapper.dart';
 import '../../watches/data/mappers/watch_mapper.dart';
 import '../../watches/data/models/watch_dto.dart';
 import '../data/mappers/ai_chat_catalog_mapper.dart';
@@ -113,6 +115,14 @@ abstract final class AiChatProductNavigation {
           ApiEndpoints.watchById(id),
           (json) =>
               watchProductDetail(WatchMapper.toDomain(WatchDto.fromJson(json))),
+        );
+      }
+
+      if (type.contains('rough')) {
+        return await _getByPath(
+          ref,
+          ApiEndpoints.roughDiamondById(id),
+          (json) => roughProductDetail(RoughParcelMapper.fromJson(json)),
         );
       }
 

@@ -6,11 +6,13 @@ import '../bullions/domain/models/billion.dart';
 import '../diamonds/domain/models/diamond.dart';
 import '../gemstones/domain/models/gemstone.dart';
 import '../jewelry/domain/models/jewelry.dart';
+import '../rough_diamonds/domain/models/rough_parcel.dart';
 import '../watches/domain/models/watch.dart';
 import 'domain/adapters/bullion_product_detail.dart';
 import 'domain/adapters/diamond_product_detail.dart';
 import 'domain/adapters/gemstone_product_detail.dart';
 import 'domain/adapters/jewelry_product_detail.dart';
+import 'domain/adapters/rough_product_detail.dart';
 import 'domain/adapters/watch_product_detail.dart';
 import 'domain/models/product_detail.dart';
 import 'presentation/transition/product_sheet_launch.dart';
@@ -147,6 +149,26 @@ void openWatchDetail(
       among,
       watch,
       watchProductDetail,
+      detail,
+      feed: feed,
+    ),
+  );
+}
+
+void openRoughDetail(
+  BuildContext context,
+  RoughParcel parcel, {
+  List<RoughParcel>? among,
+  ProductListFeed<RoughParcel>? feed,
+}) {
+  final detail = roughProductDetail(parcel);
+  openProductDetail(
+    context,
+    detail,
+    switchSet: ProductSwitchSet.of(
+      among,
+      parcel,
+      roughProductDetail,
       detail,
       feed: feed,
     ),

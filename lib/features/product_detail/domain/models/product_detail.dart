@@ -6,6 +6,7 @@ import '../../../product_offer/domain/models/product_offer.dart';
 import 'listing_seller_info.dart';
 import 'product_jewelry_detail.dart';
 import 'product_bullion_detail.dart';
+import 'product_rough_detail.dart';
 
 /// Marketplace segments that share the single product detail presentation.
 enum ProductSegment {
@@ -14,7 +15,8 @@ enum ProductSegment {
   gemstone('Gemstone', 'gemstone'),
   jewelry('Jewelry', 'jewelry'),
   watch('Watch', 'watch'),
-  bullion('Bullion', 'bullion');
+  bullion('Bullion', 'bullion'),
+  roughDiamond('Rough Diamond', 'rough-diamond');
 
   const ProductSegment(this.label, this.slug);
 
@@ -444,6 +446,7 @@ class ProductDetail {
     this.meleeLot,
     this.jewelryDetail,
     this.bullionDetail,
+    this.roughDetail,
   });
 
   final String id;
@@ -499,8 +502,11 @@ class ProductDetail {
   /// Bullion layout: Overview / Specifications / Seller tabs.
   final ProductBullionDetail? bullionDetail;
 
-  /// Offers are for diamonds, melee parcels and gemstones the seller opened
-  /// to offers, while the stone is not sold or on auction.
+  /// Rough parcel layout: lot picker, documents and the server's buy verdict.
+  final ProductRoughDetail? roughDetail;
+
+  /// Offers are for diamonds, melee parcels, gemstones and whole rough
+  /// parcels the seller opened to offers, while not sold or on auction.
   bool get canMakeAnOffer =>
       isMakeAnOfferAllowed &&
       !isSold &&
@@ -578,6 +584,7 @@ class ProductDetail {
     ProductSegment.jewelry => WishlistCategory.jewelry,
     ProductSegment.watch => WishlistCategory.watch,
     ProductSegment.bullion => WishlistCategory.bullion,
+    ProductSegment.roughDiamond => WishlistCategory.roughDiamond,
   };
 
   WishlistItem toWishlistItem() {

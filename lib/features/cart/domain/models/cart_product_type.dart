@@ -7,6 +7,9 @@ abstract final class CartProductType {
   static const String watch = 'watch';
   static const String bullion = 'bullion';
 
+  /// Rough parcel; `specifications.lotIds` buys chosen sieve lots only.
+  static const String roughDiamond = 'roughDiamond';
+
   /// Jewellery marketplace piece (keyed by listing slug). Never sent to the
   /// server cart, favorites or recently viewed: it lives in the on-device
   /// jewellery bag and is priced by `/marketplace/cart/quote`.
@@ -19,6 +22,7 @@ abstract final class CartProductType {
     jewellery || marketplaceJewellery => 'Jewelry',
     watch => 'Watch',
     bullion => 'Bullion',
+    roughDiamond => 'Rough Diamond',
     _ => type,
   };
 }

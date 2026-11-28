@@ -17,6 +17,8 @@ abstract final class AiChatVisibility {
     AppRouteNames.watchesFilters,
     AppRouteNames.bullions,
     AppRouteNames.bullionsFilters,
+    AppRouteNames.roughDiamonds,
+    AppRouteNames.roughDiamondsFilters,
   };
 
   /// Hard exclusions — catalog allowlist must never win for these.

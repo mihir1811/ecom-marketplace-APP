@@ -59,6 +59,12 @@ abstract final class HomeContent {
       route: AppRouteNames.bullions,
       imageUrl: HomeNetworkImages.bullion,
     ),
+    HomeCollection(
+      titleKey: RoughFlowL10n.title,
+      noteKey: RoughFlowL10n.homeNote,
+      route: AppRouteNames.roughDiamonds,
+      imageUrl: HomeNetworkImages.roughDiamonds,
+    ),
   ];
 
   /// Shapes offered in the diamond atelier carousel.

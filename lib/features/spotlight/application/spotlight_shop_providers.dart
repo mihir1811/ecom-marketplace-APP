@@ -25,6 +25,7 @@ List<ProductSegment> spotlightShopSegments(String? sellerType) {
   const all = [
     ProductSegment.naturalDiamond,
     ProductSegment.labGrownDiamond,
+    ProductSegment.roughDiamond,
     ProductSegment.gemstone,
     ProductSegment.watch,
     ProductSegment.bullion,

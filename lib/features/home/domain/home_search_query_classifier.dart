@@ -36,6 +36,8 @@ abstract final class HomeSearchQueryClassifier {
           'productTitle,stockNumber,variants.stockNumber',
         HomeSearchKind.watch => 'stockNumber',
         HomeSearchKind.bullion => 'stockNumber',
+        // Rough search matches its own fields; `searchBy` is not sent.
+        HomeSearchKind.rough => 'stockNumber',
         HomeSearchKind.diamond ||
         HomeSearchKind.lab ||
         HomeSearchKind.melee => 'stockNumber',
@@ -54,6 +56,8 @@ abstract final class HomeSearchQueryClassifier {
         'brand,model,referenceNumber,stockNumber,collection,description',
       HomeSearchKind.jewelry => 'productTitle,stockNumber,variants.stockNumber',
       HomeSearchKind.bullion => 'mintMark,stockNumber,design,certification',
+      HomeSearchKind.rough =>
+        'stockNumber,title,mineSource,countryOfOrigin,crystalShape,description',
     };
   }
 }

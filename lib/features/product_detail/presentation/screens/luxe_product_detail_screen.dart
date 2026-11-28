@@ -24,12 +24,15 @@ import '../../../diamonds/domain/melee_lot_figures.dart'
     show formatCaratPerPiece;
 import '../../application/melee_qty_draft_provider.dart';
 import '../../domain/adapters/jewelry_product_detail.dart';
+import '../../domain/adapters/rough_product_detail.dart';
 import '../../domain/models/product_bullion_detail.dart';
 import '../../domain/models/product_detail.dart';
 import '../../domain/models/product_price_labels.dart';
 import '../widgets/luxe/luxe_detail_parts.dart';
 import '../widgets/luxe/luxe_jewelry_detail.dart';
 import '../widgets/luxe/luxe_purchase_bar.dart';
+import '../widgets/luxe/luxe_rough_detail.dart';
+import '../../../rough_diamonds/application/rough_detail_providers.dart';
 import '../widgets/product_detail_seller_panel.dart';
 import '../widgets/product_detail_suggested_products.dart';
 import '../../../spotlight/domain/spotlight_models.dart';
@@ -37,7 +40,8 @@ import '../../../spotlight/presentation/widgets/jewellery_sponsored_pieces_row.d
 import '../../../spotlight/presentation/widgets/spotlight_product_row.dart';
 
 /// Luxe product detail shared by natural and lab-grown diamonds,
-/// gemstones, fine jewelry, watches and bullion (single and melee).
+/// gemstones, fine jewelry, watches, bullion and rough parcels (single and
+/// melee).
 ///
 /// Reading order follows the buying decision: the stone (gallery), what it
 /// is (title, grades, badges), what it costs (price card), why to trust it
@@ -54,7 +58,8 @@ class LuxeProductDetailScreen extends ConsumerStatefulWidget {
       detail.segment == ProductSegment.gemstone ||
       detail.segment == ProductSegment.jewelry ||
       detail.segment == ProductSegment.watch ||
-      detail.segment == ProductSegment.bullion;
+      detail.segment == ProductSegment.bullion ||
+      detail.segment == ProductSegment.roughDiamond;
 
   @override
   ConsumerState<LuxeProductDetailScreen> createState() =>
@@ -148,6 +153,17 @@ LuxeProductSections luxeProductSections(
     final full = ref.watch(jewelryListingProvider(detail.id)).value;
     if (full != null) detail = jewelryProductDetail(full);
   }
+  // Rough parcels: the server's current `buy` decides every button, so the
+  // page re-reads the parcel instead of trusting the list copy.
+  final rough = detail.roughDetail;
+  if (loadFull && rough != null) {
+    final fresh = ref.watch(roughParcelProvider(detail.id)).value;
+    if (fresh is RoughParcelFound) {
+      detail = roughProductDetail(fresh.parcel);
+    } else if (fresh is RoughParcelGone) {
+      detail = roughProductDetail(rough.parcel, gone: true);
+    }
+  }
   final auth = ref.watch(
     authProvider.select(
       (s) => (isSeller: s.isSeller, showProtected: !s.isVerificationPending),
@@ -207,6 +223,8 @@ LuxeProductSections luxeProductSections(
         ? null
         : detail.jewelryDetail != null
         ? LuxeJewelryPurchaseBar(detail: detail)
+        : detail.roughDetail != null
+        ? LuxeRoughPurchaseBar(detail: detail, priceLabels: labels)
         : LuxePurchaseBar(detail: detail, priceLabels: labels),
   );
 }
@@ -497,6 +515,10 @@ class _Summary extends ConsumerWidget {
           const SizedBox(height: 10),
           enter(LuxeCertificateRow(cert: cert), 4),
         ],
+        if (detail.roughDetail != null) ...[
+          const SizedBox(height: 10),
+          enter(LuxeRoughStatus(detail: detail), 5),
+        ],
       ],
     );
   }
@@ -595,7 +617,9 @@ bool _glanceInSpecs(ProductDetail detail) =>
       ProductSegment.labGrownDiamond ||
       ProductSegment.gemstone ||
       ProductSegment.watch => true,
-      ProductSegment.jewelry || ProductSegment.bullion => false,
+      ProductSegment.jewelry ||
+      ProductSegment.bullion ||
+      ProductSegment.roughDiamond => false,
     };
 
 /// Bullion overview and specification rows as luxe spec tabs; seller info
@@ -647,9 +671,21 @@ class _Record extends StatelessWidget {
             shopName: detail.jewelryDetail!.shop?.name ?? '',
             padding: const EdgeInsets.only(top: 18),
           ),
-        ] else if (specs != null && specs.tabs.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          ScrollReveal(child: LuxeSpecTabs(specs: specs)),
+        ] else ...[
+          if (detail.roughDetail case final rough?
+              when rough.parcel.lots.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            ScrollReveal(child: LuxeRoughLots(detail: detail)),
+          ],
+          if (specs != null && specs.tabs.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            ScrollReveal(child: LuxeSpecTabs(specs: specs)),
+          ],
+          if (detail.roughDetail case final rough?
+              when LuxeRoughDocuments.hasAny(rough.parcel)) ...[
+            const SizedBox(height: 18),
+            ScrollReveal(child: LuxeRoughDocuments(parcel: rough.parcel)),
+          ],
         ],
         if (detail.listingSeller != null &&
             detail.listingSeller!.hasAnyData) ...[

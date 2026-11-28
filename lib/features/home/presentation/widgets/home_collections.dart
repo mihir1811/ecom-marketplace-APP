@@ -9,7 +9,7 @@ import 'home_section.dart';
 import '../../../../core/widgets/luxe/press_tilt.dart';
 import '../../../../core/widgets/luxe/scroll_reveal.dart';
 
-/// Bento grid of the six catalogue worlds.
+/// Bento grid of the seven catalogue worlds.
 class HomeCollections extends StatelessWidget {
   const HomeCollections({super.key, this.topSpacing = HomeSpace.section});
 
@@ -78,6 +78,13 @@ class HomeCollections extends StatelessWidget {
                       ],
                     ),
                   ),
+                  if (items.length > 6) ...[
+                    const SizedBox(height: _gap),
+                    SizedBox(
+                      height: (w * 0.42).clamp(150.0, 260.0),
+                      child: _Tile(item: items[6], wide: true),
+                    ),
+                  ],
                 ],
               );
             },

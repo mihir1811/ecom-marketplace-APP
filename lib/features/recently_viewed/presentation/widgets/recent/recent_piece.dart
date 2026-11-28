@@ -61,12 +61,13 @@ extension RecentPiece on RecentlyViewedEntry {
     imageUrl: imageUrl,
   );
 
-  /// Comparison payload for diamonds, gemstones and watches only.
+  /// Comparison payload for diamonds, gemstones, watches and rough only.
   CompareItem? toCompareItem() {
     final compare = switch (productType) {
       'diamond' || 'meleeDiamond' => CompareCategory.diamond,
       'gemstone' => CompareCategory.gemstone,
       'watch' => CompareCategory.watch,
+      'roughDiamond' => CompareCategory.roughDiamond,
       _ => null,
     };
     if (compare == null) return null;

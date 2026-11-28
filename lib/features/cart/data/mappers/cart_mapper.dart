@@ -42,8 +42,14 @@ abstract final class CartMapper {
     final name =
         _str(productMap['name']) ??
         _str(productMap['brand']) ??
+        // Rough parcels: `displayName` is always set, `title` may be.
+        _str(productMap['displayName']) ??
+        _str(productMap['title']) ??
         _str(productMap['stockNumber']) ??
         'Product';
+    final roughLots = productType == CartProductType.roughDiamond
+        ? _roughLotsLabel(specifications)
+        : null;
     final image =
         _str(productMap['image1']) ??
         _str(productMap['image']) ??
@@ -57,10 +63,11 @@ abstract final class CartMapper {
         ? (isAvailable: false, label: 'Win expired')
         : _productAvailability(json, productMap);
     final stoneWeight = _str(specifications?['stoneWeight']);
-    final displayTitle =
-        (stoneWeight != null &&
-            stoneWeight.isNotEmpty &&
-            !name.toLowerCase().contains(stoneWeight.toLowerCase()))
+    final displayTitle = roughLots != null
+        ? '$name — $roughLots'
+        : (stoneWeight != null &&
+              stoneWeight.isNotEmpty &&
+              !name.toLowerCase().contains(stoneWeight.toLowerCase()))
         ? '$name · $stoneWeight'
         : name;
 
@@ -82,7 +89,9 @@ abstract final class CartMapper {
       auctionId: auctionId,
       auctionPayBy: _date(auctionWin?['payBy']),
       imageUrl: image,
-      shape: _str(productMap['shape']),
+      shape: productType == CartProductType.roughDiamond
+          ? 'Rough'
+          : _str(productMap['shape']),
       seller: _str(json['seller']) ?? _str(productMap['sellerName']),
       sellerId: _str(json['sellerId']),
       // Backend `/cart/update` rejects qty changes for jewellery and most types.
@@ -90,6 +99,30 @@ abstract final class CartMapper {
       isAvailable: availability.isAvailable,
       availabilityLabel: availability.label,
     );
+  }
+
+  /// "2 lots (+3, -5+3), 12.50 ct" for a rough lot purchase; null for a
+  /// whole parcel.
+  static String? _roughLotsLabel(Map<String, dynamic>? specifications) {
+    if (specifications?['isRoughLotPurchase'] != true) return null;
+    final lots = specifications?['lots'];
+    final sizes = <String>[
+      if (lots is List)
+        for (final l in lots)
+          if (l is Map && _str(l['sieveSize']) != null) _str(l['sieveSize'])!,
+    ];
+    final count = sizes.isNotEmpty
+        ? sizes.length
+        : (specifications?['lotIds'] is List
+              ? (specifications!['lotIds'] as List).length
+              : 0);
+    if (count == 0) return null;
+    final carat = _num(specifications?['selectedCarat']);
+    return [
+      '$count ${count == 1 ? 'lot' : 'lots'}'
+          '${sizes.isEmpty ? '' : ' (${sizes.join(', ')})'}',
+      if (carat != null && carat > 0) '${carat.toStringAsFixed(2)} ct',
+    ].join(', ');
   }
 
   static CartSummary summaryFromJson(Map<String, dynamic> json) {

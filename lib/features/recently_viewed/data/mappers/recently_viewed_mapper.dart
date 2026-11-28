@@ -71,6 +71,7 @@ abstract final class RecentlyViewedMapper {
           gemstone?.carat ??
           _asDouble(normalized?['caratWeight']) ??
           _asDouble(normalized?['totalCarat']) ??
+          _asDouble(normalized?['totalCaratWeight']) ??
           _asDouble(normalized?['carat']),
       shape:
           _nullableString(diamond?.shape) ??
@@ -131,6 +132,7 @@ abstract final class RecentlyViewedMapper {
     if (product == null) return null;
     final stock = _nullableString(product['stockNumber']);
     final explicit =
+        _nullableString(product['displayName']) ??
         _nullableString(product['title']) ??
         _nullableString(product['name']) ??
         _nullableString(product['productName']) ??
@@ -320,6 +322,8 @@ abstract final class RecentlyViewedMapper {
       'jewelry' || 'jewellery' => _jewelryAvailability(product),
       'watch' => _watchAvailability(product),
       'bullion' => _bullionAvailability(product),
+      // Rough parcels share the diamond `available` / `isSold` fields.
+      'roughDiamond' => _diamondAvailability(product),
       _ => null,
     };
   }

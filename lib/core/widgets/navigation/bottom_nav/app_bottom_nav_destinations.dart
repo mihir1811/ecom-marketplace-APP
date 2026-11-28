@@ -41,6 +41,7 @@ abstract final class AppBottomNav {
     AppRouteNames.jewelryListing,
     AppRouteNames.watches,
     AppRouteNames.bullions,
+    AppRouteNames.roughDiamonds,
     AppRouteNames.auctions,
   };
 

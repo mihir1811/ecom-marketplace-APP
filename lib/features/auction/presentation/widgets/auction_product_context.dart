@@ -45,6 +45,9 @@ List<String> auctionProductContextTags(AuctionListing auction) {
     case CartProductType.bullion:
       add(_titleCase(_str(product['metal'])));
       add(_str(product['purity']));
+    case CartProductType.roughDiamond:
+      add(_str(product['crystalShape']), skipIfInTitle: true);
+      add(_str(product['roughQuality']));
     default:
       add(_titleCase(_str(product['shape'])), skipIfInTitle: true);
       add(_caratLabel(product), skipIfInTitle: true);
@@ -68,6 +71,10 @@ String _originOrType(String productType, Map<String, dynamic> product) {
     CartProductType.jewellery => 'Jewelry',
     CartProductType.watch => 'Watch',
     CartProductType.bullion => 'Bullion',
+    CartProductType.roughDiamond =>
+      _str(product['diamondType'])?.toUpperCase() == 'LAB'
+          ? 'Lab Rough'
+          : 'Natural Rough',
     _ => CartProductType.label(productType),
   };
 }

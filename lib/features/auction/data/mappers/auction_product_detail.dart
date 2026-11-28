@@ -102,6 +102,7 @@ ProductSegment _segment(String type) {
     CartProductType.jewellery => ProductSegment.jewelry,
     CartProductType.watch => ProductSegment.watch,
     CartProductType.bullion => ProductSegment.bullion,
+    CartProductType.roughDiamond => ProductSegment.roughDiamond,
     _ => ProductSegment.naturalDiamond,
   };
 }

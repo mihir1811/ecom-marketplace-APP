@@ -60,6 +60,10 @@ abstract final class HomeNetworkImages {
   static const jewelry =
       'https://images.unsplash.com/photo-1777126413461-26387cfe5ce5?auto=format&fit=crop&w=1000&q=80';
 
+  /// Uncut diamond crystal by Mr. Pugo (@mrpugo), Unsplash License.
+  static const roughDiamonds =
+      'https://images.unsplash.com/photo-1780432036547-39f627240c13?auto=format&fit=crop&w=1000&q=80';
+
   static const bullion =
       'https://images.unsplash.com/photo-1718752773168-a44aa1601ddd?auto=format&fit=crop&w=1000&q=80';
 

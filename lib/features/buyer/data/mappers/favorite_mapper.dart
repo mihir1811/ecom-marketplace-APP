@@ -84,6 +84,8 @@ abstract final class FavoriteMapper {
       FavoriteProductType.jewellery => _jewelryTitle(product),
       FavoriteProductType.watch => _watchTitle(product),
       FavoriteProductType.bullion => _bullionTitle(product),
+      FavoriteProductType.roughDiamond =>
+        _label(product['displayName']) ?? _label(product['title']) ?? '',
       _ => _joinWords([
         _label(product['productTitle']),
         _label(product['name']),
@@ -113,6 +115,13 @@ abstract final class FavoriteMapper {
       FavoriteProductType.bullion => _join([
         _titleCase(product['metalShape']) ?? _titleCase(product['shape']),
         _titleCase(product['condition']),
+      ]),
+      FavoriteProductType.roughDiamond => _join([
+        '${product['diamondType']}'.toUpperCase() == 'LAB'
+            ? 'Lab-grown rough'
+            : 'Natural rough',
+        _caratText(_num(product['totalCaratWeight'])),
+        _label(product['crystalShape']),
       ]),
       _ => _join([
         _label(product['origin']),
